@@ -36,6 +36,14 @@ Dự án cung cấp một giao diện Web UI local cực kỳ trực quan và ca
 4. Truy cập địa chỉ hiển thị trong terminal (mặc định là `http://localhost:3000`) để trải nghiệm nhập Brief chiến dịch và xem outputs trực quan của các AI Agent.
 
 
+## 🤖 Phase F — Universal AI Coordinator Prompt
+
+Dự án cung cấp bộ prompt chuẩn dùng để cấu hình phòng AI Marketing 5 Agent trên các Chatbot AI bên ngoài (như ChatGPT, Claude, Gemini, Antigravity):
+- **Tài liệu chính:** [universal_ai_coordinator_prompt.md](file:///c:/Users/BaO/.gemini/antigravity/MARKETING_TEAM/CLAUDE_MARKETING_TEAM/07_docs/universal_ai_coordinator_prompt.md) - Đặc tả chi tiết nhiệm vụ từng vai trò và quy trình xử lý, đóng gói brief chiến dịch.
+- **Tài liệu sao chép nhanh:** [quick_copy_ai_coordinator_prompt.md](file:///c:/Users/BaO/.gemini/antigravity/MARKETING_TEAM/CLAUDE_MARKETING_TEAM/07_docs/quick_copy_ai_coordinator_prompt.md) - Bản rút gọn, dễ dàng copy/paste trực tiếp.
+- **Safety:** Mặc định mô phỏng ngoại tuyến (Simulation by default), không auto-post, không chạy ads thật, không tự động nhắn tin và không chứa keys/secrets.
+
+
 ## Project Boundary
 
 Để bảo vệ an toàn hệ thống và tránh các chi phí phát sinh ngoài ý muốn, dự án tuân thủ nghiêm ngặt các nguyên tắc sau:

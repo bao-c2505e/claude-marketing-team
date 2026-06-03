@@ -91,6 +91,16 @@ Nhật ký ghi lại các hành động mô phỏng của các AI Agent khi vậ
 - **[SYSTEM]:** Xây dựng tài liệu câu hỏi thường gặp của khách hàng tại [faq_for_clients.md](file:///c:/Users/BaO/.gemini/antigravity/MARKETING_TEAM/CLAUDE_MARKETING_TEAM/07_docs/faq_for_clients.md).
 - **[SYSTEM]:** Cập nhật đồng bộ hóa trạng thái hoàn thành 100% Phase G trong `CURRENT_PHASE.md`.
 
+### 🗓️ Ngày 03/06/2026 21:58:00
+- **[SYSTEM]:** Thực hiện hành động: **Cấu hình Phase F — Universal AI Coordinator Prompt (Bản Hoàn Thiện)**.
+- **[SYSTEM]:** Tệp tin đã thay đổi & tạo lập:
+  * [universal_ai_coordinator_prompt.md](file:///c:/Users/BaO/.gemini/antigravity/MARKETING_TEAM/CLAUDE_MARKETING_TEAM/07_docs/universal_ai_coordinator_prompt.md): Cập nhật chi tiết đặc tả 5 AI roles, cấu trúc đầu ra mẫu và Owner template.
+  * [quick_copy_ai_coordinator_prompt.md](file:///c:/Users/BaO/.gemini/antigravity/MARKETING_TEAM/CLAUDE_MARKETING_TEAM/07_docs/quick_copy_ai_coordinator_prompt.md): Tạo mới tệp prompt rút gọn để sao chép nhanh vào các Chatbot bên ngoài.
+  * [README.md](file:///c:/Users/BaO/.gemini/antigravity/MARKETING_TEAM/CLAUDE_MARKETING_TEAM/README.md): Bổ sung phần tài liệu của Phase F và chỉ dẫn an toàn.
+  * [owner_manual.md](file:///c:/Users/BaO/.gemini/antigravity/MARKETING_TEAM/CLAUDE_MARKETING_TEAM/07_docs/owner_manual.md): Bổ sung phần hướng dẫn sử dụng chi tiết 7 bước cho Prompt vạn năng.
+- **[SYSTEM]:** Cam kết an toàn: Không chứa API key, password hay secrets; không kích hoạt connector thật; không auto-post/auto-ads và độc lập với FnB OS V1.
+- **[SYSTEM]:** Trạng thái: Done / Ready for Review.
+
 
 
 
