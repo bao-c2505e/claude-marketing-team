@@ -119,6 +119,30 @@ Nhật ký ghi lại các hành động mô phỏng của các AI Agent khi vậ
 - **[SYSTEM]:** Cam kết an toàn: Không chứa API key/secrets, không tự ý auto-post/auto-ads/auto-message, dữ liệu hiệu quả là giả lập `[SIMULATED DATA]`, độc lập FnB OS V1.
 - **[SYSTEM]:** Trạng thái: Done / Ready for Review.
 
+### 🗓️ Ngày 03/06/2026 23:35:00
+- **[SYSTEM]:** Khởi tạo Test Case chiến dịch mới cho thương hiệu Vị Cuốn.
+- **[SYSTEM]:** Tạo lập thư mục mới: `06_demo_cases/vi_cuon_test_campaign/`.
+- **[SYSTEM]:** Tạo lập thành công 2 tệp tin cấu hình test case:
+  * [brief.md](file:///c:/Users/BaO/.gemini/antigravity/MARKETING_TEAM/CLAUDE_MARKETING_TEAM/06_demo_cases/vi_cuon_test_campaign/brief.md): Chứa định vị thương hiệu, sản phẩm heo quay cuốn bánh tráng cần đẩy, USP, đối tượng mục tiêu và yêu cầu 13 mục đầu ra cho campaign 7 ngày.
+  * [how_to_run_test.md](file:///c:/Users/BaO/.gemini/antigravity/MARKETING_TEAM/CLAUDE_MARKETING_TEAM/06_demo_cases/vi_cuon_test_campaign/how_to_run_test.md): Hướng dẫn chi tiết 6 bước sao chép nhanh prompt và dán brief chạy thử nghiệm.
+- **[SYSTEM]:** Cam kết an toàn: Không chạy ads thật, không tự động đăng bài, không nhắn tin cho khách hàng thật, không chứa hoặc yêu cầu secrets.
+- **[SYSTEM]:** Trạng thái: Ready for manual AI prompt test.
+
+### 🗓️ Ngày 04/06/2026 00:35:00
+- **[SYSTEM]:** Cập nhật Test Case chiến dịch thương hiệu Vị Cuốn.
+- **[SYSTEM]:** Tạo lập thành công 2 tệp tin kết quả và đánh giá:
+  * [gemini_campaign_pack_raw.md](file:///c:/Users/BaO/.gemini/antigravity/MARKETING_TEAM/CLAUDE_MARKETING_TEAM/06_demo_cases/vi_cuon_test_campaign/gemini_campaign_pack_raw.md): Lưu trữ nguyên văn sản phẩm thô do AI Coordinator tạo ra dựa trên brief của Vị Cuốn (chứa các giả định lỗi về giá, combo, khuyến mãi và số liệu PR giả).
+  * [gemini_campaign_pack_review.md](file:///c:/Users/BaO/.gemini/antigravity/MARKETING_TEAM/CLAUDE_MARKETING_TEAM/06_demo_cases/vi_cuon_test_campaign/gemini_campaign_pack_review.md): Tài liệu đánh giá chi tiết chất lượng, an toàn, các điểm bắt buộc phải sửa trước khi dùng thật và quy tắc cho bản hiệu chỉnh sạch.
+- **[SYSTEM]:** Cam kết an toàn: Không chạy ads thật, không tự động đăng bài, không nhắn khách thật, chỉ sử dụng dữ liệu hiệu năng giả lập `[SIMULATED DATA]`.
+- **[SYSTEM]:** Trạng thái: Ready for clean version.
+
+### 🗓️ Ngày 04/06/2026 00:45:00
+- **[SYSTEM]:** Tạo lập bản sạch hiệu chỉnh của Test Case chiến dịch Vị Cuốn.
+- **[SYSTEM]:** Tạo lập thành công tệp tin:
+  * [vi_cuon_campaign_pack_clean_for_owner_review.md](file:///c:/Users/BaO/.gemini/antigravity/MARKETING_TEAM/CLAUDE_MARKETING_TEAM/06_demo_cases/vi_cuon_test_campaign/vi_cuon_campaign_pack_clean_for_owner_review.md): Chứa đầy đủ 13 mục sản phẩm đầu ra đã được làm sạch hoàn toàn (loại bỏ giá cả, ưu đãi và các social proof giả, bổ sung placeholder và checklist phê duyệt an toàn cho Owner).
+- **[SYSTEM]:** Cam kết an toàn: Không chạy ads thật, không tự động đăng bài, không nhắn tin cho khách hàng thật, không chứa secrets.
+- **[SYSTEM]:** Trạng thái: Ready for Owner Review.
+
 
 
 
