@@ -10,10 +10,9 @@ import {
   X, 
   ChevronRight, 
   AlertCircle, 
-  Sparkles, 
-  Info 
+  Sparkles
 } from 'lucide-react';
-import { sampleCampaigns, Campaign, CampaignBrief } from './mockData';
+import { sampleCampaigns, Campaign, CampaignBrief, CalendarItem, ChecklistItem } from './mockData';
 
 export default function App() {
   const [campaigns, setCampaigns] = useState<Campaign[]>(sampleCampaigns);
@@ -125,7 +124,7 @@ export default function App() {
       if (c.id === campaignId && c.checklist) {
         return {
           ...c,
-          checklist: c.checklist.map(item => 
+          checklist: c.checklist.map((item: ChecklistItem) => 
             item.id === itemId ? { ...item, checked: !item.checked } : item
           )
         };
@@ -663,7 +662,7 @@ export default function App() {
                             </tr>
                           </thead>
                           <tbody>
-                            {activeCampaign.calendar?.map((item, idx) => (
+                            {activeCampaign.calendar?.map((item: CalendarItem, idx: number) => (
                               <tr key={idx} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', fontSize: '0.85rem' }}>
                                 <td style={{ padding: '12px 8px', fontWeight: 'bold', color: 'var(--accent-indigo)' }}>{item.day}</td>
                                 <td style={{ padding: '12px 8px' }}>{item.theme}</td>
@@ -854,7 +853,7 @@ export default function App() {
                       Vui lòng tích chọn phê duyệt từng tiêu chí dưới đây trước khi tiến hành triển khai thủ công ngoài thực tế:
                     </p>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                      {activeCampaign.checklist?.map((item) => (
+                      {activeCampaign.checklist?.map((item: ChecklistItem) => (
                         <label 
                           key={item.id} 
                           style={{ 
