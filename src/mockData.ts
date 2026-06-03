@@ -51,72 +51,131 @@ export interface Campaign {
 
 export const sampleCampaigns: Campaign[] = [
   {
-    id: "CAMP-TOMTEP-001",
-    name: "Chiến dịch Hè Rực Rỡ — Trà Sữa Ngập Topping",
+    id: "CAMP-VICUON-001",
+    name: "Chiến dịch Bánh tráng cuốn heo quay — Vị Cuốn",
     phase: "Phase B — First Demo Campaign Pack",
     status: "Needs Review",
     brief: {
-      brandName: "Trà Sữa Tôm Tép",
-      industry: "F&B - Trà sữa & Ăn vặt",
-      heroProduct: "Trà sữa nướng khoai dẻo",
-      pricing: "25.000 - 32.000 VND / cốc",
-      targetCustomer: "Học sinh THPT (15-18 tuổi), Sinh viên ĐH Vinh, dân văn phòng ăn chiều",
-      location: "TP. Vinh, Nghệ An (bán kính 5km quanh đường Lê Hồng Phong)",
-      goal: "Tăng 30% doanh số ship, kéo khách check-in và đẩy món mới",
-      duration: "7 ngày (01/06/2026 - 07/06/2026)",
-      offer: "Mua 1 tặng 1 size L dòng trà sữa nướng khoai dẻo (3 ngày đầu) + Free trân châu trắng",
-      channels: ["Facebook", "TikTok"],
-      toneOfVoice: "Năng động, trẻ trung, gần gũi, sử dụng từ ngữ trendy giới trẻ",
-      exclusions: "Không dùng từ sáo rỗng, tránh ngôn từ phản cảm",
-      assets: "Ảnh sản phẩm nét cao, logo PNG tách nền, view ban công đẹp"
+      brandName: "Vị Cuốn",
+      industry: "F&B / món cuốn / street food premium tại TP Vinh",
+      heroProduct: "Bánh tráng cuốn heo quay",
+      pricing: "[Chưa cung cấp - OWNER CUNG CẤP]",
+      targetCustomer: "Nhân viên văn phòng, sinh viên, gia đình trẻ tại TP Vinh",
+      location: "TP. Vinh, Nghệ An (bán kính ship linh hoạt)",
+      goal: "Tăng nhận diện thương hiệu Bánh tráng cuốn heo quay và kéo đơn hàng ăn trưa/ăn tối",
+      duration: "7 ngày (Chiến dịch thử nghiệm)",
+      offer: "[Chưa chốt ưu đãi - OWNER CUNG CẤP]",
+      channels: ["Facebook", "TikTok / Reels"],
+      toneOfVoice: "Gần gũi, ngon miệng, thực tế, mang chất địa phương Vinh",
+      exclusions: "Không ghi giá bán lẻ hay ưu đãi giả; không chứa claim sức khỏe quá đà; không bịa số liệu đơn hàng",
+      assets: "Hình ảnh món ăn thực tế tại quán, logo PNG, video thô quay bằng điện thoại"
     },
     outputs: {
       copywriter: {
         slogans: [
-          "Hè nóng nực, có Tôm Tép cực mát lạnh!",
-          "Trân châu tự nấu — Ngon sạch chuẩn gu!",
-          "Đập tan nóng hè, tràn lề topping!"
+          "Giòn rôm rả — Cuốn đậm đà",
+          "Heo quay da giòn, cuốn vị Vinh",
+          "Một cuốn đủ rau, đủ thịt, đủ thèm"
         ],
         hooks: [
-          "Đừng xem video này nếu bạn đang thèm trà sữa béo ngậy đầy topping!",
-          "MUA 1 TẶNG 1 trà sữa nướng khoai dẻo độc quyền lần đầu xuất hiện tại Vinh!",
-          "Hé lộ quy trình tự nấu trân châu đen dai giòn sạch 100% tại Tôm Tép..."
+          "ASMR chặt heo quay da giòn nổ rôm rả trên thớt gỗ sạch...",
+          "Tay cuốn bánh tráng, thêm rau tươi rói, chấm đẫm mắm nêm sánh quyện...",
+          "Hộp cuốn heo quay đóng gói lịch sự sẵn sàng ship tận tay văn phòng tránh nắng."
         ],
         ctas: [
-          "👉 Nhắn tin cho Fanpage ngay để nhận ưu đãi mua 1 tặng 1!",
-          "📞 Hotline 0989 845 675 luôn sẵn sàng, chỉ 15 phút trà sữa mát lạnh gõ cửa!",
-          "🔥 Đặt hàng ngay hôm nay để nhận thêm trân châu nhà làm miễn phí!"
+          "👉 [Inbox đặt món]",
+          "📞 [Hotline: OWNER CUNG CẤP]",
+          "📍 [Địa chỉ: OWNER CUNG CẤP]"
         ],
         captions: [
           {
-            title: "Bài 1 (Ngày 1): Mừng ra mắt MUA 1 TẶNG 1",
-            body: "MUA 1 TẶNG 1 — ĐẬP TAN NÓNG HÈ CÙNG DÒNG SIÊU PHẨM MỚI!\n\nGiới trẻ Thành Vinh ơi! Hè nóng đỉnh điểm thế này thì làm sao sống thiếu một ly trà sữa mát lạnh béo ngậy được đúng không?\n\nĐể thổi bay cái nóng 40 độ, Trà Sữa Tôm Tép chính thức trình làng dòng sản phẩm mới: Trà Sữa Nướng Khoai Dẻo thơm lừng caramel, kết hợp cùng khoai dẻo siêu mịn mượt!\n\n🎉 ƯU ĐÃI ĐẶC BIỆT:\n👉 MUA 1 size L TẶNG 1 size L cùng dòng từ 01/06 đến 03/06.\n👉 Tặng thêm trân châu trắng cho toàn bộ đơn ship!\n\n======Gọi ship ngay======\nGọi ship: 0989 845 675\nĐịa chỉ: Số 12, đường Lê Hồng Phong, TP. Vinh",
-            visual: "Product Hero (Cận cảnh ly trà sữa nướng khoai dẻo tươi ngon)"
+            title: "Bài 1 (Ngày 1): Giới thiệu Heo quay nướng lu da giòn",
+            body: "🥓 HEO QUAY NƯỚNG LU DA GIÒN RÔM RẢ — CUỐN NGON TRỌN VỊ!\n\nBữa trưa nay ăn gì để vừa ngon, vừa sạch, lại không lo béo ngấy? Hãy thử ngay Bánh tráng cuốn heo quay tại Vị Cuốn!\n\nTừng miếng thịt heo quay nướng lu thơm lừng với lớp da giòn tan rôm rả, cuốn cùng rau sống đa dạng rửa sạch chuẩn vệ sinh, chấm đẫm nước mắm nêm đậm vị độc quyền của quán.\n\nBữa trưa chất lượng tiếp thêm năng lượng chạy deadline văn phòng!\n\n====== Đặt món ngay ======\n👉 [Inbox đặt món]\n📞 Hotline đặt ship: [Hotline: OWNER CUNG CẤP]\n📍 Địa chỉ: [Địa chỉ: OWNER CUNG CẤP]",
+            visual: "Cận cảnh đĩa thịt heo quay lu da nổ giòn, khói nghi ngút thơm lừng"
           },
           {
-            title: "Bài 2 (Ngày 2): Câu chuyện trân châu nhà làm sạch 100%",
-            body: "BẬT MÍ HẬU TRƯỜNG: VÌ SAO TRÂN CHÂU TẠI TÔM TÉP LUÔN DA GIÒN KHÁC BIỆT?\n\nCâu trả lời cực kỳ đơn giản: Bởi vì Tôm Tép tự nhào bột và nấu mới mỗi ngày!\n✔️ Nói KHÔNG với chất bảo quản và bột màu công nghiệp.\n✔️ Trân châu được luộc đủ lửa, ủ mật ong nguyên chất ngọt thanh thanh.\n✔️ Chỉ bán trong ngày để đảm bảo mẻ mới sáng hôm sau luôn tươi mới.\n\n======Gọi ship ngay======\nGọi ship: 0989 845 675\nĐịa chỉ: Số 12, đường Lê Hồng Phong, TP. Vinh",
-            visual: "Detail Shot (Nồi trân châu đen đang nấu sôi óng ánh)"
+            title: "Bài 2 (Ngày 2): Giải pháp ăn trưa văn phòng tiện lợi",
+            body: "💻 BỮA TRƯA VĂN PHÒNG TIỆN LỢI & SẠCH SẼ CÙNG VỊ CUỐN\n\nKhông cần đội nắng ra đường tìm quán ăn trưa. Vị Cuốn mang đến cho văn phòng bạn hộp bánh tráng cuốn heo quay được đóng gói sạch sẽ, chỉn chu, ngon mắt.\n\nCuốn ngập tràn rau tươi và thịt giòn béo ngậy, ăn no bụng nhưng cực kỳ nhẹ nhàng cho buổi chiều làm việc hiệu quả.\n\n====== Đặt món ngay ======\n👉 [Inbox đặt món]\n📞 Hotline: [Hotline: OWNER CUNG CẤP]\n📍 Địa chỉ: [Địa chỉ: OWNER CUNG CẤP]",
+            visual: "Hộp giấy đóng gói sang trọng đựng 6 cuộn bánh tráng heo quay xếp đều đặn"
+          },
+          {
+            title: "Bài 3 (Ngày 3): Bún trộn mắm nêm đổi gió",
+            body: "🍹 ĐỔI GIÓ HÔM NAY VỚI BÚN TRỘN MẮM NÊM VỊ CUỐN\n\nNếu đã quen với món cuốn, hôm nay hãy thử bún trộn mắm nêm đậm đà. Thịt heo quay lu cắt lát, rau sống tươi ngon cùng lạc rang giòn bùi, quyện trong bát mắm nêm đậm vị tỏi ớt đặc trưng Vinh.\n\nĂn no bụng, mát lòng, giải nhiệt hiệu quả ngày nắng nóng!\n\n====== Đặt món ngay ======\n👉 [Inbox đặt món]\n📞 Hotline: [Hotline: OWNER CUNG CẤP]\n📍 Địa chỉ: [Địa chỉ: OWNER CUNG CẤP]",
+            visual: "Bát bún trộn đầy ắp topping rau thơm, thịt heo nướng lu vàng ruộm"
           }
         ]
       },
       videoEditor: {
         scripts: [
           {
-            title: "Kịch bản TikTok 1: ASMR Rót Sữa nướng & Topping",
-            sceneCount: 4,
+            title: "Kịch bản video 1: ASMR chặt heo quay da giòn",
+            sceneCount: 3,
             scenes: [
               {
                 scene: "Cảnh 1 (Hook)",
-                visual: "Rót dòng sữa béo ngậy tràn ngập ly trà sữa đầy đá lạnh xoáy tròn.",
-                audio: "VO: 'Chờ đã! Đây là siêu phẩm sẽ thống trị mùa hè này tại Vinh!' SFX: Tiếng nước rót róc rách sống động.",
-                note: "Chuyển cảnh nhanh, nhạc bắt tai (Trending Beat)"
+                visual: "Cận cảnh dao thái dứt khoát lên miếng thịt heo quay nướng lu vàng óng.",
+                audio: "SFX: Tiếng da heo nổ nứt giòn rụm rôm rả vang lên chân thực. Nhạc lofi nhẹ nhàng.",
+                note: "Quay sát thớt gỗ (Macro shot), chuyển cảnh nhanh kích thích vị giác"
               },
               {
                 scene: "Cảnh 2",
-                visual: "Múc thạch khoai dẻo vàng mịn đặt ngập tràn lên bề mặt ly nước.",
-                audio: "VO: 'Khoai dẻo tự tay nhào nặn siêu mịn mượt cùng sốt caramel nướng độc quyền.' Nhạc nền lofi vui tươi.",
-                note: "Quay cận cảnh Macro cực nét"
+                visual: "Tay nhân viên bày đĩa thịt heo quay bên cạnh mẹt rau sống tươi đa dạng.",
+                audio: "VO: 'Heo quay nướng lu nóng hổi, da siêu giòn thơm lừng tại Vị Cuốn.'",
+                note: "Góc quay từ trên xuống (Top-down shot)"
+              },
+              {
+                scene: "Cảnh 3 (CTA)",
+                visual: "Text overlay hiển thị logo Vị Cuốn và placeholder liên hệ ship hàng.",
+                audio: "VO: 'Đặt món ngay để bữa trưa sẵn sàng gõ cửa văn phòng bạn!'",
+                note: "Nhạc nền tăng dần, kết thúc bằng CTA"
+              }
+            ]
+          },
+          {
+            title: "Kịch bản video 2: Tay cuốn bánh tráng & chấm mắm nêm",
+            sceneCount: 3,
+            scenes: [
+              {
+                scene: "Cảnh 1 (Hook)",
+                visual: "Tay một bạn trẻ trải bánh tráng, đặt rau sống tươi xanh, dưa chuột và cuộn chặt tay với thịt heo nướng.",
+                audio: "SFX: Tiếng xào xạc nhẹ của rau tươi. VO: 'Một chiếc cuốn đầy đặn đủ rau, đủ thịt cho bữa chiều nhẹ bụng.'",
+                note: "Góc quay cận trung (Medium close-up)"
+              },
+              {
+                scene: "Cảnh 2",
+                visual: "Cuộn bánh tráng được chấm đẫm vào bát mắm nêm sánh mịn đầy tỏi ớt băm nhỏ.",
+                audio: "SFX: Tiếng chấm sốt sánh quyện thơm ngon. VO: 'Mắm nêm pha theo công thức riêng đậm đà vị local Vinh.'",
+                note: "Góc quay Macro cực nét đặc tả nước chấm"
+              },
+              {
+                scene: "Cảnh 3 (CTA)",
+                visual: "Text overlay: [Inbox đặt món] | [Hotline: OWNER CUNG CẤP].",
+                audio: "VO: 'Rủ hội bạn văn phòng cùng cuốn chiều nay thôi nào!'",
+                note: "Slide hiển thị thông tin đặt ship"
+              }
+            ]
+          },
+          {
+            title: "Kịch bản video 3: Đóng hộp ship văn phòng",
+            sceneCount: 3,
+            scenes: [
+              {
+                scene: "Cảnh 1",
+                visual: "Nhân viên cẩn thận xếp từng cuộn bánh tráng heo quay vào hộp giấy sạch sẽ, thắt nơ đính kèm logo quán.",
+                audio: "VO: 'Chuẩn sạch premium từ khâu đóng gói chỉn chu gửi đến văn phòng của bạn.' Nhạc nền năng động.",
+                note: "Góc quay ngang tầm mắt (Eye-level shot)"
+              },
+              {
+                scene: "Cảnh 2",
+                visual: "Shipper xách túi đồ ăn đi dưới trời nắng của TP. Vinh giao tới tòa nhà công sở.",
+                audio: "VO: 'Tránh nắng chiều hè, cơm trưa giao tận bàn chỉ sau 20 phút.'",
+                note: "Quay chuyển động (Tracking shot)"
+              },
+              {
+                scene: "Cảnh 3 (CTA)",
+                visual: "Text overlay: [Gọi hotline: OWNER CUNG CẤP].",
+                audio: "VO: 'Inbox Vị Cuốn để trưa nay ăn ngon sạch tiện lợi nhé!'",
+                note: "Hiển thị thông tin liên hệ đặt hàng"
               }
             ]
           }
@@ -125,60 +184,71 @@ export const sampleCampaigns: Campaign[] = [
       designer: {
         briefs: [
           {
-            title: "Thiết kế 1: Banner Mua 1 Tặng 1",
-            layout: "Ly trà sữa đặt lệch phải làm chủ thể chính, khoảng trống góc trái đặt chữ text overlay to nổi bật.",
-            textOverlay: "MUA 1 TẶNG 1 - Dòng Trà Sữa Nướng Khoai Dẻo mới ra mắt!",
-            prompt: "A glass of premium milk tea with boba pearls and yellow taro balls on top, rustic wooden table, bright summer sunlight, warm yellow and green color palette, micro food photography, 85mm lens, f/1.8, cinematic lighting, 8k resolution, photorealistic --ar 1:1"
+            title: "Thiết kế 1: Ảnh cận heo quay da giòn",
+            layout: "Thịt heo quay lu vàng óng thái miếng đặt lệch góc trái, góc phải đặt logo và tiêu đề món ăn sạch sẽ.",
+            textOverlay: "HEO QUAY NƯỚNG LU DA GIÒN RÔM RẢ - VỊ CUỐN",
+            prompt: "A close-up shot of freshly sliced roasted pork belly with crispy skin, on a white clean plate, hot steam rising, dining table setting in a modern restaurant, warm natural lighting, high resolution, 8k --ar 16:9"
+          },
+          {
+            title: "Thiết kế 2: Mẹt cuốn rau tươi xanh",
+            layout: "Mẹt tre lớn đựng đầy đủ bánh tráng, rau sống tươi mát, thịt heo quay thái mỏng xếp vòng tròn đồng tâm, bát nước chấm ở trung tâm.",
+            textOverlay: "MỘT CUỐN ĐỦ RAU - ĐỦ THỊT - ĐỦ THÈM",
+            prompt: "A beautiful Vietnamese food platter with fresh rice paper rolls ingredients: sliced roasted pork belly, cucumber, herbs, rice vermicelli, dipping sauce bowl in center, rustic top-down perspective, organic food photography, cinematic lighting --ar 4:3"
+          },
+          {
+            title: "Thiết kế 3: Canva brief cho post ăn trưa văn phòng",
+            layout: "Bố cục chia hai nửa, nửa trên là hình ảnh văn phòng tươi vui ngồi ăn món cuốn sạch sẽ, nửa dưới là hộp giấy ship cơm trưa chỉn chu kèm thông tin hotline.",
+            textOverlay: "BỮA TRƯA VĂN PHÒNG CHUẨN SẠCH PREMIUM - SHIPPED TO YOU",
+            prompt: "A clean eco-friendly cardboard lunch box filled with neatly cut rice paper rolls, office desk background with a laptop, modern professional work lifestyle, soft lighting, sharp focus --ar 1:1"
           }
         ]
       },
       adsManager: {
         angles: [
-          "Góc 1: Giá trị kinh tế (Mua 1 tặng 1 siêu hời)",
-          "Góc 2: Sức khỏe & Vệ sinh (Trân châu thủ công tự nấu sạch 100%)",
-          "Góc 3: Tránh nóng ngày hè Vinh (Gọi ship 15 phút đá mát lịm)"
+          "Angle 1: Bữa trưa tiện lợi tránh nắng, ship tận văn phòng cho công sở Vinh",
+          "Angle 2: Trải nghiệm ẩm thực heo quay lu da giòn tan kết hợp mắm nêm đậm vị",
+          "Angle 3: Món ăn cuốn nhẹ bụng, nhiều rau mát mẻ chiều lòng người sợ béo",
+          "Angle 4: Đặt nhóm đông người ăn trưa/tối tại văn phòng nhận ưu đãi tiện lợi"
         ],
         objectives: [
-          "Facebook Messages (Thu hút tin nhắn đặt hàng)",
-          "Facebook Traffic (Kéo truy cập xem menu)",
-          "TikTok Video Views (Tăng viral thương hiệu sạch)"
+          "Facebook Messages (Thu hút tin nhắn inbox đặt món trực tiếp)",
+          "Facebook Traffic (Kéo khách hàng xem menu món cuốn trên page)",
+          "TikTok Video Views (Viral video ASMR tiếng thịt giòn nổ lu)"
         ],
         adSets: [
           {
-            name: "Học sinh THPT Vinh (Reels Video)",
-            budget: "2.500.000 VND (50%)",
-            targeting: "Tuổi 15-22, bán kính 5km quanh quán, thích ăn vặt, trà sữa",
-            format: "Video Reels bắt trend"
+            name: "Dân văn phòng xế chiều TP Vinh (Feed Photo)",
+            budget: "[Ví dụ mô phỏng: 150.000 VND/ngày]",
+            targeting: "Tuổi 22-35, khu vực trung tâm TP Vinh, nhân viên công sở, sở thích ăn trưa, món cuốn",
+            format: "Ảnh Combo / Hộp giấy ship cơm trưa"
           },
           {
-            name: "Dân văn phòng xế chiều (Feed Photo)",
-            budget: "1.500.000 VND (30%)",
-            targeting: "Tuổi 23-30, khu vực công sở trung tâm Vinh, thích order chiều",
-            format: "Hình ảnh Combo nem chua + trà sữa"
+            name: "Giới trẻ & Sinh viên Vinh (Reels Video)",
+            budget: "[Ví dụ mô phỏng: 100.000 VND/ngày]",
+            targeting: "Tuổi 18-24, bán kính 4km quanh trung tâm Vinh, thích street food, ăn vặt",
+            format: "Video ngắn ASMR da heo nổ lu giòn tan"
           }
         ],
         testIdeas: [
-          "Thử nghiệm Video Reels vs Ảnh banner tĩnh",
-          "Thử nghiệm Nhạc lofi chill vs Nhạc remix bốc",
-          "Thử nghiệm Video UGC review tự nhiên vs video bếp sạch cam kết"
+          "Thử nghiệm Banner món ăn cận cảnh chân thực vs Banner thiết kế graphic chữ lớn",
+          "Thử nghiệm Video quá trình cuộn bánh tráng vs Video ASMR dao chặt heo quay lu",
+          "Thử nghiệm Tệp target nhân viên văn phòng vs Tệp target chung giới trẻ thích ăn uống"
         ]
       },
       dataReporter: {
         metrics: [
-          { name: "Tổng ngân sách chi", target: "5.000.000 VND", actual: "4.950.000 VND", completion: "99.0%", status: "Đạt" },
-          { name: "Lượt hiển thị (Impressions)", target: "100.000", actual: "112.500", completion: "112.5%", status: "Vượt" },
-          { name: "Lượt click (Link Clicks)", target: "1.500", actual: "1.890", completion: "126.0%", status: "Vượt" },
-          { name: "Số đơn chốt (Conversions)", target: "100 đơn", actual: "118 đơn", completion: "118.0%", status: "Vượt" },
-          { name: "ROI giả định", target: "200.0%", actual: "257.57%", completion: "128.78%", status: "Vượt" }
+          { name: "Tổng ngân sách chi quảng cáo", target: "[Owner phê duyệt]", actual: "[Ví dụ mô phỏng: 1.050.000 VND]", completion: "Mô phỏng", status: "Mô phỏng" },
+          { name: "Lượt hiển thị (Impressions)", target: "[Mục tiêu giả định]", actual: "[Ví dụ mô phỏng: 35.000 lượt]", completion: "Mô phỏng", status: "Mô phỏng" },
+          { name: "Lượt tương tác đặt món (Clicks/inbox)", target: "[Mục tiêu giả định]", actual: "[Ví dụ mô phỏng: 850 tương tác]", completion: "Mô phỏng", status: "Mô phỏng" }
         ],
         audienceBreakdown: [
-          { name: "Học sinh THPT (Reels Video)", budget: "2.475.000 VND", ctr: "2.0%", conversions: "77 đơn", cpa: "32.142 VND" },
-          { name: "Dân văn phòng (Feed Combo)", budget: "1.485.000 VND", ctr: "1.2%", conversions: "31 đơn", cpa: "47.903 VND" }
+          { name: "Dân văn phòng (Ăn trưa/ship)", budget: "[Mô phỏng: 60% ngân sách]", ctr: "[Ví dụ mô phỏng: 2.1%]", conversions: "[Chờ dữ liệu thật]", cpa: "[Mô phỏng: Thấp]" },
+          { name: "Giới trẻ (ASMR video)", budget: "[Mô phỏng: 40% ngân sách]", ctr: "[Ví dụ mô phỏng: 1.8%]", conversions: "[Chờ dữ liệu thật]", cpa: "[Mô phỏng: Trung bình]" }
         ],
         recommendations: [
-          "Tăng ngân sách nhóm Reels Học sinh lên 65% tổng ngân sách.",
-          "Dừng các banner tĩnh thông thường có CTR dưới 1% để tối ưu CPA.",
-          "Đẩy quảng cáo tệp combo xế chiều tập trung vào khung giờ 13h - 15h."
+          "Báo cáo này chứa SIMULATED DATA — NOT REAL ADS PERFORMANCE.",
+          "Đề xuất Owner cập nhật báo cáo thật sau khi tiến hành đăng bài/chạy ads thủ công.",
+          "Tập trung ngân sách vào khung giờ 10h00 - 11h30 và 16h00 - 17h30 để đón đầu nhu cầu đặt trưa/tối."
         ]
       }
     }

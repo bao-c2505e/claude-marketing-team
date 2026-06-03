@@ -143,6 +143,24 @@ Nhật ký ghi lại các hành động mô phỏng của các AI Agent khi vậ
 - **[SYSTEM]:** Cam kết an toàn: Không chạy ads thật, không tự động đăng bài, không nhắn tin cho khách hàng thật, không chứa secrets.
 - **[SYSTEM]:** Trạng thái: Ready for Owner Review.
 
+### 🗓️ Ngày 04/06/2026 00:55:00
+- **[SYSTEM]:** Tạo lập bộ tài liệu kiểm duyệt và giao việc cho Test Case chiến dịch Vị Cuốn.
+- **[SYSTEM]:** Tạo lập thành công 4 tệp tin quản lý nhân sự:
+  * [owner_review_checklist.md](file:///c:/Users/BaO/.gemini/antigravity/MARKETING_TEAM/CLAUDE_MARKETING_TEAM/06_demo_cases/vi_cuon_test_campaign/owner_review_checklist.md): Bảng rà soát thông tin sản phẩm/giá bán, checklist an toàn nội dung, quyết định nghiệm thu và ghi chú sửa đổi của Owner.
+  * [staff_handoff_content_editor.md](file:///c:/Users/BaO/.gemini/antigravity/MARKETING_TEAM/CLAUDE_MARKETING_TEAM/06_demo_cases/vi_cuon_test_campaign/staff_handoff_content_editor.md): Tài liệu bàn giao nhiệm vụ viết bài và quay video dọc cho nhân sự Content & Video Editor.
+  * [staff_handoff_designer.md](file:///c:/Users/BaO/.gemini/antigravity/MARKETING_TEAM/CLAUDE_MARKETING_TEAM/06_demo_cases/vi_cuon_test_campaign/staff_handoff_designer.md): Tài liệu bàn giao nhiệm vụ thiết kế hình ảnh, quy chuẩn món thật và logo cho nhân sự Thiết kế.
+  * [test_result_template.md](file:///c:/Users/BaO/.gemini/antigravity/MARKETING_TEAM/CLAUDE_MARKETING_TEAM/06_demo_cases/vi_cuon_test_campaign/test_result_template.md): Biểu mẫu chấm điểm chất lượng chiến dịch và ghi nhận kết quả nghiệm thu cuối cùng.
+- **[SYSTEM]:** Cam kết an toàn: Không chạy ads thật, không tự động đăng bài, không nhắn tin cho khách hàng thật, không chứa secrets.
+- **[SYSTEM]:** Trạng thái: Ready for manual staff test.
+
+### 🗓️ Ngày 04/06/2026 01:10:00
+- **[SYSTEM]:** Thực hiện hành động: **Cập nhật dữ liệu Web UI mock data sang test campaign Vị Cuốn**.
+- **[SYSTEM]:** Tệp tin đã thay đổi:
+  * [mockData.ts](file:///c:/Users/BaO/.gemini/antigravity/MARKETING_TEAM/src/mockData.ts): Thay thế hoàn toàn dữ liệu mock chiến dịch Trà Sữa Tôm Tép bằng chiến dịch Bánh tráng cuốn heo quay của thương hiệu Vị Cuốn (tuân thủ nguyên tắc không bịa giá, không bịa ưu đãi, chỉ sử dụng placeholder và nhãn simulated data).
+  * [App.tsx](file:///c:/Users/BaO/.gemini/antigravity/MARKETING_TEAM/src/App.tsx): Cập nhật placeholders trong biểu mẫu brief, slogans mặc định, replace regex sang Vị Cuốn/Heo quay và cập nhật banner cảnh báo hệ thống mô phỏng an toàn trên Dashboard.
+- **[SYSTEM]:** Cam kết an toàn: Chỉ sử dụng dữ liệu giả lập (mock data only), không chạy ads thật, không đăng bài tự động, không nhắn tin cho khách hàng, không chứa secrets.
+- **[SYSTEM]:** Trạng thái: Ready for local build and deploy.
+
 
 
 

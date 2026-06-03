@@ -38,7 +38,7 @@ export default function App() {
     duration: '7 ngày',
     offer: '',
     channels: ['Facebook'],
-    toneOfVoice: 'Năng động, trẻ trung',
+    toneOfVoice: 'Gần gũi, ngon miệng, thực tế, mang chất địa phương Vinh',
     exclusions: '',
     assets: ''
   });
@@ -82,10 +82,10 @@ export default function App() {
               ...activeCampaign.outputs,
               copywriter: {
                 ...activeCampaign.outputs.copywriter,
-                slogans: [`Giải nhiệt hè này cùng ${briefForm.heroProduct}!`, `Thèm ngọt có ${briefForm.brandName} lo!`],
+                slogans: [`Giòn rôm rả cùng ${briefForm.heroProduct}!`, `Thèm heo quay có ${briefForm.brandName} lo!`],
                 captions: activeCampaign.outputs.copywriter.captions.map((cap) => ({
                   ...cap,
-                  body: cap.body.replace(/Trà Sữa Tôm Tép/g, briefForm.brandName).replace(/Trà Sữa Nướng Khoai Dẻo/g, briefForm.heroProduct)
+                  body: cap.body.replace(/Vị Cuốn/g, briefForm.brandName).replace(/Bánh tráng cuốn heo quay/g, briefForm.heroProduct)
                 }))
               }
             }
@@ -322,7 +322,7 @@ export default function App() {
                     <div>
                       <h4 style={{ fontWeight: 600, fontSize: '0.95rem', marginBottom: '4px' }}>Thông tin mô phỏng</h4>
                       <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-                        Workspace này hoàn toàn độc lập và không liên quan đến FnB OS V1. Dữ liệu chỉ dùng để thử nghiệm sản xuất bài đăng quảng cáo và định dạng prompt. Không tự động đăng tải bài viết lên Facebook thật, không tiêu ngân sách, không gửi tin nhắn khách hàng.
+                        Workspace này là môi trường demo/prototype. Dữ liệu Vị Cuốn dùng để test campaign pack. Không tự động đăng bài, không chạy ads thật, không gửi tin nhắn khách hàng.
                       </p>
                     </div>
                   </div>
@@ -349,7 +349,7 @@ export default function App() {
                           type="text" 
                           required 
                           className="form-control" 
-                          placeholder="Ví dụ: Trà Sữa Tôm Tép" 
+                          placeholder="Ví dụ: Vị Cuốn" 
                           value={briefForm.brandName}
                           onChange={(e) => setBriefForm({...briefForm, brandName: e.target.value})}
                         />
@@ -361,7 +361,7 @@ export default function App() {
                           type="text" 
                           required 
                           className="form-control" 
-                          placeholder="Ví dụ: F&B - Trà sữa & Ăn vặt" 
+                          placeholder="Ví dụ: F&B / món cuốn / street food premium tại TP Vinh" 
                           value={briefForm.industry}
                           onChange={(e) => setBriefForm({...briefForm, industry: e.target.value})}
                         />
@@ -373,7 +373,7 @@ export default function App() {
                           type="text" 
                           required 
                           className="form-control" 
-                          placeholder="Ví dụ: Trà sữa nướng khoai dẻo" 
+                          placeholder="Ví dụ: Bánh tráng cuốn heo quay" 
                           value={briefForm.heroProduct}
                           onChange={(e) => setBriefForm({...briefForm, heroProduct: e.target.value})}
                         />
@@ -385,7 +385,7 @@ export default function App() {
                           type="text" 
                           required 
                           className="form-control" 
-                          placeholder="Ví dụ: 32.000 VND / cốc" 
+                          placeholder="Ví dụ: [OWNER CUNG CẤP]" 
                           value={briefForm.pricing}
                           onChange={(e) => setBriefForm({...briefForm, pricing: e.target.value})}
                         />
@@ -397,7 +397,7 @@ export default function App() {
                           type="text" 
                           required 
                           className="form-control" 
-                          placeholder="Ví dụ: Học sinh cấp 3, sinh viên Vinh" 
+                          placeholder="Ví dụ: Nhân viên văn phòng, sinh viên, gia đình trẻ tại Vinh" 
                           value={briefForm.targetCustomer}
                           onChange={(e) => setBriefForm({...briefForm, targetCustomer: e.target.value})}
                         />
@@ -409,7 +409,7 @@ export default function App() {
                           type="text" 
                           required 
                           className="form-control" 
-                          placeholder="Ví dụ: Bán kính 5km quanh Lê Hồng Phong, TP. Vinh" 
+                          placeholder="Ví dụ: TP. Vinh, Nghệ An" 
                           value={briefForm.location}
                           onChange={(e) => setBriefForm({...briefForm, location: e.target.value})}
                         />
@@ -421,7 +421,7 @@ export default function App() {
                           type="text" 
                           required 
                           className="form-control" 
-                          placeholder="Ví dụ: Tăng doanh số đặt ship món mới" 
+                          placeholder="Ví dụ: Tăng nhận diện thương hiệu Bánh tráng cuốn heo quay và kéo đơn trưa/tối" 
                           value={briefForm.goal}
                           onChange={(e) => setBriefForm({...briefForm, goal: e.target.value})}
                         />
@@ -433,7 +433,7 @@ export default function App() {
                           type="text" 
                           required 
                           className="form-control" 
-                          placeholder="Ví dụ: Mua 1 tặng 1 trong 3 ngày đầu" 
+                          placeholder="Ví dụ: [OWNER CUNG CẤP]" 
                           value={briefForm.offer}
                           onChange={(e) => setBriefForm({...briefForm, offer: e.target.value})}
                         />
@@ -444,7 +444,7 @@ export default function App() {
                         <input 
                           type="text" 
                           className="form-control" 
-                          placeholder="Ví dụ: Năng động, trẻ trung, hài hước sử dụng từ ngữ trendy" 
+                          placeholder="Ví dụ: Gần gũi, ngon miệng, thực tế, mang chất địa phương Vinh" 
                           value={briefForm.toneOfVoice}
                           onChange={(e) => setBriefForm({...briefForm, toneOfVoice: e.target.value})}
                         />
