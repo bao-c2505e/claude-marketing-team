@@ -44,6 +44,21 @@ Dự án cung cấp bộ prompt chuẩn dùng để cấu hình phòng AI Market
 - **Safety:** Mặc định mô phỏng ngoại tuyến (Simulation by default), không auto-post, không chạy ads thật, không tự động nhắn tin và không chứa keys/secrets.
 
 
+## 📦 Phase G — Client Demo Pack
+
+Bộ tài liệu thương mại hóa hỗ trợ Owner giới thiệu và chào bán giải pháp Workspace Marketing AI cho các doanh nghiệp local:
+- **Thư mục tài nguyên:** [client_demo_pack/](file:///c:/Users/BaO/.gemini/antigravity/MARKETING_TEAM/CLAUDE_MARKETING_TEAM/06_demo_cases/client_demo_pack/)
+- **Các tài liệu đi kèm:**
+  - One-page overview: Tổng quan ngắn gọn về giải pháp.
+  - Client demo script: Kịch bản nói chuyện & xử lý phản đối 10-15 phút.
+  - Sample campaign pack: Chiến dịch mẫu 7 ngày cho Mộc An Cafe tại Vinh.
+  - Pricing/package suggestion: Đề xuất 3 gói dịch vụ Demo / Vận hành tháng / Setup Workspace.
+  - Sales pitch deck outline: Bản phác thảo 12 slide trình chiếu thuyết trình.
+  - Client FAQ: Bộ câu hỏi thường gặp.
+  - Demo delivery checklist: Checklist vận hành buổi demo, Red flags và quyết định hợp tác.
+- **Safety:** Mặc định mô phỏng, không tự đăng tải, không tự động chạy ads hay nhắn tin thật, không có connector thật khi chưa có sự phê duyệt.
+
+
 ## Project Boundary
 
 Để bảo vệ an toàn hệ thống và tránh các chi phí phát sinh ngoài ý muốn, dự án tuân thủ nghiêm ngặt các nguyên tắc sau:

@@ -85,3 +85,16 @@ Vì đây là Workspace mô phỏng an toàn nên hệ thống sẽ không tự 
 - **Quay video:** Chuyển kịch bản video chi tiết cho nhân viên của bạn quay trực tiếp bằng điện thoại theo các góc máy gợi ý và lồng tiếng theo lời thoại có sẵn.
 
 
+## How to use the Client Demo Pack
+
+Để giới thiệu dự án AI Marketing Workspace hiệu quả cho đối tác/khách hàng local:
+1. Mở file thư mục [client_demo_pack/README.md](file:///c:/Users/BaO/.gemini/antigravity/MARKETING_TEAM/CLAUDE_MARKETING_TEAM/06_demo_cases/client_demo_pack/README.md).
+2. Đọc kỹ tài liệu một trang [01_one_page_overview.md](file:///c:/Users/BaO/.gemini/antigravity/MARKETING_TEAM/CLAUDE_MARKETING_TEAM/06_demo_cases/client_demo_pack/01_one_page_overview.md) trước khi gặp khách để nắm rõ các lợi ích cốt lõi.
+3. Áp dụng kịch bản [02_client_demo_script.md](file:///c:/Users/BaO/.gemini/antigravity/MARKETING_TEAM/CLAUDE_MARKETING_TEAM/06_demo_cases/client_demo_pack/02_client_demo_script.md) để thuyết minh logic 10 - 15 phút.
+4. Mở trực tiếp Web UI trên Vercel production để khách hàng trực quan tương tác.
+5. Show tệp chiến dịch mẫu [03_sample_client_campaign_pack.md](file:///c:/Users/BaO/.gemini/antigravity/MARKETING_TEAM/CLAUDE_MARKETING_TEAM/06_demo_cases/client_demo_pack/03_sample_client_campaign_pack.md) của Mộc An Cafe làm bằng chứng chất lượng ấn phẩm.
+6. Sử dụng tài liệu [06_client_faq.md](file:///c:/Users/BaO/.gemini/antigravity/MARKETING_TEAM/CLAUDE_MARKETING_TEAM/06_demo_cases/client_demo_pack/06_client_faq.md) để giải đáp các hoài nghi/phản đối về bảo mật hoặc lỗi thông tin.
+7. **Quy tắc an toàn:** Không hứa hẹn các tính năng tự động đăng bài, chạy ads tiêu tiền thật hay nhắn tin tự động nếu chưa cấu hình cổng kết nối API thực tế và cổng phê duyệt.
+8. Sau khi kết thúc demo, đề nghị khách hàng cung cấp brief cơ bản của họ để chạy thử nghiệm 1 Campaign Pack 7 ngày miễn phí.
+
+

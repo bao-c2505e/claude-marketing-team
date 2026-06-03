@@ -101,6 +101,24 @@ Nhật ký ghi lại các hành động mô phỏng của các AI Agent khi vậ
 - **[SYSTEM]:** Cam kết an toàn: Không chứa API key, password hay secrets; không kích hoạt connector thật; không auto-post/auto-ads và độc lập với FnB OS V1.
 - **[SYSTEM]:** Trạng thái: Done / Ready for Review.
 
+### 🗓️ Ngày 03/06/2026 22:05:00
+- **[SYSTEM]:** Khởi động Phase G — Client Demo Pack.
+- **[SYSTEM]:** Tạo lập thư mục mới: `06_demo_cases/client_demo_pack/`.
+- **[SYSTEM]:** Tạo lập thành công 8 tệp tin thương mại hóa:
+  * `01_one_page_overview.md`: Tài liệu một trang tóm tắt pain points, giải pháp, lợi ích và flow hoạt động.
+  * `02_client_demo_script.md`: Kịch bản thuyết trình demo 10-15 phút cùng bộ xử lý phản đối.
+  * `03_sample_client_campaign_pack.md`: Gói chiến dịch mẫu cho brand Mộc An Cafe tại Vinh.
+  * `04_pricing_package_suggestion.md`: Bảng đề xuất 3 gói dịch vụ linh hoạt (Demo / Monthly / Setup Workspace).
+  * `05_sales_pitch_deck_outline.md`: Dàn ý chi tiết 12 slide pitch deck.
+  * `06_client_faq.md`: Bộ giải đáp câu hỏi thường gặp về bảo mật, AI và ranh giới.
+  * `07_demo_delivery_checklist.md`: Checklist an toàn trước, trong và sau demo, nhận diện Red Flags.
+  * `README.md`: File index tổng hợp và cách sử dụng các tệp tin trong thư mục.
+- **[SYSTEM]:** Cập nhật các tài liệu liên quan:
+  * [README.md](file:///c:/Users/BaO/.gemini/antigravity/MARKETING_TEAM/CLAUDE_MARKETING_TEAM/README.md): Bổ sung mục Phase G.
+  * [owner_manual.md](file:///c:/Users/BaO/.gemini/antigravity/MARKETING_TEAM/CLAUDE_MARKETING_TEAM/07_docs/owner_manual.md): Bổ sung hướng dẫn sử dụng Client Demo Pack.
+- **[SYSTEM]:** Cam kết an toàn: Không chứa API key/secrets, không tự ý auto-post/auto-ads/auto-message, dữ liệu hiệu quả là giả lập `[SIMULATED DATA]`, độc lập FnB OS V1.
+- **[SYSTEM]:** Trạng thái: Done / Ready for Review.
+
 
 
 
