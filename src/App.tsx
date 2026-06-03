@@ -19,7 +19,7 @@ export default function App() {
   const [campaigns, setCampaigns] = useState<Campaign[]>(sampleCampaigns);
   const [activeCampaignId, setActiveCampaignId] = useState<string>(sampleCampaigns[0].id);
   const [activeTab, setActiveTab] = useState<string>('dashboard');
-  const [outputSubTab, setOutputSubTab] = useState<string>('copy');
+  const [outputSubTab, setOutputSubTab] = useState<string>('calendar');
   
   // Simulation states
   const [isSimulating, setIsSimulating] = useState<boolean>(false);
@@ -120,6 +120,20 @@ export default function App() {
     }));
   };
 
+  const toggleChecklistItem = (campaignId: string, itemId: string) => {
+    setCampaigns(prev => prev.map(c => {
+      if (c.id === campaignId && c.checklist) {
+        return {
+          ...c,
+          checklist: c.checklist.map(item => 
+            item.id === itemId ? { ...item, checked: !item.checked } : item
+          )
+        };
+      }
+      return c;
+    }));
+  };
+
   return (
     <div className="app-container">
       {/* Header section */}
@@ -201,6 +215,21 @@ export default function App() {
                 <option key={c.id} value={c.id}>{c.brief.brandName} - {c.brief.heroProduct}</option>
               ))}
             </select>
+          </div>
+
+          <div style={{ marginTop: '20px', padding: '12px', borderTop: '1px solid var(--border-color)', width: '100%', fontSize: '0.8rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600, color: 'var(--accent-emerald)', marginBottom: '8px' }}>
+              <span>🛡️ Safety Guard Status</span>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', color: 'var(--text-secondary)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Auto-post:</span> <span style={{ color: 'var(--accent-rose)', fontWeight: 'bold' }}>NO</span></div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Real Ads:</span> <span style={{ color: 'var(--accent-rose)', fontWeight: 'bold' }}>NO</span></div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Real Message:</span> <span style={{ color: 'var(--accent-rose)', fontWeight: 'bold' }}>NO</span></div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Real Connectors:</span> <span style={{ color: 'var(--accent-rose)', fontWeight: 'bold' }}>NO</span></div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Secrets Added:</span> <span style={{ color: 'var(--accent-rose)', fontWeight: 'bold' }}>NO</span></div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>FnB OS V1:</span> <span style={{ color: 'var(--accent-rose)', fontWeight: 'bold' }}>NO</span></div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Demo/Mock Only:</span> <span style={{ color: 'var(--accent-emerald)', fontWeight: 'bold' }}>YES</span></div>
+            </div>
           </div>
         </aside>
 
@@ -316,14 +345,43 @@ export default function App() {
                     </table>
                   </div>
 
-                  {/* System Info alert */}
-                  <div className="glass-panel" style={{ padding: '20px', display: 'flex', gap: '16px', borderLeft: '4px solid var(--accent-indigo)' }}>
-                    <Info className="text-secondary" style={{ color: 'var(--accent-indigo)', flexShrink: 0 }} />
-                    <div>
-                      <h4 style={{ fontWeight: 600, fontSize: '0.95rem', marginBottom: '4px' }}>Thông tin mô phỏng</h4>
-                      <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-                        Workspace này là môi trường demo/prototype. Dữ liệu Vị Cuốn dùng để test campaign pack. Không tự động đăng bài, không chạy ads thật, không gửi tin nhắn khách hàng.
-                      </p>
+                  {/* Safety Guard Panel */}
+                  <div className="glass-panel" style={{ padding: '24px', borderLeft: '4px solid var(--accent-emerald)' }}>
+                    <h3 style={{ fontSize: '1.15rem', fontWeight: 600, color: 'var(--accent-emerald)', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      🛡️ Safety Guard & Simulation Status
+                    </h3>
+                    <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '16px' }}>
+                      Hệ thống đang chạy trong chế độ Sandbox mô phỏng biệt lập. Cam kết bảo mật và ranh giới an toàn:
+                    </p>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
+                      <div style={{ background: 'rgba(255,255,255,0.02)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: '0.85rem' }}>Auto-post:</span>
+                        <span className="badge badge-rose" style={{ fontWeight: 'bold' }}>NO</span>
+                      </div>
+                      <div style={{ background: 'rgba(255,255,255,0.02)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: '0.85rem' }}>Real Ads:</span>
+                        <span className="badge badge-rose" style={{ fontWeight: 'bold' }}>NO</span>
+                      </div>
+                      <div style={{ background: 'rgba(255,255,255,0.02)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: '0.85rem' }}>Real Messaging:</span>
+                        <span className="badge badge-rose" style={{ fontWeight: 'bold' }}>NO</span>
+                      </div>
+                      <div style={{ background: 'rgba(255,255,255,0.02)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: '0.85rem' }}>Real Connectors:</span>
+                        <span className="badge badge-rose" style={{ fontWeight: 'bold' }}>NO</span>
+                      </div>
+                      <div style={{ background: 'rgba(255,255,255,0.02)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: '0.85rem' }}>Secrets Added:</span>
+                        <span className="badge badge-rose" style={{ fontWeight: 'bold' }}>NO</span>
+                      </div>
+                      <div style={{ background: 'rgba(255,255,255,0.02)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: '0.85rem' }}>FnB OS V1 Touched:</span>
+                        <span className="badge badge-rose" style={{ fontWeight: 'bold' }}>NO</span>
+                      </div>
+                      <div style={{ background: 'rgba(255,255,255,0.02)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gridColumn: 'span 2' }}>
+                        <span style={{ fontSize: '0.85rem' }}>Demo/Mock Data Only:</span>
+                        <span className="badge badge-emerald" style={{ fontWeight: 'bold' }}>YES</span>
+                      </div>
                     </div>
                   </div>
 
@@ -576,6 +634,7 @@ export default function App() {
 
                   {/* Sub-tabs selection */}
                   <div className="tabs-header">
+                    <button className={`tab-btn ${outputSubTab === 'calendar' ? 'active' : ''}`} onClick={() => setOutputSubTab('calendar')}>7-Day Content Plan</button>
                     <button className={`tab-btn ${outputSubTab === 'copy' ? 'active' : ''}`} onClick={() => setOutputSubTab('copy')}>Copywriting</button>
                     <button className={`tab-btn ${outputSubTab === 'video' ? 'active' : ''}`} onClick={() => setOutputSubTab('video')}>Video Scripts</button>
                     <button className={`tab-btn ${outputSubTab === 'design' ? 'active' : ''}`} onClick={() => setOutputSubTab('design')}>Designs & Prompts</button>
@@ -585,6 +644,45 @@ export default function App() {
                   </div>
 
                   {/* SUB TAB CONTENTS */}
+                  
+                  {/* 7-Day Plan tab */}
+                  {outputSubTab === 'calendar' && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                      <h4 style={{ fontWeight: 600, color: 'var(--accent-indigo)' }}>Lịch trình Phân Phối 7 Ngày (Final Calendar):</h4>
+                      <div style={{ overflowX: 'auto' }}>
+                        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '800px' }}>
+                          <thead>
+                            <tr style={{ borderBottom: '1px solid var(--border-color)', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
+                              <th style={{ padding: '12px 8px' }}>Ngày</th>
+                              <th style={{ padding: '12px 8px' }}>Chủ đề (Theme)</th>
+                              <th style={{ padding: '12px 8px' }}>Kênh</th>
+                              <th style={{ padding: '12px 8px' }}>Nội dung chính</th>
+                              <th style={{ padding: '12px 8px' }}>Visual gợi ý</th>
+                              <th style={{ padding: '12px 8px' }}>CTA</th>
+                              <th style={{ padding: '12px 8px' }}>Approval Needed</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {activeCampaign.calendar?.map((item, idx) => (
+                              <tr key={idx} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', fontSize: '0.85rem' }}>
+                                <td style={{ padding: '12px 8px', fontWeight: 'bold', color: 'var(--accent-indigo)' }}>{item.day}</td>
+                                <td style={{ padding: '12px 8px' }}>{item.theme}</td>
+                                <td style={{ padding: '12px 8px' }}>
+                                  <span className={`badge ${item.channel.toLowerCase() === 'facebook' ? 'badge-blue' : 'badge-rose'}`}>
+                                    {item.channel}
+                                  </span>
+                                </td>
+                                <td style={{ padding: '12px 8px' }}>{item.content}</td>
+                                <td style={{ padding: '12px 8px', color: 'var(--text-secondary)' }}>{item.visual}</td>
+                                <td style={{ padding: '12px 8px' }}><code>{item.cta}</code></td>
+                                <td style={{ padding: '12px 8px', color: 'var(--accent-amber)' }}>{item.approval}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
                   
                   {/* Copywriting tab */}
                   {outputSubTab === 'copy' && (
@@ -747,6 +845,46 @@ export default function App() {
                     </p>
                   </div>
 
+                  {/* Human Approval Checklist */}
+                  <div style={{ background: 'rgba(255,255,255,0.02)', padding: '24px', borderRadius: '12px', border: '1px solid var(--border-color)', marginBottom: '24px' }}>
+                    <h3 style={{ fontSize: '1.15rem', fontWeight: 600, marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      📋 Owner Review & Human Approval Checklist
+                    </h3>
+                    <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '16px' }}>
+                      Vui lòng tích chọn phê duyệt từng tiêu chí dưới đây trước khi tiến hành triển khai thủ công ngoài thực tế:
+                    </p>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                      {activeCampaign.checklist?.map((item) => (
+                        <label 
+                          key={item.id} 
+                          style={{ 
+                            display: 'flex', 
+                            alignItems: 'flex-start', 
+                            gap: '12px', 
+                            cursor: 'pointer', 
+                            padding: '12px', 
+                            background: item.checked ? 'rgba(16, 185, 129, 0.05)' : 'rgba(255,255,255,0.01)', 
+                            borderRadius: '8px', 
+                            border: '1px solid', 
+                            borderColor: item.checked ? 'rgba(16, 185, 129, 0.3)' : 'var(--border-color)',
+                            transition: 'all 0.2s ease',
+                            textAlign: 'left'
+                          }}
+                        >
+                          <input 
+                            type="checkbox" 
+                            checked={item.checked} 
+                            onChange={() => toggleChecklistItem(activeCampaign.id, item.id)}
+                            style={{ marginTop: '3px', cursor: 'pointer' }}
+                          />
+                          <span style={{ fontSize: '0.9rem', color: item.checked ? 'var(--text-primary)' : 'var(--text-secondary)' }}>
+                            {item.label}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
                   <div style={{ background: 'rgba(255,255,255,0.02)', padding: '24px', borderRadius: '12px', border: '1px solid var(--border-color)', marginBottom: '24px' }}>
                     <h3 style={{ fontSize: '1.15rem', marginBottom: '12px' }}>Quyết định phê duyệt:</h3>
                     
@@ -784,8 +922,8 @@ export default function App() {
                   {/* Review rules help alert */}
                   <div style={{ display: 'flex', gap: '12px', padding: '16px', background: 'rgba(99, 102, 241, 0.05)', borderRadius: '8px', border: '1px solid var(--border-glow)' }}>
                     <AlertCircle style={{ color: 'var(--accent-indigo)', flexShrink: 0 }} />
-                    <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-                      <strong>Lời khuyên khi duyệt:</strong> Đảm bảo thông tin khuyến mãi mua 1 tặng 1 đã khớp với brief của quán trà sữa Vinh. Hãy copy prompt hình ảnh mang sang Canva/Fal.ai để tự thiết kế nếu bạn đã duyệt sản phẩm.
+                    <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.5, textAlign: 'left' }}>
+                      <strong>Lời khuyên khi duyệt:</strong> Đảm bảo thông tin về Bánh tráng cuốn heo quay đã khớp với định vị Street food meets Premium của Vị Cuốn. Hãy copy prompt hình ảnh mang sang Canva/Fal.ai để tự thiết kế nếu bạn đã duyệt sản phẩm.
                     </div>
                   </div>
 
