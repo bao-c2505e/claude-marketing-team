@@ -1,20 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  LayoutDashboard, 
-  Users, 
-  Layers, 
-  CheckSquare, 
-  Plus, 
-  Play, 
-  Check, 
-  X, 
-  ChevronRight, 
-  AlertCircle, 
+import {
+  LayoutDashboard,
+  Users,
+  Layers,
+  CheckSquare,
+  Plus,
+  Play,
+  Check,
+  X,
+  ChevronRight,
+  AlertCircle,
   Sparkles,
   Copy,
   FileText,
   Shield,
-  Monitor
+  Monitor,
+  BookOpen
 } from 'lucide-react';
 import { sampleCampaigns, Campaign, CampaignBrief, CalendarItem, ChecklistItem } from './mockData';
 
@@ -258,6 +259,28 @@ export default function App() {
       console.error(e);
     }
   }, []);
+  // Phase H.4 state — Client Approval Sheet
+  const [approvalSheetItems, setApprovalSheetItems] = useState([
+    { id: 'a1', item: 'Campaign Summary',        owner: 'AI Coordinator', status: 'Approved',              note: 'Strategy approved',        nextAction: 'Distribute to team' },
+    { id: 'a2', item: '7-Day Content Plan',      owner: 'Copywriter',     status: 'Ready for review',      note: '',                          nextAction: 'Owner review' },
+    { id: 'a3', item: 'Video Script Pack',       owner: 'Video Editor',   status: 'Ready for review',      note: '',                          nextAction: 'Send to video team' },
+    { id: 'a4', item: 'Design Brief Pack',       owner: 'Designer',       status: 'Ready for review',      note: '',                          nextAction: 'Send to design team' },
+    { id: 'a5', item: 'Ads Angle Pack',          owner: 'Ads Manager',    status: 'Waiting owner approval', note: 'Budget needed from owner', nextAction: 'Owner confirm budget' },
+    { id: 'a6', item: 'Data Reporter Summary',   owner: 'Data Reporter',  status: 'Approved',              note: 'KPIs look reasonable',      nextAction: 'Use as baseline' },
+    { id: 'a7', item: 'Human Approval Checklist',owner: 'Owner',          status: 'Needs edit',            note: 'Price to be filled in',     nextAction: 'Owner fill real price' },
+  ]);
+
+  // Phase H.4 state — Export Readiness Checklist
+  const [exportChecklist, setExportChecklist] = useState([
+    { id: 'e1', label: 'Brand brief complete',                        checked: true,  fixed: false },
+    { id: 'e2', label: 'Product/customer clearly defined',            checked: true,  fixed: false },
+    { id: 'e3', label: 'All outputs reviewed by owner',               checked: false, fixed: false },
+    { id: 'e4', label: 'Human approval sign-off completed',           checked: false, fixed: false },
+    { id: 'e5', label: 'Manual publishing only — no auto-scheduler',  checked: true,  fixed: true  },
+    { id: 'e6', label: 'No real ads launched from workspace',         checked: true,  fixed: true  },
+    { id: 'e7', label: 'No customer messaging sent',                  checked: true,  fixed: true  },
+  ]);
+
   // Copy states
   const [copiedStates, setCopiedStates] = useState<Record<string, boolean>>({});
 
@@ -458,7 +481,7 @@ export default function App() {
         </div>
         <div>
           <span className="badge badge-indigo" style={{ background: 'rgba(99, 102, 241, 0.15)', color: '#818cf8', borderColor: 'rgba(99, 102, 241, 0.3)', border: '1px solid' }}>
-            Phase H.3 — Demo Polish & Sales Readiness
+            Phase H.4 — Export/Presentation Readiness
           </span>
         </div>
       </header>
@@ -526,12 +549,20 @@ export default function App() {
               <Monitor size={18} /> Client Demo Mode
             </button>
 
-            <button 
-              className={`btn btn-secondary ${activeTab === 'manual-export' ? 'active' : ''}`} 
+            <button
+              className={`btn btn-secondary ${activeTab === 'manual-export' ? 'active' : ''}`}
               style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'manual-export' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'manual-export' ? 'rgba(99, 102, 241, 0.1)' : '' }}
               onClick={() => setActiveTab('manual-export')}
             >
               <Copy size={18} /> Manual Export Pack
+            </button>
+
+            <button
+              className={`btn btn-secondary ${activeTab === 'presentation-export' ? 'active' : ''}`}
+              style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'presentation-export' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'presentation-export' ? 'rgba(99, 102, 241, 0.1)' : '' }}
+              onClick={() => setActiveTab('presentation-export')}
+            >
+              <BookOpen size={18} /> Presentation & Export
             </button>
 
           </div>
@@ -2249,6 +2280,271 @@ export default function App() {
                         <span style={{ fontWeight: 700, color: 'var(--accent-indigo)', fontSize: '0.9rem' }}>Chuẩn Bị Brief Tiếp Theo</span>
                         <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 400, lineHeight: 1.4 }}>New Campaign Brief → Nhập thương hiệu mới để AI tạo chiến dịch kế tiếp</span>
                       </button>
+                    </div>
+                  </div>
+
+                </div>
+              )}
+
+              {/* H.4. PRESENTATION & EXPORT TAB */}
+              {activeTab === 'presentation-export' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+
+                  {/* ── SECTION 1: Presentation View ── */}
+                  <div className="glass-panel" style={{ padding: '32px' }}>
+                    <div style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '16px', marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div>
+                        <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                          Presentation View
+                          <span className="badge badge-indigo" style={{ fontSize: '0.72rem', padding: '4px 10px', background: 'rgba(99,102,241,0.12)', color: '#818cf8', border: '1px solid rgba(99,102,241,0.3)', borderRadius: '9999px' }}>Client-Ready</span>
+                        </h2>
+                        <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginTop: '6px' }}>
+                          A step-by-step walkthrough: problem, AI solution, outputs, approval flow, manual publishing, and safety.
+                        </p>
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                      {[
+                        { step: '01', icon: '❓', title: 'Client Problem', color: 'var(--accent-rose)', borderColor: 'rgba(244,63,94,0.25)', bg: 'rgba(244,63,94,0.04)', body: 'SME owners spend 10–15 hours per week planning content, briefing teams, and reviewing posts — before any actual publishing. Manual marketing is slow, inconsistent, and hard to scale.' },
+                        { step: '02', icon: '🤖', title: 'AI Marketing Team Solution', color: 'var(--accent-indigo)', borderColor: 'rgba(99,102,241,0.25)', bg: 'rgba(99,102,241,0.04)', body: 'Enter one brand brief → 5 specialized AI Agents run in parallel: Copywriter, Video Editor, Designer, Ads Manager, Data Reporter. Full campaign pack delivered in minutes.' },
+                        { step: '03', icon: '📦', title: 'Campaign Outputs', color: 'var(--accent-blue)', borderColor: 'rgba(59,130,246,0.25)', bg: 'rgba(59,130,246,0.04)', body: '7-day content calendar, 7 Facebook captions, 3 TikTok/Reels scripts, 3 AI design prompts (Fal.ai/Midjourney), local ads targeting plan, and simulated performance report — all in one exportable pack.' },
+                        { step: '04', icon: '✍️', title: 'Approval Process', color: 'var(--accent-amber)', borderColor: 'rgba(245,158,11,0.25)', bg: 'rgba(245,158,11,0.04)', body: 'Owner reviews every piece of content via the Approval Checklist tab before anything leaves this workspace. No post, no ad, no message is sent without explicit human sign-off.' },
+                        { step: '05', icon: '📤', title: 'Manual Publishing & Manual Ads Execution', color: '#a78bfa', borderColor: 'rgba(167,139,250,0.25)', bg: 'rgba(167,139,250,0.04)', body: 'After Owner approves, all content is copy-pasted manually to Facebook, TikTok, or the Ads Manager platform. No auto-scheduler, no API connection, no direct publishing from this workspace.' },
+                        { step: '06', icon: '🛡️', title: 'Safety Boundaries', color: 'var(--accent-emerald)', borderColor: 'rgba(16,185,129,0.25)', bg: 'rgba(16,185,129,0.04)', body: '100% offline sandbox. No backend, no database, no real API calls, no secrets, no auto-post, no real ads launched, no customer messaging. Every output is demo/mock data only. Safety Guard is always on.' },
+                      ].map((item, idx) => (
+                        <div key={idx} style={{ background: item.bg, border: `1px solid ${item.borderColor}`, borderRadius: '12px', padding: '18px 20px', display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '36px', height: '36px', background: item.bg, border: `1px solid ${item.borderColor}`, borderRadius: '50%', fontSize: '1.1rem', flexShrink: 0, marginTop: '2px' }}>
+                            {item.icon}
+                          </div>
+                          <div style={{ flex: 1 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                              <span style={{ fontSize: '0.62rem', color: item.color, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', opacity: 0.8 }}>Step {item.step}</span>
+                              <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: item.color, margin: 0 }}>{item.title}</h4>
+                            </div>
+                            <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.65, margin: 0 }}>{item.body}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* ── SECTION 2: Export Pack Preview ── */}
+                  <div className="glass-panel" style={{ padding: '32px' }}>
+                    <div style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '16px', marginBottom: '24px' }}>
+                      <h2 style={{ fontSize: '1.35rem', fontWeight: 700, color: 'var(--text-primary)' }}>Export Pack Preview</h2>
+                      <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginTop: '6px' }}>
+                        What the client receives — 7 deliverables ready for review and manual execution.
+                      </p>
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(270px, 1fr))', gap: '16px' }}>
+                      {[
+                        { icon: '📋', title: 'Campaign Summary',        desc: 'Full overview of brand, campaign concept, channels, and strategy direction. Client-facing language.',                                 badge: 'Ready',               badgeColor: 'badge-emerald', tag: 'AI Coordinator', linkTab: 'outputs',   linkSub: 'final'     },
+                        { icon: '📅', title: '7-Day Content Plan',      desc: 'Day-by-day publishing schedule: theme, channel, content hint, visual, CTA, and approval column.',                                   badge: 'Ready',               badgeColor: 'badge-emerald', tag: 'Copywriter',     linkTab: 'outputs',   linkSub: 'calendar'  },
+                        { icon: '🎬', title: 'Video Script Pack',       desc: '3 TikTok/Reels storyboard scripts — scene-by-scene breakdown with ASMR audio cues and text overlays.',                           badge: 'Ready',               badgeColor: 'badge-emerald', tag: 'Video Editor',   linkTab: 'outputs',   linkSub: 'video'     },
+                        { icon: '🎨', title: 'Design Brief Pack',       desc: '3 visual design briefs with layout direction, color mood, and AI image prompts (Fal.ai/Midjourney ready).',                       badge: 'Ready',               badgeColor: 'badge-emerald', tag: 'Designer',       linkTab: 'outputs',   linkSub: 'design'    },
+                        { icon: '📣', title: 'Ads Angle Pack',          desc: '5 ad angles + 2 ad set configs + 2 mock ad copy units. Target: local area, 18–35 demographic.',                                   badge: 'Needs owner budget',  badgeColor: 'badge-amber',   tag: 'Ads Manager',    linkTab: 'outputs',   linkSub: 'ads'       },
+                        { icon: '📊', title: 'Data Reporter Summary',   desc: 'Simulated week-1 KPIs and performance metrics (CTR, CPC, CPA, Reach) with 3 optimization recommendations.',                      badge: 'Mock data',           badgeColor: 'badge-blue',    tag: 'Data Reporter',  linkTab: 'outputs',   linkSub: 'report'    },
+                        { icon: '✅', title: 'Human Approval Checklist',desc: '10-point owner sign-off covering brand consistency, pricing, contact info, budget, and safety compliance.',                        badge: 'Owner required',      badgeColor: 'badge-rose',    tag: 'Owner',          linkTab: 'approval',  linkSub: ''          },
+                      ].map((pack, idx) => (
+                        <div key={idx} style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                              <span style={{ fontSize: '1.4rem' }}>{pack.icon}</span>
+                              <div>
+                                <h4 style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>{pack.title}</h4>
+                                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{pack.tag}</span>
+                              </div>
+                            </div>
+                            <span className={`badge ${pack.badgeColor}`} style={{ fontSize: '0.62rem', whiteSpace: 'nowrap', flexShrink: 0 }}>{pack.badge}</span>
+                          </div>
+                          <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.55, margin: 0 }}>{pack.desc}</p>
+                          <button
+                            className="btn btn-secondary"
+                            style={{ fontSize: '0.78rem', padding: '6px 10px', marginTop: 'auto' }}
+                            onClick={() => {
+                              setActiveTab(pack.linkTab);
+                              if (pack.linkSub) setOutputSubTab(pack.linkSub);
+                            }}
+                          >
+                            View in workspace →
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* ── SECTION 3: Client Approval Sheet Preview ── */}
+                  <div className="glass-panel" style={{ padding: '32px' }}>
+                    <div style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '16px', marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div>
+                        <h2 style={{ fontSize: '1.35rem', fontWeight: 700, color: 'var(--text-primary)' }}>Client Approval Sheet Preview</h2>
+                        <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginTop: '6px' }}>
+                          Static demo approval table. Click any status badge to cycle through states.
+                        </p>
+                      </div>
+                      <span className="badge badge-amber" style={{ fontSize: '0.7rem', whiteSpace: 'nowrap' }}>Demo Only — Not Live Data</span>
+                    </div>
+                    <div style={{ overflowX: 'auto' }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '700px' }}>
+                        <thead>
+                          <tr style={{ borderBottom: '1px solid var(--border-color)', color: 'var(--text-secondary)', fontSize: '0.83rem' }}>
+                            <th style={{ padding: '10px 12px' }}>Item</th>
+                            <th style={{ padding: '10px 12px' }}>Owner Role</th>
+                            <th style={{ padding: '10px 12px' }}>Status</th>
+                            <th style={{ padding: '10px 12px' }}>Client Note</th>
+                            <th style={{ padding: '10px 12px' }}>Next Action</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {approvalSheetItems.map((row) => {
+                            const statusStyles: Record<string, { badge: string; border: string; bg: string }> = {
+                              'Ready for review':        { badge: 'badge-blue',    border: 'rgba(59,130,246,0.3)',  bg: 'rgba(59,130,246,0.03)'  },
+                              'Approved':                { badge: 'badge-emerald', border: 'rgba(16,185,129,0.3)', bg: 'rgba(16,185,129,0.03)'  },
+                              'Needs edit':              { badge: 'badge-rose',    border: 'rgba(244,63,94,0.3)',   bg: 'rgba(244,63,94,0.03)'   },
+                              'Waiting owner approval':  { badge: 'badge-amber',   border: 'rgba(245,158,11,0.3)', bg: 'rgba(245,158,11,0.03)'  },
+                            };
+                            const s = statusStyles[row.status] || statusStyles['Ready for review'];
+                            const statuses = ['Ready for review', 'Approved', 'Needs edit', 'Waiting owner approval'];
+                            return (
+                              <tr key={row.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)', background: s.bg }}>
+                                <td style={{ padding: '12px', fontWeight: 600, color: 'var(--text-primary)', fontSize: '0.875rem' }}>{row.item}</td>
+                                <td style={{ padding: '12px', color: 'var(--text-secondary)', fontSize: '0.83rem' }}>{row.owner}</td>
+                                <td style={{ padding: '12px' }}>
+                                  <button
+                                    className={`badge ${s.badge}`}
+                                    style={{ cursor: 'pointer', fontSize: '0.7rem', border: `1px solid ${s.border}`, background: 'transparent' }}
+                                    title="Click to cycle status"
+                                    onClick={() => {
+                                      const nextIdx = (statuses.indexOf(row.status) + 1) % statuses.length;
+                                      setApprovalSheetItems(prev => prev.map(r => r.id === row.id ? { ...r, status: statuses[nextIdx] } : r));
+                                    }}
+                                  >
+                                    {row.status}
+                                  </button>
+                                </td>
+                                <td style={{ padding: '12px', color: 'var(--text-muted)', fontSize: '0.78rem', fontStyle: row.note ? 'normal' : 'italic' }}>
+                                  {row.note || '—'}
+                                </td>
+                                <td style={{ padding: '12px', color: 'var(--text-secondary)', fontSize: '0.8rem' }}>{row.nextAction}</td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                    <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '12px' }}>
+                      * Click any status badge to cycle: Ready for review → Approved → Needs edit → Waiting owner approval. Demo only.
+                    </p>
+                  </div>
+
+                  {/* ── SECTION 4: Sales Demo Script ── */}
+                  <div className="glass-panel" style={{ padding: '32px' }}>
+                    <div style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '16px', marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div>
+                        <h2 style={{ fontSize: '1.35rem', fontWeight: 700, color: 'var(--text-primary)' }}>Sales Demo Script</h2>
+                        <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginTop: '6px' }}>
+                          5–7 minute client-facing demo script. Follow this when presenting to a potential client.
+                        </p>
+                      </div>
+                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                        <span className="badge badge-blue" style={{ fontSize: '0.7rem' }}>~6 min</span>
+                        <button
+                          className="btn btn-secondary"
+                          style={{ fontSize: '0.8rem', padding: '6px 12px' }}
+                          onClick={() => copyToClipboard(
+                            `SALES DEMO SCRIPT — AI MARKETING TEAM\n\n[0:00–0:30] INTRODUCE THE PROBLEM\n"Most F&B/SME owners spend 10–15 hours per week on marketing — writing posts, briefing teams, reviewing content, configuring ads. It's repetitive, expensive, and slow."\n\n[0:30–1:30] SHOW AI TEAM ROLES\n"This workspace gives you a full AI Marketing Team — 5 specialists in parallel."\n→ Action: Click AI Team Board tab — show all 5 role cards.\n\n[1:30–3:00] SHOW THE CAMPAIGN PACK\n"Let me enter a quick brief — just brand, product, audience, location."\n→ Action: New Campaign Brief → fill demo data → Activate AI → Campaign Outputs → cycle sub-tabs (Calendar, Captions, Video, Design, Ads).\n"This is the full campaign pack — everything copy-paste ready."\n\n[3:00–4:00] SHOW APPROVAL & SAFETY\n"Nothing leaves without your signature."\n→ Action: Approval Checklist tab → show 10-point list → Safety Guard panel.\n"Auto-post: NO. Real Ads: NO. You control everything."\n\n[4:00–5:00] EXPLAIN NEXT STEP\n"After you approve, you copy-paste manually to Facebook, TikTok, or your Ads Manager. We never touch your accounts."\n→ Action: Manual Export Pack → show copy buttons.\n\n[5:00–5:30] CLOSE — ASK FOR REAL BRIEF\n"That's the full demo. Do you have a real brief ready? Send me your brand name, hero product, and audience — and we can run a real campaign pack for your business right now."`,
+                            'sales_script'
+                          )}
+                        >
+                          {copiedStates['sales_script'] ? 'Copied! ✓' : <><Copy size={14} /> Copy Script</>}
+                        </button>
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
+                      {([
+                        { time: '0:00–0:30', title: 'Introduce the Problem',     color: 'var(--accent-rose)',    borderColor: 'rgba(244,63,94,0.3)',   bg: 'rgba(244,63,94,0.04)',   say: '"Most F&B/SME owners spend 10–15 hours per week on marketing — writing posts, briefing teams, reviewing content, configuring ads. It\'s repetitive, expensive, and slow. And it still doesn\'t guarantee results."', action: null },
+                        { time: '0:30–1:30', title: 'Show AI Team Roles',        color: 'var(--accent-indigo)', borderColor: 'rgba(99,102,241,0.3)',  bg: 'rgba(99,102,241,0.04)',  say: '"This workspace gives you a full AI Marketing Team — 5 specialists running in parallel. Let me show you the AI Team Board."', action: '→ Click: AI Team Board → show all 5 role cards (Copywriter, Video Editor, Designer, Ads Manager, Data Reporter)' },
+                        { time: '1:30–3:00', title: 'Show the Campaign Pack',    color: 'var(--accent-blue)',   borderColor: 'rgba(59,130,246,0.3)',  bg: 'rgba(59,130,246,0.04)',  say: '"Let me enter a quick brief. Just brand name, product, audience, and location." … "Watch the AI run — about 3 seconds in this demo." … "Here\'s the full campaign pack — 7-day calendar, captions, video scripts, design prompts, ads plan. Copy-paste ready."', action: '→ Click: New Campaign Brief → fill sample data → Activate AI → Campaign Outputs → cycle sub-tabs' },
+                        { time: '3:00–4:00', title: 'Show Approval & Safety',   color: 'var(--accent-amber)',  borderColor: 'rgba(245,158,11,0.3)', bg: 'rgba(245,158,11,0.04)', say: '"Nothing leaves this workspace without your signature. This is a 10-point safety checklist. Auto-post: NO. Real Ads: NO. No messaging to customers. You control everything."', action: '→ Click: Approval Checklist → show progress bar + items → Safety Guard panel on Dashboard' },
+                        { time: '4:00–5:00', title: 'Explain Next Step',         color: '#a78bfa',              borderColor: 'rgba(167,139,250,0.3)', bg: 'rgba(167,139,250,0.04)', say: '"After you approve, all content is copy-pasted manually to Facebook or TikTok. We never touch your accounts, your passwords, or your ad budget."', action: '→ Click: Manual Export Pack → show the 6 copy blocks' },
+                        { time: '5:00–5:30', title: 'Close — Ask for Real Brief', color: 'var(--accent-emerald)', borderColor: 'rgba(16,185,129,0.3)', bg: 'rgba(16,185,129,0.04)', say: '"That\'s the full demo. The only question now is: do you have a real brand brief ready? Send me your brand name, hero product, and audience — and we can run a real campaign pack for your business right now."', action: null },
+                      ] as { time: string; title: string; color: string; borderColor: string; bg: string; say: string; action: string | null }[]).map((step, idx, arr) => (
+                        <div key={idx} style={{ display: 'flex', gap: '0' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '36px', flexShrink: 0 }}>
+                            <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: step.color, flexShrink: 0, marginTop: '24px' }} />
+                            {idx < arr.length - 1 && <div style={{ width: '2px', flex: 1, background: 'var(--border-color)', minHeight: '12px', marginTop: '4px' }} />}
+                          </div>
+                          <div style={{ flex: 1, background: step.bg, border: `1px solid ${step.borderColor}`, borderRadius: '10px', padding: '16px 20px', marginBottom: idx < arr.length - 1 ? '8px' : '0', marginLeft: '8px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+                              <span className="badge" style={{ fontSize: '0.62rem', background: step.bg, color: step.color, border: `1px solid ${step.borderColor}` }}>{step.time}</span>
+                              <h4 style={{ fontSize: '0.92rem', fontWeight: 700, color: step.color, margin: 0 }}>{step.title}</h4>
+                            </div>
+                            <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', lineHeight: 1.6, margin: 0, fontStyle: 'italic' }}>{step.say}</p>
+                            {step.action && (
+                              <div style={{ marginTop: '10px', padding: '8px 12px', background: 'rgba(0,0,0,0.2)', borderRadius: '6px', borderLeft: `3px solid ${step.color}`, fontSize: '0.76rem', color: 'var(--text-muted)' }}>
+                                {step.action}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* ── SECTION 5: Export Readiness Checklist ── */}
+                  <div className="glass-panel" style={{ padding: '32px' }}>
+                    <div style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '16px', marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div>
+                        <h2 style={{ fontSize: '1.35rem', fontWeight: 700, color: 'var(--text-primary)' }}>Export Readiness Checklist</h2>
+                        <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginTop: '6px' }}>
+                          Confirm all conditions before exporting the campaign pack to the client.
+                        </p>
+                      </div>
+                      {(() => {
+                        const total = exportChecklist.length;
+                        const done = exportChecklist.filter(i => i.checked).length;
+                        return (
+                          <span className={`badge ${done === total ? 'badge-emerald' : 'badge-amber'}`} style={{ fontSize: '0.78rem', whiteSpace: 'nowrap' }}>
+                            {done}/{total} Ready
+                          </span>
+                        );
+                      })()}
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '24px' }}>
+                      {exportChecklist.map((item) => (
+                        <label
+                          key={item.id}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '12px',
+                            cursor: item.fixed ? 'default' : 'pointer',
+                            padding: '14px 16px',
+                            background: item.checked ? 'rgba(16,185,129,0.05)' : 'rgba(255,255,255,0.01)',
+                            borderRadius: '8px',
+                            border: '1px solid',
+                            borderColor: item.checked ? 'rgba(16,185,129,0.3)' : 'var(--border-color)',
+                            transition: 'all 0.2s ease',
+                          }}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={item.checked}
+                            disabled={item.fixed}
+                            onChange={() => !item.fixed && setExportChecklist(prev => prev.map(i => i.id === item.id ? { ...i, checked: !i.checked } : i))}
+                            style={{ cursor: item.fixed ? 'default' : 'pointer', width: '16px', height: '16px', flexShrink: 0 }}
+                          />
+                          <span style={{ fontSize: '0.9rem', color: item.checked ? 'var(--text-primary)' : 'var(--text-secondary)', fontWeight: item.checked ? 500 : 400, flex: 1 }}>
+                            {item.label}
+                          </span>
+                          {item.fixed && (
+                            <span className="badge badge-rose" style={{ fontSize: '0.62rem', whiteSpace: 'nowrap' }}>Safety lock</span>
+                          )}
+                        </label>
+                      ))}
+                    </div>
+                    <div style={{ padding: '16px', background: 'rgba(16,185,129,0.04)', border: '1px solid rgba(16,185,129,0.2)', borderRadius: '10px', fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
+                      <strong style={{ color: 'var(--accent-emerald)' }}>🛡️ Safety reminder:</strong> Even when all items are checked, all outputs must be published <strong>manually</strong> by the Owner. No auto-scheduling, no direct platform publishing, and no real ads should be launched from this workspace.
                     </div>
                   </div>
 
