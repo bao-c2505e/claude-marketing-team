@@ -15,15 +15,17 @@ Workspace cung cấp giao diện trực quan cao cấp, hỗ trợ chuẩn hóa 
 - **Dữ liệu giả lập (Demo/Mock Only: YES)**
 - **Không backend, không database, không real API connectors**
 
-## ✅ Phase H.4 — Export/Presentation Readiness (IMPLEMENTED — 2026-06-04/05)
+## ✅ Phase H.4 — Export/Presentation Readiness (CLOSED — 2026-06-05)
 
 ### Commits:
 - `d2e7bd8` — feat: add phase h4 export presentation readiness (docs/logs)
 - `d823c17` — feat: add phase h4 presentation ui (src/App.tsx)
+- `c56e867` — docs: fix phase h4 status after codex review
 
-### Codex review: PASS
+### Codex re-review: PASS — no required fixes
 - UI/code/build/safety: PASS
-- Only finding: docs/log stale status (now fixed in this commit)
+- Only finding: docs/log stale status (fixed in `c56e867`)
+- Phase closed after docs/log fix confirmed
 
 ### Đã build:
 1. **Header badge** → "Phase H.4 — Export/Presentation Readiness"
@@ -64,6 +66,7 @@ Workspace cung cấp giao diện trực quan cao cấp, hỗ trợ chuẩn hóa 
 
 ## ➡️ Các bước tiếp theo (Next Steps)
 1. ✅ **Phase H.3 CLOSED** — Codex re-review PASS, no required fixes, git clean
-2. **Phase H.4 — Export/Presentation Readiness** *(Next recommended)*:
-   - Chuẩn bị bộ tài liệu export/presentation sẵn sàng giao cho khách hàng thực tế.
+2. ✅ **Phase H.4 CLOSED** — Codex re-review PASS, no required fixes, git clean
+3. **Phase H.5 — Multi-brand Demo Readiness** *(Next recommended)*:
+   - Mở rộng demo để hỗ trợ nhiều thương hiệu cùng lúc, chuẩn bị cho pitch agency/multi-client.
    - Vẫn giữ ranh giới: no backend / no real API / no auto-post / no secrets.

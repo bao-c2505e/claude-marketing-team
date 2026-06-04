@@ -1,4 +1,4 @@
-# CURRENT PHASE — Phase H.4: Export/Presentation Readiness ✅ IMPLEMENTED
+# CURRENT PHASE — Phase H.4: Export/Presentation Readiness ✅ CLOSED
 
 Tài liệu này dùng để theo dõi tiến độ thực hiện và trạng thái của Phase hiện tại.
 
@@ -8,11 +8,12 @@ Tài liệu này dùng để theo dõi tiến độ thực hiện và trạng th
 - **Commits:**
   - `d2e7bd8` — feat: add phase h4 export presentation readiness (docs/logs)
   - `d823c17` — feat: add phase h4 presentation ui (src/App.tsx)
-- **Trạng thái:** ✅ IMPLEMENTED — Codex review PASS (UI/code/build/safety); docs/log stale status fixed
+  - `c56e867` — docs: fix phase h4 status after codex review
+- **Trạng thái:** ✅ CLOSED — Codex re-review PASS, no required fixes, git clean
 
 ---
 
-## 📋 Checklist Phase H.4 — In Progress
+## 📋 Checklist Phase H.4 — 100% Complete
 
 ### New Tab: Presentation & Export
 - [x] Thêm nav button "Presentation & Export" vào Sidebar (icon: BookOpen)
@@ -42,6 +43,17 @@ Tài liệu này dùng để theo dõi tiến độ thực hiện và trạng th
 - [x] npm run build PASS — 0 errors
 - [x] Push to GitHub — `d823c17` feat: add phase h4 presentation ui
 - [x] Codex review — PASS (UI/code/build/safety PASS; docs/log stale status fix required → now fixed)
+
+---
+
+## ✅ Phase H.4 — CLOSED
+- Closed by: docs commit (close phase h4)
+- Codex final verdict: PASS — no required fixes
+
+## 🛠️ Next Recommended Phase
+**Phase H.5 — Multi-brand Demo Readiness**
+- Mục tiêu: Mở rộng demo để hỗ trợ nhiều thương hiệu cùng lúc, chuẩn bị cho pitch agency/multi-client.
+- Vẫn giữ ranh giới: no backend / no real API / no auto-post / no secrets.
 
 ---
 
