@@ -1,8 +1,8 @@
 # PHASE H.4 HANDOFF — Export/Presentation Readiness
 
 **Phase:** H.4 — Export/Presentation Readiness  
-**Status:** BUILD COMPLETE — Awaiting Codex Review + Owner Push  
-**Date:** 2026-06-04  
+**Status:** IMPLEMENTED + PUSHED + CODEX REVIEWED — docs/log stale status fixed  
+**Date:** 2026-06-04 (build) / 2026-06-05 (Codex review + docs fix)  
 **Builder:** Claude Code  
 
 ---
@@ -98,13 +98,10 @@ All previous features are intact:
 
 ---
 
-## Next Steps for Codex Reviewer
+## Codex Review Result
 
-1. Check that `npm run build` passes (0 errors).
-2. Check new tab "Presentation & Export" is visible in sidebar.
-3. Verify all 5 sections render without errors.
-4. Confirm status badge cycling works on Approval Sheet Preview.
-5. Confirm safety-locked checkboxes cannot be unchecked on Export Readiness Checklist.
-6. Confirm "View in workspace →" buttons navigate to correct tabs.
-7. Confirm no backend/API/secrets/FnB OS V1 changes.
-8. If PASS → Owner pushes to GitHub main → Vercel auto-deploy.
+- **UI/code/build/safety:** PASS
+- **Finding:** docs/log stale status (entries said "awaiting Codex review + Owner push" after commits were already pushed)
+- **Fix applied:** 5 docs/log files updated to reflect correct pushed + reviewed state
+- **Commits:** `d2e7bd8` (docs/logs), `d823c17` (src/App.tsx)
+- **Vercel:** Auto-deploy triggered on push to main

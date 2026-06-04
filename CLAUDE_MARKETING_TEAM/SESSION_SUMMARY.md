@@ -15,9 +15,17 @@ Workspace cung cấp giao diện trực quan cao cấp, hỗ trợ chuẩn hóa 
 - **Dữ liệu giả lập (Demo/Mock Only: YES)**
 - **Không backend, không database, không real API connectors**
 
-## 🔄 Phase H.4 — Export/Presentation Readiness (IN PROGRESS — 2026-06-04)
+## ✅ Phase H.4 — Export/Presentation Readiness (IMPLEMENTED — 2026-06-04/05)
 
-### Đã build trong phiên này:
+### Commits:
+- `d2e7bd8` — feat: add phase h4 export presentation readiness (docs/logs)
+- `d823c17` — feat: add phase h4 presentation ui (src/App.tsx)
+
+### Codex review: PASS
+- UI/code/build/safety: PASS
+- Only finding: docs/log stale status (now fixed in this commit)
+
+### Đã build:
 1. **Header badge** → "Phase H.4 — Export/Presentation Readiness"
 2. **Nav sidebar** → thêm "Presentation & Export" button (icon: BookOpen)
 3. **New tab: Presentation & Export** — 5 sections trong 1 tab:
@@ -26,7 +34,7 @@ Workspace cung cấp giao diện trực quan cao cấp, hỗ trợ chuẩn hóa 
    - **Client Approval Sheet Preview**: table với 5 cột + clickable status cycling
    - **Sales Demo Script**: 5-step timeline (0:00–5:30) với copy button
    - **Export Readiness Checklist**: 7-item, 3 safety-locked, live counter badge
-4. **Build PASS** — npm run build 0 errors
+4. **Build PASS** — npm run build 0 errors, pushed to GitHub main
 
 ---
 

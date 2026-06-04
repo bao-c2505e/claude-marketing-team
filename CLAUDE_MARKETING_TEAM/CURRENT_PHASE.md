@@ -1,12 +1,14 @@
-# CURRENT PHASE — Phase H.4: Export/Presentation Readiness 🔄 IN PROGRESS
+# CURRENT PHASE — Phase H.4: Export/Presentation Readiness ✅ IMPLEMENTED
 
 Tài liệu này dùng để theo dõi tiến độ thực hiện và trạng thái của Phase hiện tại.
 
 ## 📌 Thông tin chung
 - **Phase hiện tại:** Phase H.4 — Export/Presentation Readiness
 - **Mục tiêu:** Làm cho demo frontend dễ present hơn cho khách hàng và dễ xuất/chia sẻ dưới dạng campaign presentation pack — vẫn 100% static/frontend/mock, không backend, không API thật.
-- **Commits:** (in progress)
-- **Trạng thái:** 🔄 IN PROGRESS
+- **Commits:**
+  - `d2e7bd8` — feat: add phase h4 export presentation readiness (docs/logs)
+  - `d823c17` — feat: add phase h4 presentation ui (src/App.tsx)
+- **Trạng thái:** ✅ IMPLEMENTED — Codex review PASS (UI/code/build/safety); docs/log stale status fixed
 
 ---
 
@@ -38,8 +40,8 @@ Tài liệu này dùng để theo dõi tiến độ thực hiện và trạng th
 
 ### Build & Safety
 - [x] npm run build PASS — 0 errors
-- [ ] Codex review pending
-- [ ] Push to GitHub pending
+- [x] Push to GitHub — `d823c17` feat: add phase h4 presentation ui
+- [x] Codex review — PASS (UI/code/build/safety PASS; docs/log stale status fix required → now fixed)
 
 ---
 
