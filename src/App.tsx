@@ -10,7 +10,10 @@ import {
   X, 
   ChevronRight, 
   AlertCircle, 
-  Sparkles
+  Sparkles,
+  Copy,
+  FileText,
+  Shield
 } from 'lucide-react';
 import { sampleCampaigns, Campaign, CampaignBrief, CalendarItem, ChecklistItem } from './mockData';
 
@@ -109,6 +112,19 @@ export default function App() {
       console.error(e);
     }
   }, []);
+  // Copy states
+  const [copiedStates, setCopiedStates] = useState<Record<string, boolean>>({});
+
+  const copyToClipboard = (text: string, key: string) => {
+    navigator.clipboard.writeText(text)
+      .then(() => {
+        setCopiedStates(prev => ({ ...prev, [key]: true }));
+        setTimeout(() => setCopiedStates(prev => ({ ...prev, [key]: false })), 2000);
+      })
+      .catch(err => {
+        console.error("Could not copy text: ", err);
+      });
+  };
   
   // Simulation states
   const [isSimulating, setIsSimulating] = useState<boolean>(false);
@@ -163,7 +179,7 @@ export default function App() {
           const newCampaign: Campaign = {
             id: `CAMP-NEW-${Date.now()}`,
             name: `Chiến dịch ${briefForm.heroProduct} — ${briefForm.brandName}`,
-            phase: "Phase B — First Demo Campaign Pack",
+            phase: "Phase G+ — Workspace Utility Upgrade",
             status: "Needs Review",
             brief: { ...briefForm },
             // Inherit mock structures but customized with form inputs
@@ -171,13 +187,71 @@ export default function App() {
               ...activeCampaign.outputs,
               copywriter: {
                 ...activeCampaign.outputs.copywriter,
-                slogans: [`Giòn rôm rả cùng ${briefForm.heroProduct}!`, `Thèm heo quay có ${briefForm.brandName} lo!`],
+                slogans: [
+                  `Cuốn ngon chuẩn vị, da giòn rôm rả — Bữa trưa thảnh thơi cùng ${briefForm.brandName}!`,
+                  `Thèm heo quay giòn lu, ghé ngay ${briefForm.brandName}!`,
+                  `Cuốn sạch premium — Tròn vị ${briefForm.brandName}`
+                ],
+                hooks: activeCampaign.outputs.copywriter.hooks.map(h => h.replace(/Vị Cuốn/g, briefForm.brandName).replace(/Bánh tráng cuốn heo quay/g, briefForm.heroProduct)),
+                ctas: activeCampaign.outputs.copywriter.ctas,
+                shortCaptions: activeCampaign.outputs.copywriter.shortCaptions.map(s => s.replace(/Vị Cuốn/g, briefForm.brandName).replace(/Bánh tráng cuốn heo quay/g, briefForm.heroProduct)),
+                hashtags: activeCampaign.outputs.copywriter.hashtags,
                 captions: activeCampaign.outputs.copywriter.captions.map((cap) => ({
                   ...cap,
                   body: cap.body.replace(/Vị Cuốn/g, briefForm.brandName).replace(/Bánh tráng cuốn heo quay/g, briefForm.heroProduct)
                 }))
+              },
+              videoEditor: {
+                scripts: activeCampaign.outputs.videoEditor.scripts.map(s => ({
+                  ...s,
+                  title: s.title.replace(/Vị Cuốn/g, briefForm.brandName).replace(/Bánh tráng cuốn heo quay/g, briefForm.heroProduct),
+                  hook: s.hook.replace(/Vị Cuốn/g, briefForm.brandName).replace(/Bánh tráng cuốn heo quay/g, briefForm.heroProduct),
+                  scenes: s.scenes.map(sc => ({
+                    ...sc,
+                    visual: sc.visual.replace(/Vị Cuốn/g, briefForm.brandName).replace(/Bánh tráng cuốn heo quay/g, briefForm.heroProduct),
+                    audio: sc.audio.replace(/Vị Cuốn/g, briefForm.brandName).replace(/Bánh tráng cuốn heo quay/g, briefForm.heroProduct),
+                    textOverlay: sc.textOverlay.replace(/Vị Cuốn/g, briefForm.brandName).replace(/Bánh tráng cuốn heo quay/g, briefForm.heroProduct)
+                  }))
+                }))
+              },
+              designer: {
+                briefs: activeCampaign.outputs.designer.briefs.map(b => ({
+                  ...b,
+                  title: b.title.replace(/Vị Cuốn/g, briefForm.brandName).replace(/Bánh tráng cuốn heo quay/g, briefForm.heroProduct),
+                  layout: b.layout.replace(/Vị Cuốn/g, briefForm.brandName).replace(/Bánh tráng cuốn heo quay/g, briefForm.heroProduct),
+                  textOverlay: b.textOverlay.replace(/Vị Cuốn/g, briefForm.brandName).replace(/Bánh tráng cuốn heo quay/g, briefForm.heroProduct),
+                  prompt: b.prompt.replace(/Vị Cuốn/g, briefForm.brandName).replace(/Bánh tráng cuốn heo quay/g, briefForm.heroProduct),
+                  visualDirection: b.visualDirection.replace(/Vị Cuốn/g, briefForm.brandName).replace(/Bánh tráng cuốn heo quay/g, briefForm.heroProduct),
+                  colorStyleNote: b.colorStyleNote.replace(/Vị Cuốn/g, briefForm.brandName).replace(/Bánh tráng cuốn heo quay/g, briefForm.heroProduct)
+                }))
+              },
+              adsManager: {
+                ...activeCampaign.outputs.adsManager,
+                angles: activeCampaign.outputs.adsManager.angles.map(a => a.replace(/Vị Cuốn/g, briefForm.brandName).replace(/Bánh tráng cuốn heo quay/g, briefForm.heroProduct)),
+                adSets: activeCampaign.outputs.adsManager.adSets.map(as => ({
+                  ...as,
+                  targeting: as.targeting.replace(/Vị Cuốn/g, briefForm.brandName).replace(/Bánh tráng cuốn heo quay/g, briefForm.heroProduct)
+                })),
+                mockAds: activeCampaign.outputs.adsManager.mockAds.map(ma => ({
+                  ...ma,
+                  name: ma.name.replace(/Vị Cuốn/g, briefForm.brandName).replace(/Bánh tráng cuốn heo quay/g, briefForm.heroProduct),
+                  angle: ma.angle.replace(/Vị Cuốn/g, briefForm.brandName).replace(/Bánh tráng cuốn heo quay/g, briefForm.heroProduct),
+                  primaryText: ma.primaryText.replace(/Vị Cuốn/g, briefForm.brandName).replace(/Bánh tráng cuốn heo quay/g, briefForm.heroProduct),
+                  headline: ma.headline.replace(/Vị Cuốn/g, briefForm.brandName).replace(/Bánh tráng cuốn heo quay/g, briefForm.heroProduct),
+                  description: ma.description.replace(/Vị Cuốn/g, briefForm.brandName).replace(/Bánh tráng cuốn heo quay/g, briefForm.heroProduct)
+                }))
+              },
+              dataReporter: {
+                ...activeCampaign.outputs.dataReporter,
+                reportTemplate: activeCampaign.outputs.dataReporter.reportTemplate.replace(/Vị Cuốn/g, briefForm.brandName).replace(/Bánh tráng cuốn heo quay/g, briefForm.heroProduct)
               }
-            }
+            },
+            calendar: activeCampaign.calendar?.map(cal => ({
+              ...cal,
+              content: cal.content.replace(/Vị Cuốn/g, briefForm.brandName).replace(/Bánh tráng cuốn heo quay/g, briefForm.heroProduct),
+              visual: cal.visual.replace(/Vị Cuốn/g, briefForm.brandName).replace(/Bánh tráng cuốn heo quay/g, briefForm.heroProduct)
+            })),
+            checklist: sampleCampaigns[0].checklist?.map(item => ({ ...item, checked: false }))
           };
 
           setCampaigns(prev => [newCampaign, ...prev]);
@@ -238,7 +312,7 @@ export default function App() {
         </div>
         <div>
           <span className="badge badge-indigo" style={{ background: 'rgba(99, 102, 241, 0.15)', color: '#818cf8', borderColor: 'rgba(99, 102, 241, 0.3)', border: '1px solid' }}>
-            Phase E — Local Web UI Prototype
+            Phase G+ — Workspace Utility Upgrade
           </span>
         </div>
       </header>
@@ -288,6 +362,14 @@ export default function App() {
               onClick={() => setActiveTab('approval')}
             >
               <CheckSquare size={18} /> Approval Checklist
+            </button>
+
+            <button 
+              className={`btn btn-secondary ${activeTab === 'demo-pack' ? 'active' : ''}`} 
+              style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'demo-pack' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'demo-pack' ? 'rgba(99, 102, 241, 0.1)' : '' }}
+              onClick={() => setActiveTab('demo-pack')}
+            >
+              <FileText size={18} /> Client Demo Pack
             </button>
 
           </div>
@@ -726,15 +808,19 @@ export default function App() {
                     <div>
                       <h2 style={{ fontSize: '1.35rem', fontWeight: 600 }}>{activeCampaign.name}</h2>
                       <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
-                        Brand: **{activeCampaign.brief.brandName}** | HERO Product: **{activeCampaign.brief.heroProduct}**
+                        Brand: <strong style={{color: 'var(--text-primary)'}}>{activeCampaign.brief.brandName}</strong> | HERO Product: <strong style={{color: 'var(--text-primary)'}}>{activeCampaign.brief.heroProduct}</strong>
                       </p>
                     </div>
-                    <span className={`badge ${
-                      activeCampaign.status === 'Approved' ? 'badge-emerald' : 
-                      activeCampaign.status === 'Rejected' ? 'badge-rose' : 'badge-amber'
-                    }`}>
-                      {activeCampaign.status}
-                    </span>
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                      <span className="badge badge-indigo" style={{ background: 'rgba(99, 102, 241, 0.15)', color: '#818cf8', borderColor: 'rgba(99, 102, 241, 0.3)', border: '1px solid' }}>Demo/Mock Data Only</span>
+                      <span className="badge badge-emerald" style={{ background: 'rgba(16, 185, 129, 0.15)', color: '#34d399', borderColor: 'rgba(16, 185, 129, 0.3)', border: '1px solid' }}>🛡️ Safety Guard</span>
+                      <span className={`badge ${
+                        activeCampaign.status === 'Approved' ? 'badge-emerald' : 
+                        activeCampaign.status === 'Rejected' ? 'badge-rose' : 'badge-amber'
+                      }`}>
+                        {activeCampaign.status}
+                      </span>
+                    </div>
                   </div>
 
                   {/* Sub-tabs selection */}
@@ -753,7 +839,23 @@ export default function App() {
                   {/* 7-Day Plan tab */}
                   {outputSubTab === 'calendar' && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                      <h4 style={{ fontWeight: 600, color: 'var(--accent-indigo)' }}>Lịch trình Phân Phối 7 Ngày (Final Calendar):</h4>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                        <h4 style={{ fontWeight: 600, color: 'var(--accent-indigo)' }}>Lịch trình Phân Phối 7 Ngày (Final Calendar):</h4>
+                        <button 
+                          className="btn btn-secondary" 
+                          style={{ padding: '6px 12px', fontSize: '0.85rem' }}
+                          onClick={() => {
+                            const calMarkdown = `| Ngày | Chủ đề (Theme) | Kênh | Nội dung chính | Visual gợi ý | CTA | Approval needed |\n` +
+                              `| :--- | :--- | :--- | :--- | :--- | :--- | :--- |\n` +
+                              (activeCampaign.calendar?.map((item) => 
+                                `| **${item.day}** | ${item.theme} | ${item.channel} | ${item.content} | ${item.visual} | ${item.cta} | ${item.approval} |`
+                              ).join('\n') || '');
+                            copyToClipboard(calMarkdown, 'calendar');
+                          }}
+                        >
+                          {copiedStates['calendar'] ? <span style={{ color: 'var(--accent-emerald)', display: 'flex', alignItems: 'center', gap: '4px' }}><Check size={14} /> Copied!</span> : <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Copy size={14} /> Copy Content Plan</span>}
+                        </button>
+                      </div>
                       <div style={{ overflowX: 'auto' }}>
                         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '800px' }}>
                           <thead>
@@ -792,59 +894,198 @@ export default function App() {
                   {/* Copywriting tab */}
                   {outputSubTab === 'copy' && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                      <div>
-                        <h4 style={{ fontWeight: 600, color: 'var(--accent-indigo)' }}>Campaign Slogans:</h4>
-                        <ul style={{ listStyleType: 'circle', paddingLeft: '20px', marginTop: '8px', color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
-                          {activeCampaign.outputs.copywriter.slogans.map((s, idx) => <li key={idx}>{s}</li>)}
-                        </ul>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                        <div style={{ background: 'rgba(255,255,255,0.01)', padding: '20px', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                            <h4 style={{ fontWeight: 600, color: 'var(--accent-indigo)' }}>Campaign Slogans:</h4>
+                            <button 
+                              className="btn btn-secondary" 
+                              style={{ padding: '4px 8px', fontSize: '0.8rem' }}
+                              onClick={() => copyToClipboard(activeCampaign.outputs.copywriter.slogans.join('\n'), 'slogans')}
+                            >
+                              {copiedStates['slogans'] ? 'Copied! ✓' : 'Copy All Slogans'}
+                            </button>
+                          </div>
+                          <ul style={{ listStyleType: 'circle', paddingLeft: '20px', color: 'var(--text-secondary)', fontSize: '0.9rem', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                            {activeCampaign.outputs.copywriter.slogans.map((s, idx) => <li key={idx} style={{ lineHeight: 1.4 }}>{s}</li>)}
+                          </ul>
+                        </div>
+
+                        <div style={{ background: 'rgba(255,255,255,0.01)', padding: '20px', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                            <h4 style={{ fontWeight: 600, color: 'var(--accent-indigo)' }}>Short Captions:</h4>
+                            <button 
+                              className="btn btn-secondary" 
+                              style={{ padding: '4px 8px', fontSize: '0.8rem' }}
+                              onClick={() => copyToClipboard(activeCampaign.outputs.copywriter.shortCaptions.join('\n'), 'short_captions')}
+                            >
+                              {copiedStates['short_captions'] ? 'Copied! ✓' : 'Copy Short Captions'}
+                            </button>
+                          </div>
+                          <ul style={{ listStyleType: 'circle', paddingLeft: '20px', color: 'var(--text-secondary)', fontSize: '0.9rem', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                            {activeCampaign.outputs.copywriter.shortCaptions.map((sc, idx) => <li key={idx} style={{ lineHeight: 1.4 }}>{sc}</li>)}
+                          </ul>
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                        <div style={{ background: 'rgba(255,255,255,0.01)', padding: '20px', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                            <h4 style={{ fontWeight: 600, color: 'var(--accent-indigo)' }}>Calls To Action (CTA):</h4>
+                            <button 
+                              className="btn btn-secondary" 
+                              style={{ padding: '4px 8px', fontSize: '0.8rem' }}
+                              onClick={() => copyToClipboard(activeCampaign.outputs.copywriter.ctas.join('\n'), 'ctas')}
+                            >
+                              {copiedStates['ctas'] ? 'Copied! ✓' : 'Copy CTAs'}
+                            </button>
+                          </div>
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                            {activeCampaign.outputs.copywriter.ctas.map((c, idx) => (
+                              <code key={idx} style={{ background: 'rgba(99, 102, 241, 0.1)', padding: '6px 12px', borderRadius: '4px', border: '1px solid rgba(99, 102, 241, 0.2)', fontSize: '0.85rem' }}>{c}</code>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div style={{ background: 'rgba(255,255,255,0.01)', padding: '20px', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                            <h4 style={{ fontWeight: 600, color: 'var(--accent-indigo)' }}>Hashtags:</h4>
+                            <button 
+                              className="btn btn-secondary" 
+                              style={{ padding: '4px 8px', fontSize: '0.8rem' }}
+                              onClick={() => copyToClipboard(activeCampaign.outputs.copywriter.hashtags.join(' '), 'hashtags')}
+                            >
+                              {copiedStates['hashtags'] ? 'Copied! ✓' : 'Copy Hashtags'}
+                            </button>
+                          </div>
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                            {activeCampaign.outputs.copywriter.hashtags.map((h, idx) => (
+                              <span key={idx} className="badge badge-blue" style={{ fontSize: '0.85rem', textTransform: 'lowercase' }}>{h}</span>
+                            ))}
+                          </div>
+                        </div>
                       </div>
                       
                       <div>
-                        <h4 style={{ fontWeight: 600, color: 'var(--accent-indigo)' }}>Sample Caption:</h4>
-                        {activeCampaign.outputs.copywriter.captions.map((cap, idx) => (
-                          <div key={idx} style={{ background: 'rgba(255,255,255,0.02)', padding: '20px', borderRadius: '8px', border: '1px solid var(--border-color)', marginTop: '12px' }}>
-                            <h5 style={{ fontWeight: 600, marginBottom: '8px' }}>{cap.title}</h5>
-                            <p style={{ fontSize: '0.8rem', color: 'var(--accent-blue)', marginBottom: '8px' }}>Visual: {cap.visual}</p>
-                            <pre style={{ whiteSpace: 'pre-wrap', fontSize: '0.9rem', color: 'var(--text-secondary)', fontFamily: 'inherit', lineHeight: 1.5 }}>{cap.body}</pre>
-                          </div>
-                        ))}
+                        <h4 style={{ fontWeight: 600, color: 'var(--accent-indigo)', marginBottom: '16px' }}>7 Facebook Captions:</h4>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                          {activeCampaign.outputs.copywriter.captions.map((cap, idx) => (
+                            <div key={idx} style={{ background: 'rgba(255,255,255,0.02)', padding: '20px', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+                                <div>
+                                  <h5 style={{ fontWeight: 600, fontSize: '1rem', color: 'var(--text-primary)' }}>{cap.title}</h5>
+                                  <p style={{ fontSize: '0.8rem', color: 'var(--accent-blue)', marginTop: '4px' }}>Visual suggestion: {cap.visual}</p>
+                                </div>
+                                <button 
+                                  className="btn btn-secondary" 
+                                  style={{ padding: '6px 12px', fontSize: '0.8rem' }}
+                                  onClick={() => copyToClipboard(cap.body, `caption_${idx}`)}
+                                >
+                                  {copiedStates[`caption_${idx}`] ? <span style={{ color: 'var(--accent-emerald)' }}>Copied! ✓</span> : 'Copy Caption'}
+                                </button>
+                              </div>
+                              <pre style={{ whiteSpace: 'pre-wrap', fontSize: '0.9rem', color: 'var(--text-secondary)', fontFamily: 'inherit', lineHeight: 1.5, background: 'rgba(0,0,0,0.2)', padding: '16px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.03)' }}>{cap.body}</pre>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     </div>
                   )}
 
                   {/* Video scripts tab */}
                   {outputSubTab === 'video' && (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                      {activeCampaign.outputs.videoEditor.scripts.map((script, idx) => (
-                        <div key={idx}>
-                          <h4 style={{ fontWeight: 600, color: 'var(--accent-indigo)', marginBottom: '12px' }}>{script.title}</h4>
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                            {script.scenes.map((scene, sIdx) => (
-                              <div key={sIdx} style={{ background: 'rgba(255,255,255,0.02)', padding: '16px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
-                                <p style={{ fontWeight: 600, fontSize: '0.95rem' }}>{scene.scene}</p>
-                                <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '6px' }}><strong>Visual:</strong> {scene.visual}</p>
-                                <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '4px' }}><strong>Audio:</strong> {scene.audio}</p>
-                                <p style={{ fontSize: '0.8rem', color: 'var(--accent-indigo)', marginTop: '4px' }}><strong>Note:</strong> {scene.note}</p>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                      <div>
+                        <h4 style={{ fontWeight: 600, color: 'var(--accent-indigo)', marginBottom: '8px' }}>TikTok/Reels/Shorts Hooks gợi ý:</h4>
+                        <ul style={{ listStyleType: 'decimal', paddingLeft: '20px', color: 'var(--text-secondary)', fontSize: '0.9rem', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                          {activeCampaign.outputs.copywriter.hooks.map((h, idx) => <li key={idx}>{h}</li>)}
+                        </ul>
+                      </div>
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', marginTop: '12px' }}>
+                        {activeCampaign.outputs.videoEditor.scripts.map((script, idx) => (
+                          <div key={idx} style={{ background: 'rgba(255,255,255,0.02)', padding: '24px', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                              <div>
+                                <h4 style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '1.1rem' }}>{script.title}</h4>
+                                <p style={{ fontSize: '0.85rem', color: 'var(--accent-amber)', marginTop: '4px' }}><strong>Hook chính:</strong> "{script.hook}"</p>
                               </div>
-                            ))}
+                              <button 
+                                className="btn btn-secondary" 
+                                style={{ padding: '6px 12px', fontSize: '0.8rem' }}
+                                onClick={() => {
+                                  const scriptText = `${script.title}\nHook: ${script.hook}\n\nKịch bản phân cảnh:\n` +
+                                    script.scenes.map(s => `[${s.scene}]\n- Hình ảnh: ${s.visual}\n- Âm thanh: ${s.audio}\n- Góc quay: ${s.note}\n- Chữ đè (Overlay): ${s.textOverlay}`).join('\n\n');
+                                  copyToClipboard(scriptText, `video_${idx}`);
+                                }}
+                              >
+                                {copiedStates[`video_${idx}`] ? <span style={{ color: 'var(--accent-emerald)' }}>Copied! ✓</span> : 'Copy Video Script'}
+                              </button>
+                            </div>
+                            
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                              {script.scenes.map((scene, sIdx) => (
+                                <div key={sIdx} style={{ background: 'rgba(0,0,0,0.15)', padding: '16px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.02)' }}>
+                                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                                    <span style={{ fontWeight: 600, color: 'var(--accent-indigo)', fontSize: '0.9rem' }}>{scene.scene}</span>
+                                    <span className="badge badge-blue" style={{ fontSize: '0.7rem' }}>{scene.note}</span>
+                                  </div>
+                                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                                    <div><strong>Visual:</strong> {scene.visual}</div>
+                                    <div><strong>Audio:</strong> {scene.audio}</div>
+                                  </div>
+                                  {scene.textOverlay && (
+                                    <div style={{ marginTop: '8px', borderTop: '1px dashed rgba(255,255,255,0.05)', paddingTop: '8px', fontSize: '0.8rem', color: 'var(--accent-blue)' }}>
+                                      <strong>Text Overlay:</strong> "{scene.textOverlay}"
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
                   )}
 
                   {/* Design briefs tab */}
                   {outputSubTab === 'design' && (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                       {activeCampaign.outputs.designer.briefs.map((brief, idx) => (
-                        <div key={idx} style={{ background: 'rgba(255,255,255,0.02)', padding: '20px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
-                          <h4 style={{ fontWeight: 600, color: 'var(--accent-indigo)', marginBottom: '10px' }}>{brief.title}</h4>
-                          <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}><strong>Layout:</strong> {brief.layout}</p>
-                          <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginTop: '6px' }}><strong>Text Overlay:</strong> {brief.textOverlay}</p>
+                        <div key={idx} style={{ background: 'rgba(255,255,255,0.02)', padding: '24px', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+                            <h4 style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '1.1rem' }}>{brief.title}</h4>
+                            <button 
+                              className="btn btn-secondary" 
+                              style={{ padding: '6px 12px', fontSize: '0.8rem' }}
+                              onClick={() => {
+                                const briefText = `${brief.title}\nLayout: ${brief.layout}\nVisual Direction: ${brief.visualDirection}\nColor & Style Note: ${brief.colorStyleNote}\nText Overlay: ${brief.textOverlay}\nAI Image Prompt: ${brief.prompt}`;
+                                copyToClipboard(briefText, `design_${idx}`);
+                              }}
+                            >
+                              {copiedStates[`design_${idx}`] ? <span style={{ color: 'var(--accent-emerald)' }}>Copied! ✓</span> : 'Copy Design Brief'}
+                            </button>
+                          </div>
                           
-                          <div style={{ background: 'rgba(0,0,0,0.3)', padding: '12px', borderRadius: '6px', marginTop: '12px', borderLeft: '4px solid var(--accent-blue)' }}>
-                            <p style={{ fontSize: '0.75rem', color: 'var(--accent-blue)', fontWeight: 600, textTransform: 'uppercase' }}>AI Design Prompt:</p>
-                            <p style={{ fontSize: '0.85rem', fontFamily: 'monospace', color: 'var(--text-primary)', marginTop: '4px' }}>{brief.prompt}</p>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '16px' }}>
+                            <p><strong>Bố cục (Layout):</strong> {brief.layout}</p>
+                            <p><strong>Visual Direction (Chi tiết bố cục):</strong> {brief.visualDirection}</p>
+                            <p><strong>Ghi chú màu sắc / Mood note:</strong> {brief.colorStyleNote}</p>
+                            <p><strong>Text Overlay:</strong> <code style={{ color: 'var(--text-primary)' }}>{brief.textOverlay}</code></p>
+                          </div>
+
+                          <div style={{ background: 'rgba(0,0,0,0.3)', padding: '16px', borderRadius: '8px', borderLeft: '4px solid var(--accent-blue)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <div style={{ width: '80%' }}>
+                              <p style={{ fontSize: '0.75rem', color: 'var(--accent-blue)', fontWeight: 600, textTransform: 'uppercase' }}>AI Design Prompt:</p>
+                              <p style={{ fontSize: '0.85rem', fontFamily: 'monospace', color: 'var(--text-primary)', marginTop: '6px', overflowX: 'auto', whiteSpace: 'pre-wrap' }}>{brief.prompt}</p>
+                            </div>
+                            <button 
+                              className="btn btn-secondary" 
+                              style={{ padding: '4px 8px', fontSize: '0.8rem' }}
+                              onClick={() => copyToClipboard(brief.prompt, `prompt_${idx}`)}
+                            >
+                              {copiedStates[`prompt_${idx}`] ? 'Copied!' : 'Copy Prompt'}
+                            </button>
                           </div>
                         </div>
                       ))}
@@ -853,23 +1094,63 @@ export default function App() {
 
                   {/* Ads manager tab */}
                   {outputSubTab === 'ads' && (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                       <div>
-                        <h4 style={{ fontWeight: 600, color: 'var(--accent-indigo)' }}>5 Góc tiếp cận (Angles):</h4>
+                        <h4 style={{ fontWeight: 600, color: 'var(--accent-indigo)' }}>5 Góc tiếp cận quảng cáo (Ads Angles):</h4>
                         <ul style={{ listStyleType: 'decimal', paddingLeft: '20px', marginTop: '8px', color: 'var(--text-secondary)', fontSize: '0.9rem', display: 'flex', flexDirection: 'column', gap: '6px' }}>
                           {activeCampaign.outputs.adsManager.angles.map((a, idx) => <li key={idx}>{a}</li>)}
                         </ul>
                       </div>
 
                       <div>
-                        <h4 style={{ fontWeight: 600, color: 'var(--accent-indigo)' }}>Nhóm Target đối tượng giả lập (Ad Sets):</h4>
+                        <h4 style={{ fontWeight: 600, color: 'var(--accent-indigo)' }}>Phân bổ nhóm Target giả lập (Ad Sets Map):</h4>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginTop: '10px' }}>
                           {activeCampaign.outputs.adsManager.adSets.map((ad, idx) => (
                             <div key={idx} style={{ background: 'rgba(255,255,255,0.02)', padding: '16px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
-                              <h5 style={{ fontWeight: 600, marginBottom: '6px' }}>{ad.name}</h5>
-                              <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}><strong>Ngân sách:</strong> {ad.budget}</p>
+                              <h5 style={{ fontWeight: 600, marginBottom: '6px', color: 'var(--text-primary)' }}>{ad.name}</h5>
+                              <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}><strong>Ngân sách mô phỏng:</strong> {ad.budget}</p>
                               <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}><strong>Target:</strong> {ad.targeting}</p>
-                              <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}><strong>Định dạng:</strong> {ad.format}</p>
+                              <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}><strong>Định dạng quảng cáo:</strong> {ad.format}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div>
+                        <h4 style={{ fontWeight: 600, color: 'var(--accent-indigo)', marginBottom: '12px' }}>Bản nháp mẫu thiết lập Ads (Mock Ad Units):</h4>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                          {activeCampaign.outputs.adsManager.mockAds?.map((ad, idx) => (
+                            <div key={idx} style={{ background: 'rgba(255,255,255,0.02)', padding: '20px', borderRadius: '12px', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <div>
+                                  <h5 style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{ad.name}</h5>
+                                  <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Angle: {ad.angle}</p>
+                                </div>
+                                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                  <span className="badge badge-rose" style={{ background: 'rgba(244, 63, 94, 0.1)', color: '#fb7185', borderColor: 'rgba(244, 63, 94, 0.2)' }}>⚠️ DRAFT ONLY - NOT LAUNCHED</span>
+                                  <button 
+                                    className="btn btn-secondary" 
+                                    style={{ padding: '6px 12px', fontSize: '0.8rem' }}
+                                    onClick={() => {
+                                      const adText = `Ad Unit: ${ad.name}\nPrimary Text: ${ad.primaryText}\nHeadline: ${ad.headline}\nDescription: ${ad.description}\nCTA: ${ad.cta}`;
+                                      copyToClipboard(adText, `ad_copy_${idx}`);
+                                    }}
+                                  >
+                                    {copiedStates[`ad_copy_${idx}`] ? <span style={{ color: 'var(--accent-emerald)' }}>Copied! ✓</span> : 'Copy Ads Copy'}
+                                  </button>
+                                </div>
+                              </div>
+
+                              <div style={{ background: 'rgba(0,0,0,0.2)', padding: '16px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)', display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '0.85rem' }}>
+                                <pre style={{ whiteSpace: 'pre-wrap', fontFamily: 'inherit', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{ad.primaryText}</pre>
+                                <div style={{ background: 'rgba(255,255,255,0.03)', padding: '12px', borderRadius: '6px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                                  <div>
+                                    <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{ad.headline}</div>
+                                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2px' }}>{ad.description}</div>
+                                  </div>
+                                  <span className="badge badge-blue" style={{ padding: '6px 12px', borderRadius: '4px' }}>{ad.cta}</span>
+                                </div>
+                              </div>
                             </div>
                           ))}
                         </div>
@@ -880,8 +1161,20 @@ export default function App() {
                   {/* Simulated reports tab */}
                   {outputSubTab === 'report' && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                      <div className="badge badge-amber" style={{ alignSelf: 'flex-start' }}>🔒 SIMULATED DATA ONLY - DỮ LIỆU MÔ PHỎNG</div>
+                      <div className="badge badge-amber" style={{ alignSelf: 'flex-start' }}>🔒 SIMULATED DATA ONLY - DỮ LIỆU MÔ PHỎNG DỰ TOÁN</div>
                       
+                      <div>
+                        <h4 style={{ fontWeight: 600, color: 'var(--accent-indigo)', marginBottom: '8px' }}>Giả định chỉ số KPI mô phỏng (Simulated Assumptions):</h4>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                          {activeCampaign.outputs.dataReporter.kpiAssumptions?.map((kpi, idx) => (
+                            <div key={idx} style={{ background: 'rgba(255,255,255,0.02)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color)', fontSize: '0.85rem' }}>
+                              <strong style={{ color: 'var(--text-primary)' }}>{kpi.metric}:</strong>
+                              <p style={{ color: 'var(--text-secondary)', marginTop: '4px' }}>{kpi.assumption}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
                       <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', marginTop: '10px' }}>
                         <thead>
                           <tr style={{ borderBottom: '1px solid var(--border-color)', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
@@ -909,17 +1202,56 @@ export default function App() {
                           {activeCampaign.outputs.dataReporter.recommendations.map((r, idx) => <li key={idx}>{r}</li>)}
                         </ul>
                       </div>
+
+                      <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '20px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                          <h4 style={{ fontWeight: 600, color: 'var(--accent-indigo)' }}>Mẫu Báo Cáo Tuần (Weekly Report Template):</h4>
+                          <button 
+                            className="btn btn-secondary" 
+                            style={{ padding: '6px 12px', fontSize: '0.8rem' }}
+                            onClick={() => copyToClipboard(activeCampaign.outputs.dataReporter.reportTemplate, 'weekly_report')}
+                          >
+                            {copiedStates['weekly_report'] ? <span style={{ color: 'var(--accent-emerald)' }}>Copied! ✓</span> : 'Copy Weekly Report'}
+                          </button>
+                        </div>
+                        <pre style={{ background: 'rgba(0,0,0,0.3)', padding: '16px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)', fontSize: '0.85rem', fontFamily: 'monospace', color: 'var(--text-secondary)', whiteSpace: 'pre-wrap' }}>{activeCampaign.outputs.dataReporter.reportTemplate}</pre>
+                      </div>
                     </div>
                   )}
 
                   {/* Final pack tab */}
                   {outputSubTab === 'final' && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                      <div style={{ background: 'rgba(99,102,241,0.05)', padding: '24px', borderRadius: '12px', border: '1px solid var(--border-glow)' }}>
-                        <h3 style={{ fontSize: '1.2rem', marginBottom: '8px', color: 'var(--accent-indigo)' }}>Gói Chiến Dịch Đóng Gói (Final Campaign Pack)</h3>
-                        <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-                          Đây là sản phẩm đã được AI Coordinator tổng hợp sạch đẹp từ tất cả các Agent, sẵn sàng đưa vào phê duyệt hoặc copy-paste để đăng tải thực tế.
-                        </p>
+                      <div style={{ background: 'rgba(99,102,241,0.05)', padding: '24px', borderRadius: '12px', border: '1px solid var(--border-glow)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div>
+                          <h3 style={{ fontSize: '1.2rem', marginBottom: '8px', color: 'var(--accent-indigo)' }}>Gói Chiến Dịch Đóng Gói (Final Campaign Pack)</h3>
+                          <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                            Đây là sản phẩm đã được AI Coordinator tổng hợp sạch đẹp từ tất cả các Agent, sẵn sàng đưa vào phê duyệt hoặc copy-paste để đăng tải thực tế.
+                          </p>
+                        </div>
+                        <button 
+                          className="btn btn-primary" 
+                          onClick={() => {
+                            const summaryText = `--- CHIẾN DỊCH: ${activeCampaign.name} ---\n` +
+                              `Thương hiệu: ${activeCampaign.brief.brandName}\n` +
+                              `Sản phẩm cốt lõi: ${activeCampaign.brief.heroProduct}\n\n` +
+                              `1. SLOGANS CHÍNH:\n` +
+                              activeCampaign.outputs.copywriter.slogans.map(s => `- ${s}`).join('\n') + `\n\n` +
+                              `2. BÀI VIẾT NỔI BẬT (Facebook):\n` +
+                              activeCampaign.outputs.copywriter.captions[0].body + `\n\n` +
+                              `3. KỊCH BẢN VIDEO HẤP DẪN (15s):\n` +
+                              `Hook: ${activeCampaign.outputs.videoEditor.scripts[0].hook}\n` +
+                              `Scenes:\n` +
+                              activeCampaign.outputs.videoEditor.scripts[0].scenes.map(s => `- ${s.scene}: ${s.visual} [Overlay: ${s.textOverlay}]`).join('\n') + `\n\n` +
+                              `4. MÔ TẢ HÌNH ẢNH DESIGN PROMPT:\n` +
+                              `- Ý tưởng: ${activeCampaign.outputs.designer.briefs[0].layout}\n` +
+                              `- Prompt: ${activeCampaign.outputs.designer.briefs[0].prompt}\n\n` +
+                              `Disclaimer: Toàn bộ dữ liệu hiệu năng giả lập chỉ sử dụng cho mục đích demo mock-up.`;
+                            copyToClipboard(summaryText, 'client_summary');
+                          }}
+                        >
+                          {copiedStates['client_summary'] ? 'Copied! ✓' : 'Copy Client Summary'}
+                        </button>
                       </div>
 
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -928,7 +1260,7 @@ export default function App() {
                         </div>
                         <div style={{ background: 'rgba(255,255,255,0.02)', padding: '16px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
                           <strong>2. Bài viết chính (Facebook):</strong>
-                          <pre style={{ whiteSpace: 'pre-wrap', fontFamily: 'inherit', fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '8px' }}>{activeCampaign.outputs.copywriter.captions[0].body}</pre>
+                          <pre style={{ whiteSpace: 'pre-wrap', fontFamily: 'inherit', fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '8px', background: 'rgba(0,0,0,0.15)', padding: '12px', borderRadius: '6px' }}>{activeCampaign.outputs.copywriter.captions[0].body}</pre>
                         </div>
                         <div style={{ background: 'rgba(255,255,255,0.02)', padding: '16px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
                           <strong>3. Prompt ảnh AI:</strong> <code style={{ fontSize: '0.8rem', color: 'var(--accent-blue)' }}>{activeCampaign.outputs.designer.briefs[0].prompt}</code>
@@ -943,12 +1275,37 @@ export default function App() {
               {/* 5. APPROVAL CHECKLIST TAB */}
               {activeTab === 'approval' && (
                 <div className="glass-panel" style={{ padding: '32px' }}>
-                  <div style={{ marginBottom: '24px' }}>
-                    <h2 style={{ fontSize: '1.5rem', fontWeight: 600, marginBottom: '8px' }}>Kiểm Duyệt Chiến Dịch Thủ Công</h2>
-                    <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-                      Với vai trò là Chủ thương hiệu (Owner), bạn có quyền duyệt hoặc từ chối gói sản phẩm marketing dưới đây.
-                    </p>
+                  
+                  {/* Campaign context bar */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', paddingBottom: '16px', borderBottom: '1px solid var(--border-color)' }}>
+                    <div>
+                      <h2 style={{ fontSize: '1.5rem', fontWeight: 600 }}>Kiểm Duyệt Chiến Dịch Thủ Công</h2>
+                      <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                        Với vai trò là Chủ thương hiệu (Owner), bạn có quyền duyệt hoặc từ chối gói sản phẩm marketing dưới đây.
+                      </p>
+                    </div>
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                      <span className="badge badge-indigo" style={{ background: 'rgba(99, 102, 241, 0.15)', color: '#818cf8', borderColor: 'rgba(99, 102, 241, 0.3)', border: '1px solid' }}>Human Approval Required</span>
+                    </div>
                   </div>
+
+                  {/* Checklist progress bar */}
+                  {(() => {
+                    const checkedCount = activeCampaign.checklist?.filter(c => c.checked).length || 0;
+                    const totalCount = activeCampaign.checklist?.length || 0;
+                    const percentage = totalCount > 0 ? Math.round((checkedCount / totalCount) * 100) : 0;
+                    return (
+                      <div style={{ marginBottom: '24px', background: 'rgba(255,255,255,0.01)', padding: '16px', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                          <span style={{ fontSize: '0.9rem', fontWeight: 600 }}>Tiến độ kiểm duyệt an toàn:</span>
+                          <span style={{ fontSize: '0.95rem', fontWeight: 700, color: percentage === 100 ? 'var(--accent-emerald)' : 'var(--accent-amber)' }}>{checkedCount} / {totalCount} ({percentage}%)</span>
+                        </div>
+                        <div style={{ width: '100%', height: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px', overflow: 'hidden' }}>
+                          <div style={{ width: `${percentage}%`, height: '100%', background: percentage === 100 ? 'linear-gradient(90deg, var(--accent-emerald), #059669)' : 'linear-gradient(90deg, var(--accent-indigo), var(--accent-blue))', transition: 'width 0.3s ease' }}></div>
+                        </div>
+                      </div>
+                    );
+                  })()}
 
                   {/* Human Approval Checklist */}
                   <div style={{ background: 'rgba(255,255,255,0.02)', padding: '24px', borderRadius: '12px', border: '1px solid var(--border-color)', marginBottom: '24px' }}>
@@ -1030,6 +1387,114 @@ export default function App() {
                     <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.5, textAlign: 'left' }}>
                       <strong>Lời khuyên khi duyệt:</strong> Đảm bảo thông tin về Bánh tráng cuốn heo quay đã khớp với định vị Street food meets Premium của Vị Cuốn. Hãy copy prompt hình ảnh mang sang Canva/Fal.ai để tự thiết kế nếu bạn đã duyệt sản phẩm.
                     </div>
+                  </div>
+
+                </div>
+              )}
+
+              {/* 6. CLIENT DEMO PACK TAB */}
+              {activeTab === 'demo-pack' && (
+                <div className="glass-panel" style={{ padding: '32px' }}>
+                  
+                  {/* Campaign context bar */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', paddingBottom: '16px', borderBottom: '1px solid var(--border-color)' }}>
+                    <div>
+                      <h2 style={{ fontSize: '1.5rem', fontWeight: 600 }}>Client Presentation & Demo Pack</h2>
+                      <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                        Tài liệu giới thiệu giải pháp AI Marketing Team cho đối tác & khách hàng doanh nghiệp.
+                      </p>
+                    </div>
+                    <button 
+                      className="btn btn-primary"
+                      onClick={() => {
+                        const pitchText = `--- PITCH GIỚI THIỆU AI MARKETING TEAM ---\n` +
+                          `Dự án demo: Chiến dịch ra mắt Bánh tráng cuốn heo quay - Vị Cuốn\n\n` +
+                          `Chào đối tác,\n` +
+                          `AI Marketing Team đã xây dựng trọn gói chiến dịch tích hợp 7 ngày cho thương hiệu Vị Cuốn:\n` +
+                          `- Lên lịch trình phân phối 7 ngày đa kênh (Facebook, TikTok).\n` +
+                          `- Soạn thảo 7 bài viết Caption Facebook chuẩn tone giọng Premium Street Food.\n` +
+                          `- Lên 3 kịch bản video dọc ASMR 15s chi tiết phân cảnh và âm thanh.\n` +
+                          `- Viết 3 prompt thiết kế ảnh AI chuyên nghiệp độ phân giải cao.\n` +
+                          `- Cấu hình tệp quảng cáo địa phương và target khách hàng tại Vinh.\n` +
+                          `- Báo cáo hiệu quả giả lập hỗ trợ Owner đưa ra quyết định.\n\n` +
+                          `Ranh giới an toàn: Hệ thống chạy hoàn toàn ở chế độ Offline Mock-up (Auto-post: NO, Real Ads: NO, Real Message: NO).\n` +
+                          `Quy trình phê duyệt (Owner Review) là bắt buộc trước khi lấy nội dung chạy thực tế.\n\n` +
+                          `Trân trọng,\n` +
+                          `Đội ngũ Claude AI Marketing Team`;
+                        copyToClipboard(pitchText, 'pitch_summary');
+                      }}
+                    >
+                      {copiedStates['pitch_summary'] ? 'Copied Pitch!' : <><Copy size={16} /> Copy Presentation Pitch</>}
+                    </button>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '24px' }}>
+                    
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                      
+                      {/* What AI Created */}
+                      <div style={{ background: 'rgba(255,255,255,0.01)', padding: '24px', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
+                        <h3 style={{ fontSize: '1.15rem', color: 'var(--accent-indigo)', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <Sparkles size={18} /> Kết quả AI Team đã thiết lập
+                        </h3>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+                          <div style={{ background: 'rgba(0,0,0,0.15)', padding: '12px', borderRadius: '8px' }}>
+                            <strong style={{ color: 'var(--text-primary)' }}>Copywriter Agent:</strong>
+                            <p style={{ marginTop: '4px' }}>3 Slogans chiến dịch, 7 bài viết Facebook hoàn chỉnh, danh sách hashtags và ctas.</p>
+                          </div>
+                          <div style={{ background: 'rgba(0,0,0,0.15)', padding: '12px', borderRadius: '8px' }}>
+                            <strong style={{ color: 'var(--text-primary)' }}>Video Editor Agent:</strong>
+                            <p style={{ marginTop: '4px' }}>3 kịch bản dọc 15s (Reels/TikTok) chi tiết phân cảnh, hiệu ứng ASMR và góc máy.</p>
+                          </div>
+                          <div style={{ background: 'rgba(0,0,0,0.15)', padding: '12px', borderRadius: '8px' }}>
+                            <strong style={{ color: 'var(--text-primary)' }}>Designer Agent:</strong>
+                            <p style={{ marginTop: '4px' }}>3 brief thiết kế hình ảnh chi tiết kèm 3 prompt thiết kế AI chuyên nghiệp.</p>
+                          </div>
+                          <div style={{ background: 'rgba(0,0,0,0.15)', padding: '12px', borderRadius: '8px' }}>
+                            <strong style={{ color: 'var(--text-primary)' }}>Ads Manager & Data Reporter:</strong>
+                            <p style={{ marginTop: '4px' }}>Target địa phương TP Vinh, cấu hình 2 Ad sets, bản nháp ad copy và báo cáo mô phỏng.</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Suggested Next Actions */}
+                      <div style={{ background: 'rgba(255,255,255,0.01)', padding: '24px', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
+                        <h3 style={{ fontSize: '1.15rem', color: 'var(--accent-indigo)', marginBottom: '14px' }}>💡 Đề xuất hành động tiếp theo</h3>
+                        <ol style={{ paddingLeft: '20px', fontSize: '0.9rem', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '10px', lineHeight: 1.4 }}>
+                          <li><strong>Duyệt checklist 10 điểm:</strong> Chuyển trạng thái chiến dịch thành APPROVED để kết thúc bước lập kế hoạch.</li>
+                          <li><strong>Tạo hình ảnh AI:</strong> Sao chép prompt ở tab Designer sang công cụ Fal.ai hoặc Midjourney để vẽ ảnh.</li>
+                          <li><strong>Sản xuất video:</strong> Sử dụng điện thoại quay cảnh cắt thịt heo quay nổ lu tại quán theo đúng kịch bản ASMR.</li>
+                          <li><strong>Đăng bài thủ công:</strong> Bổ sung mức giá chính thức của quán và đăng bài lên Facebook Fanpage của Vị Cuốn.</li>
+                        </ol>
+                      </div>
+
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                      
+                      {/* What needs approval */}
+                      <div style={{ background: 'rgba(245, 158, 11, 0.05)', padding: '20px', borderRadius: '12px', border: '1px solid rgba(245, 158, 11, 0.2)' }}>
+                        <h4 style={{ color: 'var(--accent-amber)', fontSize: '1rem', fontWeight: 600, marginBottom: '10px' }}>⚠️ Cần duyệt thủ công</h4>
+                        <ul style={{ paddingLeft: '16px', fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '8px', lineHeight: 1.3 }}>
+                          <li>Owner cung cấp giá bán Suất cuốn heo quay.</li>
+                          <li>Owner điền địa chỉ thật & số hotline tại TP Vinh.</li>
+                          <li>Quyết định chương trình ưu đãi tuần.</li>
+                          <li>Duyệt ngân sách thực tế để tự lên Ads thủ công.</li>
+                        </ul>
+                      </div>
+
+                      {/* Disclaimer warning */}
+                      <div style={{ background: 'rgba(244, 63, 94, 0.05)', padding: '20px', borderRadius: '12px', border: '1px solid rgba(244, 63, 94, 0.2)' }}>
+                        <h4 style={{ color: 'var(--accent-rose)', fontSize: '1rem', fontWeight: 600, marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <Shield size={16} /> Disclaimer & Safety
+                        </h4>
+                        <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
+                          Đây là không gian làm việc mô phỏng 100% (Mock workspace only). Không kết nối mạng, không lưu giữ secret keys, không chạy quảng cáo hay đăng bài tự động để bảo vệ an toàn thương hiệu.
+                        </p>
+                      </div>
+
+                    </div>
+
                   </div>
 
                 </div>

@@ -30,29 +30,72 @@ export interface ChecklistItem {
   checked: boolean;
 }
 
+export interface Scene {
+  scene: string;
+  visual: string;
+  audio: string;
+  note: string;
+  textOverlay: string;
+}
+
+export interface VideoScript {
+  title: string;
+  hook: string;
+  sceneCount: number;
+  scenes: Scene[];
+}
+
+export interface DesignBrief {
+  title: string;
+  layout: string;
+  textOverlay: string;
+  prompt: string;
+  visualDirection: string;
+  colorStyleNote: string;
+}
+
+export interface MockAdUnit {
+  name: string;
+  angle: string;
+  primaryText: string;
+  headline: string;
+  description: string;
+  cta: string;
+}
+
+export interface KpiAssumption {
+  metric: string;
+  assumption: string;
+}
+
 export interface AgentOutput {
   copywriter: {
     captions: { title: string; body: string; visual: string }[];
     slogans: string[];
     hooks: string[];
     ctas: string[];
+    shortCaptions: string[];
+    hashtags: string[];
   };
   videoEditor: {
-    scripts: { title: string; sceneCount: number; scenes: { scene: string; visual: string; audio: string; note: string }[] }[];
+    scripts: VideoScript[];
   };
   designer: {
-    briefs: { title: string; layout: string; textOverlay: string; prompt: string }[];
+    briefs: DesignBrief[];
   };
   adsManager: {
     angles: string[];
     objectives: string[];
     adSets: { name: string; budget: string; targeting: string; format: string }[];
     testIdeas: string[];
+    mockAds: MockAdUnit[];
   };
   dataReporter: {
     metrics: { name: string; target: string; actual: string; completion: string; status: string }[];
     audienceBreakdown: { name: string; budget: string; ctr: string; conversions: string; cpa: string }[];
     recommendations: string[];
+    kpiAssumptions: KpiAssumption[];
+    reportTemplate: string;
   };
 }
 
@@ -71,7 +114,7 @@ export const sampleCampaigns: Campaign[] = [
   {
     id: "CAMP-VICUON-001",
     name: "Chiến dịch Bánh tráng cuốn heo quay — Vị Cuốn",
-    phase: "Phase B — First Demo Campaign Pack",
+    phase: "Phase G+ — Workspace Utility Upgrade",
     status: "Needs Review",
     brief: {
       brandName: "Vị Cuốn",
@@ -154,16 +197,16 @@ export const sampleCampaigns: Campaign[] = [
       }
     ],
     checklist: [
-      { id: "brand_accuracy", label: "Brand accuracy: Hình ảnh và giọng điệu bài đăng đúng phong cách \"Street food meets Premium\" của Vị Cuốn?", checked: false },
-      { id: "product_accuracy", label: "Product accuracy: Bánh tráng cuốn heo quay nướng lu và các món phụ cải cuốn, bún trộn có sẵn tại quán?", checked: false },
-      { id: "price_approval", label: "Price approval: Giá bán lẻ và giá combo chính thức đã được cập nhật chính xác?", checked: false },
-      { id: "promotion_approval", label: "Promotion approval: Duyệt chương trình ưu đãi chính thức của tuần lễ chiến dịch?", checked: false },
-      { id: "address_hotline_approval", label: "Address/hotline approval: Số điện thoại hotline và địa chỉ quán tại Vinh đã chính xác chưa?", checked: false },
-      { id: "visual_approval", label: "Visual approval: Hình ảnh chụp món thật và kịch bản video đảm bảo tính chân thực, sạch sẽ?", checked: false },
-      { id: "ads_budget_approval", label: "Ads budget approval: Phê duyệt ngân sách quảng cáo thực tế cho chiến dịch?", checked: false },
-      { id: "publishing_approval", label: "Publishing approval: Cho phép đăng bài thủ công lên Fanpage/TikTok?", checked: false },
-      { id: "customer_messaging_approval", label: "Customer messaging approval: Cho phép nhân viên trực page phản hồi khách đặt món?", checked: false },
-      { id: "final_owner_approval", label: "Final owner approval: Phê duyệt tổng thể chiến dịch để đưa vào triển khai thủ công.", checked: false }
+      { id: "brand_voice_checked", label: "Brand voice checked: Đúng phong cách sạch sẽ, gần gũi, premium nhưng không phóng đại.", checked: false },
+      { id: "product_info_checked", label: "Product info checked: Đúng thông tin món ăn cốt lõi (Bánh tráng cuốn heo quay).", checked: false },
+      { id: "price_promo_not_fabricated", label: "Price/promotion not fabricated: Không bịa đặt giá cả hoặc khuyến mãi ảo.", checked: false },
+      { id: "visual_concept_approved", label: "Visual concept approved: Ý tưởng hình ảnh chân thực, sạch sẽ và chuyên nghiệp.", checked: false },
+      { id: "caption_approved", label: "Caption approved: Nội dung bài đăng Facebook được kiểm duyệt từ ngữ kỹ càng.", checked: false },
+      { id: "ads_copy_approved", label: "Ads copy approved: Nội dung quảng cáo nhắm đúng tệp đối tượng Vinh.", checked: false },
+      { id: "no_autopost", label: "No auto-post: Xác nhận hệ thống không tự động đăng bài lên các kênh.", checked: false },
+      { id: "no_real_ads", label: "No real ads launched: Xác nhận không tự động kích hoạt tài khoản quảng cáo.", checked: false },
+      { id: "no_real_messaging", label: "No real messaging: Xác nhận không tự động gửi tin nhắn hay spam khách hàng.", checked: false },
+      { id: "human_approval_required", label: "Human approval required: Yêu cầu sự duyệt của người trước khi sử dụng công khai.", checked: false }
     ],
     outputs: {
       copywriter: {
@@ -186,6 +229,12 @@ export const sampleCampaigns: Campaign[] = [
           "📞 Hotline đặt ship: [OWNER CUNG CẤP]",
           "📍 Địa chỉ: [OWNER CUNG CẤP]"
         ],
+        shortCaptions: [
+          "Trưa nay ăn nhẹ bụng mà vẫn cuốn? Mẹt bánh tráng cuốn heo quay da giòn rôm rả tại Vị Cuốn sẵn sàng giao tận văn phòng.",
+          "Mắm nêm đậm vị, rau sạch rửa ozone, heo quay lu nóng hổi. Đầy đủ cho bữa tối sum vầy cùng gia đình.",
+          "ASMR da heo giòn rụm! Thèm cuốn heo quay ngon sạch chuẩn premium ghé ngay Vị Cuốn Vinh nhé."
+        ],
+        hashtags: ["#vicuon", "#monvietpremium", "#anngonvinh", "#banhtrangcuonheoquay"],
         captions: [
           {
             title: "Bài 1 (Ngày 1): Giới thiệu Heo quay nướng lu da giòn",
@@ -228,79 +277,92 @@ export const sampleCampaigns: Campaign[] = [
         scripts: [
           {
             title: "Kịch bản video 1: ASMR da heo quay nướng lu giòn rụm (15s)",
+            hook: "ASMR tiếng da heo nổ lu giòn tan giòn tan rôm rả.",
             sceneCount: 4,
             scenes: [
               {
                 scene: "Cảnh 1 (0-3s)",
                 visual: "Cận cảnh chiếc lu đất nướng heo quay, nhân viên mở nắp để khói thơm tỏa ra. Heo quay vàng ruộm óng ả.",
                 audio: "SFX: Tiếng lửa lò nổ lách tách nhẹ. Nhạc nền nhẹ nhàng, không quá dồn dập.",
-                note: "Close-up (Cận cảnh góc lu đất)."
+                note: "Close-up (Cận cảnh góc lu đất).",
+                textOverlay: "HEO QUAY NƯỚNG LU DA GIÒN"
               },
               {
                 scene: "Cảnh 2 (3-8s)",
                 visual: "Dao thái dứt khoát lên miếng thịt heo quay nướng lu trên thớt gỗ sạch. Thớ thịt heo quay chín tới, ẩm mềm, phần da heo nổ đều giòn cứng.",
                 audio: "SFX: Tiếng \"rôm rả\" rõ nét khi dao cắt qua lớp da heo giòn rụm.",
-                note: "Macro shot (Góc cắt sát tiếng động thớt)."
+                note: "Macro shot (Góc cắt sát tiếng động thớt).",
+                textOverlay: "GIÒN TAN RÔM RẢ"
               },
               {
                 scene: "Cảnh 3 (8-12s)",
                 visual: "Tay người cuốn bánh tráng đầy đặn rau sống, dưa chuột, khế chua và lát heo quay, chấm ngập vào bát mắm nêm tỏi ớt.",
                 audio: "VO: 'Bánh tráng cuốn heo quay nướng lu thơm lừng, chấm đẫm mắm nêm chuẩn Vị Cuốn...'",
-                note: "Extreme Close-up (Góc quay cận cảnh chấm nước sốt)."
+                note: "Extreme Close-up (Góc quay cận cảnh chấm nước sốt).",
+                textOverlay: "CHẤM ĐẪM MẮM NÊM ĐẬM VỊ"
               },
               {
                 scene: "Cảnh 4 (12-15s)",
                 visual: "Slide tĩnh chứa logo Vị Cuốn và CTA thông tin liên hệ: [Gọi hotline: OWNER CUNG CẤP] hoặc [Địa chỉ: OWNER CUNG CẤP].",
                 audio: "VO: 'Đặt món ngay cho bữa trưa nay nhé!'",
-                note: "Slide tĩnh hiển thị logo và thông tin đặt ship."
+                note: "Slide tĩnh hiển thị logo và thông tin đặt ship.",
+                textOverlay: "👉 INBOX ĐẶT MÓN | HOTLINE: [OWNER CUNG CẤP]"
               }
             ]
           },
           {
             title: "Kịch bản video 2: Quy trình chuẩn sạch của mẹt cuốn văn phòng (15s)",
+            hook: "Hộp bánh tráng cuốn heo quay da giòn lu tiện lợi cho dân văn phòng Vinh.",
             sceneCount: 3,
             scenes: [
               {
                 scene: "Cảnh 1 (0-5s)",
                 visual: "Tay nhân viên xếp từng cuộn bánh tráng heo quay tròn trịa vào hộp giấy kraft sạch sẽ, dán tem nhãn logo Vị Cuốn chỉn chu.",
                 audio: "VO: 'Cơm trưa văn phòng chuẩn sạch premium đóng gói gọn gàng.' Nhạc nền tươi vui, nhẹ nhàng.",
-                note: "Góc quay ngang tầm mắt (Eye-level shot) thắp sáng."
+                note: "Góc quay ngang tầm mắt (Eye-level shot) thắp sáng.",
+                textOverlay: "BỮA TRƯA CHUẨN SẠCH PREMIUM"
               },
               {
                 scene: "Cảnh 2 (5-10s)",
                 visual: "Shipper chuyên nghiệp xách túi đồ ăn của quán đi giao tới văn phòng. Nhân viên văn phòng mở hộp hào hứng.",
                 audio: "VO: 'Giao tận nơi nhanh chóng, giữ trọn độ giòn của thịt heo quay lu.'",
-                note: "Quay chuyển động (Tracking shot) mượt mà."
+                note: "Quay chuyển động (Tracking shot) mượt mà.",
+                textOverlay: "GIAO NHANH 20 PHÚT"
               },
               {
                 scene: "Cảnh 3 (10-15s)",
                 visual: "Text overlay: 👉 [Inbox đặt món ngay] | 📞 Hotline: [OWNER CUNG CẤP].",
                 audio: "VO: 'Rủ đồng nghiệp đặt nhóm ăn trưa tránh nắng ngay nhé!'",
-                note: "Slide CTA thương hiệu sắc nét."
+                note: "Slide CTA thương hiệu sắc nét.",
+                textOverlay: "📞 HOTLINE: [OWNER CUNG CẤP]"
               }
             ]
           },
           {
             title: "Kịch bản video 3: Hội bạn thân tụ tập ăn gỏi cuốn chiều mát (15s)",
+            hook: "Đi trốn nóng chiều hè cùng mẹt cuốn mắm nêm đậm vị.",
             sceneCount: 3,
             scenes: [
               {
                 scene: "Cảnh 1 (0-5s)",
                 visual: "Nhóm bạn trẻ đẩy cửa quán bước vào không gian Vị Cuốn sạch sẽ, thoáng mát, nhân viên chào đón nhiệt tình.",
                 audio: "SFX: Tiếng cười nói vui vẻ. Nhạc nền lofi nhẹ nhàng thư giãn.",
-                note: "Góc quay rộng (Wide shot) toàn cảnh quán."
+                note: "Góc quay rộng (Wide shot) toàn cảnh quán.",
+                textOverlay: "TRỐN NÓNG CHIỀU HÈ"
               },
               {
                 scene: "Cảnh 2 (5-10s)",
                 visual: "Mẹt cuốn heo quay lu khổng lồ ngập tràn màu sắc rau xanh được bày lên bàn gỗ. Các bạn cùng cuốn và chấm mắm nêm ngon lành.",
                 audio: "VO: 'Chiều mát rủ hội bạn thân tụ tập giải nhiệt bằng những cuốn heo quay thanh nhẹ bụng.'",
-                note: "Góc quay từ trên xuống (Top-down shot) chụp trọn mẹt cuốn."
+                note: "Góc quay từ trên xuống (Top-down shot) chụp trọn mẹt cuốn.",
+                textOverlay: "MẸT CUỐN HEO QUAY KHỔNG LỒ"
               },
               {
                 scene: "Cảnh 3 (10-15s)",
                 visual: "Logo Vị Cuốn và địa chỉ quán: [📍 Địa chỉ: OWNER CUNG CẤP] hiện lên màn hình.",
                 audio: "VO: 'Ghé ngay Vị Cuốn chiều nay thôi bạn ơi!'",
-                note: "Slide CTA địa chỉ và hotline đặt bàn."
+                note: "Slide CTA địa chỉ và hotline đặt bàn.",
+                textOverlay: "📍 ĐỊA CHỈ: [OWNER CUNG CẤP]"
               }
             ]
           }
@@ -312,19 +374,25 @@ export const sampleCampaigns: Campaign[] = [
             title: "Thiết kế 1: Banner Facebook giới thiệu Bánh tráng cuốn heo quay",
             layout: "Bố cục đĩa cuốn heo quay được bày trí gọn gàng, sạch sẽ trên bàn gỗ sáng màu. Xung quanh là rau xanh tươi rói và chén nước chấm mắm nêm đậm vị.",
             textOverlay: "BÁNH TRÁNG CUỐN HEO QUAY NƯỚNG LU — STREET FOOD meets PREMIUM",
-            prompt: "A clean overhead photograph of a premium Vietnamese roasted pork platter with fresh herbs, rice paper rolls, and a bowl of anchovy sauce on a light-colored wooden table, cozy high-quality restaurant interior background, daylight, photorealistic --ar 16:9"
+            prompt: "A clean overhead photograph of a premium Vietnamese roasted pork platter with fresh herbs, rice paper rolls, and a bowl of anchovy sauce on a light-colored wooden table, cozy high-quality restaurant interior background, daylight, photorealistic --ar 16:9",
+            visualDirection: "Góc chụp từ trên xuống thẳng (flatlay overhead), ánh sáng ban ngày tự nhiên (daylight), làm nổi bật thớ thịt heo quay lu da giòn óng ả và rổ rau tươi xanh mướt rửa sạch.",
+            colorStyleNote: "Tông màu tươi sáng, kết hợp sắc xanh lá tươi mát của rau sống với màu vàng gỗ ấm áp của mặt bàn, tạo cảm giác sang trọng (Premium) và sạch sẽ."
           },
           {
             title: "Thiết kế 2: Mẹt cuốn rau tươi xanh",
             layout: "Mẹt tre lớn đựng đầy đủ bánh tráng, rau sống tươi mát rửa sạch ozone, thịt heo quay nướng lu thái mỏng xếp vòng tròn đồng tâm, bát mắm nêm ở trung tâm.",
             textOverlay: "MỘT CUỐN ĐỦ RAU - ĐỦ THỊT - ĐỦ THÈM",
-            prompt: "A beautiful Vietnamese food platter with fresh rice paper rolls ingredients: sliced roasted pork belly, cucumber, herbs, rice vermicelli, dipping sauce bowl in center, rustic top-down perspective, organic food photography, cinematic lighting --ar 4:3"
+            prompt: "A beautiful Vietnamese food platter with fresh rice paper rolls ingredients: sliced roasted pork belly, cucumber, herbs, rice vermicelli, dipping sauce bowl in center, rustic top-down perspective, organic food photography, cinematic lighting --ar 4:3",
+            visualDirection: "Góc chụp nghiêng 45 độ (isometric perspective), ánh sáng cinematic tập trung vào mẹt cuốn tre dân dã để tạo chiều sâu và độ tương phản cao.",
+            colorStyleNote: "Tông màu gỗ mộc mạc, kết hợp màu nâu sẫm của mẹt tre và màu đỏ tỏi ớt nổi bật trong bát mắm nêm trung tâm."
           },
           {
             title: "Thiết kế 3: Canva brief cho post ăn trưa văn phòng",
             layout: "Bố cục chia hai nửa, nửa trên là hình ảnh văn phòng tươi vui ngồi ăn món cuốn sạch sẽ, nửa dưới là hộp giấy ship cơm trưa chỉn chu kèm thông tin hotline.",
             textOverlay: "BỮA TRƯA VĂN PHÒNG CHUẨN SẠCH PREMIUM - SHIPPED TO YOU",
-            prompt: "A clean eco-friendly cardboard lunch box filled with neatly cut rice paper rolls, office desk background with a laptop, modern professional work lifestyle, soft lighting, sharp focus --ar 1:1"
+            prompt: "A clean eco-friendly cardboard lunch box filled with neatly cut rice paper rolls, office desk background with a laptop, modern professional work lifestyle, soft lighting, sharp focus --ar 1:1",
+            visualDirection: "Góc chụp ngang tầm mắt cận cảnh chiếc hộp giấy mở nắp (close-up open box), nền mờ là góc làm việc văn phòng hiện đại với laptop và sổ ghi chép.",
+            colorStyleNote: "Tông màu sáng, sạch sẽ, chuyên nghiệp, sử dụng chất liệu giấy kraft bảo vệ môi trường mang cảm giác an tâm sức khỏe."
           }
         ]
       },
@@ -358,6 +426,24 @@ export const sampleCampaigns: Campaign[] = [
           "Thử nghiệm Banner món ăn cận cảnh chân thực vs Banner thiết kế graphic chữ lớn",
           "Thử nghiệm Video quá trình cuộn bánh tráng vs Video ASMR dao chặt heo quay lu",
           "Thử nghiệm Tệp target nhân viên văn phòng vs Tệp target chung giới trẻ thích ăn uống"
+        ],
+        mockAds: [
+          {
+            name: "Facebook Post Ad - Văn phòng Vinh",
+            angle: "Bữa trưa sạch sẽ giao tận nơi tránh nắng văn phòng TP Vinh",
+            primaryText: "💻 TRƯA NAY ĂN GÌ ĐỂ TRÁNH NẮNG VINH? ĐẶT NGAY BÁNH TRÁNG CUỐN HEO QUAY SẠCH PREMIUM!\n\nKhông cần ra ngoài nắng nóng, Vị Cuốn ship tận nơi hộp bánh tráng cuốn heo quay da lu giòn rụm, đóng gói chỉn chu, rau xanh rửa sạch ozone. Đặt nhóm cùng đồng nghiệp nhận ưu đãi ngay hôm nay!\n\n👉 [Inbox đặt món ngay]\n📞 Hotline: [OWNER CUNG CẤP]\n📍 Địa chỉ: [OWNER CUNG CẤP]",
+            headline: "Bánh tráng cuốn heo quay nướng lu - Ship tận văn phòng Vinh",
+            description: "Hộp giấy kraft sạch sẽ, cuốn sẵn tiện lợi, kèm mắm nêm đậm đà.",
+            cta: "Gửi tin nhắn (Send Message)"
+          },
+          {
+            name: "TikTok Video Ad - ASMR Da Giòn",
+            angle: "ASMR tiếng da heo nổ lu giòn tan giòn tan rôm rả kích thích vị giác",
+            primaryText: "🔊 Bật âm lượng nghe tiếng da heo quay nướng lu giòn tan rôm rả chỉ có tại Vị Cuốn! Món ngon chuẩn vị, da giòn ngập răng cùng nước chấm mắm nêm miền Trung thần thánh. Ghé ngay Vị Cuốn Vinh chiều nay nhé bạn ơi! #vicuon #anngonvinh #monvietpremium",
+            headline: "Heo quay nướng lu da giòn rôm rả - Ghé ngay Vị Cuốn!",
+            description: "Thịt ngọt mọng nước, da giòn rụm, chấm mắm nêm miền Trung miền Trung.",
+            cta: "Tìm hiểu thêm (Learn More)"
+          }
         ]
       },
       dataReporter: {
@@ -374,7 +460,31 @@ export const sampleCampaigns: Campaign[] = [
           "Báo cáo này chứa SIMULATED DATA — NOT REAL ADS PERFORMANCE.",
           "Đề xuất Owner cập nhật báo cáo thật sau khi tiến hành đăng bài/chạy ads thủ công.",
           "Tập trung ngân sách vào khung giờ 10h00 - 11h30 và 16h00 - 17h30 để đón đầu nhu cầu đặt trưa/tối."
-        ]
+        ],
+        kpiAssumptions: [
+          { metric: "Chi phí mỗi tin nhắn (CPA/Cost per Message)", assumption: "Mô phỏng khoảng 12.000 - 15.000 VND dựa trên tệp local TP Vinh" },
+          { metric: "Tỷ lệ nhấp (CTR - Click-Through Rate)", assumption: "Mô phỏng 1.8% - 2.2% đối với định dạng banner/video ẩm thực bắt mắt" },
+          { metric: "Tần suất hiển thị (Frequency)", assumption: "Khống chế ở mức 1.3 - 1.5 lần/người trong thời gian chiến dịch 7 ngày" },
+          { metric: "Tỷ lệ chuyển đổi đơn hàng (Conversion Rate)", assumption: "Kỳ vọng khoảng 8% - 10% trên tổng số inbox khách đặt hàng" }
+        ],
+        reportTemplate: `--- BÁO CÁO HIỆU QUẢ CHIẾN DỊCH TUẦN (MÔ PHỎNG) ---
+Thương hiệu: Vị Cuốn
+Sản phẩm: Bánh tráng cuốn heo quay
+Trạng thái: [SIMULATED DATA ONLY]
+
+1. Chỉ số chính:
+- Ngân sách tiêu thụ: 1.050.000 VND
+- Lượt hiển thị (Impressions): 30.000 lượt
+- Lượt nhấp (Clicks): 630 lượt (CTR ~2.1%)
+- Lượt inbox đặt món mới: ~75 inbox (CPA ~14.000 VND)
+
+2. Đánh giá tệp đối tượng:
+- Tệp văn phòng (22-35 tuổi): 60% ngân sách, CTR tốt ở định dạng ảnh đĩa cuốn heo quay nướng lu da giòn.
+- Tệp giới trẻ (18-24 tuổi): 40% ngân sách, CTR cao từ video ASMR da heo quay giòn rôm rả trên TikTok/Reels.
+
+3. Đề xuất tối ưu (Manual Actions):
+- Tiếp tục duy trì chạy bài viết giới thiệu Heo quay nướng lu da giòn vì có CPA thấp nhất.
+- Bổ sung địa chỉ và hotline thật vào bài đăng để tăng tỷ lệ chốt đơn tự nhiên không qua quảng cáo.`
       }
     }
   }
