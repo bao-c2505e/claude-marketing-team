@@ -244,5 +244,23 @@ Nhật ký ghi lại các hành động mô phỏng của các AI Agent khi vậ
 - **[SYSTEM]:** Codex re-review kết quả: PASS — no required fixes.
 - **[SYSTEM]:** git status: working tree clean. main = origin/main.
 - **[SYSTEM]:** Trạng thái Phase H.4: ✅ CLOSED
-- **[SYSTEM]:** Next phase: Phase H.5 — Multi-brand Demo Readiness.
+- **[SYSTEM]:** Next phase: Phase H.5 — Multi-brand Workspace Readiness.
+
+### 🗓️ Ngày 05/06/2026 — Phase H.5 START
+- **[AI Coordinator]:** Nhận lệnh khởi động Phase H.5 — Multi-brand Workspace Readiness.
+- **[AI Coordinator]:** Framing correction confirmed: "Multi-brand Workspace Readiness" — not "Demo Readiness". Workspace is a real product moving toward practical use.
+- **[Builder Agent — Claude Code]:** Triển khai Phase H.5:
+  1. `mockData.ts`: Thêm seed campaign workspace cho Cơm Tấm Bản Khói (F&B/TP.HCM) và Forme (nội thất cao cấp). Mỗi brand có brief, 7-day calendar, 10-item checklist, full 5-agent outputs.
+  2. `src/App.tsx`:
+     - Import Store icon (lucide-react).
+     - localStorage key: `_v2` → `_v3` + cleanup legacy keys.
+     - Header badge: "Phase H.5 — Multi-brand Workspace Readiness".
+     - Sidebar: "Brand Workspace" tab + "Active Brand" label.
+     - Dashboard: Brand Switcher cards (click-to-switch, shows all brands).
+     - New tab `brand-gallery`: Brand Workspace Gallery với full cards, AI output counts, Phase I connector boundary.
+     - Client Demo Mode: dynamic brand/product/channel/goal references.
+     - Language: "Sample Data", "Sandbox Safe Mode", "Workspace".
+  3. Docs: CURRENT_PHASE.md, SESSION_SUMMARY.md, phase_log.md, agent_activity_log.md, phase_h5_handoff.md.
+- **[SYSTEM]:** Safety Guard H.5 confirmed: Auto-post: NO | Real Ads: NO | Real Messaging: NO | Real Connectors: NO | Secrets: NO | FnB OS V1: NO | Backend: NO | Database: NO | Real API: NO | Sample Data Only: YES.
+- **[SYSTEM]:** Trạng thái Phase H.5: IN PROGRESS — build pending.
 

@@ -15,7 +15,8 @@ import {
   FileText,
   Shield,
   Monitor,
-  BookOpen
+  BookOpen,
+  Store
 } from 'lucide-react';
 import { sampleCampaigns, Campaign, CampaignBrief, CalendarItem, ChecklistItem } from './mockData';
 
@@ -167,7 +168,7 @@ Chiến dịch truyền thông tích hợp cho thương hiệu "Vị Cuốn", h�
 export default function App() {
   const [campaigns, setCampaigns] = useState<Campaign[]>(() => {
     try {
-      const stored = localStorage.getItem('claude_marketing_team_campaigns_v2');
+      const stored = localStorage.getItem('claude_marketing_team_campaigns_v3');
       if (stored) {
         const parsed = JSON.parse(stored);
         const hasViCuon = JSON.stringify(parsed).includes('Vị Cuốn');
@@ -187,8 +188,8 @@ export default function App() {
 
   const [activeCampaignId, setActiveCampaignId] = useState<string>(() => {
     try {
-      const storedId = localStorage.getItem('claude_marketing_team_active_campaign_v2');
-      const storedCampaigns = localStorage.getItem('claude_marketing_team_campaigns_v2');
+      const storedId = localStorage.getItem('claude_marketing_team_active_campaign_v3');
+      const storedCampaigns = localStorage.getItem('claude_marketing_team_campaigns_v3');
       if (storedCampaigns) {
         const parsedCampaigns = JSON.parse(storedCampaigns);
         const hasViCuon = JSON.stringify(parsedCampaigns).includes('Vị Cuốn');
@@ -211,7 +212,7 @@ export default function App() {
 
   useEffect(() => {
     try {
-      localStorage.setItem('claude_marketing_team_campaigns_v2', JSON.stringify(campaigns));
+      localStorage.setItem('claude_marketing_team_campaigns_v3', JSON.stringify(campaigns));
     } catch (e) {
       console.error(e);
     }
@@ -219,7 +220,7 @@ export default function App() {
 
   useEffect(() => {
     try {
-      localStorage.setItem('claude_marketing_team_active_campaign_v2', activeCampaignId);
+      localStorage.setItem('claude_marketing_team_active_campaign_v3', activeCampaignId);
     } catch (e) {
       console.error(e);
     }
@@ -230,6 +231,8 @@ export default function App() {
       // Clear legacy storage keys
       localStorage.removeItem('campaigns');
       localStorage.removeItem('activeCampaignId');
+      localStorage.removeItem('claude_marketing_team_campaigns_v2');
+      localStorage.removeItem('claude_marketing_team_active_campaign_v2');
 
       let shouldReset = false;
       for (let i = 0; i < localStorage.length; i++) {
@@ -481,7 +484,7 @@ export default function App() {
         </div>
         <div>
           <span className="badge badge-indigo" style={{ background: 'rgba(99, 102, 241, 0.15)', color: '#818cf8', borderColor: 'rgba(99, 102, 241, 0.3)', border: '1px solid' }}>
-            Phase H.4 — Export/Presentation Readiness
+            Phase H.5 — Multi-brand Workspace Readiness
           </span>
         </div>
       </header>
@@ -493,16 +496,24 @@ export default function App() {
         <aside className="glass-panel" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '8px', height: 'fit-content' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' }}>
             
-            <button 
-              className={`btn btn-secondary ${activeTab === 'dashboard' ? 'active' : ''}`} 
+            <button
+              className={`btn btn-secondary ${activeTab === 'dashboard' ? 'active' : ''}`}
               style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'dashboard' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'dashboard' ? 'rgba(99, 102, 241, 0.1)' : '' }}
               onClick={() => setActiveTab('dashboard')}
             >
               <LayoutDashboard size={18} /> Dashboard
             </button>
 
-            <button 
-              className={`btn btn-secondary ${activeTab === 'new-campaign' ? 'active' : ''}`} 
+            <button
+              className={`btn btn-secondary ${activeTab === 'brand-gallery' ? 'active' : ''}`}
+              style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'brand-gallery' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'brand-gallery' ? 'rgba(99, 102, 241, 0.1)' : '' }}
+              onClick={() => setActiveTab('brand-gallery')}
+            >
+              <Store size={18} /> Brand Workspace
+            </button>
+
+            <button
+              className={`btn btn-secondary ${activeTab === 'new-campaign' ? 'active' : ''}`}
               style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'new-campaign' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'new-campaign' ? 'rgba(99, 102, 241, 0.1)' : '' }}
               onClick={() => setActiveTab('new-campaign')}
             >
@@ -568,7 +579,7 @@ export default function App() {
           </div>
 
           <div style={{ marginTop: '40px', padding: '12px', borderTop: '1px solid var(--border-color)', width: '100%' }}>
-            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Active Campaign:</p>
+            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Active Brand:</p>
             <select 
               value={activeCampaignId} 
               onChange={(e) => setActiveCampaignId(e.target.value)}
@@ -624,6 +635,73 @@ export default function App() {
               {activeTab === 'dashboard' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                   
+                  {/* ── Brand Switcher — Phase H.5 ── */}
+                  <div className="glass-panel" style={{ padding: '20px', borderLeft: '4px solid var(--accent-indigo)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                      <div>
+                        <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--accent-indigo)', margin: 0 }}>
+                          Brand Workspace
+                        </h3>
+                        <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '3px' }}>
+                          Select a brand to load its campaign workspace. All data is sample/seed data.
+                        </p>
+                      </div>
+                      <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                        <span className="badge badge-indigo" style={{ fontSize: '0.68rem', background: 'rgba(99,102,241,0.12)', color: '#818cf8', border: '1px solid rgba(99,102,241,0.3)' }}>
+                          {campaigns.length} Brand{campaigns.length !== 1 ? 's' : ''}
+                        </span>
+                        <span className="badge badge-emerald" style={{ fontSize: '0.68rem', background: 'rgba(16,185,129,0.1)', color: '#34d399', border: '1px solid rgba(16,185,129,0.25)' }}>
+                          Sandbox Safe Mode
+                        </span>
+                      </div>
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '12px' }}>
+                      {campaigns.slice(0, 6).map((c) => {
+                        const isActive = c.id === activeCampaignId;
+                        return (
+                          <button
+                            key={c.id}
+                            onClick={() => setActiveCampaignId(c.id)}
+                            style={{
+                              background: isActive ? 'rgba(99,102,241,0.1)' : 'rgba(255,255,255,0.02)',
+                              border: `1px solid ${isActive ? 'rgba(99,102,241,0.5)' : 'var(--border-color)'}`,
+                              borderRadius: '10px',
+                              padding: '12px 14px',
+                              textAlign: 'left',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              gap: '6px',
+                              transition: 'all 0.2s',
+                            }}
+                            onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = 'rgba(99,102,241,0.06)'; }}
+                            onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = 'rgba(255,255,255,0.02)'; }}
+                          >
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <span style={{ fontSize: '0.9rem', fontWeight: 700, color: isActive ? '#818cf8' : 'var(--text-primary)' }}>
+                                {c.brief.brandName}
+                              </span>
+                              {isActive && (
+                                <span className="badge badge-indigo" style={{ fontSize: '0.6rem', background: 'rgba(99,102,241,0.2)', color: '#818cf8', border: '1px solid rgba(99,102,241,0.4)', padding: '2px 6px' }}>
+                                  Active
+                                </span>
+                              )}
+                            </div>
+                            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.35 }}>
+                              {c.brief.industry.split('/')[0].trim()}
+                            </span>
+                            <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontStyle: 'italic' }}>
+                              {c.brief.heroProduct}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '10px' }}>
+                      * Sample data only. No real connectors. Approve all outputs manually before any external use.
+                    </p>
+                  </div>
+
                   {/* Top quick stats cards */}
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
                     <div className="glass-panel" style={{ padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -669,8 +747,8 @@ export default function App() {
                           onClick={() => {
                             localStorage.removeItem('campaigns');
                             localStorage.removeItem('activeCampaignId');
-                            localStorage.removeItem('claude_marketing_team_campaigns_v2');
-                            localStorage.removeItem('claude_marketing_team_active_campaign_v2');
+                            localStorage.removeItem('claude_marketing_team_campaigns_v3');
+                            localStorage.removeItem('claude_marketing_team_active_campaign_v3');
                             setCampaigns(sampleCampaigns);
                             setActiveCampaignId(sampleCampaigns[0].id);
                           }}
@@ -1974,20 +2052,20 @@ export default function App() {
                         <strong style={{ fontSize: '0.95rem', color: 'var(--text-primary)' }}>📋 Campaign Overview</strong>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
                           <div>
-                            <span style={{ color: 'var(--text-muted)' }}>Thương hiệu:</span> <strong style={{ color: '#fff' }}>Vị Cuốn</strong>
+                            <span style={{ color: 'var(--text-muted)' }}>Thương hiệu:</span> <strong style={{ color: '#fff' }}>{activeCampaign.brief.brandName}</strong>
                           </div>
                           <div>
-                            <span style={{ color: 'var(--text-muted)' }}>Sản phẩm:</span> <strong style={{ color: '#fff' }}>Bánh tráng cuốn heo quay</strong>
+                            <span style={{ color: 'var(--text-muted)' }}>Sản phẩm:</span> <strong style={{ color: '#fff' }}>{activeCampaign.brief.heroProduct}</strong>
                           </div>
                           <div>
-                            <span style={{ color: 'var(--text-muted)' }}>Ý tưởng:</span> <strong style={{ color: 'var(--accent-emerald)' }}>Street Food meets Premium</strong>
+                            <span style={{ color: 'var(--text-muted)' }}>Ngành hàng:</span> <strong style={{ color: 'var(--accent-emerald)' }}>{activeCampaign.brief.industry.split('/')[0].trim()}</strong>
                           </div>
                           <div>
-                            <span style={{ color: 'var(--text-muted)' }}>Kênh phân phối:</span> <strong style={{ color: 'var(--accent-blue)' }}>Facebook, TikTok/Reels, Short video, Ads draft</strong>
+                            <span style={{ color: 'var(--text-muted)' }}>Kênh phân phối:</span> <strong style={{ color: 'var(--accent-blue)' }}>{activeCampaign.brief.channels.join(', ')}</strong>
                           </div>
                         </div>
                         <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', borderTop: '1px dashed rgba(255,255,255,0.05)', paddingTop: '8px', margin: '4px 0 0 0' }}>
-                          Chiến dịch được thiết kế để quảng bá món bánh tráng cuốn heo quay lu đất truyền thống tại Vinh dưới góc nhìn cao cấp, tập trung vào hình ảnh sản phẩm sạch sẽ và kịch bản ASMR kích thích vị giác.
+                          {activeCampaign.brief.goal}
                         </p>
                       </div>
 
@@ -2159,7 +2237,7 @@ export default function App() {
                           <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: 500 }}>Viết caption Facebook, kịch bản TikTok/Reels và slogan chiến dịch.</span>
                         </div>
                         <div style={{ background: 'rgba(0,0,0,0.2)', padding: '8px 10px', borderRadius: '6px', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                          <strong>Demo Output:</strong> 7 caption Facebook + 2 script TikTok cho thương hiệu Vị Cuốn.
+                          <strong>Sample Output:</strong> {activeCampaign.outputs.copywriter.captions.length} captions + {activeCampaign.outputs.copywriter.slogans.length} slogans cho {activeCampaign.brief.brandName}.
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px dashed var(--border-color)', paddingTop: '8px', fontSize: '0.75rem' }}>
                           <span style={{ color: 'var(--text-muted)' }}>Cần duyệt (Human Sign-off):</span>
@@ -2178,7 +2256,7 @@ export default function App() {
                           <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: 500 }}>Dựng storyboard video ASMR 9:16, chỉ định âm thanh và cảnh quay chi tiết.</span>
                         </div>
                         <div style={{ background: 'rgba(0,0,0,0.2)', padding: '8px 10px', borderRadius: '6px', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                          <strong>Demo Output:</strong> Handoff kịch bản video 15s heo quay ASMR — 4 phân cảnh đã mô tả.
+                          <strong>Sample Output:</strong> {activeCampaign.outputs.videoEditor.scripts.length} video scripts — {activeCampaign.outputs.videoEditor.scripts[0]?.sceneCount} scenes each cho {activeCampaign.brief.brandName}.
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px dashed var(--border-color)', paddingTop: '8px', fontSize: '0.75rem' }}>
                           <span style={{ color: 'var(--text-muted)' }}>Cần duyệt (Human Sign-off):</span>
@@ -2197,7 +2275,7 @@ export default function App() {
                           <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: 500 }}>Tạo prompt ảnh AI (Fal.ai/Midjourney), định nghĩa tông màu và visual identity.</span>
                         </div>
                         <div style={{ background: 'rgba(0,0,0,0.2)', padding: '8px 10px', borderRadius: '6px', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                          <strong>Demo Output:</strong> Bộ prompt ảnh AI + palette màu xanh lá & nâu ấm cho Vị Cuốn.
+                          <strong>Sample Output:</strong> {activeCampaign.outputs.designer.briefs.length} design briefs + AI image prompts cho {activeCampaign.brief.brandName}.
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px dashed var(--border-color)', paddingTop: '8px', fontSize: '0.75rem' }}>
                           <span style={{ color: 'var(--text-muted)' }}>Cần duyệt (Human Sign-off):</span>
@@ -2216,7 +2294,7 @@ export default function App() {
                           <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: 500 }}>Lập plan ad sets, target tệp địa phương và cấu hình ngân sách ads.</span>
                         </div>
                         <div style={{ background: 'rgba(0,0,0,0.2)', padding: '8px 10px', borderRadius: '6px', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                          <strong>Demo Output:</strong> Cấu hình ad copy và target bán kính 4km quanh quán cuốn tại TP Vinh.
+                          <strong>Sample Output:</strong> {activeCampaign.outputs.adsManager.adSets.length} ad sets + mock ads cho {activeCampaign.brief.location.split('(')[0].trim()}.
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px dashed var(--border-color)', paddingTop: '8px', fontSize: '0.75rem' }}>
                           <span style={{ color: 'var(--text-muted)' }}>Cần duyệt (Human Sign-off):</span>
@@ -2235,7 +2313,7 @@ export default function App() {
                           <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: 500 }}>Đọc log tương tác ads giả lập, tính chỉ số CTR/CPC/CPA & đề xuất tối ưu.</span>
                         </div>
                         <div style={{ background: 'rgba(0,0,0,0.2)', padding: '8px 10px', borderRadius: '6px', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                          <strong>Demo Output:</strong> Báo cáo hiệu năng tuần giả lập, 3 khuyến nghị cải thiện content.
+                          <strong>Sample Output:</strong> Simulated performance report + {activeCampaign.outputs.dataReporter.recommendations.length} optimization recommendations.
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px dashed var(--border-color)', paddingTop: '8px', fontSize: '0.75rem' }}>
                           <span style={{ color: 'var(--text-muted)' }}>Cần duyệt (Human Sign-off):</span>
@@ -2280,6 +2358,163 @@ export default function App() {
                         <span style={{ fontWeight: 700, color: 'var(--accent-indigo)', fontSize: '0.9rem' }}>Chuẩn Bị Brief Tiếp Theo</span>
                         <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 400, lineHeight: 1.4 }}>New Campaign Brief → Nhập thương hiệu mới để AI tạo chiến dịch kế tiếp</span>
                       </button>
+                    </div>
+                  </div>
+
+                </div>
+              )}
+
+              {/* H.5 BRAND WORKSPACE GALLERY TAB */}
+              {activeTab === 'brand-gallery' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+
+                  {/* Header */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '16px' }}>
+                    <div>
+                      <h2 style={{ fontSize: '1.6rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        Brand Workspace Gallery
+                        <span className="badge badge-indigo" style={{ fontSize: '0.72rem', padding: '4px 10px', background: 'rgba(99,102,241,0.15)', color: '#818cf8', borderColor: 'rgba(99,102,241,0.3)', border: '1px solid', borderRadius: '9999px', fontWeight: 600 }}>
+                          {campaigns.length} Brands
+                        </span>
+                        <span className="badge badge-emerald" style={{ fontSize: '0.72rem', padding: '4px 10px', background: 'rgba(16,185,129,0.1)', color: '#34d399', border: '1px solid rgba(16,185,129,0.25)', borderRadius: '9999px', fontWeight: 600 }}>
+                          Sandbox Safe Mode
+                        </span>
+                      </h2>
+                      <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                        Multi-brand AI Marketing Team Workspace. Each brand has its own campaign workspace with seed data. No real connectors active.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Brand Cards Grid */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
+                    {campaigns.map((c) => {
+                      const isActive = c.id === activeCampaignId;
+                      return (
+                        <div
+                          key={c.id}
+                          className="glass-panel"
+                          style={{
+                            padding: '24px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '14px',
+                            border: isActive ? '1px solid rgba(99,102,241,0.5)' : '1px solid var(--border-color)',
+                            borderLeft: isActive ? '4px solid var(--accent-indigo)' : '4px solid rgba(255,255,255,0.08)',
+                          }}
+                        >
+                          {/* Brand header */}
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                            <div>
+                              <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: isActive ? '#818cf8' : 'var(--text-primary)', margin: 0 }}>
+                                {c.brief.brandName}
+                              </h3>
+                              <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+                                {c.brief.industry}
+                              </p>
+                            </div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'flex-end' }}>
+                              {isActive && (
+                                <span className="badge badge-indigo" style={{ fontSize: '0.62rem', background: 'rgba(99,102,241,0.2)', color: '#818cf8', border: '1px solid rgba(99,102,241,0.4)' }}>
+                                  ● Active
+                                </span>
+                              )}
+                              <span className="badge badge-emerald" style={{ fontSize: '0.6rem', background: 'rgba(16,185,129,0.08)', color: '#34d399', border: '1px solid rgba(16,185,129,0.2)' }}>
+                                Sample Data
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Brand details */}
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '0.83rem', color: 'var(--text-secondary)' }}>
+                            <div style={{ display: 'flex', gap: '8px' }}>
+                              <span style={{ color: 'var(--text-muted)', minWidth: '90px' }}>Hero Product</span>
+                              <strong style={{ color: 'var(--text-primary)' }}>{c.brief.heroProduct}</strong>
+                            </div>
+                            <div style={{ display: 'flex', gap: '8px' }}>
+                              <span style={{ color: 'var(--text-muted)', minWidth: '90px' }}>Target</span>
+                              <span style={{ lineHeight: 1.35 }}>{c.brief.targetCustomer}</span>
+                            </div>
+                            <div style={{ display: 'flex', gap: '8px' }}>
+                              <span style={{ color: 'var(--text-muted)', minWidth: '90px' }}>Location</span>
+                              <span>{c.brief.location.split('(')[0].trim()}</span>
+                            </div>
+                            <div style={{ display: 'flex', gap: '8px' }}>
+                              <span style={{ color: 'var(--text-muted)', minWidth: '90px' }}>Channels</span>
+                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                                {c.brief.channels.map((ch, i) => (
+                                  <span key={i} className="badge badge-blue" style={{ fontSize: '0.65rem', padding: '2px 6px' }}>{ch}</span>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Campaign goal */}
+                          <div style={{ background: 'rgba(255,255,255,0.02)', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+                            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Campaign Goal</p>
+                            <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.45, margin: 0 }}>{c.brief.goal}</p>
+                          </div>
+
+                          {/* AI Outputs summary */}
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', fontSize: '0.72rem' }}>
+                            {[
+                              { label: 'Copywriter', count: `${c.outputs.copywriter.captions.length} captions` },
+                              { label: 'Video Editor', count: `${c.outputs.videoEditor.scripts.length} scripts` },
+                              { label: 'Designer', count: `${c.outputs.designer.briefs.length} briefs` },
+                              { label: 'Ads Manager', count: `${c.outputs.adsManager.adSets.length} ad sets` },
+                            ].map((item, idx) => (
+                              <div key={idx} style={{ background: 'rgba(255,255,255,0.02)', padding: '6px 8px', borderRadius: '6px', border: '1px solid var(--border-color)' }}>
+                                <span style={{ color: 'var(--accent-indigo)', fontWeight: 600 }}>{item.label}</span>
+                                <span style={{ color: 'var(--text-muted)', marginLeft: '4px' }}>— {item.count}</span>
+                              </div>
+                            ))}
+                          </div>
+
+                          {/* Workspace status */}
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: 'var(--text-muted)', borderTop: '1px solid var(--border-color)', paddingTop: '10px' }}>
+                            <span>Auto-post: <strong style={{ color: 'var(--accent-rose)' }}>OFF</strong></span>
+                            <span>Real Ads: <strong style={{ color: 'var(--accent-rose)' }}>OFF</strong></span>
+                            <span>Approval Required: <strong style={{ color: 'var(--accent-amber)' }}>YES</strong></span>
+                          </div>
+
+                          {/* Select / active button */}
+                          {isActive ? (
+                            <button
+                              className="btn btn-secondary"
+                              style={{ border: '1px solid rgba(99,102,241,0.4)', color: '#818cf8', background: 'rgba(99,102,241,0.08)', cursor: 'default' }}
+                              disabled
+                            >
+                              ● Currently Active Workspace
+                            </button>
+                          ) : (
+                            <button
+                              className="btn btn-primary"
+                              onClick={() => { setActiveCampaignId(c.id); setActiveTab('dashboard'); }}
+                            >
+                              Select Brand →
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Phase I connector boundary note */}
+                  <div style={{ padding: '20px', background: 'rgba(99,102,241,0.04)', border: '1px solid rgba(99,102,241,0.2)', borderRadius: '12px' }}>
+                    <h4 style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--accent-indigo)', marginBottom: '10px' }}>
+                      ⚡ Workspace Architecture — Phase I Connector Boundary
+                    </h4>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '10px', fontSize: '0.82rem' }}>
+                      {[
+                        { label: 'Current (H.5)', desc: 'Sample/seed data. Static frontend. No real connectors.', color: 'var(--accent-emerald)', icon: '✅' },
+                        { label: 'Phase I (Future)', desc: 'Real brand data input. Real connectors pending approval.', color: 'var(--accent-amber)', icon: '🔜' },
+                        { label: 'Never (Boundary)', desc: 'No auto-post, no real ads without explicit Owner approval.', color: 'var(--accent-rose)', icon: '🛡️' },
+                      ].map((item, idx) => (
+                        <div key={idx} style={{ background: 'rgba(255,255,255,0.02)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+                          <div style={{ fontWeight: 600, color: item.color, marginBottom: '4px' }}>{item.icon} {item.label}</div>
+                          <p style={{ color: 'var(--text-muted)', margin: 0, lineHeight: 1.45 }}>{item.desc}</p>
+                        </div>
+                      ))}
                     </div>
                   </div>
 

@@ -199,5 +199,16 @@ Nhật ký theo dõi các mốc hoàn thành kỹ thuật qua các Phase.
 - **Kết quả Codex re-review:** PASS — UI/code/build/safety PASS, no required fixes.
 - **git status:** working tree clean. main = origin/main.
 - **Trạng thái Phase H.4:** ✅ CLOSED
-- **Next phase:** Phase H.5 — Multi-brand Demo Readiness.
+- **Next phase:** Phase H.5 — Multi-brand Workspace Readiness.
+
+### 🗓️ Ngày 05/06/2026 (Local Time) — Phase H.5 START
+- **Sự kiện:** Triển khai Phase H.5 — Multi-brand Workspace Readiness.
+- **Người thực hiện:** Builder Agent (Claude Code).
+- **Framing correction:** Reframe từ "Multi-brand Demo Readiness" → "Multi-brand Workspace Readiness" theo chỉ đạo Owner. Workspace là sản phẩm thực tế, không phải demo toy.
+- **Hành động đã hoàn tất:**
+  1. `mockData.ts`: Thêm 2 seed brands — Cơm Tấm Bản Khói (F&B/HCM) và Forme (nội thất cao cấp/HCM+HN). Vị Cuốn giữ nguyên.
+  2. `src/App.tsx`: localStorage v3, header badge H.5, sidebar "Brand Workspace" tab, Dashboard Brand Switcher, Brand Gallery tab, dynamic Client Demo Mode.
+  3. Language: "Sample Data", "Sandbox Safe Mode", "Workspace" — không dùng "demo" là main framing.
+- **Safety Guard H.5 confirmed:** Auto-post: NO | Real Ads: NO | Secrets: NO | FnB OS V1: NO | Sample Data Only: YES
+- **Trạng thái Phase H.5:** IN PROGRESS — build pending.
 

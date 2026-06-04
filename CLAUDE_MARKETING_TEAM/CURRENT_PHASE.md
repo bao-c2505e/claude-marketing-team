@@ -1,75 +1,63 @@
-# CURRENT PHASE — Phase H.4: Export/Presentation Readiness ✅ CLOSED
+# CURRENT PHASE — Phase H.5: Multi-brand Workspace Readiness 🚧 IN PROGRESS
 
 Tài liệu này dùng để theo dõi tiến độ thực hiện và trạng thái của Phase hiện tại.
 
 ## 📌 Thông tin chung
-- **Phase hiện tại:** Phase H.4 — Export/Presentation Readiness
-- **Mục tiêu:** Làm cho demo frontend dễ present hơn cho khách hàng và dễ xuất/chia sẻ dưới dạng campaign presentation pack — vẫn 100% static/frontend/mock, không backend, không API thật.
-- **Commits:**
-  - `d2e7bd8` — feat: add phase h4 export presentation readiness (docs/logs)
-  - `d823c17` — feat: add phase h4 presentation ui (src/App.tsx)
-  - `c56e867` — docs: fix phase h4 status after codex review
-- **Trạng thái:** ✅ CLOSED — Codex re-review PASS, no required fixes, git clean
+- **Phase hiện tại:** Phase H.5 — Multi-brand Workspace Readiness
+- **Mục tiêu:** Nâng cấp workspace từ single-brand (Vị Cuốn) thành multi-brand AI Marketing Team Workspace hỗ trợ nhiều thương hiệu/khách hàng, sử dụng sample/seed data cho đến khi real connectors được phê duyệt ở Phase I.
+- **Framing:** Real workspace architecture (not a one-time demo) — sẵn sàng cho dữ liệu thực tế trong tương lai.
+- **Trạng thái:** 🚧 IN PROGRESS
 
 ---
 
-## 📋 Checklist Phase H.4 — 100% Complete
+## 📋 Checklist Phase H.5
 
-### New Tab: Presentation & Export
-- [x] Thêm nav button "Presentation & Export" vào Sidebar (icon: BookOpen)
-- [x] Cập nhật header badge → "Phase H.4 — Export/Presentation Readiness"
+### Brand Data Layer
+- [x] Thêm Cơm Tấm Bản Khói vào `mockData.ts` — F&B / cơm tấm / TP.HCM
+- [x] Thêm Forme vào `mockData.ts` — Nội thất cao cấp / sofa Series F-1
+- [x] Mỗi brand có đủ: brief, calendar (7 ngày), checklist (10 items), outputs (5 agents)
+- [x] Vị Cuốn giữ nguyên toàn bộ
 
-### Section 1: Presentation View
-- [x] 6-step client-friendly presentation: Problem / AI Solution / Campaign Outputs / Approval Process / Manual Publishing / Safety Boundaries
+### UI Changes
+- [x] Header badge → "Phase H.5 — Multi-brand Workspace Readiness"
+- [x] Sidebar: thêm "Brand Workspace" tab (icon: Store)
+- [x] Sidebar: đổi "Active Campaign" → "Active Brand"
+- [x] Dashboard: thêm Brand Switcher section ở đầu trang (brand cards, 1-click switch)
+- [x] New tab: Brand Workspace Gallery — 3-column brand cards với full details
+- [x] Brand Gallery: Phase I connector boundary note
+- [x] Client Demo Mode: Campaign Overview động theo `activeCampaign.brief.*`
+- [x] Client Demo Mode: AI Team Workspace sample output descriptions động
+- [x] localStorage key bump: v2 → v3 (force fresh load với 3 brands)
 
-### Section 2: Export Pack Preview
-- [x] 7 deliverable cards: Campaign Summary, 7-Day Content Plan, Video Script Pack, Design Brief Pack, Ads Angle Pack, Data Reporter Summary, Human Approval Checklist
-- [x] Each card has badge, description, and "View in workspace →" button
-
-### Section 3: Client Approval Sheet Preview
-- [x] Static table: Item / Owner Role / Status / Client Note / Next Action
-- [x] Clickable status badges cycling: Ready for review → Approved → Needs edit → Waiting owner approval
-
-### Section 4: Sales Demo Script
-- [x] 5-step timeline (0:00–5:30): Introduce Problem / Show AI Team Roles / Show Campaign Pack / Show Approval & Safety / Close with CTA
-- [x] "Copy Script" button
-
-### Section 5: Export Readiness Checklist
-- [x] 7-item checklist — 3 safety-locked items (cannot be unchecked), 4 owner-toggleable
-- [x] Live counter badge (x/7 Ready)
-- [x] Safety reminder footer
+### Framing & Language
+- [x] Không dùng "demo" là main product framing
+- [x] Dùng "Workspace", "Sample Data", "Sandbox Safe Mode", "Seed Data" đúng ngữ cảnh
+- [x] Safety labels rõ ràng: Auto-post OFF / Real Ads OFF / Approval Required
 
 ### Build & Safety
-- [x] npm run build PASS — 0 errors
-- [x] Push to GitHub — `d823c17` feat: add phase h4 presentation ui
-- [x] Codex review — PASS (UI/code/build/safety PASS; docs/log stale status fix required → now fixed)
+- [ ] npm run build PASS — 0 errors
+- [ ] Push to GitHub
+
+### Docs & Logs
+- [ ] CURRENT_PHASE.md (file này)
+- [ ] SESSION_SUMMARY.md
+- [ ] phase_log.md
+- [ ] agent_activity_log.md
+- [ ] phase_h5_handoff.md (mới tạo)
 
 ---
 
-## ✅ Phase H.4 — CLOSED
-- Closed by: docs commit (close phase h4)
-- Codex final verdict: PASS — no required fixes
+## 🏷️ Brands trong Workspace (Phase H.5)
 
-## 🛠️ Next Recommended Phase
-**Phase H.5 — Multi-brand Demo Readiness**
-- Mục tiêu: Mở rộng demo để hỗ trợ nhiều thương hiệu cùng lúc, chuẩn bị cho pitch agency/multi-client.
-- Vẫn giữ ranh giới: no backend / no real API / no auto-post / no secrets.
-
----
-
-## ✅ Phase H.3 (tiền nhiệm) — CLOSED
-- Commit: `6fef281` — docs: close phase h3 demo polish sales readiness
-- Features: Presenter Demo Guide, Sales Readiness 5-card, Value Proposition, Before/After Comparison, CTA Block, Service Packages Teaser
-
-## ✅ Phase H.2 (tiền nhiệm) — CLOSED
-- Commit: `75ac881` — feat: add phase h2 client demo mode
-
-## ✅ Phase H.1 / H-lite — CLOSED
-- Manual Export Pack: 6 copy blocks còn nguyên
+| Brand | Industry | Hero Product | Location | Status |
+|-------|----------|--------------|----------|--------|
+| Vị Cuốn | F&B / street food premium | Bánh tráng cuốn heo quay | TP. Vinh, Nghệ An | ✅ Seed brand |
+| Cơm Tấm Bản Khói | F&B / cơm tấm / quán địa phương | Cơm tấm sườn bì chả | TP.HCM — Q. Bình Thạnh | ✅ Seed brand |
+| Forme | Nội thất cao cấp / premium furniture | Sofa da Series F-1 | TP.HCM + Hà Nội | ✅ Seed brand |
 
 ---
 
-## 🛡️ Safety Guard (H.4 — confirmed)
+## 🛡️ Safety Guard (H.5 — confirmed)
 - Auto-post: NO
 - Real Ads: NO
 - Real Messaging: NO
@@ -79,4 +67,14 @@ Tài liệu này dùng để theo dõi tiến độ thực hiện và trạng th
 - Backend added: NO
 - Database added: NO
 - Real API: NO
-- Demo/Mock Data Only: YES
+- Sample/Seed Data Only: YES
+
+---
+
+## ✅ Phase H.4 (tiền nhiệm) — CLOSED
+- Commit: `c4458de` — docs: close phase h4 export presentation readiness
+- Features: Presentation View, Export Pack Preview, Client Approval Sheet, Sales Demo Script, Export Readiness Checklist
+
+## ✅ Phase H.3 (tiền nhiệm) — CLOSED
+- Commit: `6fef281` — docs: close phase h3 demo polish sales readiness
+- Features: Presenter Demo Guide, Sales Readiness 5-card, Value Proposition, Before/After, CTA Block, Service Packages
