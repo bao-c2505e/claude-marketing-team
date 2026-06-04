@@ -13,7 +13,8 @@ import {
   Sparkles,
   Copy,
   FileText,
-  Shield
+  Shield,
+  Monitor
 } from 'lucide-react';
 import { sampleCampaigns, Campaign, CampaignBrief, CalendarItem, ChecklistItem } from './mockData';
 
@@ -515,6 +516,14 @@ export default function App() {
               onClick={() => setActiveTab('demo-pack')}
             >
               <FileText size={18} /> Client Demo Pack
+            </button>
+
+            <button 
+              className={`btn btn-secondary ${activeTab === 'client-demo' ? 'active' : ''}`} 
+              style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'client-demo' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'client-demo' ? 'rgba(99, 102, 241, 0.1)' : '' }}
+              onClick={() => setActiveTab('client-demo')}
+            >
+              <Monitor size={18} /> Client Demo Mode
             </button>
 
             <button 
@@ -1662,7 +1671,7 @@ export default function App() {
                     <div>
                       <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#fff', display: 'flex', alignItems: 'center', gap: '12px' }}>
                         Phase H.1 — Manual Export Pack
-                        <span className="badge" style={{ fontSize: '0.75rem', padding: '4px 10px', background: 'rgba(16, 185, 129, 0.15)', color: 'var(--accent-emerald)', borderColor: 'rgba(16, 185, 129, 0.3)', border: '1px solid', borderRadius: '9999px', fontWeight: 600 }}>
+<span className="badge" style={{ fontSize: '0.75rem', padding: '4px 10px', background: 'rgba(16, 185, 129, 0.15)', color: 'var(--accent-emerald)', borderColor: 'rgba(16, 185, 129, 0.3)', border: '1px solid', borderRadius: '9999px', fontWeight: 600 }}>
                           Production Demo Ready
                         </span>
                       </h2>
@@ -1676,9 +1685,6 @@ export default function App() {
                   <div style={{ background: 'rgba(59, 130, 246, 0.05)', border: '1px solid rgba(59, 130, 246, 0.2)', padding: '16px', borderRadius: '8px', marginBottom: '24px', textAlign: 'left' }}>
                     <p style={{ fontSize: '0.85rem', color: '#93c5fd', lineHeight: 1.5, margin: 0, fontWeight: 500 }}>
                       ℹ️ <strong>Instructions:</strong> Use this pack to manually copy outputs to client, editor, designer, ads setup, and owner approval. This does not auto-post, run ads, or message customers.
-                    </p>
-                    <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.5, marginTop: '6px', fontStyle: 'italic', margin: '6px 0 0 0' }}>
-                      (Sử dụng bộ dữ liệu này để sao chép thủ công các kết quả đầu ra cho khách hàng, dựng phim, thiết kế, thiết lập quảng cáo và phê duyệt của chủ sở hữu. Hệ thống KHÔNG tự động đăng bài, chạy quảng cáo hoặc nhắn tin cho khách hàng.)
                     </p>
                   </div>
 
@@ -1743,6 +1749,222 @@ export default function App() {
                       </div>
                     ))}
                   </div>
+                </div>
+              )}
+
+              {/* 8. CLIENT DEMO MODE TAB */}
+              {activeTab === 'client-demo' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+                  
+                  {/* Title and Header Area */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '16px' }}>
+                    <div>
+                      <h2 style={{ fontSize: '1.6rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        Client Demo Mode
+                        <span className="badge badge-indigo" style={{ fontSize: '0.75rem', padding: '4px 10px', background: 'rgba(99, 102, 241, 0.15)', color: '#818cf8', borderColor: 'rgba(99, 102, 241, 0.3)', border: '1px solid', borderRadius: '9999px', fontWeight: 600 }}>
+                          Client View & Team Workflow
+                        </span>
+                      </h2>
+                      <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                        Môi trường demo tương tác giới thiệu bối cảnh chiến dịch, luồng phê duyệt và vai trò đội ngũ AI.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '7fr 5fr', gap: '24px' }}>
+                    <div className="glass-panel" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                      <div style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <h3 style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--accent-indigo)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          Client View
+                        </h3>
+                      </div>
+                      
+                      <div style={{ background: 'rgba(255,255,255,0.02)', padding: '16px', borderRadius: '10px', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <strong style={{ fontSize: '0.95rem', color: 'var(--text-primary)' }}>📋 Campaign Overview</strong>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                          <div>
+                            <span style={{ color: 'var(--text-muted)' }}>Thương hiệu:</span> <strong style={{ color: '#fff' }}>Vị Cuốn</strong>
+                          </div>
+                          <div>
+                            <span style={{ color: 'var(--text-muted)' }}>Sản phẩm:</span> <strong style={{ color: '#fff' }}>Bánh tráng cuốn heo quay</strong>
+                          </div>
+                          <div>
+                            <span style={{ color: 'var(--text-muted)' }}>Ý tưởng:</span> <strong style={{ color: 'var(--accent-emerald)' }}>Street Food meets Premium</strong>
+                          </div>
+                          <div>
+                            <span style={{ color: 'var(--text-muted)' }}>Kênh phân phối:</span> <strong style={{ color: 'var(--accent-blue)' }}>Facebook, TikTok/Reels, Short video, Ads draft</strong>
+                          </div>
+                        </div>
+                        <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', borderTop: '1px dashed rgba(255,255,255,0.05)', paddingTop: '8px', margin: '4px 0 0 0' }}>
+                          Chiến dịch được thiết kế để quảng bá món bánh tráng cuốn heo quay lu đất truyền thống tại Vinh dưới góc nhìn cao cấp, tập trung vào hình ảnh sản phẩm sạch sẽ và kịch bản ASMR kích thích vị giác.
+                        </p>
+                      </div>
+
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                          <strong style={{ fontSize: '0.9rem', color: 'var(--text-primary)' }}>📦 Key Deliverables</strong>
+                          <ul style={{ paddingLeft: '16px', fontSize: '0.85rem', color: 'var(--text-secondary)', gap: '6px', textAlign: 'left', margin: 0 }}>
+                            <li>7-day content plan</li>
+                            <li>Facebook caption pack</li>
+                            <li>TikTok/Reels script pack</li>
+                            <li>Video editor handoff</li>
+                          </ul>
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                          <strong style={{ fontSize: '0.9rem', color: 'var(--text-primary)' }}>✔️ What Client Can Approve</strong>
+                          <ul style={{ paddingLeft: '16px', fontSize: '0.85rem', color: 'var(--text-secondary)', gap: '6px', textAlign: 'left', margin: 0 }}>
+                            <li>Campaign direction</li>
+                            <li>Caption tone</li>
+                            <li>Video script</li>
+                            <li>Design direction</li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="glass-panel" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                      <div style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <h3 style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--accent-amber)' }}>Approval Status Demo</h3>
+                      </div>
+                      
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '8px' }}>
+                        {/* State 1: Draft */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '28px', height: '28px', borderRadius: '50%', background: 'rgba(16, 185, 129, 0.15)', color: 'var(--accent-emerald)', border: '1px solid var(--accent-emerald)', fontWeight: 'bold', fontSize: '0.85rem', flexShrink: 0 }}>✓</div>
+                          <div style={{ flex: 1, textAlign: 'left' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <strong style={{ fontSize: '0.85rem', color: 'var(--text-primary)' }}>Draft</strong>
+                              <span className="badge badge-emerald" style={{ fontSize: '0.65rem' }}>Completed</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* State 2: Waiting for Owner Review */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', background: 'rgba(245, 158, 11, 0.04)', borderRadius: '8px', border: '1px solid rgba(245, 158, 11, 0.3)' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '28px', height: '28px', borderRadius: '50%', background: 'rgba(245, 158, 11, 0.15)', color: 'var(--accent-amber)', border: '1px solid var(--accent-amber)', fontWeight: 'bold', fontSize: '0.85rem', flexShrink: 0 }}>2</div>
+                          <div style={{ flex: 1, textAlign: 'left' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <strong style={{ fontSize: '0.85rem', color: 'var(--accent-amber)' }}>Waiting for Owner Review</strong>
+                              <span className="badge badge-amber" style={{ fontSize: '0.65rem' }}>Pending</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* State 3: Approved for Manual Use */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', background: 'rgba(255,255,255,0.01)', borderRadius: '8px', border: '1px solid var(--border-color)', opacity: 0.5 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '28px', height: '28px', borderRadius: '50%', background: 'rgba(255,255,255,0.05)', color: 'var(--text-muted)', border: '1px solid var(--text-muted)', fontWeight: 'bold', fontSize: '0.85rem', flexShrink: 0 }}>3</div>
+                          <div style={{ flex: 1, textAlign: 'left' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <strong style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Approved for Manual Use</strong>
+                              <span className="badge badge-muted" style={{ fontSize: '0.65rem' }}>Awaiting</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="glass-panel" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                    <h3 style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--accent-emerald)' }}>AI Team Workspace</h3>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
+                      {/* Role 1: Copywriter */}
+                      <div style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid var(--border-color)', padding: '16px', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '12px', textAlign: 'left' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <strong style={{ fontSize: '0.95rem', color: 'var(--accent-indigo)' }}>Copywriter</strong>
+                          <span className="badge badge-emerald" style={{ fontSize: '0.65rem' }}>ACTIVE</span>
+                        </div>
+                        <div>
+                          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>Nhiệm vụ chính:</span>
+                          <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: 500 }}>Viết caption Facebook, kịch bản TikTok/Reels và slogan chiến dịch.</span>
+                        </div>
+                        <div style={{ background: 'rgba(0,0,0,0.2)', padding: '8px 10px', borderRadius: '6px', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                          <strong>Demo Output:</strong> 7 caption Facebook + 2 script TikTok cho thương hiệu Vị Cuốn.
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px dashed var(--border-color)', paddingTop: '8px', fontSize: '0.75rem' }}>
+                          <span style={{ color: 'var(--text-muted)' }}>Cần duyệt (Human Sign-off):</span>
+                          <span style={{ color: 'var(--accent-rose)', fontWeight: 'bold' }}>YES</span>
+                        </div>
+                      </div>
+
+                      {/* Role 2: Video Editor */}
+                      <div style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid var(--border-color)', padding: '16px', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '12px', textAlign: 'left' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <strong style={{ fontSize: '0.95rem', color: 'var(--accent-indigo)' }}>Video Editor</strong>
+                          <span className="badge badge-emerald" style={{ fontSize: '0.65rem' }}>ACTIVE</span>
+                        </div>
+                        <div>
+                          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>Nhiệm vụ chính:</span>
+                          <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: 500 }}>Dựng storyboard video ASMR 9:16, chỉ định âm thanh và cảnh quay chi tiết.</span>
+                        </div>
+                        <div style={{ background: 'rgba(0,0,0,0.2)', padding: '8px 10px', borderRadius: '6px', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                          <strong>Demo Output:</strong> Handoff kịch bản video 15s heo quay ASMR — 4 phân cảnh đã mô tả.
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px dashed var(--border-color)', paddingTop: '8px', fontSize: '0.75rem' }}>
+                          <span style={{ color: 'var(--text-muted)' }}>Cần duyệt (Human Sign-off):</span>
+                          <span style={{ color: 'var(--accent-rose)', fontWeight: 'bold' }}>YES</span>
+                        </div>
+                      </div>
+
+                      {/* Role 3: Designer */}
+                      <div style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid var(--border-color)', padding: '16px', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '12px', textAlign: 'left' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <strong style={{ fontSize: '0.95rem', color: 'var(--accent-indigo)' }}>Designer</strong>
+                          <span className="badge badge-emerald" style={{ fontSize: '0.65rem' }}>ACTIVE</span>
+                        </div>
+                        <div>
+                          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>Nhiệm vụ chính:</span>
+                          <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: 500 }}>Tạo prompt ảnh AI (Fal.ai/Midjourney), định nghĩa tông màu và visual identity.</span>
+                        </div>
+                        <div style={{ background: 'rgba(0,0,0,0.2)', padding: '8px 10px', borderRadius: '6px', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                          <strong>Demo Output:</strong> Bộ prompt ảnh AI + palette màu xanh lá & nâu ấm cho Vị Cuốn.
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px dashed var(--border-color)', paddingTop: '8px', fontSize: '0.75rem' }}>
+                          <span style={{ color: 'var(--text-muted)' }}>Cần duyệt (Human Sign-off):</span>
+                          <span style={{ color: 'var(--accent-rose)', fontWeight: 'bold' }}>YES</span>
+                        </div>
+                      </div>
+
+                      {/* Role 4: Ads Manager */}
+                      <div style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid var(--border-color)', padding: '16px', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '12px', textAlign: 'left' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <strong style={{ fontSize: '0.95rem', color: 'var(--accent-indigo)' }}>Ads Manager</strong>
+                          <span className="badge badge-emerald" style={{ fontSize: '0.65rem' }}>ACTIVE</span>
+                        </div>
+                        <div>
+                          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>Nhiệm vụ chính:</span>
+                          <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: 500 }}>Lập plan ad sets, target tệp địa phương và cấu hình ngân sách ads.</span>
+                        </div>
+                        <div style={{ background: 'rgba(0,0,0,0.2)', padding: '8px 10px', borderRadius: '6px', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                          <strong>Demo Output:</strong> Cấu hình ad copy và target bán kính 4km quanh quán cuốn tại TP Vinh.
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px dashed var(--border-color)', paddingTop: '8px', fontSize: '0.75rem' }}>
+                          <span style={{ color: 'var(--text-muted)' }}>Cần duyệt (Human Sign-off):</span>
+                          <span style={{ color: 'var(--accent-rose)', fontWeight: 'bold' }}>YES</span>
+                        </div>
+                      </div>
+
+                      {/* Role 5: Data Reporter */}
+                      <div style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid var(--border-color)', padding: '16px', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '12px', textAlign: 'left' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <strong style={{ fontSize: '0.95rem', color: 'var(--accent-indigo)' }}>Data Reporter</strong>
+                          <span className="badge badge-emerald" style={{ fontSize: '0.65rem' }}>ACTIVE</span>
+                        </div>
+                        <div>
+                          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>Nhiệm vụ chính:</span>
+                          <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: 500 }}>Đọc log tương tác ads giả lập, tính chỉ số CTR/CPC/CPA & đề xuất tối ưu.</span>
+                        </div>
+                        <div style={{ background: 'rgba(0,0,0,0.2)', padding: '8px 10px', borderRadius: '6px', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                          <strong>Demo Output:</strong> Báo cáo hiệu năng tuần giả lập, 3 khuyến nghị cải thiện content.
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px dashed var(--border-color)', paddingTop: '8px', fontSize: '0.75rem' }}>
+                          <span style={{ color: 'var(--text-muted)' }}>Cần duyệt (Human Sign-off):</span>
+                          <span style={{ color: 'var(--accent-rose)', fontWeight: 'bold' }}>YES</span>
+                        </div>
+                      </div>
+
+                    </div>
+                  </div>
+
                 </div>
               )}
             </>
