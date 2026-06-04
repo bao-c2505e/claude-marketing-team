@@ -1,47 +1,51 @@
-# CURRENT PHASE — Phase H.3: Demo Polish & Sales Readiness ✅ CLOSED
+# CURRENT PHASE — Phase H.4: Export/Presentation Readiness 🔄 IN PROGRESS
 
 Tài liệu này dùng để theo dõi tiến độ thực hiện và trạng thái của Phase hiện tại.
 
 ## 📌 Thông tin chung
-- **Phase hiện tại:** Phase H.3 — Demo Polish & Sales Readiness
-- **Mục tiêu:** Đánh bóng demo frontend để dễ bán, dễ present cho khách hàng SME — vẫn 100% static/frontend/mock, không backend, không API thật.
-- **Commits:**
-  - `0a36ea4` — feat: add phase h3 demo polish and sales readiness (session 1 — cơ bản)
-  - `7b90faf` — feat: add phase h3 full sales readiness features (session 2 — đầy đủ)
-  - `4793b72` — docs: fix phase h3 stale commit and status references
-- **Trạng thái:** ✅ CLOSED — Codex re-review PASS, no required fixes, git clean
+- **Phase hiện tại:** Phase H.4 — Export/Presentation Readiness
+- **Mục tiêu:** Làm cho demo frontend dễ present hơn cho khách hàng và dễ xuất/chia sẻ dưới dạng campaign presentation pack — vẫn 100% static/frontend/mock, không backend, không API thật.
+- **Commits:** (in progress)
+- **Trạng thái:** 🔄 IN PROGRESS
 
 ---
 
-## 📋 Checklist Phase H.3 — 100% Complete
+## 📋 Checklist Phase H.4 — In Progress
 
-### Dashboard — Presenter Demo Guide
-- [x] Cập nhật header badge → "Phase H.3 — Demo Polish & Sales Readiness"
-- [x] Thêm "Presenter Demo Guide" card — 5-step clickable demo flow (step 1–5: Dashboard → Brief → Outputs → Client Demo → Export)
+### New Tab: Presentation & Export
+- [x] Thêm nav button "Presentation & Export" vào Sidebar (icon: BookOpen)
+- [x] Cập nhật header badge → "Phase H.4 — Export/Presentation Readiness"
 
-### Client Demo Mode — Sales Readiness
-- [x] Thêm "Sales Readiness" 5-card row (Vấn đề KH / Giải pháp AI / Khách nhận được / Cần duyệt thủ công / Tại sao an toàn)
-- [x] Thêm "Value Proposition" 4-card (⚡ 3 phút / 🤝 Human-in-the-loop / 🎯 5 chuyên gia / 📊 mock ROI)
-- [x] Thêm "Before/After — Manual vs AI-Assisted" comparison table
-- [x] Thêm CTA block cuối trang (Duyệt Campaign Pack / Xuất File Gửi Khách / Chuẩn Bị Brief Tiếp Theo)
+### Section 1: Presentation View
+- [x] 6-step client-friendly presentation: Problem / AI Solution / Campaign Outputs / Approval Process / Manual Publishing / Safety Boundaries
 
-### Client Demo Pack — Service Packages
-- [x] Thêm "Service Packages" teaser (Starter / Growth / Scale) — static mock pricing
+### Section 2: Export Pack Preview
+- [x] 7 deliverable cards: Campaign Summary, 7-Day Content Plan, Video Script Pack, Design Brief Pack, Ads Angle Pack, Data Reporter Summary, Human Approval Checklist
+- [x] Each card has badge, description, and "View in workspace →" button
 
-### Kiểm duyệt & Deploy
-- [x] Build local PASS (`npm run build`) — 0 errors
-- [x] Dev local check (`npm run dev`) — PASS
-- [x] Codex review — PASS (UI/code/safety PASS; no required fixes)
-- [x] Codex re-review — PASS (after docs/log stale status fix)
-- [x] Push commits lên GitHub main branch — DONE
-- [x] Production Vercel auto-deployed — PASS
-- [x] git status clean — CONFIRMED
+### Section 3: Client Approval Sheet Preview
+- [x] Static table: Item / Owner Role / Status / Client Note / Next Action
+- [x] Clickable status badges cycling: Ready for review → Approved → Needs edit → Waiting owner approval
+
+### Section 4: Sales Demo Script
+- [x] 5-step timeline (0:00–5:30): Introduce Problem / Show AI Team Roles / Show Campaign Pack / Show Approval & Safety / Close with CTA
+- [x] "Copy Script" button
+
+### Section 5: Export Readiness Checklist
+- [x] 7-item checklist — 3 safety-locked items (cannot be unchecked), 4 owner-toggleable
+- [x] Live counter badge (x/7 Ready)
+- [x] Safety reminder footer
+
+### Build & Safety
+- [x] npm run build PASS — 0 errors
+- [ ] Codex review pending
+- [ ] Push to GitHub pending
 
 ---
 
-## ✅ Phase H.3 — CLOSED
-- Closed by: docs commit (close phase h3)
-- Codex final verdict: PASS — no required fixes
+## ✅ Phase H.3 (tiền nhiệm) — CLOSED
+- Commit: `6fef281` — docs: close phase h3 demo polish sales readiness
+- Features: Presenter Demo Guide, Sales Readiness 5-card, Value Proposition, Before/After Comparison, CTA Block, Service Packages Teaser
 
 ## ✅ Phase H.2 (tiền nhiệm) — CLOSED
 - Commit: `75ac881` — feat: add phase h2 client demo mode
@@ -51,7 +55,14 @@ Tài liệu này dùng để theo dõi tiến độ thực hiện và trạng th
 
 ---
 
-## 🛠️ Next Recommended Phase
-**Phase H.4 — Export/Presentation Readiness**
-- Mục tiêu: Chuẩn bị bộ tài liệu export/presentation sẵn sàng giao cho khách hàng thực tế.
-- Vẫn giữ ranh giới: no backend / no real API / no auto-post / no secrets.
+## 🛡️ Safety Guard (H.4 — confirmed)
+- Auto-post: NO
+- Real Ads: NO
+- Real Messaging: NO
+- Real Connectors: NO
+- Secrets Added: NO
+- FnB OS V1 Touched: NO
+- Backend added: NO
+- Database added: NO
+- Real API: NO
+- Demo/Mock Data Only: YES

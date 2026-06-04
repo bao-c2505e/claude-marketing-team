@@ -15,6 +15,21 @@ Workspace cung cấp giao diện trực quan cao cấp, hỗ trợ chuẩn hóa 
 - **Dữ liệu giả lập (Demo/Mock Only: YES)**
 - **Không backend, không database, không real API connectors**
 
+## 🔄 Phase H.4 — Export/Presentation Readiness (IN PROGRESS — 2026-06-04)
+
+### Đã build trong phiên này:
+1. **Header badge** → "Phase H.4 — Export/Presentation Readiness"
+2. **Nav sidebar** → thêm "Presentation & Export" button (icon: BookOpen)
+3. **New tab: Presentation & Export** — 5 sections trong 1 tab:
+   - **Presentation View** (6-step): Problem / AI Solution / Outputs / Approval / Manual Publishing / Safety
+   - **Export Pack Preview** (7 cards): Campaign Summary, 7-Day Plan, Video Script, Design Brief, Ads Angle, Data Reporter, Approval Checklist
+   - **Client Approval Sheet Preview**: table với 5 cột + clickable status cycling
+   - **Sales Demo Script**: 5-step timeline (0:00–5:30) với copy button
+   - **Export Readiness Checklist**: 7-item, 3 safety-locked, live counter badge
+4. **Build PASS** — npm run build 0 errors
+
+---
+
 ## 🏆 Thành tựu mới nhất (Phase H.3 — ✅ CLOSED)
 
 ### Phase H.3 — Demo Polish & Sales Readiness — CLOSED

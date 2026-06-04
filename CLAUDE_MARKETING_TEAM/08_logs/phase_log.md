@@ -166,3 +166,23 @@ Nhật ký theo dõi các mốc hoàn thành kỹ thuật qua các Phase.
 
 
 
+
+### 🗓️ Ngày 04/06/2026 (Local Time) — Phase H.4 START
+- **Sự kiện:** Triển khai Phase H.4 — Export/Presentation Readiness.
+- **Người thực hiện:** Builder Agent (Claude Code).
+- **Hành động đã hoàn tất:**
+  1. Cập nhật header badge Web UI → "Phase H.4 — Export/Presentation Readiness".
+  2. Thêm nav sidebar button **"Presentation & Export"** (icon BookOpen).
+  3. Thêm state mới: `approvalSheetItems` (7 rows), `exportChecklist` (7 items).
+  4. Xây dựng tab `presentation-export` gồm 5 sections:
+     - **Presentation View**: 6-step client explanation (Problem → AI Solution → Outputs → Approval → Manual Publishing → Safety)
+     - **Export Pack Preview**: 7 deliverable cards với badge, description, "View in workspace →" button
+     - **Client Approval Sheet Preview**: 5-cột table với clickable status badges (cycle 4 states)
+     - **Sales Demo Script**: 5-step timeline (0:00–5:30) + "Copy Script" button
+     - **Export Readiness Checklist**: 7-item, 3 safety-locked, live x/7 counter badge
+  5. Build local PASS (`npm run build`) — 0 TypeScript/Vite errors.
+- **Trạng thái Phase H.4:** IN PROGRESS — build PASS, awaiting Codex review + Owner push.
+- **Safety Guard:**
+  - Auto-post: NO | Real Ads: NO | Real Messaging: NO | Real Connectors: NO
+  - Secrets Added: NO | FnB OS V1 touched: NO | Backend: NO | Database: NO | Real API: NO
+  - Demo/Mock Data Only: YES

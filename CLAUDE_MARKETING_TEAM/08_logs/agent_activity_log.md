@@ -215,3 +215,21 @@ Nhật ký ghi lại các hành động mô phỏng của các AI Agent khi vậ
 
 
 
+
+### 🗓️ Ngày 04/06/2026 — Phase H.4 Start
+- **[SYSTEM]:** Bắt đầu Phase H.4 — Export/Presentation Readiness.
+- **[Builder Agent — Claude Code]:** Nhận spec Phase H.4 từ ChatGPT (AI Coordinator). Bắt đầu build.
+- **[SYSTEM]:** Tệp tin đã thay đổi:
+  * `src/App.tsx`: Thêm import `BookOpen` từ lucide-react. Thêm state `approvalSheetItems` và `exportChecklist`. Cập nhật header badge → "Phase H.4 — Export/Presentation Readiness". Thêm sidebar nav button "Presentation & Export". Thêm tab `presentation-export` với 5 sections: Presentation View, Export Pack Preview, Client Approval Sheet Preview, Sales Demo Script, Export Readiness Checklist.
+- **[SYSTEM]:** Cập nhật tài liệu:
+  * `CURRENT_PHASE.md`: Cập nhật sang Phase H.4 in progress.
+  * `SESSION_SUMMARY.md`: Thêm Phase H.4 start summary.
+  * `phase_log.md`: Thêm Phase H.4 start entry.
+  * `agent_activity_log.md`: Thêm entry này.
+  * `08_logs/phase_h4_handoff.md`: Tạo mới handoff document.
+- **[SYSTEM]:** Build result: `npm run build` PASS — 0 TypeScript/Vite errors.
+- **[SYSTEM]:** Safety Guard H.4 confirmed:
+  * Auto-post: NO | Real Ads: NO | Real Messaging: NO | Real Connectors: NO
+  * Secrets Added: NO | FnB OS V1 touched: NO | Backend added: NO | Database: NO | Real API: NO
+  * Demo/Mock Data Only: YES
+- **[SYSTEM]:** Trạng thái: Phase H.4 build COMPLETE. Awaiting Codex review + Owner push.
