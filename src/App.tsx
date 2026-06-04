@@ -17,6 +17,151 @@ import {
 } from 'lucide-react';
 import { sampleCampaigns, Campaign, CampaignBrief, CalendarItem, ChecklistItem } from './mockData';
 
+const manualExportBlocks = [
+  {
+    title: "Copy Full Campaign Pack",
+    description: "Full markdown campaign pack for internal/client review.",
+    content: `# FULL CAMPAIGN PACK: VI CUON
+
+## DISCLAIMER
+- Demo/mock data only
+- Draft only
+- Human approval required
+- No auto-post
+- No real ads launched
+- No real customer messaging
+
+## A. BRAND BRIEF SUMMARY
+- Brand Name: Vi Cuon
+- Industry: F&B / premium street food in Vinh
+- Hero Product: Banh trang cuon heo quay (roasted pork rice paper rolls)
+- Tone of Voice: Friendly, local Vinh flavor
+
+## B. CAMPAIGN SLOGANS
+1. "Cuon ngon chuan vi, da gion rom ra - Bua trua thanh thoi cung Vi Cuon!"
+2. "Them heo quay gion lu, ghe ngay Vi Cuon!"
+
+## C. 7-DAY CONTENT SCHEDULE
+- Day 1: Introducing roasted pork lu
+- Day 2: Office worker convenience reels
+- Day 3: Anchovy dipping sauce review
+- Day 4: Light & fresh rolls menu variety
+- Day 5: Weekend gathering experience
+- Day 6: Hygiene and kitchen process
+- Day 7: Warm family dinner moms gathering`
+  },
+  {
+    title: "Copy Client Summary",
+    description: "Client-facing overview of the campaign strategy and outputs.",
+    content: `# CLIENT PRESENTATION SUMMARY
+
+## DISCLAIMER
+- Demo/mock data only
+- Draft only
+- Human approval required
+- No auto-post
+- No real ads launched
+- No real customer messaging
+
+## CAMPAIGN OVERVIEW
+An integrated digital campaign for "Vi Cuon", designed to target local office workers, students, and young families in Vinh, Nghe An.
+
+## STRATEGY HIGHLIGHTS
+- Main Concept: "Street food meets Premium"
+- Core Channels: Facebook (captions) & TikTok/Reels (vertical videos)
+- Focus: Localized messaging, ASMR sound design, and clean visual representation.`
+  },
+  {
+    title: "Copy Editor Handoff",
+    description: "Guidelines and instructions for video editing.",
+    content: `# VIDEO EDITOR HANDOFF DOCUMENT
+
+## DISCLAIMER
+- Demo/mock data only
+- Draft only
+- Human approval required
+- No auto-post
+- No real ads launched
+- No real customer messaging
+
+## VIDEO STYLE & INSTRUCTIONS
+- Aspect Ratio: 9:16 Vertical
+- Target Duration: 15 seconds
+- Audio Style: ASMR sounds, soft ambient background music
+- Visual Style: Bright, clean, focus on fresh ingredients and meat slicing
+
+## VIDEO 1 STORYBOARD (Crispy Pork ASMR)
+- Scene 1 (0-3s): Steaming clay oven opening.
+- Scene 2 (3-8s): Pork skin cracking sound under a clean chef's knife.
+- Scene 3 (8-12s): Platter shot with fresh herbs, roll dipped in sauce.
+- Scene 4 (12-15s): Call to action banner (address/hotline placeholder).`
+  },
+  {
+    title: "Copy Designer Handoff",
+    description: "Visual design requirements and AI prompts.",
+    content: `# DESIGNER HANDOFF DOCUMENT
+
+## DISCLAIMER
+- Demo/mock data only
+- Draft only
+- Human approval required
+- No auto-post
+- No real ads launched
+- No real customer messaging
+
+## VISUAL PALETTE & STYLE
+- Mood: Modern, warm, clean
+- Accent Colors: Leaf green, warm wooden tones
+- Text Overlay: "BANH TRANG CUON HEO QUAY NUONG LU - STREET FOOD meets PREMIUM"
+
+## FAL.AI / MIDJOURNEY GENERATION PROMPTS
+- Prompt 1: "A clean overhead photograph of a premium Vietnamese roasted pork platter with fresh herbs, rice paper rolls, and a bowl of anchovy sauce on a light-colored wooden table, cozy high-quality restaurant interior background, daylight, photorealistic --ar 16:9"`
+  },
+  {
+    title: "Copy Ads Draft Pack",
+    description: "Local campaign audience targets and draft ad units.",
+    content: `# ADS MANAGER CONFIGURATION PACK
+
+## DISCLAIMER
+- Demo/mock data only
+- Draft only
+- Human approval required
+- No auto-post
+- No real ads launched
+- No real customer messaging
+
+## AUDIENCE SEGMENT
+- Location: Vinh City, Nghe An (Radius 4km)
+- Target Age: 18 - 35
+- Interests: Local food, Vietnamese cuisine, food delivery services
+
+## AD DRAFT UNIT
+- Campaign Objective: Messaging / Leads
+- Headline: Vi Cuon - Street Food meets Premium
+- Ad Body: Crispy roasted pork, fresh local herbs, premium rice paper rolls. Order your lunch pack today!`
+  },
+  {
+    title: "Copy Approval Checklist",
+    description: "Mandatory human sign-off checklist.",
+    content: `# OWNER COMPLIANCE & SAFETY CHECKLIST
+
+## DISCLAIMER
+- Demo/mock data only
+- Draft only
+- Human approval required
+- No auto-post
+- No real ads launched
+- No real customer messaging
+
+## CHECKLIST ITEMS
+1. [ ] Brand Alignment check: Does the messaging accurately represent the premium positioning?
+2. [ ] Price Verification: Has the owner provided actual prices?
+3. [ ] Contact Verification: Are the Vinh address and phone number correct?
+4. [ ] Marketing Channel Check: Verify no auto-posting mechanisms are active.
+5. [ ] Budget Check: Has the marketing budget been manually verified?`
+  }
+];
+
 export default function App() {
   const [campaigns, setCampaigns] = useState<Campaign[]>(() => {
     try {
@@ -370,6 +515,14 @@ export default function App() {
               onClick={() => setActiveTab('demo-pack')}
             >
               <FileText size={18} /> Client Demo Pack
+            </button>
+
+            <button 
+              className={`btn btn-secondary ${activeTab === 'manual-export' ? 'active' : ''}`} 
+              style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'manual-export' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'manual-export' ? 'rgba(99, 102, 241, 0.1)' : '' }}
+              onClick={() => setActiveTab('manual-export')}
+            >
+              <Copy size={18} /> Manual Export Pack
             </button>
 
           </div>
@@ -1497,6 +1650,52 @@ export default function App() {
 
                   </div>
 
+                </div>
+              )}
+
+              {/* 7. MANUAL EXPORT PACK TAB */}
+              {activeTab === 'manual-export' && (
+                <div className="glass-panel" style={{ padding: '32px' }}>
+                  <div style={{ marginBottom: '24px', borderBottom: '1px solid var(--border-color)', paddingBottom: '16px' }}>
+                    <h2 style={{ fontSize: '1.5rem', fontWeight: 600 }}>Manual Export Pack</h2>
+                    <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                      Sao chép trực tiếp các gói dữ liệu đã định cấu hình sạch để sử dụng thủ công.
+                    </p>
+                  </div>
+                  
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
+                    {manualExportBlocks.map((block, idx) => (
+                      <div key={idx} style={{ background: 'rgba(255,255,255,0.02)', padding: '24px', borderRadius: '12px', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                          <h4 style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '1.1rem' }}>{block.title}</h4>
+                          <button 
+                            className="btn btn-secondary" 
+                            style={{ padding: '6px 12px', fontSize: '0.8rem' }}
+                            onClick={() => copyToClipboard(block.content, `manual_${idx}`)}
+                          >
+                            {copiedStates[`manual_${idx}`] ? <span style={{ color: 'var(--accent-emerald)' }}>Copied! ✓</span> : 'Copy'}
+                          </button>
+                        </div>
+                        <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{block.description}</p>
+                        <textarea
+                          readOnly
+                          value={block.content}
+                          style={{
+                            width: '100%',
+                            height: '180px',
+                            background: 'rgba(0,0,0,0.3)',
+                            border: '1px solid var(--border-color)',
+                            borderRadius: '6px',
+                            padding: '10px',
+                            fontSize: '0.85rem',
+                            color: 'var(--text-secondary)',
+                            fontFamily: 'monospace',
+                            resize: 'none'
+                          }}
+                        />
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
             </>
