@@ -1,4 +1,4 @@
-# CURRENT PHASE — Phase H.3: Demo Polish & Sales Readiness ✅ COMPLETED
+# CURRENT PHASE — Phase H.3: Demo Polish & Sales Readiness ✅ CLOSED
 
 Tài liệu này dùng để theo dõi tiến độ thực hiện và trạng thái của Phase hiện tại.
 
@@ -8,11 +8,12 @@ Tài liệu này dùng để theo dõi tiến độ thực hiện và trạng th
 - **Commits:**
   - `0a36ea4` — feat: add phase h3 demo polish and sales readiness (session 1 — cơ bản)
   - `7b90faf` — feat: add phase h3 full sales readiness features (session 2 — đầy đủ)
-- **Trạng thái:** DONE + BUILT + CODEX REVIEWED + PUSHED
+  - `4793b72` — docs: fix phase h3 stale commit and status references
+- **Trạng thái:** ✅ CLOSED — Codex re-review PASS, no required fixes, git clean
 
 ---
 
-## 📋 Checklist Phase H.3
+## 📋 Checklist Phase H.3 — 100% Complete
 
 ### Dashboard — Presenter Demo Guide
 - [x] Cập nhật header badge → "Phase H.3 — Demo Polish & Sales Readiness"
@@ -30,23 +31,27 @@ Tài liệu này dùng để theo dõi tiến độ thực hiện và trạng th
 ### Kiểm duyệt & Deploy
 - [x] Build local PASS (`npm run build`) — 0 errors
 - [x] Dev local check (`npm run dev`) — PASS
-- [x] Codex review — PASS (UI/code/safety PASS; docs/log stale status fixed in this commit)
-- [x] Push commit `7b90faf` lên GitHub main branch — DONE
+- [x] Codex review — PASS (UI/code/safety PASS; no required fixes)
+- [x] Codex re-review — PASS (after docs/log stale status fix)
+- [x] Push commits lên GitHub main branch — DONE
 - [x] Production Vercel auto-deployed — PASS
+- [x] git status clean — CONFIRMED
 
 ---
 
-## ✅ Phase H.2 (tiền nhiệm) — COMPLETED
-- Commit: `75ac881` — feat: add phase h2 client demo mode
-- Client Demo Mode: Client View, Approval Status Demo, AI Team Workspace (5 roles)
+## ✅ Phase H.3 — CLOSED
+- Closed by: docs commit (close phase h3)
+- Codex final verdict: PASS — no required fixes
 
-## ✅ Phase H.1 / H-lite — COMPLETED
+## ✅ Phase H.2 (tiền nhiệm) — CLOSED
+- Commit: `75ac881` — feat: add phase h2 client demo mode
+
+## ✅ Phase H.1 / H-lite — CLOSED
 - Manual Export Pack: 6 copy blocks còn nguyên
 
 ---
 
 ## 🛠️ Next Recommended Phase
-**Phase H.4 hoặc Close H.3 — Tuỳ Owner quyết định**
-- Phase H.3 đã hoàn tất đầy đủ. Codex review PASS.
-- Đóng phase bằng docs commit: `docs: close phase h3 demo polish sales readiness`
-- Hoặc tiếp tục Phase H.4 nếu cần thêm polish/features.
+**Phase H.4 — Export/Presentation Readiness**
+- Mục tiêu: Chuẩn bị bộ tài liệu export/presentation sẵn sàng giao cho khách hàng thực tế.
+- Vẫn giữ ranh giới: no backend / no real API / no auto-post / no secrets.

@@ -15,12 +15,14 @@ Workspace cung cấp giao diện trực quan cao cấp, hỗ trợ chuẩn hóa 
 - **Dữ liệu giả lập (Demo/Mock Only: YES)**
 - **Không backend, không database, không real API connectors**
 
-## 🏆 Thành tựu mới nhất (Phase H.3 — DONE + CODEX REVIEWED + PUSHED)
+## 🏆 Thành tựu mới nhất (Phase H.3 — ✅ CLOSED)
 
-### Phase H.3 — Demo Polish & Sales Readiness
+### Phase H.3 — Demo Polish & Sales Readiness — CLOSED
+- **Codex re-review:** PASS — no required fixes
 - **Commits:**
-  - `0a36ea4` — feat: add phase h3 demo polish and sales readiness (session 1 — cơ bản)
-  - `7b90faf` — feat: add phase h3 full sales readiness features (session 2 — đầy đủ)
+  - `0a36ea4` — feat: add phase h3 demo polish and sales readiness (session 1)
+  - `7b90faf` — feat: add phase h3 full sales readiness features (session 2)
+  - `4793b72` — docs: fix phase h3 stale commit and status references
 
 **Đã build:**
 1. **Header badge** → "Phase H.3 — Demo Polish & Sales Readiness"
@@ -31,18 +33,14 @@ Workspace cung cấp giao diện trực quan cao cấp, hỗ trợ chuẩn hóa 
 6. **Client Demo Mode — CTA Block (3 nút)**: Duyệt Campaign Pack / Xuất File Gửi Khách / Chuẩn Bị Brief Tiếp Theo
 7. **Client Demo Pack — Service Packages (3 gói)**: Starter / Growth / Scale static mock
 
-**Build result:** `npm run build` → PASS, 0 errors
-
-### Phase H.2 — Client Demo Mode: COMPLETED
+### Phase H.2 — Client Demo Mode: ✅ CLOSED
 - Client View, Approval Status Demo (3 states), AI Team Workspace (5 roles) — commit `75ac881`
 
-### Phase H.1 / H-lite — Manual Export Pack: COMPLETED
+### Phase H.1 / H-lite — Manual Export Pack: ✅ CLOSED
 - 6 copy blocks còn nguyên
 
 ## ➡️ Các bước tiếp theo (Next Steps)
-1. ✅ **Build PASS** — `npm run build` 0 errors, bundle 274.36 kB
-2. ✅ **Codex review PASS** — UI/code/safety PASS; docs/log stale status fixed
-3. ✅ **Push DONE** — commit `7b90faf` đã push lên GitHub main
-4. ✅ **Production Vercel auto-deployed**
-5. **Đóng Phase H.3** bằng docs commit: `docs: close phase h3 demo polish sales readiness`
-6. **Phase H.4** (tuỳ Owner): Thêm features hoặc polish nếu cần
+1. ✅ **Phase H.3 CLOSED** — Codex re-review PASS, no required fixes, git clean
+2. **Phase H.4 — Export/Presentation Readiness** *(Next recommended)*:
+   - Chuẩn bị bộ tài liệu export/presentation sẵn sàng giao cho khách hàng thực tế.
+   - Vẫn giữ ranh giới: no backend / no real API / no auto-post / no secrets.
