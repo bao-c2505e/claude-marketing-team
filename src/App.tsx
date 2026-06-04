@@ -21,7 +21,7 @@ const manualExportBlocks = [
   {
     title: "Copy Full Campaign Pack",
     description: "Full markdown campaign pack for internal/client review.",
-    content: `# FULL CAMPAIGN PACK: VI CUON
+    content: `# FULL CAMPAIGN PACK: VỊ CUỐN
 
 ## DISCLAIMER
 - Demo/mock data only
@@ -32,28 +32,28 @@ const manualExportBlocks = [
 - No real customer messaging
 
 ## A. BRAND BRIEF SUMMARY
-- Brand Name: Vi Cuon
-- Industry: F&B / premium street food in Vinh
-- Hero Product: Banh trang cuon heo quay (roasted pork rice paper rolls)
-- Tone of Voice: Friendly, local Vinh flavor
+- Tên thương hiệu: Vị Cuốn
+- Ngành hàng: F&B / premium street food tại TP Vinh, Nghệ An
+- Sản phẩm chính: Bánh tráng cuốn heo quay
+- Tone giọng: Gần gũi, ngon miệng, thực tế mang chất địa phương Vinh
 
 ## B. CAMPAIGN SLOGANS
-1. "Cuon ngon chuan vi, da gion rom ra - Bua trua thanh thoi cung Vi Cuon!"
-2. "Them heo quay gion lu, ghe ngay Vi Cuon!"
+1. "Cuốn ngon chuẩn vị, da giòn rôm rả - Bữa trưa thảnh thơi cùng Vị Cuốn!"
+2. "Thèm heo quay giòn lu, ghé ngay Vị Cuốn!"
 
 ## C. 7-DAY CONTENT SCHEDULE
-- Day 1: Introducing roasted pork lu
-- Day 2: Office worker convenience reels
-- Day 3: Anchovy dipping sauce review
-- Day 4: Light & fresh rolls menu variety
-- Day 5: Weekend gathering experience
-- Day 6: Hygiene and kitchen process
-- Day 7: Warm family dinner moms gathering`
+- Ngày 1: Giới thiệu heo quay lu đất truyền thống
+- Ngày 2: Sự tiện lợi cho dân văn phòng Vinh (Reels/TikTok)
+- Ngày 3: Review mắm nêm đậm đà chuẩn vị miền Trung
+- Ngày 4: Menu đa dạng các món cuốn tươi thanh mát
+- Ngày 5: Trải nghiệm tụ họp cuối tuần cùng bạn bè
+- Ngày 6: Quy trình bếp sạch và vệ sinh an toàn thực phẩm
+- Ngày 7: Bữa tối ấm cúng cùng gia đình`
   },
   {
     title: "Copy Client Summary",
     description: "Client-facing overview of the campaign strategy and outputs.",
-    content: `# CLIENT PRESENTATION SUMMARY
+    content: `# CLIENT PRESENTATION SUMMARY - VỊ CUỐN
 
 ## DISCLAIMER
 - Demo/mock data only
@@ -63,18 +63,18 @@ const manualExportBlocks = [
 - No real ads launched
 - No real customer messaging
 
-## CAMPAIGN OVERVIEW
-An integrated digital campaign for "Vi Cuon", designed to target local office workers, students, and young families in Vinh, Nghe An.
+## TỔNG QUAN CHIẾN DỊCH
+Chiến dịch truyền thông tích hợp cho thương hiệu "Vị Cuốn", hướng tới mục tiêu là dân văn phòng, học sinh sinh viên và các gia đình trẻ tại khu vực TP Vinh, Nghệ An.
 
-## STRATEGY HIGHLIGHTS
-- Main Concept: "Street food meets Premium"
-- Core Channels: Facebook (captions) & TikTok/Reels (vertical videos)
-- Focus: Localized messaging, ASMR sound design, and clean visual representation.`
+## ĐIỂM SÁNG CHIẾN LƯỢC
+- Khái niệm chủ đạo: "Street Food meets Premium" (Món ăn đường phố nâng tầm cao cấp)
+- Kênh truyền thông chính: Facebook (Bài viết) & TikTok/Reels (Video dọc ngắn)
+- Trọng tâm: Thông điệp gần gũi địa phương, âm thanh ASMR kích thích vị giác và hình ảnh sản phẩm sạch sẽ, cao cấp.`
   },
   {
     title: "Copy Editor Handoff",
     description: "Guidelines and instructions for video editing.",
-    content: `# VIDEO EDITOR HANDOFF DOCUMENT
+    content: `# VIDEO EDITOR HANDOFF DOCUMENT - VỊ CUỐN
 
 ## DISCLAIMER
 - Demo/mock data only
@@ -84,22 +84,22 @@ An integrated digital campaign for "Vi Cuon", designed to target local office wo
 - No real ads launched
 - No real customer messaging
 
-## VIDEO STYLE & INSTRUCTIONS
-- Aspect Ratio: 9:16 Vertical
-- Target Duration: 15 seconds
-- Audio Style: ASMR sounds, soft ambient background music
-- Visual Style: Bright, clean, focus on fresh ingredients and meat slicing
+## PHONG CÁCH VIDEO & CHỈ DẪN DỰNG
+- Tỷ lệ khung hình: 9:16 Vertical (Dọc)
+- Thời lượng mục tiêu: 15 giây
+- Phong cách âm thanh: Tiếng động ASMR thực tế, nhạc nền nhẹ nhàng thư giãn
+- Phong cách hình ảnh: Sáng sủa, sạch sẽ, tập trung cận cảnh nguyên liệu tươi ngon và lát cắt thịt quay giòn rụm
 
-## VIDEO 1 STORYBOARD (Crispy Pork ASMR)
-- Scene 1 (0-3s): Steaming clay oven opening.
-- Scene 2 (3-8s): Pork skin cracking sound under a clean chef's knife.
-- Scene 3 (8-12s): Platter shot with fresh herbs, roll dipped in sauce.
-- Scene 4 (12-15s): Call to action banner (address/hotline placeholder).`
+## KỊCH BẢN VIDEO 1 (ASMR Heo quay giòn rụm)
+- Phân cảnh 1 (0-3s): Cảnh mở lu đất bốc hơi nghi ngút nóng hổi.
+- Phân cảnh 2 (3-8s): Tiếng gõ giòn rôm rả của lớp da heo quay dưới lưỡi dao bếp sạch sẽ.
+- Phân cảnh 3 (8-12s): Đĩa thịt heo quay đầy đặn bày cùng rau rừng, cuốn bánh tráng chấm ngập mắm nêm.
+- Phân cảnh 4 (12-15s): Banner kêu gọi hành động hiển thị thông tin địa chỉ/hotline của Vị Cuốn tại Vinh.`
   },
   {
     title: "Copy Designer Handoff",
     description: "Visual design requirements and AI prompts.",
-    content: `# DESIGNER HANDOFF DOCUMENT
+    content: `# DESIGNER HANDOFF DOCUMENT - VỊ CUỐN
 
 ## DISCLAIMER
 - Demo/mock data only
@@ -109,18 +109,18 @@ An integrated digital campaign for "Vi Cuon", designed to target local office wo
 - No real ads launched
 - No real customer messaging
 
-## VISUAL PALETTE & STYLE
-- Mood: Modern, warm, clean
-- Accent Colors: Leaf green, warm wooden tones
-- Text Overlay: "BANH TRANG CUON HEO QUAY NUONG LU - STREET FOOD meets PREMIUM"
+## TÔNG MÀU & PHONG CÁCH THIẾT KẾ
+- Mood: Hiện đại, ấm cúng, sạch sẽ
+- Tông màu chủ đạo: Xanh lá cây tươi của lá, màu nâu ấm của thớt gỗ
+- Chữ đè lên hình (Text Overlay): "BÁNH TRÁNG CUỐN HEO QUAY NƯỚNG LU - STREET FOOD meets PREMIUM"
 
-## FAL.AI / MIDJOURNEY GENERATION PROMPTS
+## PROMPTS TẠO ẢNH AI (FAL.AI / MIDJOURNEY)
 - Prompt 1: "A clean overhead photograph of a premium Vietnamese roasted pork platter with fresh herbs, rice paper rolls, and a bowl of anchovy sauce on a light-colored wooden table, cozy high-quality restaurant interior background, daylight, photorealistic --ar 16:9"`
   },
   {
     title: "Copy Ads Draft Pack",
     description: "Local campaign audience targets and draft ad units.",
-    content: `# ADS MANAGER CONFIGURATION PACK
+    content: `# ADS MANAGER CONFIGURATION PACK - VỊ CUỐN
 
 ## DISCLAIMER
 - Demo/mock data only
@@ -130,20 +130,20 @@ An integrated digital campaign for "Vi Cuon", designed to target local office wo
 - No real ads launched
 - No real customer messaging
 
-## AUDIENCE SEGMENT
-- Location: Vinh City, Nghe An (Radius 4km)
-- Target Age: 18 - 35
-- Interests: Local food, Vietnamese cuisine, food delivery services
+## PHÂN KHÚC KHÁCH HÀNG MỤC TIÊU (TARGETING)
+- Vị trí địa lý: TP Vinh, Nghệ An (Bán kính 4km quanh cửa hàng)
+- Độ tuổi mục tiêu: 18 - 35
+- Sở thích hành vi: Ẩm thực địa phương, món ăn Việt Nam, dịch vụ giao đồ ăn
 
-## AD DRAFT UNIT
-- Campaign Objective: Messaging / Leads
-- Headline: Vi Cuon - Street Food meets Premium
-- Ad Body: Crispy roasted pork, fresh local herbs, premium rice paper rolls. Order your lunch pack today!`
+## MẪU NỘI DUNG QUẢNG CÁO DỰ THẢO (AD DRAFT)
+- Mục tiêu chiến dịch: Nhắn tin (Messaging) / Lượt tương tác
+- Tiêu đề quảng cáo: Vị Cuốn - Món ăn đường phố nâng tầm cao cấp
+- Thân bài quảng cáo: Thịt heo quay lu giòn rụm, rau rừng tươi xanh xứ Nghệ, mắm nêm đậm đà chuẩn vị. Đặt ngay suất trưa thảnh thơi giao tận nơi của Vị Cuốn!`
   },
   {
     title: "Copy Approval Checklist",
     description: "Mandatory human sign-off checklist.",
-    content: `# OWNER COMPLIANCE & SAFETY CHECKLIST
+    content: `# OWNER COMPLIANCE & SAFETY CHECKLIST - VỊ CUỐN
 
 ## DISCLAIMER
 - Demo/mock data only
@@ -153,12 +153,12 @@ An integrated digital campaign for "Vi Cuon", designed to target local office wo
 - No real ads launched
 - No real customer messaging
 
-## CHECKLIST ITEMS
-1. [ ] Brand Alignment check: Does the messaging accurately represent the premium positioning?
-2. [ ] Price Verification: Has the owner provided actual prices?
-3. [ ] Contact Verification: Are the Vinh address and phone number correct?
-4. [ ] Marketing Channel Check: Verify no auto-posting mechanisms are active.
-5. [ ] Budget Check: Has the marketing budget been manually verified?`
+## CÁC TIÊU CHÍ KIỂM DUYỆT BẮT BUỘC
+1. [ ] Kiểm tra tính đồng nhất thương hiệu: Thông điệp đã đúng định vị premium của Vị Cuốn chưa?
+2. [ ] Xác thực giá bán lẻ: Chủ thương hiệu (Owner) đã điền mức giá bán thực tế của đĩa cuốn chưa?
+3. [ ] Xác thực thông tin liên hệ: Địa chỉ cụ thể và hotline tại TP Vinh đã chính xác chưa?
+4. [ ] Kiểm tra kênh phân phối quảng cáo: Đảm bảo không có bất kỳ hệ thống tự động đăng bài nào được liên kết.
+5. [ ] Kiểm duyệt ngân sách: Ngân sách chiến dịch đã được xác nhận thủ công bởi Owner hay chưa?`
   }
 ];
 
@@ -1656,13 +1656,60 @@ export default function App() {
               {/* 7. MANUAL EXPORT PACK TAB */}
               {activeTab === 'manual-export' && (
                 <div className="glass-panel" style={{ padding: '32px' }}>
-                  <div style={{ marginBottom: '24px', borderBottom: '1px solid var(--border-color)', paddingBottom: '16px' }}>
-                    <h2 style={{ fontSize: '1.5rem', fontWeight: 600 }}>Manual Export Pack</h2>
-                    <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
-                      Sao chép trực tiếp các gói dữ liệu đã định cấu hình sạch để sử dụng thủ công.
+                  
+                  {/* Header & Badge */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', borderBottom: '1px solid var(--border-color)', paddingBottom: '16px' }}>
+                    <div>
+                      <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#fff', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        Phase H.1 — Manual Export Pack
+                        <span className="badge" style={{ fontSize: '0.75rem', padding: '4px 10px', background: 'rgba(16, 185, 129, 0.15)', color: 'var(--accent-emerald)', borderColor: 'rgba(16, 185, 129, 0.3)', border: '1px solid', borderRadius: '9999px', fontWeight: 600 }}>
+                          Production Demo Ready
+                        </span>
+                      </h2>
+                      <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                        Sao chép trực tiếp các gói dữ liệu đã định cấu hình sạch để sử dụng thủ công.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Instruction Box */}
+                  <div style={{ background: 'rgba(59, 130, 246, 0.05)', border: '1px solid rgba(59, 130, 246, 0.2)', padding: '16px', borderRadius: '8px', marginBottom: '24px', textAlign: 'left' }}>
+                    <p style={{ fontSize: '0.85rem', color: '#93c5fd', lineHeight: 1.5, margin: 0, fontWeight: 500 }}>
+                      ℹ️ <strong>Instructions:</strong> Use this pack to manually copy outputs to client, editor, designer, ads setup, and owner approval. This does not auto-post, run ads, or message customers.
+                    </p>
+                    <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.5, marginTop: '6px', fontStyle: 'italic', margin: '6px 0 0 0' }}>
+                      (Sử dụng bộ dữ liệu này để sao chép thủ công các kết quả đầu ra cho khách hàng, dựng phim, thiết kế, thiết lập quảng cáo và phê duyệt của chủ sở hữu. Hệ thống KHÔNG tự động đăng bài, chạy quảng cáo hoặc nhắn tin cho khách hàng.)
                     </p>
                   </div>
+
+                  {/* Recommended Usage Order */}
+                  <div style={{ background: 'rgba(99, 102, 241, 0.03)', border: '1px solid rgba(99, 102, 241, 0.15)', padding: '20px', borderRadius: '12px', marginBottom: '32px', textAlign: 'left' }}>
+                    <h3 style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      📋 Quy trình khuyên dùng (Recommended usage order):
+                    </h3>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '10px' }}>
+                      {[
+                        { step: "1", text: "Copy Client Summary", note: "Tóm tắt chiến lược cho khách hàng" },
+                        { step: "2", text: "Copy Editor Handoff", note: "Chỉ dẫn kịch bản & dựng video" },
+                        { step: "3", text: "Copy Designer Handoff", note: "Mô tả hình ảnh & prompt AI" },
+                        { step: "4", text: "Copy Ads Draft Pack", note: "Mẫu quảng cáo & target địa phương" },
+                        { step: "5", text: "Copy Approval Checklist", note: "Checklist kiểm soát an toàn" },
+                        { step: "6", text: "Copy Full Campaign Pack", note: "Lưu trữ toàn bộ chiến dịch" }
+                      ].map((item, idx) => (
+                        <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'rgba(0, 0, 0, 0.2)', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+                          <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '22px', height: '22px', background: 'var(--accent-indigo)', color: '#fff', borderRadius: '50%', fontSize: '0.75rem', fontWeight: 'bold', flexShrink: 0 }}>
+                            {item.step}
+                          </span>
+                          <div>
+                            <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)' }}>{item.text}</div>
+                            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{item.note}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                   
+                  {/* Grid of Blocks */}
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
                     {manualExportBlocks.map((block, idx) => (
                       <div key={idx} style={{ background: 'rgba(255,255,255,0.02)', padding: '24px', borderRadius: '12px', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '12px' }}>
