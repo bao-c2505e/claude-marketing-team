@@ -8,24 +8,41 @@ Workspace cung cấp giao diện trực quan cao cấp, hỗ trợ chuẩn hóa 
 
 ## 🔒 Ranh giới an toàn cốt lõi (Safety Boundaries)
 - **Độc lập tuyệt đối:** Dự án nằm tại thư mục `CLAUDE_MARKETING_TEAM/` và hoàn toàn tách biệt khỏi FnB OS V1.
-- **Không tự động đăng tải bài viết (Auto-post: NO):** Toàn bộ bài đăng Facebook, kịch bản video dọc, brief thiết kế, prompts AI và ads draft được sao chép thủ công (Manual Copy) để đăng tay. Không kích hoạt auto-post API.
-- **Không chạy quảng cáo thật (Real Ads: NO):** Mọi cấu hình ngân sách quảng cáo chỉ có tính chất tham khảo hoặc sao chép để thiết lập thủ công trên Facebook Ads Manager.
-- **Không nhắn tin khách hàng thật (Real Messaging: NO):** Không kết nối API nhắn tin/CRM thật.
-- **Không lưu credentials (Secrets: NO):** Không lưu giữ API keys, passwords hay các thông tin bảo mật khác.
-- **Dữ liệu giả lập (Demo/Mock Only: YES):** Mọi chỉ số hiệu quả và báo cáo doanh thu là giả lập phục vụ cho mục đích trực quan hóa, không đại diện cho dữ liệu thực.
+- **Không tự động đăng tải bài viết (Auto-post: NO)**
+- **Không chạy quảng cáo thật (Real Ads: NO)**
+- **Không nhắn tin khách hàng thật (Real Messaging: NO)**
+- **Không lưu credentials (Secrets: NO)**
+- **Dữ liệu giả lập (Demo/Mock Only: YES)**
+- **Không backend, không database, không real API connectors**
 
-## 🏆 Thành tựu mới nhất (Phase H.2 Completed)
-- **Client Demo Mode:** Thêm tab mới vào Web UI cho phép trình bày bối cảnh chiến dịch và workflow phê duyệt trực tiếp trong trình duyệt — commit `75ac881`.
-  - **Client View:** Campaign Overview, Key Deliverables, What Client Can Approve.
-  - **Approval Status Demo:** 3 trạng thái rõ ràng — Draft ✓ → Waiting for Owner Review (Pending) → Approved for Manual Use.
-  - **AI Team Workspace:** Đủ 5 role cards — Copywriter, Video Editor, Designer, Ads Manager, Data Reporter — mỗi role có nhiệm vụ, demo output và nhãn Human Sign-off Required.
-- **Manual Export Pack (Phase H.1/H-lite):** 6 copy blocks còn nguyên — Full Campaign Pack, Client Summary, Editor Handoff, Designer Handoff, Ads Draft Pack, Approval Checklist.
-- **Codex Review:** PASS. Production Owner checked: PASS.
-- **Code Stability:** `src/App.tsx` build PASS, 0 errors. Git working tree clean. main = origin/main.
+## 🏆 Thành tựu mới nhất (Phase H.3 IN PROGRESS)
+
+### Phase H.3 — Demo Polish & Sales Readiness
+- **Commits:**
+  - `0a36ea4` — feat: add phase h3 demo polish and sales readiness (session 1 — cơ bản)
+  - `[pending push]` — feat: add phase h3 full sales readiness features (session 2 — đầy đủ)
+
+**Đã build:**
+1. **Header badge** → "Phase H.3 — Demo Polish & Sales Readiness"
+2. **Dashboard — Presenter Demo Guide (5 bước)**: Clickable 5-step flow: Dashboard → Brief → Outputs → Client Demo → Export
+3. **Client Demo Mode — Sales Readiness (5 card)**: Vấn đề KH / Giải pháp AI / Khách nhận / Cần duyệt / Tại sao an toàn
+4. **Client Demo Mode — Value Proposition (4 card)**: ⚡ 3 phút / 🤝 Human-in-the-loop / 🎯 5 chuyên gia / 📊 mock ROI
+5. **Client Demo Mode — Before/After Comparison**: Manual (10–16h) vs AI-Assisted (~2h) mock estimate table
+6. **Client Demo Mode — CTA Block (3 nút)**: Duyệt Campaign Pack / Xuất File Gửi Khách / Chuẩn Bị Brief Tiếp Theo
+7. **Client Demo Pack — Service Packages (3 gói)**: Starter / Growth / Scale static mock
+
+**Build result:** `npm run build` → PASS, 0 errors
+
+### Phase H.2 — Client Demo Mode: COMPLETED
+- Client View, Approval Status Demo (3 states), AI Team Workspace (5 roles) — commit `75ac881`
+
+### Phase H.1 / H-lite — Manual Export Pack: COMPLETED
+- 6 copy blocks còn nguyên
 
 ## ➡️ Các bước tiếp theo (Next Steps)
-1. **Phase H.3 — Demo Polish & Sales Readiness** *(Next recommended)*:
-   - Đánh bóng trải nghiệm demo Client Demo Mode cho buổi giới thiệu khách hàng SME thực tế.
-   - Chuẩn bị bộ materials sales pitch bổ sung nếu cần (one-pager, FAQ, pricing overview).
-   - Giữ vững ranh giới: no backend / no real API / no auto-post / no secrets.
-2. **Tiếp tục bảo trì Safety Guard:** Mọi phase tiếp theo phải qua Codex review và Owner production check trước khi đóng.
+1. **Owner check:** Chạy `npm run dev` và kiểm tra toàn bộ Client Demo Mode
+2. **Codex review Phase H.3** — verify chất lượng, check regressions
+3. **Push commit** lên GitHub → Vercel auto-deploy
+4. **Production check** tại https://claude-marketing-team-demo.vercel.app/
+5. **Đóng Phase H.3** bằng docs commit nếu PASS
+6. **Phase H.4** (nếu cần): Thêm animated micro-interactions hoặc bất kỳ polish nào còn thiếu

@@ -82,6 +82,21 @@ Nhật ký ghi lại các hành động mô phỏng của các AI Agent khi vậ
 - **[SYSTEM]:** Lý do: Chuẩn hóa quy tắc đặt tên snake_case, giảm thiểu nhiễu keyword cho chatbot, thắt chặt ranh giới hoạt động của dự án.
 - **[SYSTEM]:** Cam kết an toàn: Không thêm API key/token thật, không kích hoạt connector thật, không auto-post/run ads thật. Môi trường sạch sẽ và an toàn.
 
+### 🗓️ Ngày 04/06/2026 (Local Time)
+- **[AI Coordinator]:** Nhận lệnh khởi động Phase H.3 — Demo Polish & Sales Readiness.
+- **[Builder Agent — Claude Code]:** Triển khai đầy đủ Phase H.3 trên `src/App.tsx`:
+  1. Cập nhật header badge → Phase H.3.
+  2. Dashboard: Presenter Demo Guide 5-step clickable.
+  3. Client Demo Mode: Sales Readiness 5-card (Problem / Solution / Deliverables / Approval / Safety).
+  4. Client Demo Mode: Value Proposition 4-card + mock ROI.
+  5. Client Demo Mode: Before/After comparison table (Manual 10–16h vs AI ~2h).
+  6. Client Demo Mode: CTA Block 3 nút (Approve / Export / Next Brief).
+  7. Client Demo Pack: Service Packages teaser (Starter / Growth / Scale).
+- **[SYSTEM]:** Build verification: `npm run build` → PASS, 0 errors. Bundle: 274.36 kB.
+- **[SYSTEM]:** Docs cập nhật: CURRENT_PHASE.md, phase_log.md, SESSION_SUMMARY.md, phase_h3_handoff.md (mới tạo).
+- **[SYSTEM]:** Safety Guard còn nguyên — Auto-post: NO | Real Ads: NO | Real Messaging: NO | Secrets: NO | FnB OS V1: NO.
+- **[SYSTEM]:** Trạng thái Phase H.3: IN PROGRESS — Chờ Codex review + Owner production check.
+
 
 ### 🗓️ Ngày 03/06/2026 20:15:00
 - **[AI Coordinator]:** Nhận lệnh cấu hình Phase G — Client Demo Pack.

@@ -1,51 +1,52 @@
-# CURRENT PHASE — Phase H.2: Client Demo Mode ✅ COMPLETED
+# CURRENT PHASE — Phase H.3: Demo Polish & Sales Readiness 🚀 IN PROGRESS
 
 Tài liệu này dùng để theo dõi tiến độ thực hiện và trạng thái của Phase hiện tại.
 
 ## 📌 Thông tin chung
-- **Phase hiện tại:** Phase H.2 — Client Demo Mode
-- **Mục tiêu:** Thêm tab Client Demo Mode vào Web UI, giới thiệu bối cảnh chiến dịch cho khách hàng, luồng phê duyệt 3 trạng thái và bảng vai trò đội ngũ AI — không backend, không API thật, không auto-post.
-- **Commit:** `75ac881` — feat: add phase h2 client demo mode
-- **Trạng thái:** DONE + BUILT + REVIEWED + PUSHED + PRODUCTION CHECKED
+- **Phase hiện tại:** Phase H.3 — Demo Polish & Sales Readiness
+- **Mục tiêu:** Đánh bóng demo frontend để dễ bán, dễ present cho khách hàng SME — vẫn 100% static/frontend/mock, không backend, không API thật.
+- **Commits:**
+  - `0a36ea4` — feat: add phase h3 demo polish and sales readiness (session 1 — cơ bản)
+  - `[pending]` — feat: add phase h3 full sales readiness features (session 2 — đầy đủ)
+- **Trạng thái:** IN PROGRESS → Chờ build + push + Owner check
 
 ---
 
-## 📋 Checklist Phase H.2
+## 📋 Checklist Phase H.3
 
-### Client View
-- [x] Campaign Overview: Thương hiệu, Sản phẩm, Ý tưởng, Kênh phân phối.
-- [x] Key Deliverables: 7-day content plan, Facebook captions, TikTok scripts, Video editor handoff.
-- [x] What Client Can Approve: Campaign direction, Caption tone, Video script, Design direction.
+### Dashboard — Presenter Demo Guide
+- [x] Cập nhật header badge → "Phase H.3 — Demo Polish & Sales Readiness"
+- [x] Thêm "Presenter Demo Guide" card — 5-step clickable demo flow (step 1–5: Dashboard → Brief → Outputs → Client Demo → Export)
 
-### Approval Status Demo
-- [x] State 1 — **Draft**: Completed (emerald badge).
-- [x] State 2 — **Waiting for Owner Review**: Pending (amber badge, highlighted).
-- [x] State 3 — **Approved for Manual Use**: Awaiting (muted badge, dimmed).
+### Client Demo Mode — Sales Readiness
+- [x] Thêm "Sales Readiness" 5-card row (Vấn đề KH / Giải pháp AI / Khách nhận được / Cần duyệt thủ công / Tại sao an toàn)
+- [x] Thêm "Value Proposition" 4-card (⚡ 3 phút / 🤝 Human-in-the-loop / 🎯 5 chuyên gia / 📊 mock ROI)
+- [x] Thêm "Before/After — Manual vs AI-Assisted" comparison table
+- [x] Thêm CTA block cuối trang (Duyệt Campaign Pack / Xuất File Gửi Khách / Chuẩn Bị Brief Tiếp Theo)
 
-### AI Team Workspace (5/5 roles)
-- [x] Copywriter — 7 captions + 2 TikTok scripts.
-- [x] Video Editor — Handoff kịch bản ASMR 15s.
-- [x] Designer — Prompt AI + palette màu.
-- [x] Ads Manager — Target 4km TP Vinh.
-- [x] Data Reporter — Báo cáo hiệu năng giả lập.
+### Client Demo Pack — Service Packages
+- [x] Thêm "Service Packages" teaser (Starter / Growth / Scale) — static mock pricing
 
 ### Kiểm duyệt & Deploy
-- [x] Build local PASS (`npm run build`).
-- [x] Dev local PASS (`npm run dev`).
-- [x] Codex review PASS.
-- [x] Push commit `75ac881` lên GitHub main branch.
-- [x] Production Owner checked PASS.
+- [x] Build local PASS (`npm run build`) — 0 errors
+- [ ] Dev local check (`npm run dev`)
+- [ ] Codex review
+- [ ] Push commit lên GitHub main branch
+- [ ] Production Owner checked
 
 ---
 
-## ✅ Phase H-lite (tiền nhiệm) — COMPLETED
-- Commit: `1eb9fdc` / Polish: `cab41ee`
-- Manual Export Pack đủ 6 copy blocks còn nguyên.
+## ✅ Phase H.2 (tiền nhiệm) — COMPLETED
+- Commit: `75ac881` — feat: add phase h2 client demo mode
+- Client Demo Mode: Client View, Approval Status Demo, AI Team Workspace (5 roles)
+
+## ✅ Phase H.1 / H-lite — COMPLETED
+- Manual Export Pack: 6 copy blocks còn nguyên
 
 ---
 
 ## 🛠️ Next Recommended Phase
-**Phase H.3 — Demo Polish & Sales Readiness**
-- Đánh bóng trải nghiệm demo cho khách hàng tiềm năng (SME clients).
-- Chuẩn bị bộ tài liệu sales pitch sẵn sàng demo trực tiếp.
-- Giữ vững ranh giới: no backend / no real API / no auto-post.
+**Phase H.4 — Production Handoff / Codex Review / Close H.3**
+- Chạy Codex review Phase H.3 để verify chất lượng.
+- Owner check production Vercel.
+- Đóng phase bằng docs commit.

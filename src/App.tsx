@@ -742,12 +742,13 @@ export default function App() {
                     <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '20px' }}>
                       Hướng dẫn 4 bước demo nhanh cho khách hàng — dưới 5 phút, không cần chuẩn bị trước.
                     </p>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: '14px' }}>
                       {[
-                        { step: '1', icon: '📋', label: 'Dashboard', desc: 'Giới thiệu tổng quan hệ thống — campaigns, safety guard và trạng thái hiện tại.', tab: 'dashboard' },
-                        { step: '2', icon: '✍️', label: 'New Campaign Brief', desc: 'Điền brief thương hiệu thực của khách → bấm "Kích hoạt AI" → demo AI chạy thời gian thực.', tab: 'new-campaign' },
-                        { step: '3', icon: '📦', label: 'Campaign Outputs', desc: 'Mở từng tab: Captions, Video Scripts, Design Prompts, Ads Plan — show toàn bộ output AI tạo ra.', tab: 'outputs' },
-                        { step: '4', icon: '🖥️', label: 'Client Demo Mode', desc: 'Chuyển sang góc nhìn của khách hàng: campaign overview, approval flow, giá trị AI team.', tab: 'client-demo' },
+                        { step: '1', icon: '📋', label: 'Dashboard', desc: 'Giới thiệu tổng quan: hệ thống chạy offline, an toàn — không auto-post, không real ads.', tab: 'dashboard' },
+                        { step: '2', icon: '✍️', label: 'New Campaign Brief', desc: 'Điền brief thương hiệu của khách → bấm "Kích hoạt AI" → demo AI team chạy sinh output trong 3 phút.', tab: 'new-campaign' },
+                        { step: '3', icon: '📦', label: 'Campaign Outputs', desc: 'Mở từng tab: Captions, Video Scripts, Design Prompts, Ads Plan — show toàn bộ gói sáng tạo AI tạo ra.', tab: 'outputs' },
+                        { step: '4', icon: '🖥️', label: 'Client Demo Mode', desc: 'Góc nhìn khách hàng: problem/solution, approval flow, value prop, before/after comparison.', tab: 'client-demo' },
+                        { step: '5', icon: '📤', label: 'Manual Export Pack', desc: 'Xuất file gửi khách thủ công — Client Summary, Editor Handoff, Designer Handoff, Approval Checklist.', tab: 'manual-export' },
                       ].map((item) => (
                         <button
                           key={item.step}
@@ -1878,6 +1879,58 @@ export default function App() {
                     </div>
                   </div>
 
+                  {/* Sales Readiness Section — Phase H.3 */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '12px' }}>
+                    {[
+                      {
+                        icon: '❓',
+                        label: 'Vấn đề khách hàng',
+                        body: 'SME tốn 10–15h/tuần chỉ để lên kế hoạch content, brief team và duyệt bài — chưa tính thực thi.',
+                        color: 'var(--accent-rose)',
+                        borderColor: 'rgba(244,63,94,0.25)',
+                        bg: 'rgba(244,63,94,0.04)',
+                      },
+                      {
+                        icon: '🤖',
+                        label: 'Giải pháp AI Team',
+                        body: 'Nhập brief một lần → 5 AI Agents song song tạo full campaign pack: captions, video scripts, design prompts, ads plan.',
+                        color: 'var(--accent-indigo)',
+                        borderColor: 'rgba(99,102,241,0.25)',
+                        bg: 'rgba(99,102,241,0.04)',
+                      },
+                      {
+                        icon: '📦',
+                        label: 'Khách nhận được',
+                        body: 'Lịch 7 ngày, 7 Facebook captions, 3 video scripts, 3 design prompts, ads targeting plan + approval checklist.',
+                        color: 'var(--accent-blue)',
+                        borderColor: 'rgba(59,130,246,0.25)',
+                        bg: 'rgba(59,130,246,0.04)',
+                      },
+                      {
+                        icon: '✍️',
+                        label: 'Cần duyệt thủ công',
+                        body: 'Owner phê duyệt 100% nội dung trước khi ra ngoài. Không một bài đăng, một đồng ads nào chạy mà không có chữ ký Owner.',
+                        color: 'var(--accent-amber)',
+                        borderColor: 'rgba(245,158,11,0.25)',
+                        bg: 'rgba(245,158,11,0.04)',
+                      },
+                      {
+                        icon: '🛡️',
+                        label: 'Tại sao an toàn',
+                        body: '100% offline sandbox. Không backend, không connector thật, không auto-post. Demo/mock only. Safety Guard luôn bật.',
+                        color: 'var(--accent-emerald)',
+                        borderColor: 'rgba(16,185,129,0.25)',
+                        bg: 'rgba(16,185,129,0.04)',
+                      },
+                    ].map((card, idx) => (
+                      <div key={idx} style={{ background: card.bg, border: `1px solid ${card.borderColor}`, borderRadius: '12px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <div style={{ fontSize: '1.4rem' }}>{card.icon}</div>
+                        <strong style={{ fontSize: '0.82rem', color: card.color, lineHeight: 1.3 }}>{card.label}</strong>
+                        <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.5, margin: 0 }}>{card.body}</p>
+                      </div>
+                    ))}
+                  </div>
+
                   <div style={{ display: 'grid', gridTemplateColumns: '7fr 5fr', gap: '24px' }}>
                     <div className="glass-panel" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
                       <div style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -1996,6 +2049,71 @@ export default function App() {
                     </p>
                   </div>
 
+                  {/* Before / After — Manual vs AI-Assisted — Phase H.3 */}
+                  <div className="glass-panel" style={{ padding: '24px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
+                      <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--text-primary)' }}>Làm thủ công vs. AI Marketing Team</h3>
+                      <span className="badge badge-amber" style={{ fontSize: '0.7rem' }}>Mock Estimate — Demo Only</span>
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                      {/* BEFORE */}
+                      <div style={{ background: 'rgba(244,63,94,0.04)', border: '1px solid rgba(244,63,94,0.25)', borderRadius: '12px', padding: '20px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
+                          <span style={{ fontSize: '1.1rem' }}>⏳</span>
+                          <strong style={{ color: 'var(--accent-rose)', fontSize: '1rem' }}>TRƯỚC — Làm thủ công</strong>
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                          {[
+                            ['Họp brief với team', '1–2 giờ'],
+                            ['Viết caption Facebook (7 bài)', '3–4 giờ'],
+                            ['Lên kịch bản video TikTok', '2–3 giờ'],
+                            ['Brief designer (visual, prompt)', '1–2 giờ'],
+                            ['Cấu hình ads targeting', '2–3 giờ'],
+                            ['Duyệt nội dung (Owner review)', '1–2 giờ'],
+                          ].map(([task, time], i) => (
+                            <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.82rem', padding: '6px 10px', background: 'rgba(0,0,0,0.15)', borderRadius: '6px' }}>
+                              <span style={{ color: 'var(--text-secondary)' }}>{task}</span>
+                              <span style={{ color: 'var(--accent-rose)', fontWeight: 600, whiteSpace: 'nowrap' }}>{time}</span>
+                            </div>
+                          ))}
+                          <div style={{ borderTop: '1px solid rgba(244,63,94,0.3)', paddingTop: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: 700 }}>
+                            <span style={{ color: 'var(--text-primary)' }}>Tổng ước tính</span>
+                            <span style={{ color: 'var(--accent-rose)', fontSize: '1.1rem' }}>10–16 giờ</span>
+                          </div>
+                        </div>
+                      </div>
+                      {/* AFTER */}
+                      <div style={{ background: 'rgba(16,185,129,0.04)', border: '1px solid rgba(16,185,129,0.25)', borderRadius: '12px', padding: '20px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
+                          <span style={{ fontSize: '1.1rem' }}>⚡</span>
+                          <strong style={{ color: 'var(--accent-emerald)', fontSize: '1rem' }}>SAU — AI Marketing Team</strong>
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                          {[
+                            ['Điền brief form', '5–10 phút'],
+                            ['AI sinh toàn bộ campaign pack', '~3 phút (sim.)'],
+                            ['Video scripts & design prompts', '✅ Included'],
+                            ['Ads targeting plan', '✅ Included'],
+                            ['Owner review & approve', '30–60 phút'],
+                            ['Điều chỉnh thủ công (nếu cần)', '30–60 phút'],
+                          ].map(([task, time], i) => (
+                            <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.82rem', padding: '6px 10px', background: 'rgba(0,0,0,0.15)', borderRadius: '6px' }}>
+                              <span style={{ color: 'var(--text-secondary)' }}>{task}</span>
+                              <span style={{ color: time.startsWith('✅') ? 'var(--accent-emerald)' : 'var(--accent-emerald)', fontWeight: 600, whiteSpace: 'nowrap' }}>{time}</span>
+                            </div>
+                          ))}
+                          <div style={{ borderTop: '1px solid rgba(16,185,129,0.3)', paddingTop: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: 700 }}>
+                            <span style={{ color: 'var(--text-primary)' }}>Tổng ước tính</span>
+                            <span style={{ color: 'var(--accent-emerald)', fontSize: '1.1rem' }}>~2 giờ</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '12px', textAlign: 'center' }}>
+                      * Số liệu thời gian là ước tính mô phỏng phục vụ demo — không phải cam kết thực tế. Owner vẫn phải duyệt thủ công trước khi triển khai.
+                    </p>
+                  </div>
+
                   <div className="glass-panel" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
                     <h3 style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--accent-emerald)' }}>AI Team Workspace</h3>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
@@ -2094,6 +2212,43 @@ export default function App() {
                         </div>
                       </div>
 
+                    </div>
+                  </div>
+
+                  {/* CTA Block — Phase H.3 */}
+                  <div style={{ background: 'linear-gradient(135deg, rgba(99,102,241,0.08), rgba(16,185,129,0.05))', border: '1px solid rgba(99,102,241,0.25)', borderRadius: '16px', padding: '28px' }}>
+                    <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+                      <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '6px' }}>Bước tiếp theo</h3>
+                      <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Chọn hành động phù hợp với giai đoạn hiện tại của chiến dịch</p>
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '14px' }}>
+                      <button
+                        className="btn btn-secondary"
+                        style={{ flexDirection: 'column', gap: '8px', padding: '18px', height: 'auto', border: '1px solid rgba(16,185,129,0.3)', background: 'rgba(16,185,129,0.06)' }}
+                        onClick={() => setActiveTab('approval')}
+                      >
+                        <span style={{ fontSize: '1.4rem' }}>✅</span>
+                        <span style={{ fontWeight: 700, color: 'var(--accent-emerald)', fontSize: '0.9rem' }}>Duyệt Campaign Pack</span>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 400, lineHeight: 1.4 }}>Mở Approval Checklist → Owner phê duyệt hoặc từ chối</span>
+                      </button>
+                      <button
+                        className="btn btn-secondary"
+                        style={{ flexDirection: 'column', gap: '8px', padding: '18px', height: 'auto', border: '1px solid rgba(59,130,246,0.3)', background: 'rgba(59,130,246,0.06)' }}
+                        onClick={() => setActiveTab('manual-export')}
+                      >
+                        <span style={{ fontSize: '1.4rem' }}>📤</span>
+                        <span style={{ fontWeight: 700, color: 'var(--accent-blue)', fontSize: '0.9rem' }}>Xuất File Gửi Khách</span>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 400, lineHeight: 1.4 }}>Manual Export Pack → Copy nội dung gửi editor, designer, owner</span>
+                      </button>
+                      <button
+                        className="btn btn-secondary"
+                        style={{ flexDirection: 'column', gap: '8px', padding: '18px', height: 'auto', border: '1px solid rgba(99,102,241,0.3)', background: 'rgba(99,102,241,0.06)' }}
+                        onClick={() => { setActiveTab('new-campaign'); }}
+                      >
+                        <span style={{ fontSize: '1.4rem' }}>✍️</span>
+                        <span style={{ fontWeight: 700, color: 'var(--accent-indigo)', fontSize: '0.9rem' }}>Chuẩn Bị Brief Tiếp Theo</span>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 400, lineHeight: 1.4 }}>New Campaign Brief → Nhập thương hiệu mới để AI tạo chiến dịch kế tiếp</span>
+                      </button>
                     </div>
                   </div>
 

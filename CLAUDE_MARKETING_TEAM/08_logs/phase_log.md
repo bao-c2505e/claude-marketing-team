@@ -134,7 +134,26 @@ Nhật ký theo dõi các mốc hoàn thành kỹ thuật qua các Phase.
   5. Đẩy code lên GitHub main branch (commit `1eb9fdc`).
 - **Trạng thái Phase H-lite:** Hoàn thành 100% việc cung cấp gói dữ liệu thủ công phục vụ triển khai offline an toàn.
 
-
+### 🗓️ Ngày 04/06/2026 (Local Time)
+- **Sự kiện:** Triển khai Phase H.3 — Demo Polish & Sales Readiness.
+- **Người thực hiện:** Builder Agent (Claude Code).
+- **Commits:**
+  - `0a36ea4` — feat: add phase h3 demo polish and sales readiness (session 1)
+  - `[pending]` — feat: add phase h3 full sales readiness features (session 2)
+- **Hành động đã hoàn tất:**
+  1. Cập nhật header badge Web UI → "Phase H.3 — Demo Polish & Sales Readiness".
+  2. Dashboard: Thêm **Presenter Demo Guide** 5-step clickable card (Dashboard → Brief → Outputs → Client Demo → Export Pack). Bấm vào từng step là chuyển tab tương ứng.
+  3. Client Demo Mode: Thêm **Sales Readiness** section — 5 card row: Vấn đề KH / Giải pháp AI Team / Khách nhận được gì / Cần duyệt thủ công gì / Tại sao an toàn.
+  4. Client Demo Mode: Thêm **Value Proposition** section — 4 cards với mock ROI và key benefits (⚡ 3 phút, 🤝 Human-in-the-loop, 🎯 5 chuyên gia, 📊 mock ROI tiết kiệm 15h/tuần).
+  5. Client Demo Mode: Thêm **Before/After Comparison** — Manual vs AI-Assisted table (10–16 giờ → ~2 giờ mock estimate).
+  6. Client Demo Mode: Thêm **CTA Block** 3 nút clickable: Duyệt Campaign Pack → Approval tab | Xuất File Gửi Khách → Manual Export tab | Chuẩn Bị Brief Tiếp Theo → New Campaign tab.
+  7. Client Demo Pack: Thêm **Service Packages Teaser** — 3 gói static mock: Starter / Growth / Scale.
+  8. Build local PASS (`npm run build`) — 0 TypeScript/Vite errors.
+- **Trạng thái Phase H.3:** IN PROGRESS — Chờ Codex review + Owner production check.
+- **Safety Guard:**
+  - Auto-post: NO | Real Ads: NO | Real Messaging: NO | Real Connectors: NO
+  - Secrets Added: NO | FnB OS V1 touched: NO | Demo/Mock Data Only: YES
+  - Backend added: NO | Database added: NO | Real API: NO
 
 
 
