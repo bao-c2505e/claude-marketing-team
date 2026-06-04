@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   LayoutDashboard, 
   Users, 
@@ -15,10 +15,59 @@ import {
 import { sampleCampaigns, Campaign, CampaignBrief, CalendarItem, ChecklistItem } from './mockData';
 
 export default function App() {
-  const [campaigns, setCampaigns] = useState<Campaign[]>(sampleCampaigns);
-  const [activeCampaignId, setActiveCampaignId] = useState<string>(sampleCampaigns[0].id);
+  const [campaigns, setCampaigns] = useState<Campaign[]>(() => {
+    try {
+      const stored = localStorage.getItem('campaigns');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        const hasViCuon = JSON.stringify(parsed).includes('Vị Cuốn');
+        const hasOldData = JSON.stringify(parsed).includes('Tôm Tép') || JSON.stringify(parsed).includes('Trà Sữa');
+        if (hasViCuon && !hasOldData) {
+          return parsed;
+        }
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    return sampleCampaigns;
+  });
+
+  const [activeCampaignId, setActiveCampaignId] = useState<string>(() => {
+    try {
+      const storedId = localStorage.getItem('activeCampaignId');
+      const storedCampaigns = localStorage.getItem('campaigns');
+      if (storedCampaigns) {
+        const parsedCampaigns = JSON.parse(storedCampaigns);
+        const hasViCuon = JSON.stringify(parsedCampaigns).includes('Vị Cuốn');
+        const hasOldData = JSON.stringify(parsedCampaigns).includes('Tôm Tép') || JSON.stringify(parsedCampaigns).includes('Trà Sữa');
+        if (hasViCuon && !hasOldData && storedId && parsedCampaigns.some((c: any) => c.id === storedId)) {
+          return storedId;
+        }
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    return sampleCampaigns[0].id;
+  });
+
   const [activeTab, setActiveTab] = useState<string>('dashboard');
   const [outputSubTab, setOutputSubTab] = useState<string>('calendar');
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('campaigns', JSON.stringify(campaigns));
+    } catch (e) {
+      console.error(e);
+    }
+  }, [campaigns]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('activeCampaignId', activeCampaignId);
+    } catch (e) {
+      console.error(e);
+    }
+  }, [activeCampaignId]);
   
   // Simulation states
   const [isSimulating, setIsSimulating] = useState<boolean>(false);
@@ -297,9 +346,23 @@ export default function App() {
                   <div className="glass-panel" style={{ padding: '24px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                       <h2 style={{ fontSize: '1.25rem' }}>Danh sách Demo Campaign</h2>
-                      <button className="btn btn-primary" onClick={() => setActiveTab('new-campaign')}>
-                        <Plus size={16} /> New Campaign
-                      </button>
+                      <div style={{ display: 'flex', gap: '12px' }}>
+                        <button 
+                          className="btn btn-secondary" 
+                          style={{ fontSize: '0.9rem', padding: '6px 12px' }}
+                          onClick={() => {
+                            localStorage.removeItem('campaigns');
+                            localStorage.removeItem('activeCampaignId');
+                            setCampaigns(sampleCampaigns);
+                            setActiveCampaignId(sampleCampaigns[0].id);
+                          }}
+                        >
+                          Reset Default
+                        </button>
+                        <button className="btn btn-primary" onClick={() => setActiveTab('new-campaign')}>
+                          <Plus size={16} /> New Campaign
+                        </button>
+                      </div>
                     </div>
 
                     <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
