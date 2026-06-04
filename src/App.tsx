@@ -458,7 +458,7 @@ export default function App() {
         </div>
         <div>
           <span className="badge badge-indigo" style={{ background: 'rgba(99, 102, 241, 0.15)', color: '#818cf8', borderColor: 'rgba(99, 102, 241, 0.3)', border: '1px solid' }}>
-            Phase G+ — Workspace Utility Upgrade
+            Phase H.3 — Demo Polish & Sales Readiness
           </span>
         </div>
       </header>
@@ -731,6 +731,39 @@ export default function App() {
                         <span style={{ fontSize: '0.85rem' }}>Demo/Mock Data Only:</span>
                         <span className="badge badge-emerald" style={{ fontWeight: 'bold' }}>YES</span>
                       </div>
+                    </div>
+                  </div>
+
+                  {/* Presenter Demo Guide — Phase H.3 */}
+                  <div className="glass-panel" style={{ padding: '24px', borderLeft: '4px solid var(--accent-indigo)' }}>
+                    <h3 style={{ fontSize: '1.15rem', fontWeight: 600, color: 'var(--accent-indigo)', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      🎯 Presenter Demo Guide
+                    </h3>
+                    <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '20px' }}>
+                      Hướng dẫn 4 bước demo nhanh cho khách hàng — dưới 5 phút, không cần chuẩn bị trước.
+                    </p>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px' }}>
+                      {[
+                        { step: '1', icon: '📋', label: 'Dashboard', desc: 'Giới thiệu tổng quan hệ thống — campaigns, safety guard và trạng thái hiện tại.', tab: 'dashboard' },
+                        { step: '2', icon: '✍️', label: 'New Campaign Brief', desc: 'Điền brief thương hiệu thực của khách → bấm "Kích hoạt AI" → demo AI chạy thời gian thực.', tab: 'new-campaign' },
+                        { step: '3', icon: '📦', label: 'Campaign Outputs', desc: 'Mở từng tab: Captions, Video Scripts, Design Prompts, Ads Plan — show toàn bộ output AI tạo ra.', tab: 'outputs' },
+                        { step: '4', icon: '🖥️', label: 'Client Demo Mode', desc: 'Chuyển sang góc nhìn của khách hàng: campaign overview, approval flow, giá trị AI team.', tab: 'client-demo' },
+                      ].map((item) => (
+                        <button
+                          key={item.step}
+                          onClick={() => setActiveTab(item.tab)}
+                          style={{ background: 'rgba(99, 102, 241, 0.04)', border: '1px solid rgba(99, 102, 241, 0.2)', borderRadius: '10px', padding: '14px', textAlign: 'left', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '8px', transition: 'background 0.2s' }}
+                          onMouseEnter={e => (e.currentTarget.style.background = 'rgba(99, 102, 241, 0.1)')}
+                          onMouseLeave={e => (e.currentTarget.style.background = 'rgba(99, 102, 241, 0.04)')}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '24px', height: '24px', background: 'var(--accent-indigo)', color: '#fff', borderRadius: '50%', fontSize: '0.7rem', fontWeight: 'bold', flexShrink: 0 }}>{item.step}</span>
+                            <span style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-primary)' }}>{item.icon} {item.label}</span>
+                          </div>
+                          <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.45, margin: 0 }}>{item.desc}</p>
+                          <span style={{ fontSize: '0.72rem', color: 'var(--accent-indigo)', fontWeight: 600 }}>Bấm để chuyển →</span>
+                        </button>
+                      ))}
                     </div>
                   </div>
 
@@ -1659,6 +1692,80 @@ export default function App() {
 
                   </div>
 
+                  {/* Service Packages Teaser — Phase H.3 */}
+                  <div style={{ marginTop: '8px', padding: '28px', background: 'rgba(99, 102, 241, 0.04)', border: '1px solid rgba(99, 102, 241, 0.2)', borderRadius: '16px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                      <div>
+                        <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--accent-indigo)', marginBottom: '4px' }}>Gói dịch vụ AI Marketing Team</h3>
+                        <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', margin: 0 }}>Chọn gói phù hợp với quy mô thương hiệu của bạn</p>
+                      </div>
+                      <span className="badge badge-amber" style={{ fontSize: '0.72rem' }}>Mock Pricing — Demo Only</span>
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
+                      {[
+                        {
+                          name: 'Starter',
+                          tag: 'Dành cho 1 thương hiệu',
+                          color: 'var(--accent-blue)',
+                          borderColor: 'rgba(59, 130, 246, 0.3)',
+                          bg: 'rgba(59, 130, 246, 0.04)',
+                          items: ['1 thương hiệu', '1 campaign/tháng', 'Full campaign pack', 'Manual export', 'Owner approval flow'],
+                          cta: 'Liên hệ báo giá',
+                          highlight: false,
+                        },
+                        {
+                          name: 'Growth',
+                          tag: 'Phổ biến nhất',
+                          color: 'var(--accent-indigo)',
+                          borderColor: 'rgba(99, 102, 241, 0.5)',
+                          bg: 'rgba(99, 102, 241, 0.08)',
+                          items: ['3 thương hiệu', '4 campaigns/tháng', 'Full campaign pack', 'Client Demo Mode', 'Priority support'],
+                          cta: 'Liên hệ báo giá',
+                          highlight: true,
+                        },
+                        {
+                          name: 'Scale',
+                          tag: 'Agency & Enterprise',
+                          color: 'var(--accent-emerald)',
+                          borderColor: 'rgba(16, 185, 129, 0.3)',
+                          bg: 'rgba(16, 185, 129, 0.04)',
+                          items: ['Không giới hạn thương hiệu', 'Campaigns không giới hạn', 'White-label demo', 'Dedicated support', 'Custom onboarding'],
+                          cta: 'Liên hệ báo giá',
+                          highlight: false,
+                        },
+                      ].map((pkg, idx) => (
+                        <div key={idx} style={{ background: pkg.bg, border: `1px solid ${pkg.borderColor}`, borderRadius: '12px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px', position: 'relative' }}>
+                          {pkg.highlight && (
+                            <div style={{ position: 'absolute', top: '-10px', left: '50%', transform: 'translateX(-50%)', background: 'var(--accent-indigo)', color: '#fff', fontSize: '0.65rem', fontWeight: 700, padding: '3px 10px', borderRadius: '9999px', whiteSpace: 'nowrap' }}>
+                              ⭐ PHỔ BIẾN NHẤT
+                            </div>
+                          )}
+                          <div>
+                            <h4 style={{ fontSize: '1.1rem', fontWeight: 700, color: pkg.color }}>{pkg.name}</h4>
+                            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2px' }}>{pkg.tag}</p>
+                          </div>
+                          <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '7px' }}>
+                            {pkg.items.map((item, i) => (
+                              <li key={i} style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                <span style={{ color: pkg.color, fontWeight: 700, fontSize: '0.75rem' }}>✓</span> {item}
+                              </li>
+                            ))}
+                          </ul>
+                          <button
+                            className="btn btn-secondary"
+                            style={{ marginTop: 'auto', fontSize: '0.8rem', padding: '8px', border: `1px solid ${pkg.borderColor}`, color: pkg.color }}
+                            onClick={() => copyToClipboard(`Liên hệ báo giá gói ${pkg.name} — AI Marketing Team`, `pkg_${idx}`)}
+                          >
+                            {copiedStates[`pkg_${idx}`] ? '✓ Đã copy!' : pkg.cta}
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                    <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textAlign: 'center', marginTop: '14px' }}>
+                      * Gói dịch vụ và định giá trên là dữ liệu demo giả lập — liên hệ trực tiếp để nhận báo giá chính thức.
+                    </p>
+                  </div>
+
                 </div>
               )}
 
@@ -1862,6 +1969,31 @@ export default function App() {
                         </div>
                       </div>
                     </div>
+                  </div>
+
+                  {/* Value Proposition — Phase H.3 */}
+                  <div className="glass-panel" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px', borderLeft: '4px solid var(--accent-indigo)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <h3 style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--accent-indigo)' }}>Tại sao chọn AI Marketing Team?</h3>
+                      <span className="badge badge-indigo" style={{ fontSize: '0.7rem', background: 'rgba(99,102,241,0.12)', color: '#818cf8', border: '1px solid rgba(99,102,241,0.3)' }}>Value Proposition</span>
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
+                      {[
+                        { icon: '⚡', title: 'Triển khai trong 3 phút', desc: 'Nhập brief → AI tạo toàn bộ campaign pack: captions, video scripts, design prompts, ads plan — ngay lập tức.', color: 'var(--accent-amber)' },
+                        { icon: '🤝', title: 'Human-in-the-loop', desc: 'Owner phê duyệt mọi nội dung trước khi ra ngoài. Không một chữ, một đồng ngân sách nào chạy mà không có chữ ký bạn.', color: 'var(--accent-emerald)' },
+                        { icon: '🎯', title: '5 chuyên gia trong 1 workspace', desc: 'Copywriter, Video Editor, Designer, Ads Manager và Data Reporter — phối hợp đồng bộ, không bỏ sót bước nào.', color: 'var(--accent-blue)' },
+                        { icon: '📊', title: 'Tiết kiệm 15h/tuần (mock est.)', desc: 'So với quy trình làm marketing thủ công: briefing → viết → thiết kế → duyệt. AI xử lý phần nặng nhất.', color: 'var(--accent-rose)' },
+                      ].map((item, idx) => (
+                        <div key={idx} style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                          <div style={{ fontSize: '1.6rem' }}>{item.icon}</div>
+                          <strong style={{ fontSize: '0.95rem', color: item.color }}>{item.title}</strong>
+                          <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.5, margin: 0 }}>{item.desc}</p>
+                        </div>
+                      ))}
+                    </div>
+                    <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', borderTop: '1px solid var(--border-color)', paddingTop: '10px', margin: 0 }}>
+                      * Số liệu tiết kiệm thời gian là ước tính mô phỏng (mock estimate) — chỉ dùng cho mục đích demo minh họa.
+                    </p>
                   </div>
 
                   <div className="glass-panel" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
