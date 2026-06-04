@@ -101,6 +101,23 @@ Nhật ký theo dõi các mốc hoàn thành kỹ thuật qua các Phase.
   5. Tạo tệp [faq_for_clients.md](file:///c:/Users/BaO/.gemini/antigravity/MARKETING_TEAM/CLAUDE_MARKETING_TEAM/07_docs/faq_for_clients.md) giải đáp các thắc mắc an toàn cho khách hàng.
 - **Trạng thái Phase G:** Hoàn thành 100% việc chuẩn bị bộ tài liệu demo và bán hàng thương mại cho SMEs.
 
+### 🗓️ Ngày 04/06/2026 21:40:00 (Local Time)
+- **Sự kiện:** Triển khai và Hoàn thành Phase H-lite — Manual Export Pack.
+- **Người thực hiện:** Builder Agent (Antigravity).
+- **Hành động đã hoàn tất:**
+  1. Nâng cấp giao diện Web UI ([src/App.tsx](file:///c:/Users/BaO/.gemini/antigravity/MARKETING_TEAM/src/App.tsx)) bằng cách tạo thêm tab **Manual Export Pack**.
+  2. Triển khai 6 khối xuất dữ liệu markdown/text dạng văn bản tĩnh có ô textarea readonly và tích hợp nút Copy nhanh cho:
+     * Full Campaign Pack
+     * Client Summary
+     * Editor Handoff
+     * Designer Handoff
+     * Ads Draft Pack
+     * Approval Checklist
+  3. Gắn kèm disclaimer pháp lý bắt buộc: Chỉ sử dụng cho mục đích demo mock-up, yêu cầu duyệt thủ công bằng con người trước khi đăng bài hay chạy quảng cáo thực tế.
+  4. Biên dịch và kiểm duyệt chất lượng cục bộ thành công (build & dev PASS).
+  5. Đẩy code lên GitHub main branch (commit `1eb9fdc`).
+- **Trạng thái Phase H-lite:** Hoàn thành 100% việc cung cấp gói dữ liệu thủ công phục vụ triển khai offline an toàn.
+
 
 
 

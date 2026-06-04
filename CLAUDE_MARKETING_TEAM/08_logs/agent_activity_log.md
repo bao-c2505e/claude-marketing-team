@@ -161,6 +161,17 @@ Nhật ký ghi lại các hành động mô phỏng của các AI Agent khi vậ
 - **[SYSTEM]:** Cam kết an toàn: Chỉ sử dụng dữ liệu giả lập (mock data only), không chạy ads thật, không đăng bài tự động, không nhắn tin cho khách hàng, không chứa secrets.
 - **[SYSTEM]:** Trạng thái: Ready for local build and deploy.
 
+### 🗓️ Ngày 04/06/2026 21:40:00
+- **[SYSTEM]:** Triển khai Phase H-lite — Manual Export Pack.
+- **[SYSTEM]:** Tệp tin đã thay đổi:
+  * [App.tsx](file:///c:/Users/BaO/.gemini/antigravity/MARKETING_TEAM/src/App.tsx): Thêm mục Manual Export Pack vào Sidebar Navigation và triển khai 6 component con cho phép hiển thị và copy nhanh các tài liệu đầu ra của Agent dưới định dạng markdown/text sạch (không bịa giá, có disclaimer, an toàn bảo mật).
+- **[SYSTEM]:** Cập nhật tài liệu:
+  * [CURRENT_PHASE.md](file:///c:/Users/BaO/.gemini/antigravity/MARKETING_TEAM/CLAUDE_MARKETING_TEAM/CURRENT_PHASE.md): Cập nhật thông tin Phase H-lite đã hoàn tất.
+  * [SESSION_SUMMARY.md](file:///c:/Users/BaO/.gemini/antigravity/MARKETING_TEAM/CLAUDE_MARKETING_TEAM/SESSION_SUMMARY.md): Cập nhật bối cảnh, ranh giới an toàn và lộ trình các bước tiếp theo.
+  * [phase_log.md](file:///c:/Users/BaO/.gemini/antigravity/MARKETING_TEAM/CLAUDE_MARKETING_TEAM/08_logs/phase_log.md): Thêm nhật ký tiến độ Phase H-lite.
+- **[SYSTEM]:** Cam kết an toàn: Offline sandbox. Auto-post: NO. Real Ads: NO. Real Messaging: NO. Real Connectors: NO. Secrets Added: NO. FnB OS V1 touched: NO. Demo/Mock Data Only: YES.
+- **[SYSTEM]:** Trạng thái: Done. Pushed to GitHub main branch (commit `1eb9fdc`), pending Vercel deploy validation.
+
 
 
 
