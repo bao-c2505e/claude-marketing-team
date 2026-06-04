@@ -68,6 +68,37 @@ export default function App() {
       console.error(e);
     }
   }, [activeCampaignId]);
+
+  useEffect(() => {
+    try {
+      let shouldReset = false;
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key) {
+          const val = localStorage.getItem(key);
+          if (val) {
+            const lower = val.toLowerCase();
+            if (
+              lower.includes('tôm tép') || 
+              lower.includes('khoai dẻo') || 
+              lower.includes('trà sữa') ||
+              lower.includes('matcha')
+            ) {
+              shouldReset = true;
+              break;
+            }
+          }
+        }
+      }
+      if (shouldReset) {
+        localStorage.clear();
+        setCampaigns(sampleCampaigns);
+        setActiveCampaignId(sampleCampaigns[0].id);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
   
   // Simulation states
   const [isSimulating, setIsSimulating] = useState<boolean>(false);
