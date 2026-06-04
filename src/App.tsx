@@ -739,7 +739,7 @@ export default function App() {
                   {/* Active Campaigns Table */}
                   <div className="glass-panel" style={{ padding: '24px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                      <h2 style={{ fontSize: '1.25rem' }}>Danh sách Demo Campaign</h2>
+                      <h2 style={{ fontSize: '1.25rem' }}>Danh sách Campaign Workspace</h2>
                       <div style={{ display: 'flex', gap: '12px' }}>
                         <button 
                           className="btn btn-secondary" 
