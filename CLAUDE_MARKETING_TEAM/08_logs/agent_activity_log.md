@@ -161,6 +161,20 @@ Nhật ký ghi lại các hành động mô phỏng của các AI Agent khi vậ
 - **[SYSTEM]:** Cam kết an toàn: Chỉ sử dụng dữ liệu giả lập (mock data only), không chạy ads thật, không đăng bài tự động, không nhắn tin cho khách hàng, không chứa secrets.
 - **[SYSTEM]:** Trạng thái: Ready for local build and deploy.
 
+### 🗓️ Ngày 04/06/2026 23:30:00
+- **[SYSTEM]:** Triển khai và đóng Phase H.2 — Client Demo Mode.
+- **[SYSTEM]:** Commit: `75ac881` — feat: add phase h2 client demo mode.
+- **[SYSTEM]:** Tệp tin đã thay đổi:
+  * [App.tsx](file:///c:/Users/BaO/.gemini/antigravity/MARKETING_TEAM/src/App.tsx): Thêm tab `client-demo` vào Sidebar. Triển khai Client View (Campaign Overview, Key Deliverables, What Client Can Approve), Approval Status Demo (3 states: Draft / Waiting for Owner Review / Approved for Manual Use), AI Team Workspace (5 role cards: Copywriter, Video Editor, Designer, Ads Manager, Data Reporter). Fix lỗi TypeScript TS6133: xóa unused import `Eye` khỏi lucide-react.
+- **[SYSTEM]:** Kết quả kiểm duyệt:
+  * Build local: PASS (`npm run build`, 0 errors).
+  * Dev local: PASS (`npm run dev`, localhost:3000).
+  * Codex review: PASS.
+  * Production Owner check: PASS.
+  * Git: working tree clean. main = origin/main.
+- **[SYSTEM]:** Cam kết an toàn: Auto-post: NO. Real Ads: NO. Real Messaging: NO. Real Connectors: NO. Secrets Added: NO. FnB OS V1 touched: NO. Demo/Mock Data Only: YES.
+- **[SYSTEM]:** Trạng thái: DONE + BUILT + REVIEWED + PUSHED + PRODUCTION CHECKED.
+
 ### 🗓️ Ngày 04/06/2026 21:40:00
 - **[SYSTEM]:** Triển khai Phase H-lite — Manual Export Pack.
 - **[SYSTEM]:** Tệp tin đã thay đổi:

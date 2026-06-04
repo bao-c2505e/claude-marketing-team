@@ -101,6 +101,22 @@ Nhật ký theo dõi các mốc hoàn thành kỹ thuật qua các Phase.
   5. Tạo tệp [faq_for_clients.md](file:///c:/Users/BaO/.gemini/antigravity/MARKETING_TEAM/CLAUDE_MARKETING_TEAM/07_docs/faq_for_clients.md) giải đáp các thắc mắc an toàn cho khách hàng.
 - **Trạng thái Phase G:** Hoàn thành 100% việc chuẩn bị bộ tài liệu demo và bán hàng thương mại cho SMEs.
 
+### 🗓️ Ngày 04/06/2026 23:30:00 (Local Time)
+- **Sự kiện:** Triển khai và Hoàn thành Phase H.2 — Client Demo Mode.
+- **Người thực hiện:** Builder Agent (Antigravity).
+- **Commit:** `75ac881` — feat: add phase h2 client demo mode
+- **Hành động đã hoàn tất:**
+  1. Thêm tab **Client Demo Mode** vào Sidebar Navigation của Web UI (`src/App.tsx`).
+  2. Triển khai **Client View** gồm: Campaign Overview (Thương hiệu, Sản phẩm, Ý tưởng, Kênh), Key Deliverables, What Client Can Approve.
+  3. Triển khai **Approval Status Demo** với đủ 3 trạng thái: Draft → Waiting for Owner Review → Approved for Manual Use.
+  4. Triển khai **AI Team Workspace** với đủ 5 role cards: Copywriter, Video Editor, Designer, Ads Manager, Data Reporter — mỗi role có Nhiệm vụ chính, Demo Output và nhãn Human Sign-off Required.
+  5. Sửa lỗi build TypeScript (unused import `Eye`) gây cascade 20+ lỗi compile — fix: xóa `Eye` khỏi lucide-react import.
+  6. Codex review PASS. Production (Vercel) Owner checked PASS.
+- **Trạng thái Phase H.2:** DONE + BUILT + REVIEWED + PUSHED + PRODUCTION CHECKED.
+- **Safety Guard:**
+  - Auto-post: NO | Real Ads: NO | Real Messaging: NO | Real Connectors: NO
+  - Secrets Added: NO | FnB OS V1 touched: NO | Demo/Mock Data Only: YES
+
 ### 🗓️ Ngày 04/06/2026 21:40:00 (Local Time)
 - **Sự kiện:** Triển khai và Hoàn thành Phase H-lite — Manual Export Pack.
 - **Người thực hiện:** Builder Agent (Antigravity).

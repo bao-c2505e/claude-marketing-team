@@ -14,20 +14,18 @@ Workspace cung cấp giao diện trực quan cao cấp, hỗ trợ chuẩn hóa 
 - **Không lưu credentials (Secrets: NO):** Không lưu giữ API keys, passwords hay các thông tin bảo mật khác.
 - **Dữ liệu giả lập (Demo/Mock Only: YES):** Mọi chỉ số hiệu quả và báo cáo doanh thu là giả lập phục vụ cho mục đích trực quan hóa, không đại diện cho dữ liệu thực.
 
-## 🏆 Thành tựu mới nhất (Phase H-lite Completed)
-- **Manual Export Pack:** Tích hợp thành công 6 khối sao chép dữ liệu dạng Markdown/text chuẩn hóa kèm nút Copy nhanh trên Web UI:
-  1. Full Campaign Pack (Tổng hợp 7 ngày).
-  2. Client Summary (Tóm tắt trình bày).
-  3. Editor Handoff (Kịch bản video dọc ASMR 9:16).
-  4. Designer Handoff (Mood board & Prompts tiếng Anh vẽ ảnh AI).
-  5. Ads Draft Pack (Tệp target Vinh 4km & Ad Copy).
-  6. Approval Checklist (Checklist phê duyệt an toàn của Owner).
-- **Compliance Disclaimers:** Tự động gắn kèm các nhãn cảnh báo bảo mật, yêu cầu sự duyệt của con người (Human Approval Required) và khẳng định dữ liệu giả lập trong mọi văn bản được export.
-- **Code Stability:** Sửa đổi và tối ưu hóa file `src/App.tsx` chạy biên dịch PASS, build thành công cục bộ và đẩy lên GitHub repository.
+## 🏆 Thành tựu mới nhất (Phase H.2 Completed)
+- **Client Demo Mode:** Thêm tab mới vào Web UI cho phép trình bày bối cảnh chiến dịch và workflow phê duyệt trực tiếp trong trình duyệt — commit `75ac881`.
+  - **Client View:** Campaign Overview, Key Deliverables, What Client Can Approve.
+  - **Approval Status Demo:** 3 trạng thái rõ ràng — Draft ✓ → Waiting for Owner Review (Pending) → Approved for Manual Use.
+  - **AI Team Workspace:** Đủ 5 role cards — Copywriter, Video Editor, Designer, Ads Manager, Data Reporter — mỗi role có nhiệm vụ, demo output và nhãn Human Sign-off Required.
+- **Manual Export Pack (Phase H.1/H-lite):** 6 copy blocks còn nguyên — Full Campaign Pack, Client Summary, Editor Handoff, Designer Handoff, Ads Draft Pack, Approval Checklist.
+- **Codex Review:** PASS. Production Owner checked: PASS.
+- **Code Stability:** `src/App.tsx` build PASS, 0 errors. Git working tree clean. main = origin/main.
 
 ## ➡️ Các bước tiếp theo (Next Steps)
-1. **Kiểm duyệt Vercel Deployment:** Theo dõi và xác nhận việc build deploy commit `1eb9fdc` lên Vercel Production.
-2. **Ký duyệt bàn giao (Handoff) Phase H-lite:** Nhận phê duyệt chính thức từ Owner để chốt Phase H-lite.
-3. **Lập Kế Hoạch Phase Tiếp Theo (Phase H hoặc Phase I):**
-   - Đề xuất các cải tiến về tính năng tương tác UI offline (ví dụ: cho phép sửa nhanh caption/slogan trước khi copy, tải về file `.zip` thủ công, hoặc cải thiện trải nghiệm chấm điểm chiến dịch).
-   - Tiếp tục giữ vững ranh giới an toàn không backend/không API connector.
+1. **Phase H.3 — Demo Polish & Sales Readiness** *(Next recommended)*:
+   - Đánh bóng trải nghiệm demo Client Demo Mode cho buổi giới thiệu khách hàng SME thực tế.
+   - Chuẩn bị bộ materials sales pitch bổ sung nếu cần (one-pager, FAQ, pricing overview).
+   - Giữ vững ranh giới: no backend / no real API / no auto-post / no secrets.
+2. **Tiếp tục bảo trì Safety Guard:** Mọi phase tiếp theo phải qua Codex review và Owner production check trước khi đóng.

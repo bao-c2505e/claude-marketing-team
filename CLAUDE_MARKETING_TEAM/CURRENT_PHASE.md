@@ -1,39 +1,51 @@
-# CURRENT PHASE — Phase H-lite: Manual Export Pack
+# CURRENT PHASE — Phase H.2: Client Demo Mode ✅ COMPLETED
 
 Tài liệu này dùng để theo dõi tiến độ thực hiện và trạng thái của Phase hiện tại.
 
 ## 📌 Thông tin chung
-- **Phase hiện tại:** Phase H-lite — Manual Export Pack
-- **Mục tiêu:** Phát triển tính năng Manual Export Pack trên giao diện Web UI, cho phép sao chép nhanh dữ liệu chiến dịch Vị Cuốn chuẩn hóa (đã làm sạch) để chuyển tiếp thủ công cho các bộ phận Content/Design/Ads mà không sử dụng bất kỳ backend hay kết nối tự động nào.
-- **Trạng thái:** COMPLETED
+- **Phase hiện tại:** Phase H.2 — Client Demo Mode
+- **Mục tiêu:** Thêm tab Client Demo Mode vào Web UI, giới thiệu bối cảnh chiến dịch cho khách hàng, luồng phê duyệt 3 trạng thái và bảng vai trò đội ngũ AI — không backend, không API thật, không auto-post.
+- **Commit:** `75ac881` — feat: add phase h2 client demo mode
+- **Trạng thái:** DONE + BUILT + REVIEWED + PUSHED + PRODUCTION CHECKED
 
 ---
 
-## 📋 Checklist các việc cần xong
+## 📋 Checklist Phase H.2
 
-### 1. Nâng cấp Giao diện Web UI (src/App.tsx)
-- [x] Thêm tab/section "Manual Export Pack" vào Sidebar.
-- [x] Triển khai 6 khối dữ liệu copy/export nhanh chuẩn định dạng text/markdown:
-  1. **Copy Full Campaign Pack**: Toàn bộ chiến dịch tổng hợp.
-  2. **Copy Client Summary**: Tóm tắt chiến lược cho khách hàng.
-  3. **Copy Editor Handoff**: Kịch bản và chỉ dẫn dựng video dọc 9:16.
-  4. **Copy Designer Handoff**: Bảng mood board và 3 prompt vẽ ảnh bằng AI.
-  5. **Copy Ads Draft Pack**: Cấu hình tệp target Vinh và nội dung quảng cáo.
-  6. **Copy Approval Checklist**: Checklist kiểm duyệt an toàn dành cho Owner.
-- [x] Tích hợp ô hiển thị textarea readonly và nút "Copy" tương ứng cho từng khối.
-- [x] Tích hợp đầy đủ disclaimer an toàn cho từng file text/markdown copy:
-  - Demo/mock data only.
-  - Draft only / Human approval required.
-  - No auto-post / No real ads launched / No real customer messaging.
+### Client View
+- [x] Campaign Overview: Thương hiệu, Sản phẩm, Ý tưởng, Kênh phân phối.
+- [x] Key Deliverables: 7-day content plan, Facebook captions, TikTok scripts, Video editor handoff.
+- [x] What Client Can Approve: Campaign direction, Caption tone, Video script, Design direction.
 
-### 2. Kiểm duyệt & Đẩy code lên GitHub
-- [x] Kiểm tra biên dịch và build local (`npm run build`, `npm run dev`) để đảm bảo không bị vỡ giao diện (PASS).
-- [x] Push commit `1eb9fdc` lên GitHub main branch.
-- [x] Theo dõi Vercel deploy lên production.
+### Approval Status Demo
+- [x] State 1 — **Draft**: Completed (emerald badge).
+- [x] State 2 — **Waiting for Owner Review**: Pending (amber badge, highlighted).
+- [x] State 3 — **Approved for Manual Use**: Awaiting (muted badge, dimmed).
+
+### AI Team Workspace (5/5 roles)
+- [x] Copywriter — 7 captions + 2 TikTok scripts.
+- [x] Video Editor — Handoff kịch bản ASMR 15s.
+- [x] Designer — Prompt AI + palette màu.
+- [x] Ads Manager — Target 4km TP Vinh.
+- [x] Data Reporter — Báo cáo hiệu năng giả lập.
+
+### Kiểm duyệt & Deploy
+- [x] Build local PASS (`npm run build`).
+- [x] Dev local PASS (`npm run dev`).
+- [x] Codex review PASS.
+- [x] Push commit `75ac881` lên GitHub main branch.
+- [x] Production Owner checked PASS.
 
 ---
 
-## 🛠️ Hành động tiếp theo (Next Action)
-- Nhận phản hồi kiểm duyệt Vercel production từ Owner.
-- Tạo bàn giao (handoff) chốt Phase H-lite.
-- Lên kế hoạch cho các phase tiếp theo dựa trên ranh giới bảo mật nghiêm ngặt.
+## ✅ Phase H-lite (tiền nhiệm) — COMPLETED
+- Commit: `1eb9fdc` / Polish: `cab41ee`
+- Manual Export Pack đủ 6 copy blocks còn nguyên.
+
+---
+
+## 🛠️ Next Recommended Phase
+**Phase H.3 — Demo Polish & Sales Readiness**
+- Đánh bóng trải nghiệm demo cho khách hàng tiềm năng (SME clients).
+- Chuẩn bị bộ tài liệu sales pitch sẵn sàng demo trực tiếp.
+- Giữ vững ranh giới: no backend / no real API / no auto-post.
