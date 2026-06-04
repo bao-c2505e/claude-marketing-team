@@ -17,11 +17,14 @@ import { sampleCampaigns, Campaign, CampaignBrief, CalendarItem, ChecklistItem }
 export default function App() {
   const [campaigns, setCampaigns] = useState<Campaign[]>(() => {
     try {
-      const stored = localStorage.getItem('campaigns');
+      const stored = localStorage.getItem('claude_marketing_team_campaigns_v2');
       if (stored) {
         const parsed = JSON.parse(stored);
         const hasViCuon = JSON.stringify(parsed).includes('Vị Cuốn');
-        const hasOldData = JSON.stringify(parsed).includes('Tôm Tép') || JSON.stringify(parsed).includes('Trà Sữa');
+        const hasOldData = JSON.stringify(parsed).includes('Tôm Tép') || 
+                           JSON.stringify(parsed).includes('Trà Sữa') || 
+                           JSON.stringify(parsed).includes('Matcha') || 
+                           JSON.stringify(parsed).includes('khoai dẻo');
         if (hasViCuon && !hasOldData) {
           return parsed;
         }
@@ -34,12 +37,15 @@ export default function App() {
 
   const [activeCampaignId, setActiveCampaignId] = useState<string>(() => {
     try {
-      const storedId = localStorage.getItem('activeCampaignId');
-      const storedCampaigns = localStorage.getItem('campaigns');
+      const storedId = localStorage.getItem('claude_marketing_team_active_campaign_v2');
+      const storedCampaigns = localStorage.getItem('claude_marketing_team_campaigns_v2');
       if (storedCampaigns) {
         const parsedCampaigns = JSON.parse(storedCampaigns);
         const hasViCuon = JSON.stringify(parsedCampaigns).includes('Vị Cuốn');
-        const hasOldData = JSON.stringify(parsedCampaigns).includes('Tôm Tép') || JSON.stringify(parsedCampaigns).includes('Trà Sữa');
+        const hasOldData = JSON.stringify(parsedCampaigns).includes('Tôm Tép') || 
+                           JSON.stringify(parsedCampaigns).includes('Trà Sữa') || 
+                           JSON.stringify(parsedCampaigns).includes('Matcha') || 
+                           JSON.stringify(parsedCampaigns).includes('khoai dẻo');
         if (hasViCuon && !hasOldData && storedId && parsedCampaigns.some((c: any) => c.id === storedId)) {
           return storedId;
         }
@@ -55,7 +61,7 @@ export default function App() {
 
   useEffect(() => {
     try {
-      localStorage.setItem('campaigns', JSON.stringify(campaigns));
+      localStorage.setItem('claude_marketing_team_campaigns_v2', JSON.stringify(campaigns));
     } catch (e) {
       console.error(e);
     }
@@ -63,7 +69,7 @@ export default function App() {
 
   useEffect(() => {
     try {
-      localStorage.setItem('activeCampaignId', activeCampaignId);
+      localStorage.setItem('claude_marketing_team_active_campaign_v2', activeCampaignId);
     } catch (e) {
       console.error(e);
     }
@@ -71,6 +77,10 @@ export default function App() {
 
   useEffect(() => {
     try {
+      // Clear legacy storage keys
+      localStorage.removeItem('campaigns');
+      localStorage.removeItem('activeCampaignId');
+
       let shouldReset = false;
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
@@ -384,6 +394,8 @@ export default function App() {
                           onClick={() => {
                             localStorage.removeItem('campaigns');
                             localStorage.removeItem('activeCampaignId');
+                            localStorage.removeItem('claude_marketing_team_campaigns_v2');
+                            localStorage.removeItem('claude_marketing_team_active_campaign_v2');
                             setCampaigns(sampleCampaigns);
                             setActiveCampaignId(sampleCampaigns[0].id);
                           }}
