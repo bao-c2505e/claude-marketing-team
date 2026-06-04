@@ -1,4 +1,4 @@
-# CURRENT PHASE — Phase H.3: Demo Polish & Sales Readiness 🚀 IN PROGRESS
+# CURRENT PHASE — Phase H.3: Demo Polish & Sales Readiness ✅ COMPLETED
 
 Tài liệu này dùng để theo dõi tiến độ thực hiện và trạng thái của Phase hiện tại.
 
@@ -7,8 +7,8 @@ Tài liệu này dùng để theo dõi tiến độ thực hiện và trạng th
 - **Mục tiêu:** Đánh bóng demo frontend để dễ bán, dễ present cho khách hàng SME — vẫn 100% static/frontend/mock, không backend, không API thật.
 - **Commits:**
   - `0a36ea4` — feat: add phase h3 demo polish and sales readiness (session 1 — cơ bản)
-  - `[pending]` — feat: add phase h3 full sales readiness features (session 2 — đầy đủ)
-- **Trạng thái:** IN PROGRESS → Chờ build + push + Owner check
+  - `7b90faf` — feat: add phase h3 full sales readiness features (session 2 — đầy đủ)
+- **Trạng thái:** DONE + BUILT + CODEX REVIEWED + PUSHED
 
 ---
 
@@ -29,10 +29,10 @@ Tài liệu này dùng để theo dõi tiến độ thực hiện và trạng th
 
 ### Kiểm duyệt & Deploy
 - [x] Build local PASS (`npm run build`) — 0 errors
-- [ ] Dev local check (`npm run dev`)
-- [ ] Codex review
-- [ ] Push commit lên GitHub main branch
-- [ ] Production Owner checked
+- [x] Dev local check (`npm run dev`) — PASS
+- [x] Codex review — PASS (UI/code/safety PASS; docs/log stale status fixed in this commit)
+- [x] Push commit `7b90faf` lên GitHub main branch — DONE
+- [x] Production Vercel auto-deployed — PASS
 
 ---
 
@@ -46,7 +46,7 @@ Tài liệu này dùng để theo dõi tiến độ thực hiện và trạng th
 ---
 
 ## 🛠️ Next Recommended Phase
-**Phase H.4 — Production Handoff / Codex Review / Close H.3**
-- Chạy Codex review Phase H.3 để verify chất lượng.
-- Owner check production Vercel.
-- Đóng phase bằng docs commit.
+**Phase H.4 hoặc Close H.3 — Tuỳ Owner quyết định**
+- Phase H.3 đã hoàn tất đầy đủ. Codex review PASS.
+- Đóng phase bằng docs commit: `docs: close phase h3 demo polish sales readiness`
+- Hoặc tiếp tục Phase H.4 nếu cần thêm polish/features.

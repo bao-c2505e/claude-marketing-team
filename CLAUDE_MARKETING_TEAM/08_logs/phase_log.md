@@ -139,7 +139,7 @@ Nhật ký theo dõi các mốc hoàn thành kỹ thuật qua các Phase.
 - **Người thực hiện:** Builder Agent (Claude Code).
 - **Commits:**
   - `0a36ea4` — feat: add phase h3 demo polish and sales readiness (session 1)
-  - `[pending]` — feat: add phase h3 full sales readiness features (session 2)
+  - `7b90faf` — feat: add phase h3 full sales readiness features (session 2)
 - **Hành động đã hoàn tất:**
   1. Cập nhật header badge Web UI → "Phase H.3 — Demo Polish & Sales Readiness".
   2. Dashboard: Thêm **Presenter Demo Guide** 5-step clickable card (Dashboard → Brief → Outputs → Client Demo → Export Pack). Bấm vào từng step là chuyển tab tương ứng.
@@ -149,7 +149,7 @@ Nhật ký theo dõi các mốc hoàn thành kỹ thuật qua các Phase.
   6. Client Demo Mode: Thêm **CTA Block** 3 nút clickable: Duyệt Campaign Pack → Approval tab | Xuất File Gửi Khách → Manual Export tab | Chuẩn Bị Brief Tiếp Theo → New Campaign tab.
   7. Client Demo Pack: Thêm **Service Packages Teaser** — 3 gói static mock: Starter / Growth / Scale.
   8. Build local PASS (`npm run build`) — 0 TypeScript/Vite errors.
-- **Trạng thái Phase H.3:** IN PROGRESS — Chờ Codex review + Owner production check.
+- **Trạng thái Phase H.3:** DONE + BUILT + CODEX REVIEWED + PUSHED — Codex review PASS (UI/code/safety); docs/log stale status fixed.
 - **Safety Guard:**
   - Auto-post: NO | Real Ads: NO | Real Messaging: NO | Real Connectors: NO
   - Secrets Added: NO | FnB OS V1 touched: NO | Demo/Mock Data Only: YES
