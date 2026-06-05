@@ -716,7 +716,7 @@ export default function App() {
                         <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Campaigns hiện tại</p>
                         <h3 style={{ fontSize: '1.6rem', marginTop: '8px' }}>{campaigns.length} Chiến dịch</h3>
                       </div>
-                      <div className="badge badge-blue">Mock Data</div>
+                      <div className="badge badge-blue">Sample Data</div>
                     </div>
                     <div className="glass-panel" style={{ padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <div>
@@ -892,7 +892,7 @@ export default function App() {
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: '14px' }}>
                       {[
                         { step: '1', icon: '📋', label: 'Dashboard', desc: 'Giới thiệu tổng quan: hệ thống chạy offline, an toàn — không auto-post, không real ads.', tab: 'dashboard' },
-                        { step: '2', icon: '✍️', label: 'New Campaign Brief', desc: 'Điền brief thương hiệu của khách → bấm "Kích hoạt AI" → demo AI team chạy sinh output trong 3 phút.', tab: 'new-campaign' },
+                        { step: '2', icon: '✍️', label: 'New Campaign Brief', desc: 'Điền brief thương hiệu của khách → bấm "Kích hoạt AI" → xem AI team chạy sinh output trong 3 phút.', tab: 'new-campaign' },
                         { step: '3', icon: '📦', label: 'Campaign Outputs', desc: 'Mở từng tab: Captions, Video Scripts, Design Prompts, Ads Plan — show toàn bộ gói sáng tạo AI tạo ra.', tab: 'outputs' },
                         { step: '4', icon: '🖥️', label: 'Client Workspace View', desc: 'Góc nhìn khách hàng: problem/solution, approval flow, value prop, before/after comparison.', tab: 'client-demo' },
                         { step: '5', icon: '📤', label: 'Manual Export Pack', desc: 'Xuất file gửi khách thủ công — Client Summary, Editor Handoff, Designer Handoff, Approval Checklist.', tab: 'manual-export' },
@@ -1155,7 +1155,7 @@ export default function App() {
                       </p>
                     </div>
                     <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                      <span className="badge badge-indigo" style={{ background: 'rgba(99, 102, 241, 0.15)', color: '#818cf8', borderColor: 'rgba(99, 102, 241, 0.3)', border: '1px solid' }}>Demo/Mock Data Only</span>
+                      <span className="badge badge-indigo" style={{ background: 'rgba(99, 102, 241, 0.15)', color: '#818cf8', borderColor: 'rgba(99, 102, 241, 0.3)', border: '1px solid' }}>Sample Data Only</span>
                       <span className="badge badge-emerald" style={{ background: 'rgba(16, 185, 129, 0.15)', color: '#34d399', borderColor: 'rgba(16, 185, 129, 0.3)', border: '1px solid' }}>🛡️ Safety Guard</span>
                       <span className={`badge ${
                         activeCampaign.status === 'Approved' ? 'badge-emerald' : 
@@ -1460,7 +1460,7 @@ export default function App() {
                       </div>
 
                       <div>
-                        <h4 style={{ fontWeight: 600, color: 'var(--accent-indigo)', marginBottom: '12px' }}>Bản nháp mẫu thiết lập Ads (Mock Ad Units):</h4>
+                        <h4 style={{ fontWeight: 600, color: 'var(--accent-indigo)', marginBottom: '12px' }}>Bản nháp mẫu thiết lập Ads (Sample Ad Units):</h4>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                           {activeCampaign.outputs.adsManager.mockAds?.map((ad, idx) => (
                             <div key={idx} style={{ background: 'rgba(255,255,255,0.02)', padding: '20px', borderRadius: '12px', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -1589,7 +1589,7 @@ export default function App() {
                               `4. MÔ TẢ HÌNH ẢNH DESIGN PROMPT:\n` +
                               `- Ý tưởng: ${activeCampaign.outputs.designer.briefs[0].layout}\n` +
                               `- Prompt: ${activeCampaign.outputs.designer.briefs[0].prompt}\n\n` +
-                              `Disclaimer: Toàn bộ dữ liệu hiệu năng giả lập chỉ sử dụng cho mục đích demo mock-up.`;
+                              `Disclaimer: Toàn bộ dữ liệu hiệu năng giả lập chỉ sử dụng cho mục đích minh họa sandbox.`;
                             copyToClipboard(summaryText, 'client_summary');
                           }}
                         >
@@ -1760,7 +1760,7 @@ export default function App() {
                           `- Viết 3 prompt thiết kế ảnh AI chuyên nghiệp độ phân giải cao.\n` +
                           `- Cấu hình tệp quảng cáo địa phương và target khách hàng tại Vinh.\n` +
                           `- Báo cáo hiệu quả giả lập hỗ trợ Owner đưa ra quyết định.\n\n` +
-                          `Ranh giới an toàn: Hệ thống chạy hoàn toàn ở chế độ Offline Mock-up (Auto-post: NO, Real Ads: NO, Real Message: NO).\n` +
+                          `Ranh giới an toàn: Hệ thống chạy hoàn toàn ở chế độ Offline Sandbox (Auto-post: NO, Real Ads: NO, Real Message: NO).\n` +
                           `Quy trình phê duyệt (Owner Review) là bắt buộc trước khi lấy nội dung chạy thực tế.\n\n` +
                           `Trân trọng,\n` +
                           `Đội ngũ Claude AI Marketing Team`;
@@ -1832,7 +1832,7 @@ export default function App() {
                           <Shield size={16} /> Disclaimer & Safety
                         </h4>
                         <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
-                          Đây là không gian làm việc mô phỏng 100% (Mock workspace only). Không kết nối mạng, không lưu giữ secret keys, không chạy quảng cáo hay đăng bài tự động để bảo vệ an toàn thương hiệu.
+                          Đây là không gian làm việc mô phỏng 100% (Sandbox Safe Mode). Không kết nối mạng, không lưu giữ secret keys, không chạy quảng cáo hay đăng bài tự động để bảo vệ an toàn thương hiệu.
                         </p>
                       </div>
 
@@ -1847,7 +1847,7 @@ export default function App() {
                         <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--accent-indigo)', marginBottom: '4px' }}>Gói dịch vụ AI Marketing Team</h3>
                         <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', margin: 0 }}>Chọn gói phù hợp với quy mô thương hiệu của bạn</p>
                       </div>
-                      <span className="badge badge-amber" style={{ fontSize: '0.72rem' }}>Mock Pricing — Demo Only</span>
+                      <span className="badge badge-amber" style={{ fontSize: '0.72rem' }}>Sample Pricing — Sandbox Mode</span>
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
                       {[
@@ -1877,7 +1877,7 @@ export default function App() {
                           color: 'var(--accent-emerald)',
                           borderColor: 'rgba(16, 185, 129, 0.3)',
                           bg: 'rgba(16, 185, 129, 0.04)',
-                          items: ['Không giới hạn thương hiệu', 'Campaigns không giới hạn', 'White-label demo', 'Dedicated support', 'Custom onboarding'],
+                          items: ['Không giới hạn thương hiệu', 'Campaigns không giới hạn', 'White-label workspace', 'Dedicated support', 'Custom onboarding'],
                           cta: 'Liên hệ báo giá',
                           highlight: false,
                         },
@@ -1910,7 +1910,7 @@ export default function App() {
                       ))}
                     </div>
                     <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textAlign: 'center', marginTop: '14px' }}>
-                      * Gói dịch vụ và định giá trên là dữ liệu demo giả lập — liên hệ trực tiếp để nhận báo giá chính thức.
+                      * Gói dịch vụ và định giá trên là dữ liệu mẫu — liên hệ trực tiếp để nhận báo giá chính thức.
                     </p>
                   </div>
 
@@ -2064,7 +2064,7 @@ export default function App() {
                       {
                         icon: '🛡️',
                         label: 'Tại sao an toàn',
-                        body: '100% offline sandbox. Không backend, không connector thật, không auto-post. Demo/mock only. Safety Guard luôn bật.',
+                        body: '100% offline sandbox. Không backend, không connector thật, không auto-post. Sample data only. Safety Guard luôn bật.',
                         color: 'var(--accent-emerald)',
                         borderColor: 'rgba(16,185,129,0.25)',
                         bg: 'rgba(16,185,129,0.04)',
@@ -2131,7 +2131,7 @@ export default function App() {
 
                     <div className="glass-panel" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
                       <div style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <h3 style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--accent-amber)' }}>Approval Status Demo</h3>
+                        <h3 style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--accent-amber)' }}>Approval Status Preview</h3>
                       </div>
                       
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '8px' }}>
@@ -2182,7 +2182,7 @@ export default function App() {
                         { icon: '⚡', title: 'Triển khai trong 3 phút', desc: 'Nhập brief → AI tạo toàn bộ campaign pack: captions, video scripts, design prompts, ads plan — ngay lập tức.', color: 'var(--accent-amber)' },
                         { icon: '🤝', title: 'Human-in-the-loop', desc: 'Owner phê duyệt mọi nội dung trước khi ra ngoài. Không một chữ, một đồng ngân sách nào chạy mà không có chữ ký bạn.', color: 'var(--accent-emerald)' },
                         { icon: '🎯', title: '5 chuyên gia trong 1 workspace', desc: 'Copywriter, Video Editor, Designer, Ads Manager và Data Reporter — phối hợp đồng bộ, không bỏ sót bước nào.', color: 'var(--accent-blue)' },
-                        { icon: '📊', title: 'Tiết kiệm 15h/tuần (mock est.)', desc: 'So với quy trình làm marketing thủ công: briefing → viết → thiết kế → duyệt. AI xử lý phần nặng nhất.', color: 'var(--accent-rose)' },
+                        { icon: '📊', title: 'Tiết kiệm 15h/tuần (sample est.)', desc: 'So với quy trình làm marketing thủ công: briefing → viết → thiết kế → duyệt. AI xử lý phần nặng nhất.', color: 'var(--accent-rose)' },
                       ].map((item, idx) => (
                         <div key={idx} style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
                           <div style={{ fontSize: '1.6rem' }}>{item.icon}</div>
@@ -2192,7 +2192,7 @@ export default function App() {
                       ))}
                     </div>
                     <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', borderTop: '1px solid var(--border-color)', paddingTop: '10px', margin: 0 }}>
-                      * Số liệu tiết kiệm thời gian là ước tính mô phỏng (mock estimate) — chỉ dùng cho mục đích demo minh họa.
+                      * Số liệu tiết kiệm thời gian là ước tính mô phỏng (sample estimate) — chỉ dùng cho mục đích minh họa.
                     </p>
                   </div>
 
@@ -2200,7 +2200,7 @@ export default function App() {
                   <div className="glass-panel" style={{ padding: '24px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
                       <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--text-primary)' }}>Làm thủ công vs. AI Marketing Team</h3>
-                      <span className="badge badge-amber" style={{ fontSize: '0.7rem' }}>Mock Estimate — Demo Only</span>
+                      <span className="badge badge-amber" style={{ fontSize: '0.7rem' }}>Sample Estimate — Sandbox Only</span>
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
                       {/* BEFORE */}
@@ -2257,7 +2257,7 @@ export default function App() {
                       </div>
                     </div>
                     <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '12px', textAlign: 'center' }}>
-                      * Số liệu thời gian là ước tính mô phỏng phục vụ demo — không phải cam kết thực tế. Owner vẫn phải duyệt thủ công trước khi triển khai.
+                      * Số liệu thời gian là ước tính mô phỏng — không phải cam kết thực tế. Owner vẫn phải duyệt thủ công trước khi triển khai.
                     </p>
                   </div>
 
@@ -2332,7 +2332,7 @@ export default function App() {
                           <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: 500 }}>Lập plan ad sets, target tệp địa phương và cấu hình ngân sách ads.</span>
                         </div>
                         <div style={{ background: 'rgba(0,0,0,0.2)', padding: '8px 10px', borderRadius: '6px', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                          <strong>Sample Output:</strong> {activeCampaign.outputs.adsManager.adSets.length} ad sets + mock ads cho {activeCampaign.brief.location.split('(')[0].trim()}.
+                          <strong>Sample Output:</strong> {activeCampaign.outputs.adsManager.adSets.length} ad sets + sample ads cho {activeCampaign.brief.location.split('(')[0].trim()}.
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px dashed var(--border-color)', paddingTop: '8px', fontSize: '0.75rem' }}>
                           <span style={{ color: 'var(--text-muted)' }}>Cần duyệt (Human Sign-off):</span>
@@ -2583,7 +2583,7 @@ export default function App() {
                         { step: '03', icon: '📦', title: 'Campaign Outputs', color: 'var(--accent-blue)', borderColor: 'rgba(59,130,246,0.25)', bg: 'rgba(59,130,246,0.04)', body: '7-day content calendar, 7 Facebook captions, 3 TikTok/Reels scripts, 3 AI design prompts (Fal.ai/Midjourney), local ads targeting plan, and simulated performance report — all in one exportable pack.' },
                         { step: '04', icon: '✍️', title: 'Approval Process', color: 'var(--accent-amber)', borderColor: 'rgba(245,158,11,0.25)', bg: 'rgba(245,158,11,0.04)', body: 'Owner reviews every piece of content via the Approval Checklist tab before anything leaves this workspace. No post, no ad, no message is sent without explicit human sign-off.' },
                         { step: '05', icon: '📤', title: 'Manual Publishing & Manual Ads Execution', color: '#a78bfa', borderColor: 'rgba(167,139,250,0.25)', bg: 'rgba(167,139,250,0.04)', body: 'After Owner approves, all content is copy-pasted manually to Facebook, TikTok, or the Ads Manager platform. No auto-scheduler, no API connection, no direct publishing from this workspace.' },
-                        { step: '06', icon: '🛡️', title: 'Safety Boundaries', color: 'var(--accent-emerald)', borderColor: 'rgba(16,185,129,0.25)', bg: 'rgba(16,185,129,0.04)', body: '100% offline sandbox. No backend, no database, no real API calls, no secrets, no auto-post, no real ads launched, no customer messaging. Every output is demo/mock data only. Safety Guard is always on.' },
+                        { step: '06', icon: '🛡️', title: 'Safety Boundaries', color: 'var(--accent-emerald)', borderColor: 'rgba(16,185,129,0.25)', bg: 'rgba(16,185,129,0.04)', body: '100% offline sandbox. No backend, no database, no real API calls, no secrets, no auto-post, no real ads launched, no customer messaging. Every output uses sample data only until live connectors are approved. Safety Guard is always on.' },
                       ].map((item, idx) => (
                         <div key={idx} style={{ background: item.bg, border: `1px solid ${item.borderColor}`, borderRadius: '12px', padding: '18px 20px', display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '36px', height: '36px', background: item.bg, border: `1px solid ${item.borderColor}`, borderRadius: '50%', fontSize: '1.1rem', flexShrink: 0, marginTop: '2px' }}>
@@ -2615,8 +2615,8 @@ export default function App() {
                         { icon: '📅', title: '7-Day Content Plan',      desc: 'Day-by-day publishing schedule: theme, channel, content hint, visual, CTA, and approval column.',                                   badge: 'Ready',               badgeColor: 'badge-emerald', tag: 'Copywriter',     linkTab: 'outputs',   linkSub: 'calendar'  },
                         { icon: '🎬', title: 'Video Script Pack',       desc: '3 TikTok/Reels storyboard scripts — scene-by-scene breakdown with ASMR audio cues and text overlays.',                           badge: 'Ready',               badgeColor: 'badge-emerald', tag: 'Video Editor',   linkTab: 'outputs',   linkSub: 'video'     },
                         { icon: '🎨', title: 'Design Brief Pack',       desc: '3 visual design briefs with layout direction, color mood, and AI image prompts (Fal.ai/Midjourney ready).',                       badge: 'Ready',               badgeColor: 'badge-emerald', tag: 'Designer',       linkTab: 'outputs',   linkSub: 'design'    },
-                        { icon: '📣', title: 'Ads Angle Pack',          desc: '5 ad angles + 2 ad set configs + 2 mock ad copy units. Target: local area, 18–35 demographic.',                                   badge: 'Needs owner budget',  badgeColor: 'badge-amber',   tag: 'Ads Manager',    linkTab: 'outputs',   linkSub: 'ads'       },
-                        { icon: '📊', title: 'Data Reporter Summary',   desc: 'Simulated week-1 KPIs and performance metrics (CTR, CPC, CPA, Reach) with 3 optimization recommendations.',                      badge: 'Mock data',           badgeColor: 'badge-blue',    tag: 'Data Reporter',  linkTab: 'outputs',   linkSub: 'report'    },
+                        { icon: '📣', title: 'Ads Angle Pack',          desc: '5 ad angles + 2 ad set configs + 2 sample ad copy units. Target: local area, 18–35 demographic.',                                   badge: 'Needs owner budget',  badgeColor: 'badge-amber',   tag: 'Ads Manager',    linkTab: 'outputs',   linkSub: 'ads'       },
+                        { icon: '📊', title: 'Data Reporter Summary',   desc: 'Simulated week-1 KPIs and performance metrics (CTR, CPC, CPA, Reach) with 3 optimization recommendations.',                      badge: 'Sample data',         badgeColor: 'badge-blue',    tag: 'Data Reporter',  linkTab: 'outputs',   linkSub: 'report'    },
                         { icon: '✅', title: 'Human Approval Checklist',desc: '10-point owner sign-off covering brand consistency, pricing, contact info, budget, and safety compliance.',                        badge: 'Owner required',      badgeColor: 'badge-rose',    tag: 'Owner',          linkTab: 'approval',  linkSub: ''          },
                       ].map((pack, idx) => (
                         <div key={idx} style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
