@@ -27,7 +27,7 @@ const manualExportBlocks = [
     content: `# FULL CAMPAIGN PACK: VỊ CUỐN
 
 ## DISCLAIMER
-- Demo/mock data only
+- Sample Data Only
 - Draft only
 - Human approval required
 - No auto-post
@@ -59,7 +59,7 @@ const manualExportBlocks = [
     content: `# CLIENT PRESENTATION SUMMARY - VỊ CUỐN
 
 ## DISCLAIMER
-- Demo/mock data only
+- Sample Data Only
 - Draft only
 - Human approval required
 - No auto-post
@@ -80,7 +80,7 @@ Chiến dịch truyền thông tích hợp cho thương hiệu "Vị Cuốn", h�
     content: `# VIDEO EDITOR HANDOFF DOCUMENT - VỊ CUỐN
 
 ## DISCLAIMER
-- Demo/mock data only
+- Sample Data Only
 - Draft only
 - Human approval required
 - No auto-post
@@ -105,7 +105,7 @@ Chiến dịch truyền thông tích hợp cho thương hiệu "Vị Cuốn", h�
     content: `# DESIGNER HANDOFF DOCUMENT - VỊ CUỐN
 
 ## DISCLAIMER
-- Demo/mock data only
+- Sample Data Only
 - Draft only
 - Human approval required
 - No auto-post
@@ -126,7 +126,7 @@ Chiến dịch truyền thông tích hợp cho thương hiệu "Vị Cuốn", h�
     content: `# ADS MANAGER CONFIGURATION PACK - VỊ CUỐN
 
 ## DISCLAIMER
-- Demo/mock data only
+- Sample Data Only
 - Draft only
 - Human approval required
 - No auto-post
@@ -149,7 +149,7 @@ Chiến dịch truyền thông tích hợp cho thương hiệu "Vị Cuốn", h�
     content: `# OWNER COMPLIANCE & SAFETY CHECKLIST - VỊ CUỐN
 
 ## DISCLAIMER
-- Demo/mock data only
+- Sample Data Only
 - Draft only
 - Human approval required
 - No auto-post
@@ -603,7 +603,7 @@ export default function App() {
               <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Real Connectors:</span> <span style={{ color: 'var(--accent-rose)', fontWeight: 'bold' }}>NO</span></div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Secrets Added:</span> <span style={{ color: 'var(--accent-rose)', fontWeight: 'bold' }}>NO</span></div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>FnB OS V1:</span> <span style={{ color: 'var(--accent-rose)', fontWeight: 'bold' }}>NO</span></div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Demo/Mock Only:</span> <span style={{ color: 'var(--accent-emerald)', fontWeight: 'bold' }}>YES</span></div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Sample Data Only:</span> <span style={{ color: 'var(--accent-emerald)', fontWeight: 'bold' }}>YES</span></div>
             </div>
           </div>
         </aside>
@@ -837,7 +837,7 @@ export default function App() {
                         <span className="badge badge-rose" style={{ fontWeight: 'bold' }}>NO</span>
                       </div>
                       <div style={{ background: 'rgba(255,255,255,0.02)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gridColumn: 'span 2' }}>
-                        <span style={{ fontSize: '0.85rem' }}>Demo/Mock Data Only:</span>
+                        <span style={{ fontSize: '0.85rem' }}>Sample Data Only:</span>
                         <span className="badge badge-emerald" style={{ fontWeight: 'bold' }}>YES</span>
                       </div>
                     </div>
@@ -2652,10 +2652,10 @@ export default function App() {
                       <div>
                         <h2 style={{ fontSize: '1.35rem', fontWeight: 700, color: 'var(--text-primary)' }}>Client Approval Sheet Preview</h2>
                         <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginTop: '6px' }}>
-                          Static demo approval table. Click any status badge to cycle through states.
+                          Static approval table. Click any status badge to cycle through states.
                         </p>
                       </div>
-                      <span className="badge badge-amber" style={{ fontSize: '0.7rem', whiteSpace: 'nowrap' }}>Demo Only — Not Live Data</span>
+                      <span className="badge badge-amber" style={{ fontSize: '0.7rem', whiteSpace: 'nowrap' }}>Sample Data Only — Not Live Data</span>
                     </div>
                     <div style={{ overflowX: 'auto' }}>
                       <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '700px' }}>
@@ -2706,7 +2706,7 @@ export default function App() {
                       </table>
                     </div>
                     <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '12px' }}>
-                      * Click any status badge to cycle: Ready for review → Approved → Needs edit → Waiting owner approval. Demo only.
+                      * Click any status badge to cycle: Ready for review → Approved → Needs edit → Waiting owner approval. Sample data only.
                     </p>
                   </div>
 
@@ -2714,9 +2714,9 @@ export default function App() {
                   <div className="glass-panel" style={{ padding: '32px' }}>
                     <div style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '16px', marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <div>
-                        <h2 style={{ fontSize: '1.35rem', fontWeight: 700, color: 'var(--text-primary)' }}>Sales Demo Script</h2>
+                        <h2 style={{ fontSize: '1.35rem', fontWeight: 700, color: 'var(--text-primary)' }}>Presenter Walkthrough Script</h2>
                         <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginTop: '6px' }}>
-                          5–7 minute client-facing demo script. Follow this when presenting to a potential client.
+                          5–7 minute client workspace walkthrough. Follow this when presenting to a potential client.
                         </p>
                       </div>
                       <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
@@ -2725,7 +2725,7 @@ export default function App() {
                           className="btn btn-secondary"
                           style={{ fontSize: '0.8rem', padding: '6px 12px' }}
                           onClick={() => copyToClipboard(
-                            `SALES DEMO SCRIPT — AI MARKETING TEAM\n\n[0:00–0:30] INTRODUCE THE PROBLEM\n"Most F&B/SME owners spend 10–15 hours per week on marketing — writing posts, briefing teams, reviewing content, configuring ads. It's repetitive, expensive, and slow."\n\n[0:30–1:30] SHOW AI TEAM ROLES\n"This workspace gives you a full AI Marketing Team — 5 specialists in parallel."\n→ Action: Click AI Team Board tab — show all 5 role cards.\n\n[1:30–3:00] SHOW THE CAMPAIGN PACK\n"Let me enter a quick brief — just brand, product, audience, location."\n→ Action: New Campaign Brief → fill demo data → Activate AI → Campaign Outputs → cycle sub-tabs (Calendar, Captions, Video, Design, Ads).\n"This is the full campaign pack — everything copy-paste ready."\n\n[3:00–4:00] SHOW APPROVAL & SAFETY\n"Nothing leaves without your signature."\n→ Action: Approval Checklist tab → show 10-point list → Safety Guard panel.\n"Auto-post: NO. Real Ads: NO. You control everything."\n\n[4:00–5:00] EXPLAIN NEXT STEP\n"After you approve, you copy-paste manually to Facebook, TikTok, or your Ads Manager. We never touch your accounts."\n→ Action: Manual Export Pack → show copy buttons.\n\n[5:00–5:30] CLOSE — ASK FOR REAL BRIEF\n"That's the full demo. Do you have a real brief ready? Send me your brand name, hero product, and audience — and we can run a real campaign pack for your business right now."`,
+                            `PRESENTER WALKTHROUGH SCRIPT — AI MARKETING TEAM\n\n[0:00–0:30] INTRODUCE THE PROBLEM\n"Most F&B/SME owners spend 10–15 hours per week on marketing — writing posts, briefing teams, reviewing content, configuring ads. It's repetitive, expensive, and slow."\n\n[0:30–1:30] SHOW AI TEAM ROLES\n"This workspace gives you a full AI Marketing Team — 5 specialists in parallel."\n→ Action: Click AI Team Board tab — show all 5 role cards.\n\n[1:30–3:00] SHOW THE CAMPAIGN PACK\n"Let me enter a quick brief — just brand, product, audience, location."\n→ Action: New Campaign Brief → fill sample data → Activate AI → Campaign Outputs → cycle sub-tabs (Calendar, Captions, Video, Design, Ads).\n"This is the full campaign pack — everything copy-paste ready."\n\n[3:00–4:00] SHOW APPROVAL & SAFETY\n"Nothing leaves without your signature."\n→ Action: Approval Checklist tab → show 10-point list → Safety Guard panel.\n"Auto-post: NO. Real Ads: NO. You control everything."\n\n[4:00–5:00] EXPLAIN NEXT STEP\n"After you approve, you copy-paste manually to Facebook, TikTok, or your Ads Manager. We never touch your accounts."\n→ Action: Manual Export Pack → show copy buttons.\n\n[5:00–5:30] CLOSE — ASK FOR REAL BRIEF\n"That's the full workspace walkthrough. Do you have a real brief ready? Send me your brand name, hero product, and audience — and we can run a real campaign pack for your business right now."`,
                             'sales_script'
                           )}
                         >
@@ -2737,10 +2737,10 @@ export default function App() {
                       {([
                         { time: '0:00–0:30', title: 'Introduce the Problem',     color: 'var(--accent-rose)',    borderColor: 'rgba(244,63,94,0.3)',   bg: 'rgba(244,63,94,0.04)',   say: '"Most F&B/SME owners spend 10–15 hours per week on marketing — writing posts, briefing teams, reviewing content, configuring ads. It\'s repetitive, expensive, and slow. And it still doesn\'t guarantee results."', action: null },
                         { time: '0:30–1:30', title: 'Show AI Team Roles',        color: 'var(--accent-indigo)', borderColor: 'rgba(99,102,241,0.3)',  bg: 'rgba(99,102,241,0.04)',  say: '"This workspace gives you a full AI Marketing Team — 5 specialists running in parallel. Let me show you the AI Team Board."', action: '→ Click: AI Team Board → show all 5 role cards (Copywriter, Video Editor, Designer, Ads Manager, Data Reporter)' },
-                        { time: '1:30–3:00', title: 'Show the Campaign Pack',    color: 'var(--accent-blue)',   borderColor: 'rgba(59,130,246,0.3)',  bg: 'rgba(59,130,246,0.04)',  say: '"Let me enter a quick brief. Just brand name, product, audience, and location." … "Watch the AI run — about 3 seconds in this demo." … "Here\'s the full campaign pack — 7-day calendar, captions, video scripts, design prompts, ads plan. Copy-paste ready."', action: '→ Click: New Campaign Brief → fill sample data → Activate AI → Campaign Outputs → cycle sub-tabs' },
+                        { time: '1:30–3:00', title: 'Show the Campaign Pack',    color: 'var(--accent-blue)',   borderColor: 'rgba(59,130,246,0.3)',  bg: 'rgba(59,130,246,0.04)',  say: '"Let me enter a quick brief. Just brand name, product, audience, and location." … "Watch the AI run — about 3 seconds in this workspace." … "Here\'s the full campaign pack — 7-day calendar, captions, video scripts, design prompts, ads plan. Copy-paste ready."', action: '→ Click: New Campaign Brief → fill sample data → Activate AI → Campaign Outputs → cycle sub-tabs' },
                         { time: '3:00–4:00', title: 'Show Approval & Safety',   color: 'var(--accent-amber)',  borderColor: 'rgba(245,158,11,0.3)', bg: 'rgba(245,158,11,0.04)', say: '"Nothing leaves this workspace without your signature. This is a 10-point safety checklist. Auto-post: NO. Real Ads: NO. No messaging to customers. You control everything."', action: '→ Click: Approval Checklist → show progress bar + items → Safety Guard panel on Dashboard' },
                         { time: '4:00–5:00', title: 'Explain Next Step',         color: '#a78bfa',              borderColor: 'rgba(167,139,250,0.3)', bg: 'rgba(167,139,250,0.04)', say: '"After you approve, all content is copy-pasted manually to Facebook or TikTok. We never touch your accounts, your passwords, or your ad budget."', action: '→ Click: Manual Export Pack → show the 6 copy blocks' },
-                        { time: '5:00–5:30', title: 'Close — Ask for Real Brief', color: 'var(--accent-emerald)', borderColor: 'rgba(16,185,129,0.3)', bg: 'rgba(16,185,129,0.04)', say: '"That\'s the full demo. The only question now is: do you have a real brand brief ready? Send me your brand name, hero product, and audience — and we can run a real campaign pack for your business right now."', action: null },
+                        { time: '5:00–5:30', title: 'Close — Ask for Real Brief', color: 'var(--accent-emerald)', borderColor: 'rgba(16,185,129,0.3)', bg: 'rgba(16,185,129,0.04)', say: '"That\'s the full workspace walkthrough. The only question now is: do you have a real brand brief ready? Send me your brand name, hero product, and audience — and we can run a real campaign pack for your business right now."', action: null },
                       ] as { time: string; title: string; color: string; borderColor: string; bg: string; say: string; action: string | null }[]).map((step, idx, arr) => (
                         <div key={idx} style={{ display: 'flex', gap: '0' }}>
                           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '36px', flexShrink: 0 }}>
