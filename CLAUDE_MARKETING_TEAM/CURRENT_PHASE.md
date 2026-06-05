@@ -1,64 +1,50 @@
-# CURRENT PHASE — Phase H.6: Client-ready Workspace Polish ✅ DONE
+# CURRENT PHASE — Phase H.7: Owner View + Client View ✅ DONE
 
 Tài liệu này dùng để theo dõi tiến độ thực hiện và trạng thái của Phase hiện tại.
 
 ## 📌 Thông tin chung
-- **Phase hiện tại:** Phase H.6 — Client-ready Workspace Polish
-- **Mục tiêu:** Polish workspace để client-ready: chuẩn hoá ngôn ngữ nav/labels, thêm owner/client guide card, loại bỏ demo/prototype framing, làm dynamic approval hint, và cập nhật tất cả hardcoded phase/version references.
-- **Trạng thái:** ✅ DONE + CODEX PASS + FIXES APPLIED + BUILT + PUSHED + READY FOR OWNER PRODUCTION CHECK
+- **Phase hiện tại:** Phase H.7 — Owner View + Client View
+- **Mục tiêu:** Thêm two-mode workspace experience: Owner/Internal View để quản lý AI Marketing Team workspace, và Client/Presentation View để trình bày campaign cho khách hàng mà không có technical clutter nội bộ.
+- **Trạng thái:** ✅ DONE + BUILT + PUSHED
 
 ---
 
-## 📋 Checklist Phase H.6
+## 📋 Checklist Phase H.7
 
-### Phase Badge & Version Labels
-- [x] Header badge → "Phase H.6 — Client-ready Workspace Polish"
-- [x] Brand gallery "Current (H.5)" → "Current (H.6)"
+### Mode Switch Toggle
+- [x] `viewMode` state (`'owner' | 'client'`) added
+- [x] `handleViewModeSwitch()` function — auto-redirects to dashboard when switching to Client View if current tab is owner-only
+- [x] Toggle in header (right side, alongside phase badge): 🔧 Owner View | 👁 Client View
+- [x] Active mode visually highlighted (indigo = Owner, emerald = Client)
 
-### Nav & Product Label Renames
-- [x] Sidebar "Client Demo Pack" → "Client Presentation Pack"
-- [x] Sidebar "Client Demo Mode" → "Client Workspace View"
-- [x] Demo Pack tab title → "Client Presentation Pack"
-- [x] Client Demo Mode h2 → "Client Workspace View", badge → "Client-Ready"
-- [x] Service packages item "Client Demo Mode" → "Client Workspace View"
+### Owner View (default)
+- [x] All 9 tabs visible: Dashboard, Brand Workspace, New Campaign Brief, AI Team Board, Campaign Outputs, Approval Checklist, Client Presentation Pack, Client Workspace View, Manual Export Pack, Presentation & Export
+- [x] Full Safety Guard sidebar (Auto-post, Real Ads, Real Message, Real Connectors, Secrets, FnB OS V1, Sample Data)
+- [x] Dashboard shows Owner View context card (indigo) with "Switch to Client View" button
 
-### Manual Export Pack
-- [x] Removed "Phase H.1 —" prefix from Manual Export Pack title
-- [x] Badge "Production Demo Ready" → "Production Ready"
+### Client View
+- [x] 4 owner-only tabs hidden: New Campaign Brief, AI Team Board, Manual Export Pack, Client Workspace View
+- [x] 6 tabs remain: Dashboard, Brand Workspace, Campaign Outputs, Approval Checklist, Client Presentation Pack, Presentation & Export
+- [x] Sidebar Safety Guard simplified to Trust & Safety: Sample Data, Approval Required, No Live Publishing, No Real Ads
+- [x] Dashboard shows Client View context card (emerald) with "Back to Owner View" button
+- [x] Auto-redirect to Dashboard if active tab is owner-only when switching to Client View
 
-### Approval Hint — Dynamic Brand
-- [x] Replaced hardcoded "Vị Cuốn / Bánh tráng cuốn heo quay" approval hint with `activeCampaign.brief.heroProduct` and `activeCampaign.brief.brandName`
+### Dashboard View Context Card
+- [x] Owner View card: "Manage brands, review AI outputs, run approval, configure campaigns. Switch to Client View before presenting."
+- [x] Client View card: "Present campaign plan and outputs to your client. Internal tools hidden. Sample data — approval required before export."
 
-### "How to Use This Workspace" Guide Card
-- [x] Added new owner/client guide card on Dashboard (emerald, 6 steps):
-  1. Choose Brand → brand-gallery tab
-  2. Review Campaign Plan → dashboard tab
-  3. Review AI Team Outputs → outputs tab
-  4. Approve or Request Edits → approval tab
-  5. Export / Present Pack → manual-export tab
-  6. Real Connectors: Phase I Only (boundary note)
-- [x] Renamed existing guide to "Presenter Walkthrough Guide"
-- [x] Updated step 4 label: "Client Demo Mode" → "Client Workspace View"
-
-### Pitch Text — Dynamic Brand
-- [x] Pitch copy in demo-pack tab now uses `activeCampaign.brief.brandName` and `activeCampaign.brief.heroProduct`
-
-### Safety Labels (preserved)
-- [x] Sample Data ✅
-- [x] Sandbox Safe Mode ✅
-- [x] Approval Required ✅
+### Safety Labels (preserved in both views)
+- [x] Sample Data ✅ (shown in both views)
+- [x] Approval Required ✅ (shown in both views)
 - [x] No Auto-post ✅
 - [x] No Real Ads ✅
-- [x] No Real Messaging ✅
-
-### Codex Review
-- [x] Codex review round 1: NEEDS FIX — visible demo/mock wording found (5 required, 15 additional)
-- [x] Codex fixes applied: commits `4d2f3bd` + `c7b4f7d`
-- [x] Codex re-review: PASS
+- [x] No Live Publishing ✅
 
 ### Build & Safety
-- [x] npm run build PASS — 0 errors (all rounds)
+- [x] npm run build PASS — 0 errors (342.52 kB JS)
 - [x] Push to GitHub
+- [x] No backend/database/API/secrets/connectors added
+- [x] FnB OS V1 not touched
 
 ### Docs & Logs
 - [x] CURRENT_PHASE.md (file này)
@@ -68,7 +54,23 @@ Tài liệu này dùng để theo dõi tiến độ thực hiện và trạng th
 
 ---
 
-## 🛡️ Safety Guard (H.6 — confirmed)
+## 🔀 View Mode Spec
+
+| Aspect | Owner View | Client View |
+|--------|-----------|-------------|
+| Purpose | Manage, review, approve | Present campaign, collect feedback, export |
+| Tabs shown | All 9 tabs | 6 tabs (internal tools hidden) |
+| Safety sidebar | Full Guard (7 items) | Trust & Safety (4 items, client-friendly) |
+| New Campaign Brief | ✅ Visible | ❌ Hidden |
+| AI Team Board | ✅ Visible | ❌ Hidden |
+| Manual Export Pack | ✅ Visible | ❌ Hidden |
+| Client Workspace View | ✅ Visible | ❌ Hidden |
+| Technical labels | FnB OS V1, Secrets, Connectors visible | Hidden |
+| Brand switching | ✅ Available | ✅ Available |
+
+---
+
+## 🛡️ Safety Guard (H.7 — confirmed)
 - Auto-post: NO
 - Real Ads: NO
 - Real Messaging: NO
@@ -83,18 +85,14 @@ Tài liệu này dùng để theo dõi tiến độ thực hiện và trạng th
 ---
 
 ## 📝 Closeout Note
-H.6 polished the app into a more client-ready AI Marketing Team Workspace. Visible product wording was corrected from demo/mock framing to Workspace, Sample Data, Sandbox Safe Mode, Client Presentation Pack, and Client Workspace View. Owner/client guide flow and approval-safe framing are now clearer. Two rounds of Codex review: initial NEEDS FIX → all fixes applied → re-review PASS. Build passes clean. Commits: `95dfeee` (feat), `4d2f3bd` (fix round 1), `c7b4f7d` (fix round 2).
+H.7 adds a two-mode workspace experience. Owner View keeps all internal controls visible; Client View presents a clean campaign view with internal tools and technical clutter hidden. The toggle sits in the header for instant access. Switching to Client View while on an owner-only tab automatically redirects to Dashboard. Multi-brand switching and all 3 seed brands remain fully functional.
 
 ---
 
+## ✅ Phase H.6 (tiền nhiệm) — CLOSED
+- Commit: `1f83eb1` — docs: close phase h6 client ready workspace polish
+- Status: DONE + CODEX PASS + FIXES APPLIED + BUILT + PUSHED + READY FOR OWNER PRODUCTION CHECK
+
 ## ✅ Phase H.5 (tiền nhiệm) — CLOSED
 - Commit: `45c141a` — docs: close phase h5 multi brand workspace readiness
-- Features: 3 seed brands (Vị Cuốn, Cơm Tấm Bản Khói, Forme), Brand Workspace Gallery, Brand Switcher on Dashboard, localStorage v3, multi-brand dynamic outputs
-
-## ✅ Phase H.4 (tiền nhiệm) — CLOSED
-- Commit: `c4458de` — docs: close phase h4 export presentation readiness
-- Features: Presentation View, Export Pack Preview, Client Approval Sheet, Sales Demo Script, Export Readiness Checklist
-
-## ✅ Phase H.3 (tiền nhiệm) — CLOSED
-- Commit: `6fef281` — docs: close phase h3 demo polish sales readiness
-- Features: Presenter Demo Guide, Sales Readiness 5-card, Value Proposition, Before/After, CTA Block, Service Packages
+- Features: 3 seed brands (Vị Cuốn, Cơm Tấm Bản Khói, Forme), Brand Workspace Gallery, Brand Switcher, localStorage v3

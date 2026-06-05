@@ -283,3 +283,18 @@ Nhật ký theo dõi các mốc hoàn thành kỹ thuật qua các Phase.
 - **Note:** H.6 polished the app into a more client-ready AI Marketing Team Workspace. Visible product wording was corrected from demo/mock framing to Workspace, Sample Data, Sandbox Safe Mode, Client Presentation Pack, and Client Workspace View. Owner/client guide flow and approval-safe framing are now clearer.
 - **Trạng thái Phase H.6:** ✅ DONE + CODEX PASS + FIXES APPLIED + BUILT + PUSHED + READY FOR OWNER PRODUCTION CHECK
 
+### 🗓️ Ngày 05/06/2026 — Phase H.7: Owner View + Client View
+- **Sự kiện:** Triển khai Phase H.7 — Owner View + Client View.
+- **Người thực hiện:** Builder Agent (Claude Code).
+- **Hành động đã hoàn tất:**
+  1. `Eye` icon thêm vào lucide-react imports.
+  2. `viewMode` state (`'owner' | 'client'`, default `'owner'`) + `handleViewModeSwitch()` handler.
+  3. Header: phase badge H.6 → H.7, segmented toggle (🔧 Owner View | 👁 Client View).
+  4. Sidebar: 4 tabs ẩn trong Client View (New Campaign Brief, AI Team Board, Manual Export Pack, Client Workspace View).
+  5. Sidebar: Safety Guard → Trust & Safety trong Client View (ẩn FnB OS V1, Secrets, Connectors labels).
+  6. Dashboard: View context card (indigo cho Owner, emerald cho Client) với quick-switch button.
+  7. Auto-redirect về Dashboard khi switch sang Client View từ owner-only tab.
+- **Safety Guard H.7 confirmed:** Auto-post: NO | Real Ads: NO | Secrets: NO | FnB OS V1: NO | Sample Data Only: YES
+- **Build:** `npm run build` PASS — 0 errors. 342.52 kB JS bundle.
+- **Trạng thái Phase H.7:** ✅ DONE + BUILT + PUSHED
+

@@ -5,7 +5,7 @@ Tài liệu này tóm tắt bối cảnh, ranh giới an toàn hiện tại củ
 ## 📝 Bối cảnh dự án (Project Context)
 Chúng ta đang xây dựng **AI Marketing Team Workspace** — một workspace thực sự cho phép quản lý nhiều thương hiệu/khách hàng, hoạt động hoàn toàn static/frontend với sample/seed data cho đến khi real connectors được phê duyệt. Workspace cung cấp giao diện trực quan cao cấp, hỗ trợ 5 AI Agents song song, approval flow, manual export, và presentation-ready UI.
 
-**Lưu ý framing (Phase H.6):** Đây không phải "demo toy". Đây là workspace architecture thực tế, sẵn sàng cho real data/connectors ở Phase I.
+**Lưu ý framing (Phase H.7):** Đây không phải "demo toy". Đây là workspace architecture thực tế với two-mode experience: Owner View (internal management) và Client View (presentation-ready). Sẵn sàng cho real data/connectors ở Phase I.
 
 ## 🔒 Ranh giới an toàn cốt lõi (Safety Boundaries)
 - **Độc lập tuyệt đối:** Dự án tại `CLAUDE_MARKETING_TEAM/`, tách biệt khỏi FnB OS V1.
@@ -15,6 +15,32 @@ Chúng ta đang xây dựng **AI Marketing Team Workspace** — một workspace 
 - **Không lưu credentials (Secrets: NO)**
 - **Sample/Seed Data (Workspace Sandbox Mode)**
 - **Không backend, không database, không real API connectors**
+
+---
+
+## ✅ Phase H.7 — Owner View + Client View (DONE + BUILT + PUSHED — 2026-06-05)
+
+### Mục tiêu:
+Thêm two-mode workspace experience: Owner View (manage/review/approve) và Client View (present/feedback/export).
+
+### Đã build:
+1. **`viewMode` state** (`'owner' | 'client'`), default `'owner'`.
+2. **`handleViewModeSwitch()`**: switches view + auto-redirects to Dashboard if current tab is owner-only.
+3. **Header mode toggle**: segmented control (🔧 Owner View | 👁 Client View), indigo/emerald highlight.
+4. **Phase badge**: H.6 → H.7 — Owner & Client Views.
+5. **Client View — 4 tabs hidden**: New Campaign Brief, AI Team Board, Manual Export Pack, Client Workspace View.
+6. **Client View — simplified sidebar safety**: Trust & Safety (Sample Data, Approval Required, No Live Publishing, No Real Ads) instead of full internal Guard.
+7. **Dashboard view context card**: Owner card (indigo, manage/approve) + Client card (emerald, present/export), each with a quick-switch button.
+
+### View Mode Table:
+| | Owner View | Client View |
+|--|--|--|
+| Tabs | All 9 | 6 (client-appropriate) |
+| Safety sidebar | Full 7-item guard | 4-item trust summary |
+| New Campaign Brief | ✅ | ❌ |
+| AI Team Board | ✅ | ❌ |
+| Manual Export Pack | ✅ | ❌ |
+| Client Workspace View | ✅ | ❌ |
 
 ---
 
@@ -70,7 +96,8 @@ Polish workspace để client-ready: chuẩn hoá ngôn ngữ, loại bỏ demo/
 - **Phase A–G**: Core workspace infrastructure, React UI, mock data, AI agents simulation
 
 ## ➡️ Bước tiếp theo
-1. **Phase H.6** — ✅ CLOSED. H.6 polished the app into a more client-ready AI Marketing Team Workspace. Visible product wording corrected from demo/mock framing to Workspace, Sample Data, Sandbox Safe Mode, Client Presentation Pack, and Client Workspace View. Owner/client guide flow and approval-safe framing are now clearer.
+1. **Phase H.7** — ✅ DONE. Two-mode workspace (Owner View / Client View) implemented. Client View hides internal tools and simplifies safety sidebar for presentation use.
+2. **Phase H.6** — ✅ CLOSED. H.6 polished the app into a more client-ready AI Marketing Team Workspace. Visible product wording corrected from demo/mock framing to Workspace, Sample Data, Sandbox Safe Mode, Client Presentation Pack, and Client Workspace View. Owner/client guide flow and approval-safe framing are now clearer.
 2. **Phase I (Future)** — Real data connectors (pending Owner approval):
    - Real brand brief input
    - Meta/Google Ads connector (sandbox)

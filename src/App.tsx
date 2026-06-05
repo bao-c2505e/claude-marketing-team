@@ -16,7 +16,8 @@ import {
   Shield,
   Monitor,
   BookOpen,
-  Store
+  Store,
+  Eye
 } from 'lucide-react';
 import { sampleCampaigns, Campaign, CampaignBrief, CalendarItem, ChecklistItem } from './mockData';
 
@@ -209,6 +210,14 @@ export default function App() {
 
   const [activeTab, setActiveTab] = useState<string>('dashboard');
   const [outputSubTab, setOutputSubTab] = useState<string>('calendar');
+  const [viewMode, setViewMode] = useState<'owner' | 'client'>('owner');
+  const handleViewModeSwitch = (mode: 'owner' | 'client') => {
+    setViewMode(mode);
+    if (mode === 'client') {
+      const ownerOnlyTabs = ['new-campaign', 'team-board', 'manual-export', 'client-demo'];
+      if (ownerOnlyTabs.includes(activeTab)) setActiveTab('dashboard');
+    }
+  };
 
   useEffect(() => {
     try {
@@ -482,10 +491,38 @@ export default function App() {
             <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Multi-brand AI Marketing Team Workspace</p>
           </div>
         </div>
-        <div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-end' }}>
           <span className="badge badge-indigo" style={{ background: 'rgba(99, 102, 241, 0.15)', color: '#818cf8', borderColor: 'rgba(99, 102, 241, 0.3)', border: '1px solid' }}>
-            Phase H.6 — Client-ready Workspace Polish
+            Phase H.7 — Owner &amp; Client Views
           </span>
+          <div style={{ display: 'flex', gap: '3px', background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '3px' }}>
+            <button
+              onClick={() => handleViewModeSwitch('owner')}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '5px',
+                padding: '5px 14px', borderRadius: '6px', fontSize: '0.78rem', fontWeight: 600,
+                border: 'none', cursor: 'pointer',
+                background: viewMode === 'owner' ? 'rgba(99,102,241,0.25)' : 'transparent',
+                color: viewMode === 'owner' ? '#818cf8' : 'var(--text-muted)',
+                transition: 'all 0.15s',
+              }}
+            >
+              🔧 Owner View
+            </button>
+            <button
+              onClick={() => handleViewModeSwitch('client')}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '5px',
+                padding: '5px 14px', borderRadius: '6px', fontSize: '0.78rem', fontWeight: 600,
+                border: 'none', cursor: 'pointer',
+                background: viewMode === 'client' ? 'rgba(16,185,129,0.25)' : 'transparent',
+                color: viewMode === 'client' ? '#34d399' : 'var(--text-muted)',
+                transition: 'all 0.15s',
+              }}
+            >
+              <Eye size={13} /> Client View
+            </button>
+          </div>
         </div>
       </header>
 
@@ -512,21 +549,25 @@ export default function App() {
               <Store size={18} /> Brand Workspace
             </button>
 
-            <button
-              className={`btn btn-secondary ${activeTab === 'new-campaign' ? 'active' : ''}`}
-              style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'new-campaign' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'new-campaign' ? 'rgba(99, 102, 241, 0.1)' : '' }}
-              onClick={() => setActiveTab('new-campaign')}
-            >
-              <Plus size={18} /> New Campaign Brief
-            </button>
+            {viewMode === 'owner' && (
+              <button
+                className={`btn btn-secondary ${activeTab === 'new-campaign' ? 'active' : ''}`}
+                style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'new-campaign' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'new-campaign' ? 'rgba(99, 102, 241, 0.1)' : '' }}
+                onClick={() => setActiveTab('new-campaign')}
+              >
+                <Plus size={18} /> New Campaign Brief
+              </button>
+            )}
 
-            <button 
-              className={`btn btn-secondary ${activeTab === 'team-board' ? 'active' : ''}`} 
-              style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'team-board' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'team-board' ? 'rgba(99, 102, 241, 0.1)' : '' }}
-              onClick={() => setActiveTab('team-board')}
-            >
-              <Users size={18} /> AI Team Board
-            </button>
+            {viewMode === 'owner' && (
+              <button
+                className={`btn btn-secondary ${activeTab === 'team-board' ? 'active' : ''}`}
+                style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'team-board' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'team-board' ? 'rgba(99, 102, 241, 0.1)' : '' }}
+                onClick={() => setActiveTab('team-board')}
+              >
+                <Users size={18} /> AI Team Board
+              </button>
+            )}
 
             <button 
               className={`btn btn-secondary ${activeTab === 'outputs' ? 'active' : ''}`} 
@@ -552,21 +593,25 @@ export default function App() {
               <FileText size={18} /> Client Presentation Pack
             </button>
 
-            <button 
-              className={`btn btn-secondary ${activeTab === 'client-demo' ? 'active' : ''}`} 
-              style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'client-demo' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'client-demo' ? 'rgba(99, 102, 241, 0.1)' : '' }}
-              onClick={() => setActiveTab('client-demo')}
-            >
-              <Monitor size={18} /> Client Workspace View
-            </button>
+            {viewMode === 'owner' && (
+              <button
+                className={`btn btn-secondary ${activeTab === 'client-demo' ? 'active' : ''}`}
+                style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'client-demo' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'client-demo' ? 'rgba(99, 102, 241, 0.1)' : '' }}
+                onClick={() => setActiveTab('client-demo')}
+              >
+                <Monitor size={18} /> Client Workspace View
+              </button>
+            )}
 
-            <button
-              className={`btn btn-secondary ${activeTab === 'manual-export' ? 'active' : ''}`}
-              style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'manual-export' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'manual-export' ? 'rgba(99, 102, 241, 0.1)' : '' }}
-              onClick={() => setActiveTab('manual-export')}
-            >
-              <Copy size={18} /> Manual Export Pack
-            </button>
+            {viewMode === 'owner' && (
+              <button
+                className={`btn btn-secondary ${activeTab === 'manual-export' ? 'active' : ''}`}
+                style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'manual-export' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'manual-export' ? 'rgba(99, 102, 241, 0.1)' : '' }}
+                onClick={() => setActiveTab('manual-export')}
+              >
+                <Copy size={18} /> Manual Export Pack
+              </button>
+            )}
 
             <button
               className={`btn btn-secondary ${activeTab === 'presentation-export' ? 'active' : ''}`}
@@ -593,18 +638,34 @@ export default function App() {
           </div>
 
           <div style={{ marginTop: '20px', padding: '12px', borderTop: '1px solid var(--border-color)', width: '100%', fontSize: '0.8rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600, color: 'var(--accent-emerald)', marginBottom: '8px' }}>
-              <span>🛡️ Safety Guard Status</span>
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', color: 'var(--text-secondary)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Auto-post:</span> <span style={{ color: 'var(--accent-rose)', fontWeight: 'bold' }}>NO</span></div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Real Ads:</span> <span style={{ color: 'var(--accent-rose)', fontWeight: 'bold' }}>NO</span></div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Real Message:</span> <span style={{ color: 'var(--accent-rose)', fontWeight: 'bold' }}>NO</span></div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Real Connectors:</span> <span style={{ color: 'var(--accent-rose)', fontWeight: 'bold' }}>NO</span></div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Secrets Added:</span> <span style={{ color: 'var(--accent-rose)', fontWeight: 'bold' }}>NO</span></div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>FnB OS V1:</span> <span style={{ color: 'var(--accent-rose)', fontWeight: 'bold' }}>NO</span></div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Sample Data Only:</span> <span style={{ color: 'var(--accent-emerald)', fontWeight: 'bold' }}>YES</span></div>
-            </div>
+            {viewMode === 'owner' ? (
+              <>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600, color: 'var(--accent-emerald)', marginBottom: '8px' }}>
+                  <span>🛡️ Safety Guard Status</span>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', color: 'var(--text-secondary)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Auto-post:</span> <span style={{ color: 'var(--accent-rose)', fontWeight: 'bold' }}>NO</span></div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Real Ads:</span> <span style={{ color: 'var(--accent-rose)', fontWeight: 'bold' }}>NO</span></div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Real Message:</span> <span style={{ color: 'var(--accent-rose)', fontWeight: 'bold' }}>NO</span></div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Real Connectors:</span> <span style={{ color: 'var(--accent-rose)', fontWeight: 'bold' }}>NO</span></div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Secrets Added:</span> <span style={{ color: 'var(--accent-rose)', fontWeight: 'bold' }}>NO</span></div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>FnB OS V1:</span> <span style={{ color: 'var(--accent-rose)', fontWeight: 'bold' }}>NO</span></div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Sample Data Only:</span> <span style={{ color: 'var(--accent-emerald)', fontWeight: 'bold' }}>YES</span></div>
+                </div>
+              </>
+            ) : (
+              <>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600, color: 'var(--accent-emerald)', marginBottom: '8px' }}>
+                  <span>🛡️ Trust &amp; Safety</span>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', color: 'var(--text-secondary)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Sample Data:</span> <span style={{ color: 'var(--accent-emerald)', fontWeight: 'bold' }}>YES</span></div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Approval Required:</span> <span style={{ color: 'var(--accent-amber)', fontWeight: 'bold' }}>YES</span></div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>No Live Publishing:</span> <span style={{ color: 'var(--accent-rose)', fontWeight: 'bold' }}>✓</span></div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>No Real Ads:</span> <span style={{ color: 'var(--accent-rose)', fontWeight: 'bold' }}>✓</span></div>
+                </div>
+              </>
+            )}
           </div>
         </aside>
 
@@ -634,7 +695,36 @@ export default function App() {
               {/* 1. DASHBOARD TAB */}
               {activeTab === 'dashboard' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                  
+
+                  {/* ── View Mode Context Card — Phase H.7 ── */}
+                  {viewMode === 'owner' ? (
+                    <div style={{ padding: '14px 18px', background: 'rgba(99,102,241,0.06)', border: '1px solid rgba(99,102,241,0.25)', borderRadius: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <span style={{ fontSize: '1.1rem' }}>🔧</span>
+                        <div>
+                          <span style={{ fontSize: '0.88rem', fontWeight: 700, color: '#818cf8' }}>Owner View — Internal Workspace</span>
+                          <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: '2px 0 0' }}>Manage brands, review AI outputs, run approval, configure campaigns. Switch to Client View before presenting.</p>
+                        </div>
+                      </div>
+                      <button onClick={() => handleViewModeSwitch('client')} style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '5px 12px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 600, border: '1px solid rgba(16,185,129,0.3)', cursor: 'pointer', background: 'rgba(16,185,129,0.08)', color: '#34d399' }}>
+                        <Eye size={13} /> Switch to Client View
+                      </button>
+                    </div>
+                  ) : (
+                    <div style={{ padding: '14px 18px', background: 'rgba(16,185,129,0.06)', border: '1px solid rgba(16,185,129,0.3)', borderRadius: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <span style={{ fontSize: '1.1rem' }}>👁</span>
+                        <div>
+                          <span style={{ fontSize: '0.88rem', fontWeight: 700, color: '#34d399' }}>Client View — Campaign Presentation</span>
+                          <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: '2px 0 0' }}>Present campaign plan and outputs to your client. Internal tools hidden. Sample data — approval required before export.</p>
+                        </div>
+                      </div>
+                      <button onClick={() => handleViewModeSwitch('owner')} style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '5px 12px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 600, border: '1px solid rgba(99,102,241,0.3)', cursor: 'pointer', background: 'rgba(99,102,241,0.08)', color: '#818cf8' }}>
+                        🔧 Back to Owner View
+                      </button>
+                    </div>
+                  )}
+
                   {/* ── Brand Switcher — Phase H.5 ── */}
                   <div className="glass-panel" style={{ padding: '20px', borderLeft: '4px solid var(--accent-indigo)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>

@@ -299,5 +299,15 @@ Nhật ký ghi lại các hành động mô phỏng của các AI Agent khi vậ
 ### 🗓️ Ngày 05/06/2026 — Phase H.6 CLOSED
 - **[SYSTEM]:** Phase H.6 chính thức đóng. Trạng thái: ✅ DONE + CODEX PASS + FIXES APPLIED + BUILT + PUSHED + READY FOR OWNER PRODUCTION CHECK.
 - **[SYSTEM]:** Note: H.6 polished the app into a more client-ready AI Marketing Team Workspace. Visible product wording was corrected from demo/mock framing to Workspace, Sample Data, Sandbox Safe Mode, Client Presentation Pack, and Client Workspace View. Owner/client guide flow and approval-safe framing are now clearer.
-- **[AI Coordinator]:** Trạng thái hoạt động: `idle`. Workspace client-ready. Sẵn sàng cho Phase I — Real Data Connectors (pending Owner approval).
+- **[AI Coordinator]:** Trạng thái hoạt động: `idle`. Phase H.6 closed. Bắt đầu Phase H.7 — Owner View + Client View.
+
+### 🗓️ Ngày 05/06/2026 — Phase H.7 Owner View + Client View
+- **[SYSTEM]:** Phase H.7 started. Goal: two-mode workspace experience (Owner View / Client View).
+- **[Builder Agent]:** Added `Eye` import, `viewMode` state, `handleViewModeSwitch()`. Header toggle built. Sidebar conditional tabs and safety guard implemented. Dashboard view context card added.
+- **[SYSTEM]:** Owner View: all 9 tabs + full Safety Guard. Client View: 6 tabs (4 hidden) + Trust & Safety sidebar.
+- **[SYSTEM]:** `npm run build` PASS — 0 errors. 342.52 kB JS bundle. gzip: 91.12 kB.
+- **[SYSTEM]:** Safety guard H.7 confirmed: Auto-post: NO | Real Ads: NO | Real Messaging: NO | Real Connectors: NO | Secrets: NO | FnB OS V1: NO | Sample Data Only: YES.
+- **[SYSTEM]:** Multi-brand switching intact: Vị Cuốn, Cơm Tấm Bản Khói, Forme all functional.
+- **[SYSTEM]:** Phase H.7 ✅ DONE + BUILT + PUSHED.
+- **[AI Coordinator]:** Trạng thái hoạt động: `idle`. Workspace now has Owner View + Client View. Sẵn sàng cho Phase I — Real Data Connectors (pending Owner approval).
 
