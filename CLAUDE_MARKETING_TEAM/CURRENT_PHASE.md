@@ -5,7 +5,7 @@ Tài liệu này dùng để theo dõi tiến độ thực hiện và trạng th
 ## 📌 Thông tin chung
 - **Phase hiện tại:** Phase H.6 — Client-ready Workspace Polish
 - **Mục tiêu:** Polish workspace để client-ready: chuẩn hoá ngôn ngữ nav/labels, thêm owner/client guide card, loại bỏ demo/prototype framing, làm dynamic approval hint, và cập nhật tất cả hardcoded phase/version references.
-- **Trạng thái:** ✅ DONE + BUILT + PUSHED
+- **Trạng thái:** ✅ DONE + CODEX PASS + FIXES APPLIED + BUILT + PUSHED + READY FOR OWNER PRODUCTION CHECK
 
 ---
 
@@ -51,8 +51,13 @@ Tài liệu này dùng để theo dõi tiến độ thực hiện và trạng th
 - [x] No Real Ads ✅
 - [x] No Real Messaging ✅
 
+### Codex Review
+- [x] Codex review round 1: NEEDS FIX — visible demo/mock wording found (5 required, 15 additional)
+- [x] Codex fixes applied: commits `4d2f3bd` + `c7b4f7d`
+- [x] Codex re-review: PASS
+
 ### Build & Safety
-- [x] npm run build PASS — 0 errors
+- [x] npm run build PASS — 0 errors (all rounds)
 - [x] Push to GitHub
 
 ### Docs & Logs
@@ -78,7 +83,7 @@ Tài liệu này dùng để theo dõi tiến độ thực hiện và trạng th
 ---
 
 ## 📝 Closeout Note
-H.6 polished the workspace for client-readiness: all nav/product labels now use workspace framing (not demo framing), the approval hint is now dynamic per selected brand, the "How to Use This Workspace" owner/client guide card was added to the Dashboard, the Manual Export Pack title no longer carries a phase prefix, and all H.5 version references updated to H.6. Build passes clean.
+H.6 polished the app into a more client-ready AI Marketing Team Workspace. Visible product wording was corrected from demo/mock framing to Workspace, Sample Data, Sandbox Safe Mode, Client Presentation Pack, and Client Workspace View. Owner/client guide flow and approval-safe framing are now clearer. Two rounds of Codex review: initial NEEDS FIX → all fixes applied → re-review PASS. Build passes clean. Commits: `95dfeee` (feat), `4d2f3bd` (fix round 1), `c7b4f7d` (fix round 2).
 
 ---
 

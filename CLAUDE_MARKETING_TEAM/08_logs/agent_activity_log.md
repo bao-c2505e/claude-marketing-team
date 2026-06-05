@@ -283,6 +283,21 @@ Nhật ký ghi lại các hành động mô phỏng của các AI Agent khi vậ
 - **[SYSTEM]:** `npm run build` PASS — 0 errors. 337.64 kB JS bundle. gzip: 90.44 kB.
 - **[SYSTEM]:** Docs updated: CURRENT_PHASE.md, SESSION_SUMMARY.md, phase_log.md, agent_activity_log.md.
 - **[SYSTEM]:** Safety guard H.6 confirmed: Auto-post: NO | Real Ads: NO | Real Messaging: NO | Real Connectors: NO | Secrets: NO | FnB OS V1: NO | Sample Data Only: YES.
-- **[SYSTEM]:** Phase H.6 chính thức đóng. Trạng thái: ✅ DONE + BUILT + PUSHED.
+- **[SYSTEM]:** Phase H.6 initial build done. Trạng thái: ✅ DONE + BUILT + PUSHED.
+
+### 🗓️ Ngày 05/06/2026 — Phase H.6 Codex Review Round 1
+- **[SYSTEM]:** Codex review Phase H.6 — result: NEEDS FIX. 5 required + additional visible demo/mock wording identified.
+- **[Builder Agent]:** Applied fix commit `4d2f3bd`. Replaced: Demo/Mock Data Only, Mock Pricing — Demo Only, Demo/mock only, Approval Status Demo, demo/mock data only (Safety Boundaries), Sales Demo Script → Presenter Walkthrough Script, client-facing demo script, fill demo data, That's the full demo.
+- **[SYSTEM]:** `npm run build` PASS — 0 errors.
+
+### 🗓️ Ngày 05/06/2026 — Phase H.6 Codex Review Round 2
+- **[SYSTEM]:** Codex re-review Phase H.6 — 15 additional visible strings found.
+- **[Builder Agent]:** Applied fix commit `c7b4f7d`. Replaced: Mock Data badge, Mock Ad Units, demo mock-up, Offline Mock-up, Mock workspace only, White-label demo, dữ liệu demo giả lập, mock est., Mock Estimate — Demo Only, phục vụ demo, mock ads, mock ad copy units, Mock data badge.
+- **[SYSTEM]:** `npm run build` PASS — 0 errors.
+- **[SYSTEM]:** Codex re-review: PASS. All demo/mock visible strings replaced. Only internal tab IDs (demo-pack, client-demo) and code variable names (mockAds) remain — per review rules, these are acceptable.
+
+### 🗓️ Ngày 05/06/2026 — Phase H.6 CLOSED
+- **[SYSTEM]:** Phase H.6 chính thức đóng. Trạng thái: ✅ DONE + CODEX PASS + FIXES APPLIED + BUILT + PUSHED + READY FOR OWNER PRODUCTION CHECK.
+- **[SYSTEM]:** Note: H.6 polished the app into a more client-ready AI Marketing Team Workspace. Visible product wording was corrected from demo/mock framing to Workspace, Sample Data, Sandbox Safe Mode, Client Presentation Pack, and Client Workspace View. Owner/client guide flow and approval-safe framing are now clearer.
 - **[AI Coordinator]:** Trạng thái hoạt động: `idle`. Workspace client-ready. Sẵn sàng cho Phase I — Real Data Connectors (pending Owner approval).
 

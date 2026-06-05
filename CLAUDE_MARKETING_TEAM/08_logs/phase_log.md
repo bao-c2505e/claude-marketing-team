@@ -242,5 +242,44 @@ Nhật ký theo dõi các mốc hoàn thành kỹ thuật qua các Phase.
   9. Brand gallery "Current (H.5)" → "Current (H.6)"; service packages "Client Demo Mode" → "Client Workspace View".
 - **Safety Guard H.6 confirmed:** Auto-post: NO | Real Ads: NO | Secrets: NO | FnB OS V1: NO | Sample Data Only: YES
 - **Build:** `npm run build` PASS — 0 errors.
-- **Trạng thái Phase H.6:** ✅ DONE + BUILT + PUSHED
+- **Trạng thái Phase H.6:** ✅ DONE + BUILT + PUSHED (initial)
+
+### 🗓️ Ngày 05/06/2026 (Local Time) — Phase H.6 Codex Review Round 1 + Fix
+- **Sự kiện:** Codex review Phase H.6.
+- **Kết quả:** NEEDS FIX — visible demo/mock wording in 5 required locations.
+- **Fixes applied:** Commit `4d2f3bd` — fix: align phase h6 workspace wording.
+  - `Demo/Mock Data Only` → `Sample Data Only`
+  - `Mock Pricing — Demo Only` → `Sample Pricing — Sandbox Mode`
+  - `Demo/mock only` → `Sample data only`
+  - `Approval Status Demo` → `Approval Status Preview`
+  - `Every output is demo/mock data only` → `...sample data only until live connectors are approved`
+  - `Sales Demo Script` → `Presenter Walkthrough Script`
+  - `client-facing demo script` → `client workspace walkthrough`
+  - Copy text: `SALES DEMO SCRIPT`, `fill demo data`, `That's the full demo` → workspace equivalents
+- **Build:** `npm run build` PASS — 0 errors.
+
+### 🗓️ Ngày 05/06/2026 (Local Time) — Phase H.6 Codex Review Round 2 + Fix
+- **Sự kiện:** Codex re-review Phase H.6 — 15 additional visible demo/mock strings found.
+- **Fixes applied:** Commit `c7b4f7d` — fix: remove remaining h6 demo wording.
+  - `Mock Data` dashboard badge → `Sample Data`
+  - `Mock Ad Units` → `Sample Ad Units`
+  - `demo mock-up` disclaimer → `sandbox minh họa`
+  - `Offline Mock-up` → `Offline Sandbox`
+  - `Mock workspace only` → `Sandbox Safe Mode`
+  - `White-label demo` → `White-label workspace`
+  - `dữ liệu demo giả lập` → `dữ liệu mẫu`
+  - `(mock est.)` → `(sample est.)`
+  - `Mock Estimate — Demo Only` → `Sample Estimate — Sandbox Only`
+  - `phục vụ demo` → `phục vụ minh họa`
+  - `mock ads` / `mock ad copy units` → `sample ads` / `sample ad copy units`
+  - `Mock data` export badge → `Sample data`
+- **Build:** `npm run build` PASS — 0 errors.
+
+### 🗓️ Ngày 05/06/2026 (Local Time) — Phase H.6 CLOSED
+- **Sự kiện:** Đóng Phase H.6 — Client-ready Workspace Polish.
+- **Người thực hiện:** Owner + Codex reviewer + Builder Agent (Claude Code).
+- **Kết quả Codex re-review:** PASS — all fixes applied, build PASS, git clean.
+- **Commits:** `95dfeee` (feat: polish phase h6), `4d2f3bd` (fix: round 1), `c7b4f7d` (fix: round 2).
+- **Note:** H.6 polished the app into a more client-ready AI Marketing Team Workspace. Visible product wording was corrected from demo/mock framing to Workspace, Sample Data, Sandbox Safe Mode, Client Presentation Pack, and Client Workspace View. Owner/client guide flow and approval-safe framing are now clearer.
+- **Trạng thái Phase H.6:** ✅ DONE + CODEX PASS + FIXES APPLIED + BUILT + PUSHED + READY FOR OWNER PRODUCTION CHECK
 

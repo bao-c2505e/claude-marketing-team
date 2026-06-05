@@ -18,7 +18,7 @@ Chúng ta đang xây dựng **AI Marketing Team Workspace** — một workspace 
 
 ---
 
-## ✅ Phase H.6 — Client-ready Workspace Polish (DONE + BUILT + PUSHED — 2026-06-05)
+## ✅ Phase H.6 — Client-ready Workspace Polish (DONE + CODEX PASS + FIXES APPLIED + BUILT + PUSHED + READY FOR OWNER PRODUCTION CHECK — 2026-06-05)
 
 ### Mục tiêu:
 Polish workspace để client-ready: chuẩn hoá ngôn ngữ, loại bỏ demo/prototype framing, dynamic approval hint, owner/client guide card.
@@ -34,6 +34,8 @@ Polish workspace để client-ready: chuẩn hoá ngôn ngữ, loại bỏ demo/
 8. **Pitch text** in demo-pack: dynamic brand name and hero product
 9. **Brand gallery label**: "Current (H.5)" → "Current (H.6)"
 10. **Service packages**: "Client Demo Mode" item → "Client Workspace View"
+11. **Codex fixes (round 1)**: `Demo/Mock Data Only`, `Mock Pricing — Demo Only`, `Demo/mock only`, `Approval Status Demo`, `demo/mock data only` in Safety Boundaries step
+12. **Codex fixes (round 2)**: 15 additional visible demo/mock strings replaced — `Mock Data` badge, `Mock Ad Units`, `Offline Mock-up`, `Mock workspace only`, `White-label demo`, `Mock Pricing`, `Mock Estimate`, `mock est.`, `mock estimate`, `mock ads`, `Mock data` badge, and more → workspace/sample/sandbox framing throughout
 
 ---
 
@@ -68,7 +70,7 @@ Polish workspace để client-ready: chuẩn hoá ngôn ngữ, loại bỏ demo/
 - **Phase A–G**: Core workspace infrastructure, React UI, mock data, AI agents simulation
 
 ## ➡️ Bước tiếp theo
-1. **Phase H.6** — ✅ CLOSED. Client-ready workspace polish complete.
+1. **Phase H.6** — ✅ CLOSED. H.6 polished the app into a more client-ready AI Marketing Team Workspace. Visible product wording corrected from demo/mock framing to Workspace, Sample Data, Sandbox Safe Mode, Client Presentation Pack, and Client Workspace View. Owner/client guide flow and approval-safe framing are now clearer.
 2. **Phase I (Future)** — Real data connectors (pending Owner approval):
    - Real brand brief input
    - Meta/Google Ads connector (sandbox)
