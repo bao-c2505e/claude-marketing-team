@@ -5,7 +5,7 @@ Tài liệu này dùng để theo dõi tiến độ thực hiện và trạng th
 ## 📌 Thông tin chung
 - **Phase hiện tại:** Phase H.7 — Owner View + Client View
 - **Mục tiêu:** Thêm two-mode workspace experience: Owner/Internal View để quản lý AI Marketing Team workspace, và Client/Presentation View để trình bày campaign cho khách hàng mà không có technical clutter nội bộ.
-- **Trạng thái:** ✅ DONE + BUILT + PUSHED
+- **Trạng thái:** ✅ DONE + CODEX PASS + FIXES APPLIED + BUILT + PUSHED + READY FOR OWNER PRODUCTION CHECK
 
 ---
 
@@ -40,8 +40,16 @@ Tài liệu này dùng để theo dõi tiến độ thực hiện và trạng th
 - [x] No Real Ads ✅
 - [x] No Live Publishing ✅
 
+### Codex Review
+- [x] Codex review round 1: NEEDS FIX — Client View still showing internal technical clutter
+- [x] Fix applied (commit `2037f61`):
+  - Brand Workspace: conditional Phase I connector card — Owner View keeps technical arch notes; Client View shows "🛡️ Workspace Scope" with client-facing trust language
+  - Presentation & Export step 06: Owner View body unchanged; Client View body uses "Sample Data / Approval Required / No Live Publishing" language
+  - Stale "Current (H.6)" label → "Current (H.7)" fixed in same block
+- [x] Codex re-review: PASS
+
 ### Build & Safety
-- [x] npm run build PASS — 0 errors (342.52 kB JS)
+- [x] npm run build PASS — 0 errors (343.60 kB JS, all rounds)
 - [x] Push to GitHub
 - [x] No backend/database/API/secrets/connectors added
 - [x] FnB OS V1 not touched
@@ -85,7 +93,7 @@ Tài liệu này dùng để theo dõi tiến độ thực hiện và trạng th
 ---
 
 ## 📝 Closeout Note
-H.7 adds a two-mode workspace experience. Owner View keeps all internal controls visible; Client View presents a clean campaign view with internal tools and technical clutter hidden. The toggle sits in the header for instant access. Switching to Client View while on an owner-only tab automatically redirects to Dashboard. Multi-brand switching and all 3 seed brands remain fully functional.
+H.7 added Owner View and Client View inside the same AI Marketing Team Workspace. Owner View keeps internal review/control information, while Client View is cleaner for client presentation and hides internal technical clutter. Client View now uses trust/scope wording such as Sample Data, Approval Required, No Live Publishing, and No Real Ads unless approved. Two rounds of Codex review: initial NEEDS FIX → fix applied → re-review PASS. Commits: `9dc235a` (feat), `2037f61` (fix).
 
 ---
 

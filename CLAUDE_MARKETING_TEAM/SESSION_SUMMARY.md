@@ -18,7 +18,7 @@ Chúng ta đang xây dựng **AI Marketing Team Workspace** — một workspace 
 
 ---
 
-## ✅ Phase H.7 — Owner View + Client View (DONE + BUILT + PUSHED — 2026-06-05)
+## ✅ Phase H.7 — Owner View + Client View (DONE + CODEX PASS + FIXES APPLIED + BUILT + PUSHED + READY FOR OWNER PRODUCTION CHECK — 2026-06-05)
 
 ### Mục tiêu:
 Thêm two-mode workspace experience: Owner View (manage/review/approve) và Client View (present/feedback/export).
@@ -31,6 +31,7 @@ Thêm two-mode workspace experience: Owner View (manage/review/approve) và Clie
 5. **Client View — 4 tabs hidden**: New Campaign Brief, AI Team Board, Manual Export Pack, Client Workspace View.
 6. **Client View — simplified sidebar safety**: Trust & Safety (Sample Data, Approval Required, No Live Publishing, No Real Ads) instead of full internal Guard.
 7. **Dashboard view context card**: Owner card (indigo, manage/approve) + Client card (emerald, present/export), each with a quick-switch button.
+8. **Codex fix (`2037f61`)**: Brand Workspace connector boundary card conditional — Owner View keeps technical notes; Client View shows "Workspace Scope" trust card. Presentation & Export step 06 body conditional — Owner keeps internal details; Client View uses Sample Data / Approval Required / No Live Publishing language.
 
 ### View Mode Table:
 | | Owner View | Client View |
@@ -96,7 +97,7 @@ Polish workspace để client-ready: chuẩn hoá ngôn ngữ, loại bỏ demo/
 - **Phase A–G**: Core workspace infrastructure, React UI, mock data, AI agents simulation
 
 ## ➡️ Bước tiếp theo
-1. **Phase H.7** — ✅ DONE. Two-mode workspace (Owner View / Client View) implemented. Client View hides internal tools and simplifies safety sidebar for presentation use.
+1. **Phase H.7** — ✅ CLOSED. H.7 added Owner View and Client View inside the same AI Marketing Team Workspace. Owner View keeps internal review/control information, while Client View is cleaner for client presentation and hides internal technical clutter. Client View uses trust/scope wording: Sample Data, Approval Required, No Live Publishing, No Real Ads unless approved.
 2. **Phase H.6** — ✅ CLOSED. H.6 polished the app into a more client-ready AI Marketing Team Workspace. Visible product wording corrected from demo/mock framing to Workspace, Sample Data, Sandbox Safe Mode, Client Presentation Pack, and Client Workspace View. Owner/client guide flow and approval-safe framing are now clearer.
 2. **Phase I (Future)** — Real data connectors (pending Owner approval):
    - Real brand brief input

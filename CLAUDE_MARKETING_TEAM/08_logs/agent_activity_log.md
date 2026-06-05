@@ -308,6 +308,16 @@ Nhật ký ghi lại các hành động mô phỏng của các AI Agent khi vậ
 - **[SYSTEM]:** `npm run build` PASS — 0 errors. 342.52 kB JS bundle. gzip: 91.12 kB.
 - **[SYSTEM]:** Safety guard H.7 confirmed: Auto-post: NO | Real Ads: NO | Real Messaging: NO | Real Connectors: NO | Secrets: NO | FnB OS V1: NO | Sample Data Only: YES.
 - **[SYSTEM]:** Multi-brand switching intact: Vị Cuốn, Cơm Tấm Bản Khói, Forme all functional.
-- **[SYSTEM]:** Phase H.7 ✅ DONE + BUILT + PUSHED.
+- **[SYSTEM]:** Phase H.7 initial build ✅ DONE + BUILT + PUSHED.
+
+### 🗓️ Ngày 05/06/2026 — Phase H.7 Codex Review + Fix
+- **[SYSTEM]:** Codex review Phase H.7 — result: NEEDS FIX. Client View still exposing internal technical clutter in 2 locations.
+- **[Builder Agent]:** Applied fix commit `2037f61`. Brand Workspace connector boundary made conditional (Owner = technical arch notes; Client = "Workspace Scope" trust card). Presentation & Export step 06 body made conditional (Owner = internal sandbox details; Client = Sample Data / Approval Required / No Live Publishing). Stale H.6 label → H.7 fixed.
+- **[SYSTEM]:** `npm run build` PASS — 0 errors. 343.60 kB JS.
+- **[SYSTEM]:** Codex re-review: PASS.
+
+### 🗓️ Ngày 05/06/2026 — Phase H.7 CLOSED
+- **[SYSTEM]:** Phase H.7 chính thức đóng. Trạng thái: ✅ DONE + CODEX PASS + FIXES APPLIED + BUILT + PUSHED + READY FOR OWNER PRODUCTION CHECK.
+- **[SYSTEM]:** Note: H.7 added Owner View and Client View inside the same AI Marketing Team Workspace. Owner View keeps internal review/control information, while Client View is cleaner for client presentation and hides internal technical clutter. Client View now uses trust/scope wording such as Sample Data, Approval Required, No Live Publishing, and No Real Ads unless approved.
 - **[AI Coordinator]:** Trạng thái hoạt động: `idle`. Workspace now has Owner View + Client View. Sẵn sàng cho Phase I — Real Data Connectors (pending Owner approval).
 

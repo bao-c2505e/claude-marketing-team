@@ -296,5 +296,22 @@ Nhật ký theo dõi các mốc hoàn thành kỹ thuật qua các Phase.
   7. Auto-redirect về Dashboard khi switch sang Client View từ owner-only tab.
 - **Safety Guard H.7 confirmed:** Auto-post: NO | Real Ads: NO | Secrets: NO | FnB OS V1: NO | Sample Data Only: YES
 - **Build:** `npm run build` PASS — 0 errors. 342.52 kB JS bundle.
-- **Trạng thái Phase H.7:** ✅ DONE + BUILT + PUSHED
+- **Trạng thái Phase H.7:** ✅ DONE + BUILT + PUSHED (initial)
+
+### 🗓️ Ngày 05/06/2026 (Local Time) — Phase H.7 Codex Review + Fix
+- **Sự kiện:** Codex review Phase H.7.
+- **Kết quả:** NEEDS FIX — Client View still exposing internal technical clutter in 2 locations.
+- **Fix applied:** Commit `2037f61` — fix: clean h7 client view technical wording.
+  - Brand Workspace connector boundary: conditional render — Owner View keeps technical arch notes; Client View shows "🛡️ Workspace Scope" with client-facing trust language (sample data, approval required, live connectors in future approved phase).
+  - Presentation & Export step 06 Safety Boundaries body: conditional — Owner View keeps "100% offline sandbox / no backend / no database" internal text; Client View uses "Sample Data only / Approval Required / No Live Publishing" language.
+  - Stale "Current (H.6)" label → "Current (H.7)" fixed.
+- **Build:** `npm run build` PASS — 0 errors. 343.60 kB JS.
+
+### 🗓️ Ngày 05/06/2026 (Local Time) — Phase H.7 CLOSED
+- **Sự kiện:** Đóng Phase H.7 — Owner View + Client View.
+- **Người thực hiện:** Owner + Codex reviewer + Builder Agent (Claude Code).
+- **Kết quả Codex re-review:** PASS — fix applied, build PASS, git clean.
+- **Commits:** `9dc235a` (feat: add phase h7 owner and client views), `2037f61` (fix: clean h7 client view technical wording).
+- **Note:** H.7 added Owner View and Client View inside the same AI Marketing Team Workspace. Owner View keeps internal review/control information, while Client View is cleaner for client presentation and hides internal technical clutter. Client View now uses trust/scope wording such as Sample Data, Approval Required, No Live Publishing, and No Real Ads unless approved.
+- **Trạng thái Phase H.7:** ✅ DONE + CODEX PASS + FIXES APPLIED + BUILT + PUSHED + READY FOR OWNER PRODUCTION CHECK
 
