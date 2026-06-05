@@ -1,38 +1,55 @@
-# CURRENT PHASE — Phase H.5: Multi-brand Workspace Readiness ✅ DONE
+# CURRENT PHASE — Phase H.6: Client-ready Workspace Polish ✅ DONE
 
 Tài liệu này dùng để theo dõi tiến độ thực hiện và trạng thái của Phase hiện tại.
 
 ## 📌 Thông tin chung
-- **Phase hiện tại:** Phase H.5 — Multi-brand Workspace Readiness
-- **Mục tiêu:** Nâng cấp workspace từ single-brand (Vị Cuốn) thành multi-brand AI Marketing Team Workspace hỗ trợ nhiều thương hiệu/khách hàng, sử dụng sample/seed data cho đến khi real connectors được phê duyệt ở Phase I.
-- **Framing:** Real workspace architecture (not a one-time demo) — sẵn sàng cho dữ liệu thực tế trong tương lai.
-- **Trạng thái:** ✅ DONE + CODEX PASS + FIX APPLIED + BUILT + PUSHED + READY FOR OWNER PRODUCTION CHECK
+- **Phase hiện tại:** Phase H.6 — Client-ready Workspace Polish
+- **Mục tiêu:** Polish workspace để client-ready: chuẩn hoá ngôn ngữ nav/labels, thêm owner/client guide card, loại bỏ demo/prototype framing, làm dynamic approval hint, và cập nhật tất cả hardcoded phase/version references.
+- **Trạng thái:** ✅ DONE + BUILT + PUSHED
 
 ---
 
-## 📋 Checklist Phase H.5
+## 📋 Checklist Phase H.6
 
-### Brand Data Layer
-- [x] Thêm Cơm Tấm Bản Khói vào `mockData.ts` — F&B / cơm tấm / TP.HCM
-- [x] Thêm Forme vào `mockData.ts` — Nội thất cao cấp / sofa Series F-1
-- [x] Mỗi brand có đủ: brief, calendar (7 ngày), checklist (10 items), outputs (5 agents)
-- [x] Vị Cuốn giữ nguyên toàn bộ
+### Phase Badge & Version Labels
+- [x] Header badge → "Phase H.6 — Client-ready Workspace Polish"
+- [x] Brand gallery "Current (H.5)" → "Current (H.6)"
 
-### UI Changes
-- [x] Header badge → "Phase H.5 — Multi-brand Workspace Readiness"
-- [x] Sidebar: thêm "Brand Workspace" tab (icon: Store)
-- [x] Sidebar: đổi "Active Campaign" → "Active Brand"
-- [x] Dashboard: thêm Brand Switcher section ở đầu trang (brand cards, 1-click switch)
-- [x] New tab: Brand Workspace Gallery — 3-column brand cards với full details
-- [x] Brand Gallery: Phase I connector boundary note
-- [x] Client Demo Mode: Campaign Overview động theo `activeCampaign.brief.*`
-- [x] Client Demo Mode: AI Team Workspace sample output descriptions động
-- [x] localStorage key bump: v2 → v3 (force fresh load với 3 brands)
+### Nav & Product Label Renames
+- [x] Sidebar "Client Demo Pack" → "Client Presentation Pack"
+- [x] Sidebar "Client Demo Mode" → "Client Workspace View"
+- [x] Demo Pack tab title → "Client Presentation Pack"
+- [x] Client Demo Mode h2 → "Client Workspace View", badge → "Client-Ready"
+- [x] Service packages item "Client Demo Mode" → "Client Workspace View"
 
-### Framing & Language
-- [x] Không dùng "demo" là main product framing
-- [x] Dùng "Workspace", "Sample Data", "Sandbox Safe Mode", "Seed Data" đúng ngữ cảnh
-- [x] Safety labels rõ ràng: Auto-post OFF / Real Ads OFF / Approval Required
+### Manual Export Pack
+- [x] Removed "Phase H.1 —" prefix from Manual Export Pack title
+- [x] Badge "Production Demo Ready" → "Production Ready"
+
+### Approval Hint — Dynamic Brand
+- [x] Replaced hardcoded "Vị Cuốn / Bánh tráng cuốn heo quay" approval hint with `activeCampaign.brief.heroProduct` and `activeCampaign.brief.brandName`
+
+### "How to Use This Workspace" Guide Card
+- [x] Added new owner/client guide card on Dashboard (emerald, 6 steps):
+  1. Choose Brand → brand-gallery tab
+  2. Review Campaign Plan → dashboard tab
+  3. Review AI Team Outputs → outputs tab
+  4. Approve or Request Edits → approval tab
+  5. Export / Present Pack → manual-export tab
+  6. Real Connectors: Phase I Only (boundary note)
+- [x] Renamed existing guide to "Presenter Walkthrough Guide"
+- [x] Updated step 4 label: "Client Demo Mode" → "Client Workspace View"
+
+### Pitch Text — Dynamic Brand
+- [x] Pitch copy in demo-pack tab now uses `activeCampaign.brief.brandName` and `activeCampaign.brief.heroProduct`
+
+### Safety Labels (preserved)
+- [x] Sample Data ✅
+- [x] Sandbox Safe Mode ✅
+- [x] Approval Required ✅
+- [x] No Auto-post ✅
+- [x] No Real Ads ✅
+- [x] No Real Messaging ✅
 
 ### Build & Safety
 - [x] npm run build PASS — 0 errors
@@ -43,21 +60,10 @@ Tài liệu này dùng để theo dõi tiến độ thực hiện và trạng th
 - [x] SESSION_SUMMARY.md
 - [x] phase_log.md
 - [x] agent_activity_log.md
-- [x] phase_h5_handoff.md (mới tạo)
 
 ---
 
-## 🏷️ Brands trong Workspace (Phase H.5)
-
-| Brand | Industry | Hero Product | Location | Status |
-|-------|----------|--------------|----------|--------|
-| Vị Cuốn | F&B / street food premium | Bánh tráng cuốn heo quay | TP. Vinh, Nghệ An | ✅ Seed brand |
-| Cơm Tấm Bản Khói | F&B / cơm tấm / quán địa phương | Cơm tấm sườn bì chả | TP.HCM — Q. Bình Thạnh | ✅ Seed brand |
-| Forme | Nội thất cao cấp / premium furniture | Sofa da Series F-1 | TP.HCM + Hà Nội | ✅ Seed brand |
-
----
-
-## 🛡️ Safety Guard (H.5 — confirmed)
+## 🛡️ Safety Guard (H.6 — confirmed)
 - Auto-post: NO
 - Real Ads: NO
 - Real Messaging: NO
@@ -71,12 +77,14 @@ Tài liệu này dùng để theo dõi tiến độ thực hiện và trạng th
 
 ---
 
----
-
 ## 📝 Closeout Note
-H.5 upgraded the app into a multi-brand AI Marketing Team Workspace with Vị Cuốn, Cơm Tấm Bản Khói, and Forme using sample/seed data and Sandbox Safe Mode. Product framing corrected from demo wording to workspace wording. Codex review found 1 required wording fix — applied and pushed.
+H.6 polished the workspace for client-readiness: all nav/product labels now use workspace framing (not demo framing), the approval hint is now dynamic per selected brand, the "How to Use This Workspace" owner/client guide card was added to the Dashboard, the Manual Export Pack title no longer carries a phase prefix, and all H.5 version references updated to H.6. Build passes clean.
 
 ---
+
+## ✅ Phase H.5 (tiền nhiệm) — CLOSED
+- Commit: `45c141a` — docs: close phase h5 multi brand workspace readiness
+- Features: 3 seed brands (Vị Cuốn, Cơm Tấm Bản Khói, Forme), Brand Workspace Gallery, Brand Switcher on Dashboard, localStorage v3, multi-brand dynamic outputs
 
 ## ✅ Phase H.4 (tiền nhiệm) — CLOSED
 - Commit: `c4458de` — docs: close phase h4 export presentation readiness

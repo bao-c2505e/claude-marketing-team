@@ -225,5 +225,22 @@ Nhật ký theo dõi các mốc hoàn thành kỹ thuật qua các Phase.
 - **Commits:** `e313f8f` (feat: add phase h5 multi brand workspace readiness), `147487d` (fix: align phase h5 campaign workspace wording).
 - **Note:** H.5 upgraded the app into a multi-brand AI Marketing Team Workspace with Vị Cuốn, Cơm Tấm Bản Khói, and Forme using sample/seed data and Sandbox Safe Mode. Product framing corrected from demo wording to workspace wording.
 - **Trạng thái Phase H.5:** ✅ DONE + CODEX PASS + FIX APPLIED + BUILT + PUSHED + READY FOR OWNER PRODUCTION CHECK
-- **Next phase:** Phase I — Real Data Connectors (pending Owner approval).
+- **Next phase:** Phase H.6 — Client-ready Workspace Polish.
+
+### 🗓️ Ngày 05/06/2026 (Local Time) — Phase H.6 DONE
+- **Sự kiện:** Hoàn thành Phase H.6 — Client-ready Workspace Polish.
+- **Người thực hiện:** Builder Agent (Claude Code). Continued from previous session hit usage limit.
+- **Hành động đã hoàn tất:**
+  1. Header badge → "Phase H.6 — Client-ready Workspace Polish".
+  2. Nav sidebar renames: "Client Demo Pack" → "Client Presentation Pack", "Client Demo Mode" → "Client Workspace View".
+  3. Demo Pack tab h2 → "Client Presentation Pack"; Client Demo Mode h2 → "Client Workspace View" badge → "Client-Ready".
+  4. Manual Export Pack title: removed "Phase H.1 —" prefix; badge → "Production Ready".
+  5. Approval hint: replaced hardcoded Vị Cuốn/product text with `activeCampaign.brief.heroProduct` and `activeCampaign.brief.brandName`.
+  6. Added "How to Use This Workspace" owner/client guide card (6 steps, emerald) on Dashboard.
+  7. Renamed existing guide to "Presenter Walkthrough Guide", updated step 4 to "Client Workspace View".
+  8. Pitch text in demo-pack tab now uses dynamic brand name and hero product.
+  9. Brand gallery "Current (H.5)" → "Current (H.6)"; service packages "Client Demo Mode" → "Client Workspace View".
+- **Safety Guard H.6 confirmed:** Auto-post: NO | Real Ads: NO | Secrets: NO | FnB OS V1: NO | Sample Data Only: YES
+- **Build:** `npm run build` PASS — 0 errors.
+- **Trạng thái Phase H.6:** ✅ DONE + BUILT + PUSHED
 

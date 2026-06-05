@@ -479,12 +479,12 @@ export default function App() {
             <h1 style={{ fontSize: '1.5rem', fontWeight: 700, background: 'linear-gradient(135deg, #fff, #a1a1aa)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
               CLAUDE MARKETING TEAM
             </h1>
-            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>AI Agent Marketing Workspace Simulation</p>
+            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Multi-brand AI Marketing Team Workspace</p>
           </div>
         </div>
         <div>
           <span className="badge badge-indigo" style={{ background: 'rgba(99, 102, 241, 0.15)', color: '#818cf8', borderColor: 'rgba(99, 102, 241, 0.3)', border: '1px solid' }}>
-            Phase H.5 — Multi-brand Workspace Readiness
+            Phase H.6 — Client-ready Workspace Polish
           </span>
         </div>
       </header>
@@ -549,7 +549,7 @@ export default function App() {
               style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'demo-pack' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'demo-pack' ? 'rgba(99, 102, 241, 0.1)' : '' }}
               onClick={() => setActiveTab('demo-pack')}
             >
-              <FileText size={18} /> Client Demo Pack
+              <FileText size={18} /> Client Presentation Pack
             </button>
 
             <button 
@@ -557,7 +557,7 @@ export default function App() {
               style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'client-demo' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'client-demo' ? 'rgba(99, 102, 241, 0.1)' : '' }}
               onClick={() => setActiveTab('client-demo')}
             >
-              <Monitor size={18} /> Client Demo Mode
+              <Monitor size={18} /> Client Workspace View
             </button>
 
             <button
@@ -843,20 +843,58 @@ export default function App() {
                     </div>
                   </div>
 
-                  {/* Presenter Demo Guide — Phase H.3 */}
+                  {/* How to Use This Workspace — Phase H.6 Owner/Client Guide */}
+                  <div className="glass-panel" style={{ padding: '24px', borderLeft: '4px solid var(--accent-emerald)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                      <h3 style={{ fontSize: '1.15rem', fontWeight: 600, color: 'var(--accent-emerald)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        📖 How to Use This Workspace
+                      </h3>
+                      <span className="badge badge-emerald" style={{ fontSize: '0.68rem', background: 'rgba(16,185,129,0.1)', color: '#34d399', border: '1px solid rgba(16,185,129,0.25)' }}>Owner / Client Guide</span>
+                    </div>
+                    <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '20px' }}>
+                      6-step guide for brand owners and clients — from choosing a brand to exporting your campaign pack.
+                    </p>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: '14px' }}>
+                      {[
+                        { step: '1', icon: '🏪', label: 'Choose Brand', desc: 'Select a brand from the Brand Workspace tab or the sidebar dropdown. Each brand has its own campaign workspace.', tab: 'brand-gallery' },
+                        { step: '2', icon: '📋', label: 'Review Campaign Plan', desc: 'Open Dashboard → view the active campaign brief, 7-day calendar, and campaign strategy summary.', tab: 'dashboard' },
+                        { step: '3', icon: '📦', label: 'Review AI Team Outputs', desc: 'Go to Campaign Outputs → review Captions, Video Scripts, Design Prompts, Ads Plan from each AI agent.', tab: 'outputs' },
+                        { step: '4', icon: '✅', label: 'Approve or Request Edits', desc: 'Open Approval Checklist → review 10-point checklist. Mark Approved or add notes for revision before anything is used.', tab: 'approval' },
+                        { step: '5', icon: '📤', label: 'Export / Present Pack', desc: 'Go to Manual Export Pack → copy the full campaign pack, client summary, editor handoff, or designer handoff.', tab: 'manual-export' },
+                        { step: '6', icon: '🔜', label: 'Real Connectors: Phase I Only', desc: 'This workspace is fully offline. Real social media connectors, auto-scheduling, and API integrations are planned for Phase I.', tab: 'brand-gallery' },
+                      ].map((item) => (
+                        <button
+                          key={item.step}
+                          onClick={() => setActiveTab(item.tab)}
+                          style={{ background: 'rgba(16, 185, 129, 0.03)', border: '1px solid rgba(16, 185, 129, 0.2)', borderRadius: '10px', padding: '14px', textAlign: 'left', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '8px', transition: 'background 0.2s' }}
+                          onMouseEnter={e => (e.currentTarget.style.background = 'rgba(16, 185, 129, 0.08)')}
+                          onMouseLeave={e => (e.currentTarget.style.background = 'rgba(16, 185, 129, 0.03)')}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '24px', height: '24px', background: 'var(--accent-emerald)', color: '#fff', borderRadius: '50%', fontSize: '0.7rem', fontWeight: 'bold', flexShrink: 0 }}>{item.step}</span>
+                            <span style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-primary)' }}>{item.icon} {item.label}</span>
+                          </div>
+                          <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.45, margin: 0 }}>{item.desc}</p>
+                          <span style={{ fontSize: '0.72rem', color: 'var(--accent-emerald)', fontWeight: 600 }}>Bấm để chuyển →</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Presenter Walkthrough Guide */}
                   <div className="glass-panel" style={{ padding: '24px', borderLeft: '4px solid var(--accent-indigo)' }}>
                     <h3 style={{ fontSize: '1.15rem', fontWeight: 600, color: 'var(--accent-indigo)', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      🎯 Presenter Demo Guide
+                      🎯 Presenter Walkthrough Guide
                     </h3>
                     <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '20px' }}>
-                      Hướng dẫn 4 bước demo nhanh cho khách hàng — dưới 5 phút, không cần chuẩn bị trước.
+                      Hướng dẫn 5 bước walkthrough nhanh cho khách hàng — dưới 5 phút, không cần chuẩn bị trước.
                     </p>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: '14px' }}>
                       {[
                         { step: '1', icon: '📋', label: 'Dashboard', desc: 'Giới thiệu tổng quan: hệ thống chạy offline, an toàn — không auto-post, không real ads.', tab: 'dashboard' },
                         { step: '2', icon: '✍️', label: 'New Campaign Brief', desc: 'Điền brief thương hiệu của khách → bấm "Kích hoạt AI" → demo AI team chạy sinh output trong 3 phút.', tab: 'new-campaign' },
                         { step: '3', icon: '📦', label: 'Campaign Outputs', desc: 'Mở từng tab: Captions, Video Scripts, Design Prompts, Ads Plan — show toàn bộ gói sáng tạo AI tạo ra.', tab: 'outputs' },
-                        { step: '4', icon: '🖥️', label: 'Client Demo Mode', desc: 'Góc nhìn khách hàng: problem/solution, approval flow, value prop, before/after comparison.', tab: 'client-demo' },
+                        { step: '4', icon: '🖥️', label: 'Client Workspace View', desc: 'Góc nhìn khách hàng: problem/solution, approval flow, value prop, before/after comparison.', tab: 'client-demo' },
                         { step: '5', icon: '📤', label: 'Manual Export Pack', desc: 'Xuất file gửi khách thủ công — Client Summary, Editor Handoff, Designer Handoff, Approval Checklist.', tab: 'manual-export' },
                       ].map((item) => (
                         <button
@@ -1690,7 +1728,7 @@ export default function App() {
                   <div style={{ display: 'flex', gap: '12px', padding: '16px', background: 'rgba(99, 102, 241, 0.05)', borderRadius: '8px', border: '1px solid var(--border-glow)' }}>
                     <AlertCircle style={{ color: 'var(--accent-indigo)', flexShrink: 0 }} />
                     <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.5, textAlign: 'left' }}>
-                      <strong>Lời khuyên khi duyệt:</strong> Đảm bảo thông tin về Bánh tráng cuốn heo quay đã khớp với định vị Street food meets Premium của Vị Cuốn. Hãy copy prompt hình ảnh mang sang Canva/Fal.ai để tự thiết kế nếu bạn đã duyệt sản phẩm.
+                      <strong>Lời khuyên khi duyệt:</strong> Đảm bảo thông tin về <em>{activeCampaign.brief.heroProduct}</em> đã khớp với định vị thương hiệu của <em>{activeCampaign.brief.brandName}</em>. Hãy copy prompt hình ảnh mang sang Canva/Fal.ai để tự thiết kế nếu bạn đã duyệt nội dung.
                     </div>
                   </div>
 
@@ -1704,7 +1742,7 @@ export default function App() {
                   {/* Campaign context bar */}
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', paddingBottom: '16px', borderBottom: '1px solid var(--border-color)' }}>
                     <div>
-                      <h2 style={{ fontSize: '1.5rem', fontWeight: 600 }}>Client Presentation & Demo Pack</h2>
+                      <h2 style={{ fontSize: '1.5rem', fontWeight: 600 }}>Client Presentation Pack</h2>
                       <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
                         Tài liệu giới thiệu giải pháp AI Marketing Team cho đối tác & khách hàng doanh nghiệp.
                       </p>
@@ -1713,9 +1751,9 @@ export default function App() {
                       className="btn btn-primary"
                       onClick={() => {
                         const pitchText = `--- PITCH GIỚI THIỆU AI MARKETING TEAM ---\n` +
-                          `Dự án demo: Chiến dịch ra mắt Bánh tráng cuốn heo quay - Vị Cuốn\n\n` +
+                          `Thương hiệu: ${activeCampaign.brief.brandName} — Sản phẩm: ${activeCampaign.brief.heroProduct}\n\n` +
                           `Chào đối tác,\n` +
-                          `AI Marketing Team đã xây dựng trọn gói chiến dịch tích hợp 7 ngày cho thương hiệu Vị Cuốn:\n` +
+                          `AI Marketing Team đã xây dựng trọn gói chiến dịch tích hợp 7 ngày cho thương hiệu ${activeCampaign.brief.brandName}:\n` +
                           `- Lên lịch trình phân phối 7 ngày đa kênh (Facebook, TikTok).\n` +
                           `- Soạn thảo 7 bài viết Caption Facebook chuẩn tone giọng Premium Street Food.\n` +
                           `- Lên 3 kịch bản video dọc ASMR 15s chi tiết phân cảnh và âm thanh.\n` +
@@ -1829,7 +1867,7 @@ export default function App() {
                           color: 'var(--accent-indigo)',
                           borderColor: 'rgba(99, 102, 241, 0.5)',
                           bg: 'rgba(99, 102, 241, 0.08)',
-                          items: ['3 thương hiệu', '4 campaigns/tháng', 'Full campaign pack', 'Client Demo Mode', 'Priority support'],
+                          items: ['3 thương hiệu', '4 campaigns/tháng', 'Full campaign pack', 'Client Workspace View', 'Priority support'],
                           cta: 'Liên hệ báo giá',
                           highlight: true,
                         },
@@ -1887,9 +1925,9 @@ export default function App() {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', borderBottom: '1px solid var(--border-color)', paddingBottom: '16px' }}>
                     <div>
                       <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#fff', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        Phase H.1 — Manual Export Pack
+                        Manual Export Pack
 <span className="badge" style={{ fontSize: '0.75rem', padding: '4px 10px', background: 'rgba(16, 185, 129, 0.15)', color: 'var(--accent-emerald)', borderColor: 'rgba(16, 185, 129, 0.3)', border: '1px solid', borderRadius: '9999px', fontWeight: 600 }}>
-                          Production Demo Ready
+                          Production Ready
                         </span>
                       </h2>
                       <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
@@ -1977,13 +2015,13 @@ export default function App() {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '16px' }}>
                     <div>
                       <h2 style={{ fontSize: '1.6rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        Client Demo Mode
+                        Client Workspace View
                         <span className="badge badge-indigo" style={{ fontSize: '0.75rem', padding: '4px 10px', background: 'rgba(99, 102, 241, 0.15)', color: '#818cf8', borderColor: 'rgba(99, 102, 241, 0.3)', border: '1px solid', borderRadius: '9999px', fontWeight: 600 }}>
-                          Client View & Team Workflow
+                          Client-Ready
                         </span>
                       </h2>
                       <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
-                        Môi trường demo tương tác giới thiệu bối cảnh chiến dịch, luồng phê duyệt và vai trò đội ngũ AI.
+                        Không gian workspace phía khách hàng — bối cảnh chiến dịch, luồng phê duyệt và vai trò đội ngũ AI.
                       </p>
                     </div>
                   </div>
@@ -2506,7 +2544,7 @@ export default function App() {
                     </h4>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '10px', fontSize: '0.82rem' }}>
                       {[
-                        { label: 'Current (H.5)', desc: 'Sample/seed data. Static frontend. No real connectors.', color: 'var(--accent-emerald)', icon: '✅' },
+                        { label: 'Current (H.6)', desc: 'Sample/seed data. Static frontend. No real connectors.', color: 'var(--accent-emerald)', icon: '✅' },
                         { label: 'Phase I (Future)', desc: 'Real brand data input. Real connectors pending approval.', color: 'var(--accent-amber)', icon: '🔜' },
                         { label: 'Never (Boundary)', desc: 'No auto-post, no real ads without explicit Owner approval.', color: 'var(--accent-rose)', icon: '🛡️' },
                       ].map((item, idx) => (

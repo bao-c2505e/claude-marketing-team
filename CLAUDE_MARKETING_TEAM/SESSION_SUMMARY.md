@@ -5,7 +5,7 @@ Tài liệu này tóm tắt bối cảnh, ranh giới an toàn hiện tại củ
 ## 📝 Bối cảnh dự án (Project Context)
 Chúng ta đang xây dựng **AI Marketing Team Workspace** — một workspace thực sự cho phép quản lý nhiều thương hiệu/khách hàng, hoạt động hoàn toàn static/frontend với sample/seed data cho đến khi real connectors được phê duyệt. Workspace cung cấp giao diện trực quan cao cấp, hỗ trợ 5 AI Agents song song, approval flow, manual export, và presentation-ready UI.
 
-**Lưu ý framing (Phase H.5+):** Đây không phải "demo toy". Đây là workspace architecture thực tế, sẵn sàng cho real data/connectors ở Phase I.
+**Lưu ý framing (Phase H.6):** Đây không phải "demo toy". Đây là workspace architecture thực tế, sẵn sàng cho real data/connectors ở Phase I.
 
 ## 🔒 Ranh giới an toàn cốt lõi (Safety Boundaries)
 - **Độc lập tuyệt đối:** Dự án tại `CLAUDE_MARKETING_TEAM/`, tách biệt khỏi FnB OS V1.
@@ -18,19 +18,35 @@ Chúng ta đang xây dựng **AI Marketing Team Workspace** — một workspace 
 
 ---
 
-## ✅ Phase H.5 — Multi-brand Workspace Readiness (DONE + CODEX PASS + FIX APPLIED + BUILT + PUSHED + READY FOR OWNER PRODUCTION CHECK — 2026-06-05)
+## ✅ Phase H.6 — Client-ready Workspace Polish (DONE + BUILT + PUSHED — 2026-06-05)
 
 ### Mục tiêu:
-Nâng cấp từ single-brand (Vị Cuốn) thành multi-brand AI Marketing Team Workspace với 3 seed brands.
+Polish workspace để client-ready: chuẩn hoá ngôn ngữ, loại bỏ demo/prototype framing, dynamic approval hint, owner/client guide card.
 
 ### Đã build:
-1. **mockData.ts**: Thêm 2 brand mới — Cơm Tấm Bản Khói (F&B/HCM) và Forme (premium furniture/HCM+HN). Mỗi brand có đầy đủ brief, calendar, checklist, 5-agent outputs.
+1. **Header badge** → "Phase H.6 — Client-ready Workspace Polish"
+2. **Nav renames**: "Client Demo Pack" → "Client Presentation Pack", "Client Demo Mode" → "Client Workspace View"
+3. **Tab titles updated**: Demo Pack tab h2, Client Demo Mode h2 + badge → "Client-Ready"
+4. **Manual Export Pack title**: Removed "Phase H.1 —" prefix; badge "Production Demo Ready" → "Production Ready"
+5. **Approval hint**: Replaced hardcoded "Vị Cuốn / Bánh tráng cuốn heo quay" with dynamic `activeCampaign.brief.heroProduct` and `activeCampaign.brief.brandName`
+6. **"How to Use This Workspace" card** (emerald, Dashboard): 6-step owner/client guide — Choose Brand → Review Plan → Review Outputs → Approve → Export Pack → Phase I boundary note
+7. **Presenter guide renamed** to "Presenter Walkthrough Guide"; step 4 updated to "Client Workspace View"
+8. **Pitch text** in demo-pack: dynamic brand name and hero product
+9. **Brand gallery label**: "Current (H.5)" → "Current (H.6)"
+10. **Service packages**: "Client Demo Mode" item → "Client Workspace View"
+
+---
+
+## ✅ Phase H.5 — Multi-brand Workspace Readiness (DONE + CODEX PASS + FIX APPLIED + BUILT + PUSHED — 2026-06-05)
+
+### Đã build:
+1. **mockData.ts**: Thêm 2 brand mới — Cơm Tấm Bản Khói (F&B/HCM) và Forme (premium furniture/HCM+HN).
 2. **localStorage v3**: Key bump từ v2→v3 để force fresh seed data load.
 3. **Header badge** → "Phase H.5 — Multi-brand Workspace Readiness"
 4. **Sidebar**: Thêm "Brand Workspace" tab (icon: Store). "Active Campaign" → "Active Brand".
-5. **Dashboard Brand Switcher**: Brand cards ở đầu Dashboard — click để switch brand workspace ngay lập tức.
-6. **Brand Workspace Gallery tab**: Full brand cards với details, Phase I connector boundary note, sample output counts.
-7. **Client Demo Mode**: Campaign Overview và AI Team Workspace descriptions dùng dynamic `activeCampaign.brief.*` thay vì hardcoded "Vị Cuốn".
+5. **Dashboard Brand Switcher**: Brand cards ở đầu Dashboard — click để switch brand workspace.
+6. **Brand Workspace Gallery tab**: Full brand cards với details, Phase I connector boundary note.
+7. **Client Demo Mode**: Campaign Overview và AI Team Workspace descriptions dùng dynamic `activeCampaign.brief.*`.
 8. **Framing**: "Sample Data", "Sandbox Safe Mode", "Workspace", không dùng "demo" là main framing.
 
 ### 3 Seed Brands:
@@ -43,26 +59,7 @@ Nâng cấp từ single-brand (Vị Cuốn) thành multi-brand AI Marketing Team
 ---
 
 ## ✅ Phase H.4 — Export/Presentation Readiness (CLOSED — 2026-06-05)
-
-### Commits:
-- `d2e7bd8` — feat: add phase h4 export presentation readiness (docs/logs)
-- `d823c17` — feat: add phase h4 presentation ui (src/App.tsx)
-- `c56e867` — docs: fix phase h4 status after codex review
-- `c4458de` — docs: close phase h4 export presentation readiness
-
-### Codex re-review: PASS — no required fixes
-
-### Đã build:
-1. **Header badge** → "Phase H.4 — Export/Presentation Readiness"
-2. **Nav sidebar** → thêm "Presentation & Export" button (icon: BookOpen)
-3. **New tab: Presentation & Export** — 5 sections:
-   - **Presentation View** (6-step): Problem / AI Solution / Outputs / Approval / Manual Publishing / Safety
-   - **Export Pack Preview** (7 cards): Campaign Summary, 7-Day Plan, Video Script, Design Brief, Ads Angle, Data Reporter, Approval Checklist
-   - **Client Approval Sheet Preview**: table với 5 cột + clickable status cycling
-   - **Sales Demo Script**: 5-step timeline (0:00–5:30) với copy button
-   - **Export Readiness Checklist**: 7-item, 3 safety-locked, live counter badge
-
----
+- Presentation View (6-step), Export Pack Preview (7 cards), Client Approval Sheet, Sales Demo Script, Export Readiness Checklist
 
 ## ✅ Các Phase trước (CLOSED)
 - **Phase H.3**: Presenter Demo Guide, Sales Readiness, Value Proposition, Before/After, CTA Block, Service Packages
@@ -71,7 +68,7 @@ Nâng cấp từ single-brand (Vị Cuốn) thành multi-brand AI Marketing Team
 - **Phase A–G**: Core workspace infrastructure, React UI, mock data, AI agents simulation
 
 ## ➡️ Bước tiếp theo
-1. **Phase H.5** — ✅ CLOSED. H.5 upgraded the app into a multi-brand AI Marketing Team Workspace with Vị Cuốn, Cơm Tấm Bản Khói, and Forme using sample/seed data and Sandbox Safe Mode. Product framing corrected from demo wording to workspace wording.
+1. **Phase H.6** — ✅ CLOSED. Client-ready workspace polish complete.
 2. **Phase I (Future)** — Real data connectors (pending Owner approval):
    - Real brand brief input
    - Meta/Google Ads connector (sandbox)
