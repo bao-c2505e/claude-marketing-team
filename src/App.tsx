@@ -2627,24 +2627,37 @@ export default function App() {
                     })}
                   </div>
 
-                  {/* Phase I connector boundary note */}
-                  <div style={{ padding: '20px', background: 'rgba(99,102,241,0.04)', border: '1px solid rgba(99,102,241,0.2)', borderRadius: '12px' }}>
-                    <h4 style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--accent-indigo)', marginBottom: '10px' }}>
-                      ⚡ Workspace Architecture — Phase I Connector Boundary
-                    </h4>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '10px', fontSize: '0.82rem' }}>
-                      {[
-                        { label: 'Current (H.6)', desc: 'Sample/seed data. Static frontend. No real connectors.', color: 'var(--accent-emerald)', icon: '✅' },
-                        { label: 'Phase I (Future)', desc: 'Real brand data input. Real connectors pending approval.', color: 'var(--accent-amber)', icon: '🔜' },
-                        { label: 'Never (Boundary)', desc: 'No auto-post, no real ads without explicit Owner approval.', color: 'var(--accent-rose)', icon: '🛡️' },
-                      ].map((item, idx) => (
-                        <div key={idx} style={{ background: 'rgba(255,255,255,0.02)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
-                          <div style={{ fontWeight: 600, color: item.color, marginBottom: '4px' }}>{item.icon} {item.label}</div>
-                          <p style={{ color: 'var(--text-muted)', margin: 0, lineHeight: 1.45 }}>{item.desc}</p>
-                        </div>
-                      ))}
+                  {/* Phase I connector boundary note — conditional by view mode */}
+                  {viewMode === 'owner' ? (
+                    <div style={{ padding: '20px', background: 'rgba(99,102,241,0.04)', border: '1px solid rgba(99,102,241,0.2)', borderRadius: '12px' }}>
+                      <h4 style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--accent-indigo)', marginBottom: '10px' }}>
+                        ⚡ Workspace Architecture — Phase I Connector Boundary
+                      </h4>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '10px', fontSize: '0.82rem' }}>
+                        {[
+                          { label: 'Current (H.7)', desc: 'Sample/seed data. Static frontend. No real connectors.', color: 'var(--accent-emerald)', icon: '✅' },
+                          { label: 'Phase I (Future)', desc: 'Real brand data input. Real connectors pending approval.', color: 'var(--accent-amber)', icon: '🔜' },
+                          { label: 'Never (Boundary)', desc: 'No auto-post, no real ads without explicit Owner approval.', color: 'var(--accent-rose)', icon: '🛡️' },
+                        ].map((item, idx) => (
+                          <div key={idx} style={{ background: 'rgba(255,255,255,0.02)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+                            <div style={{ fontWeight: 600, color: item.color, marginBottom: '4px' }}>{item.icon} {item.label}</div>
+                            <p style={{ color: 'var(--text-muted)', margin: 0, lineHeight: 1.45 }}>{item.desc}</p>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  </div>
+                  ) : (
+                    <div style={{ padding: '20px', background: 'rgba(16,185,129,0.04)', border: '1px solid rgba(16,185,129,0.2)', borderRadius: '12px' }}>
+                      <h4 style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--accent-emerald)', marginBottom: '10px' }}>
+                        🛡️ Workspace Scope
+                      </h4>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+                        <p style={{ margin: 0 }}>This workspace uses <strong>sample data</strong> for campaign review and planning.</p>
+                        <p style={{ margin: 0 }}>Publishing, ads, messaging, and live connectors require <strong>owner approval</strong> before any real action is taken.</p>
+                        <p style={{ margin: 0 }}>Live connector setup is handled in a future approved phase.</p>
+                      </div>
+                    </div>
+                  )}
 
                 </div>
               )}
@@ -2673,7 +2686,7 @@ export default function App() {
                         { step: '03', icon: '📦', title: 'Campaign Outputs', color: 'var(--accent-blue)', borderColor: 'rgba(59,130,246,0.25)', bg: 'rgba(59,130,246,0.04)', body: '7-day content calendar, 7 Facebook captions, 3 TikTok/Reels scripts, 3 AI design prompts (Fal.ai/Midjourney), local ads targeting plan, and simulated performance report — all in one exportable pack.' },
                         { step: '04', icon: '✍️', title: 'Approval Process', color: 'var(--accent-amber)', borderColor: 'rgba(245,158,11,0.25)', bg: 'rgba(245,158,11,0.04)', body: 'Owner reviews every piece of content via the Approval Checklist tab before anything leaves this workspace. No post, no ad, no message is sent without explicit human sign-off.' },
                         { step: '05', icon: '📤', title: 'Manual Publishing & Manual Ads Execution', color: '#a78bfa', borderColor: 'rgba(167,139,250,0.25)', bg: 'rgba(167,139,250,0.04)', body: 'After Owner approves, all content is copy-pasted manually to Facebook, TikTok, or the Ads Manager platform. No auto-scheduler, no API connection, no direct publishing from this workspace.' },
-                        { step: '06', icon: '🛡️', title: 'Safety Boundaries', color: 'var(--accent-emerald)', borderColor: 'rgba(16,185,129,0.25)', bg: 'rgba(16,185,129,0.04)', body: '100% offline sandbox. No backend, no database, no real API calls, no secrets, no auto-post, no real ads launched, no customer messaging. Every output uses sample data only until live connectors are approved. Safety Guard is always on.' },
+                        { step: '06', icon: '🛡️', title: 'Safety Boundaries', color: 'var(--accent-emerald)', borderColor: 'rgba(16,185,129,0.25)', bg: 'rgba(16,185,129,0.04)', body: viewMode === 'client' ? 'All outputs use sample data only. Approval is required before any content is published, any ad is run, or any message is sent. No live publishing happens from this workspace without explicit owner sign-off.' : '100% offline sandbox. No backend, no database, no real API calls, no secrets, no auto-post, no real ads launched, no customer messaging. Every output uses sample data only until live connectors are approved. Safety Guard is always on.' },
                       ].map((item, idx) => (
                         <div key={idx} style={{ background: item.bg, border: `1px solid ${item.borderColor}`, borderRadius: '12px', padding: '18px 20px', display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '36px', height: '36px', background: item.bg, border: `1px solid ${item.borderColor}`, borderRadius: '50%', fontSize: '1.1rem', flexShrink: 0, marginTop: '2px' }}>
