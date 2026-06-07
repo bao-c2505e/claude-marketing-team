@@ -6,6 +6,23 @@ Nhật ký theo dõi các mốc hoàn thành kỹ thuật qua các Phase.
 
 ## 📅 Nhật Ký Sự Kiện (Event Logs)
 
+### 🗓️ Ngày 08/06/2026 — Phase 13: Connector Registry + Module Event Inbox Foundation
+- **Sự kiện:** Hoàn thành Connector Registry + Module Event Inbox Foundation cho The Core Agency.
+- **Người thực hiện:** Claude Code Builder (PC1).
+- **Hành động đã hoàn tất:**
+  1. Thêm Phase 13 types vào `src/types/core.ts`: `LocalConnectorType` (12), `LocalConnectorStatus`, `LocalConnectorMode`, `LocalConnectorRegistryItem`, `LocalModuleName` (11), `LocalModuleStatus`, `LocalModuleRegistryItem`, `LocalModuleEventType` (12), `ModuleEventDirection`, `LocalModuleEventStatus`, `LocalModuleEvent`.
+  2. Tạo `src/lib/core/connectorRegistry.ts`: seed data (11 connectors, 10 modules, 5 events), display maps (CONNECTOR_TYPE/STATUS/MODE_LABEL/COLOR, MODULE_NAME/STATUS_LABEL/COLOR, MODULE_EVENT_TYPE/STATUS_LABEL/COLOR), `ConnectorRegistryStore`, localStorage helpers, CRUD: `updateConnectorStatus()`, `simulateHealthCheck()`, `updateModuleStatus()`, `updateEventStatus()`, `addMockEvent()`. Storage key: `core_agency_connector_registry_v1`.
+  3. Tạo `src/components/core/ConnectorRegistryTab.tsx`: 3 sub-tabs (Connectors / Modules / Event Inbox). Safety banner. Connectors: 11 cards với status/mode badges, required env keys, safety note, actions (Simulate Health Check / Mark Configured / Disable / Re-enable). Modules: 10 cards với contract info, owner, actions (Mark Mock Ready / Disable). Event Inbox: filter bar (module/connector/direction/status/event_type), expandable event rows với payload preview, status actions (Mark Processed/Needs Review/Ignore), Create Mock Event form. Governance footer.
+  4. Cập nhật `src/App.tsx`: import `Network` icon + `ConnectorRegistryTab`; sidebar "Connector Registry" button (sau Export Pack trong Core section); tab routing `connector-registry`; phase badge → Phase 13.
+  5. Tạo `CLAUDE_MARKETING_TEAM/03_core/connector_registry_README.md`.
+  6. Cập nhật CURRENT_PHASE.md và phase_log.md.
+- **Safety:** No real API calls. No real webhooks sent. All connectors start as `not_configured / mock`. Mock events local only. Safety banner + governance footer always visible.
+- **Permissions:** `canViewConnectors` = owner/manager; `canManageConnectors` = owner; `canViewAutomationLogs` = owner/manager.
+- **Trạng thái Phase 13:** ✅ DONE.
+- **Next:** Phase 14 — Supabase CRUD Wiring.
+
+---
+
 ### 🗓️ Ngày 08/06/2026 — Phase 12: Export Pack Foundation
 - **Sự kiện:** Hoàn thành Export Pack Foundation cho The Core Agency.
 - **Người thực hiện:** Claude Code Builder (PC1).

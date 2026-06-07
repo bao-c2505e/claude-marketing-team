@@ -799,3 +799,121 @@ export interface LocalExportPack {
   created_at: string;
   updated_at: string;
 }
+
+// ---------------------------------------------------------------------------
+// PHASE 13 — CONNECTOR REGISTRY + MODULE EVENT INBOX
+// ---------------------------------------------------------------------------
+
+export type LocalConnectorType =
+  | 'n8n'
+  | 'openai'
+  | 'anthropic'
+  | 'gemini'
+  | 'canva'
+  | 'meta_ads'
+  | 'google_drive'
+  | 'google_sheets'
+  | 'comfyui'
+  | 'storage'
+  | 'webhook'
+  | 'other';
+
+export type LocalConnectorStatus =
+  | 'not_configured'
+  | 'configured'
+  | 'connected'
+  | 'error'
+  | 'disabled';
+
+export type LocalConnectorMode = 'mock' | 'sandbox' | 'production';
+
+export interface LocalConnectorRegistryItem {
+  id: string;
+  name: string;
+  connector_type: LocalConnectorType;
+  status: LocalConnectorStatus;
+  mode: LocalConnectorMode;
+  description: string | null;
+  required_env_keys: string[];
+  last_checked_at: string | null;
+  health_note: string | null;
+  safety_note: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export type LocalModuleName =
+  | 'content_auto'
+  | 'creative_asset_auto'
+  | 'ads_pack_auto'
+  | 'crm_followup_auto'
+  | 'comment_inbox_reply_assistant'
+  | 'approval_publishing_automation'
+  | 'analytics_intelligence'
+  | 'competitor_intelligence'
+  | 'website_landing_intelligence'
+  | 'comfyui_creative_module'
+  | 'other';
+
+export type LocalModuleStatus =
+  | 'planned'
+  | 'mock_ready'
+  | 'sandbox_ready'
+  | 'connected'
+  | 'disabled'
+  | 'error';
+
+export interface LocalModuleRegistryItem {
+  id: string;
+  module_name: LocalModuleName;
+  module_type: string;
+  status: LocalModuleStatus;
+  description: string | null;
+  input_contract_name: string | null;
+  output_contract_name: string | null;
+  callback_endpoint_note: string | null;
+  owner: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export type LocalModuleEventType =
+  | 'generation_requested'
+  | 'generation_completed'
+  | 'creative_requested'
+  | 'creative_completed'
+  | 'ads_pack_requested'
+  | 'ads_pack_completed'
+  | 'approval_submitted'
+  | 'approval_completed'
+  | 'report_generated'
+  | 'webhook_received'
+  | 'error'
+  | 'other';
+
+export type ModuleEventDirection = 'inbound' | 'outbound';
+
+export type LocalModuleEventStatus =
+  | 'received'
+  | 'processed'
+  | 'needs_review'
+  | 'failed'
+  | 'ignored';
+
+export interface LocalModuleEvent {
+  id: string;
+  module_id: string | null;
+  connector_id: string | null;
+  event_type: LocalModuleEventType;
+  direction: ModuleEventDirection;
+  status: LocalModuleEventStatus;
+  related_client_id: string | null;
+  related_brand_id: string | null;
+  related_campaign_id: string | null;
+  related_content_item_id: string | null;
+  payload_preview: string | null;
+  error_message: string | null;
+  received_at: string;
+  processed_at: string | null;
+  created_at: string;
+}
