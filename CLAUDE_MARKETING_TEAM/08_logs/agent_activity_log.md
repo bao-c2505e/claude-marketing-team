@@ -6,6 +6,17 @@ Nhật ký ghi lại các hành động mô phỏng của các AI Agent khi vậ
 
 ## 🗓️ Nhật Ký Hoạt Động (Simulated Activity Logs)
 
+### 🗓️ Ngày 07/06/2026 — Phase 1: The Core Agency Real Operations MVP
+- **[SYSTEM — PC1 Claude Code Builder]:** Phase 1 initiated. The Core Agency Real Operations MVP begins.
+- **[PC1]:** Read all existing docs (CURRENT_PHASE.md, SESSION_SUMMARY.md, phase_log.md, agent_activity_log.md). Previous state: Phase H.7 DONE, static frontend UI with Owner/Client View modes.
+- **[PC1]:** Strategy docs created: `00_strategy/THE_CORE_AGENCY_7_DAY_REAL_MVP_PLAN.md` and `00_strategy/THE_CORE_AGENCY_MODULES_AND_N8N_WORKSTREAM.md`.
+- **[PC1]:** UI branding updated — public name is now `THE CORE AGENCY`. Tagline, phase badge, pitch text, and HTML title updated.
+- **[PC1]:** Logs updated: CURRENT_PHASE.md (Phase 1 DONE), SESSION_SUMMARY.md (next = Phase 2), phase_log.md, agent_activity_log.md.
+- **[PC1]:** Build verified (npm run build — tsc + vite). No errors. Pushed to GitHub.
+- **[SYSTEM]:** Phase 1 DONE. Scope locked. Strategy documented. Branding live. No backend/database/auth in this phase.
+
+---
+
 ### 🗓️ Ngày 03/06/2026 19:15:00
 - **[SYSTEM]:** Khởi tạo thành công 5 thực thể AI Agent: Copywriter, Designer, Video Editor, Ads Manager, Data Reporter.
 - **[AI Coordinator]:** Trạng thái hoạt động: `idle`. Đang chờ nhận Brief chiến dịch từ Owner.

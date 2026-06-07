@@ -6,6 +6,26 @@ Nhật ký theo dõi các mốc hoàn thành kỹ thuật qua các Phase.
 
 ## 📅 Nhật Ký Sự Kiện (Event Logs)
 
+### 🗓️ Ngày 07/06/2026 — Real Operations MVP Start
+- **Sự kiện:** Bắt đầu The Core Agency Real Operations MVP — Phase 1.
+- **Người thực hiện:** Claude Code Builder (PC1).
+- **Hành động đã hoàn tất:**
+  1. Đọc toàn bộ docs hiện có: CURRENT_PHASE.md, SESSION_SUMMARY.md, phase_log.md, agent_activity_log.md.
+  2. Khoá scope sản phẩm: 18 phases / 7 days plan.
+  3. Tạo `00_strategy/THE_CORE_AGENCY_7_DAY_REAL_MVP_PLAN.md` — plan 18 phase đầy đủ.
+  4. Tạo `00_strategy/THE_CORE_AGENCY_MODULES_AND_N8N_WORKSTREAM.md` — architecture + module contracts.
+  5. Cập nhật UI branding: `CLAUDE MARKETING TEAM` → `THE CORE AGENCY` trong App.tsx header.
+  6. Cập nhật tagline: `Multi-brand AI Marketing Team Workspace` → `AI Marketing Team Workspace`.
+  7. Cập nhật phase badge: `Phase H.7 — Owner & Client Views` → `Real Operations MVP — Phase 1`.
+  8. Cập nhật pitch text: `Đội ngũ Claude AI Marketing Team` → `Đội ngũ The Core Agency`.
+  9. Cập nhật `index.html` title: `AI Marketing Team Workspace` → `The Core Agency`.
+  10. Cập nhật CURRENT_PHASE.md, SESSION_SUMMARY.md, phase_log.md, agent_activity_log.md.
+  11. Build pass (tsc + vite build). Push to GitHub.
+- **Trạng thái Phase 1:** ✅ DONE.
+- **Next:** Phase 2 — Database Schema V1 (Supabase).
+
+---
+
 ### 🗓️ Ngày 03/06/2026 19:10:51 (Local Time)
 - **Sự kiện:** Khởi tạo dự án độc lập `CLAUDE_MARKETING_TEAM`.
 - **Người thực hiện:** Builder Agent (Antigravity).

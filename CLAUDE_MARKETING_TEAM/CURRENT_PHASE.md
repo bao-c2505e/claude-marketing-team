@@ -1,105 +1,73 @@
-# CURRENT PHASE — Phase H.7: Owner View + Client View ✅ DONE
+# CURRENT PHASE — Phase 1: Product Scope Lock + Branding ✅ DONE
 
 Tài liệu này dùng để theo dõi tiến độ thực hiện và trạng thái của Phase hiện tại.
 
 ## 📌 Thông tin chung
-- **Phase hiện tại:** Phase H.7 — Owner View + Client View
-- **Mục tiêu:** Thêm two-mode workspace experience: Owner/Internal View để quản lý AI Marketing Team workspace, và Client/Presentation View để trình bày campaign cho khách hàng mà không có technical clutter nội bộ.
-- **Trạng thái:** ✅ DONE + CODEX PASS + FIXES APPLIED + BUILT + PUSHED + READY FOR OWNER PRODUCTION CHECK
+- **Phase hiện tại:** Phase 1 — Product Scope Lock + Source Strategy + The Core Agency Branding
+- **Mục tiêu:** Khoá scope sản phẩm Real Operations MVP, tạo strategy docs, đổi UI branding sang The Core Agency.
+- **Trạng thái:** ✅ DONE — Strategy docs created, branding updated, logs updated, build pass, pushed.
 
 ---
 
-## 📋 Checklist Phase H.7
+## 📋 Checklist Phase 1
 
-### Mode Switch Toggle
-- [x] `viewMode` state (`'owner' | 'client'`) added
-- [x] `handleViewModeSwitch()` function — auto-redirects to dashboard when switching to Client View if current tab is owner-only
-- [x] Toggle in header (right side, alongside phase badge): 🔧 Owner View | 👁 Client View
-- [x] Active mode visually highlighted (indigo = Owner, emerald = Client)
+### Strategy Documents
+- [x] `00_strategy/THE_CORE_AGENCY_7_DAY_REAL_MVP_PLAN.md` — 18-phase/7-day plan created
+- [x] `00_strategy/THE_CORE_AGENCY_MODULES_AND_N8N_WORKSTREAM.md` — Architecture + module contracts documented
 
-### Owner View (default)
-- [x] All 9 tabs visible: Dashboard, Brand Workspace, New Campaign Brief, AI Team Board, Campaign Outputs, Approval Checklist, Client Presentation Pack, Client Workspace View, Manual Export Pack, Presentation & Export
-- [x] Full Safety Guard sidebar (Auto-post, Real Ads, Real Message, Real Connectors, Secrets, FnB OS V1, Sample Data)
-- [x] Dashboard shows Owner View context card (indigo) with "Switch to Client View" button
+### UI Branding
+- [x] `src/App.tsx` header: `CLAUDE MARKETING TEAM` → `THE CORE AGENCY`
+- [x] `src/App.tsx` tagline: `Multi-brand AI Marketing Team Workspace` → `AI Marketing Team Workspace`
+- [x] `src/App.tsx` phase badge: `Phase H.7 — Owner & Client Views` → `Real Operations MVP — Phase 1`
+- [x] `src/App.tsx` pitch text: `Đội ngũ Claude AI Marketing Team` → `Đội ngũ The Core Agency`
+- [x] `index.html` title: `AI Marketing Team Workspace` → `The Core Agency`
 
-### Client View
-- [x] 4 owner-only tabs hidden: New Campaign Brief, AI Team Board, Manual Export Pack, Client Workspace View
-- [x] 6 tabs remain: Dashboard, Brand Workspace, Campaign Outputs, Approval Checklist, Client Presentation Pack, Presentation & Export
-- [x] Sidebar Safety Guard simplified to Trust & Safety: Sample Data, Approval Required, No Live Publishing, No Real Ads
-- [x] Dashboard shows Client View context card (emerald) with "Back to Owner View" button
-- [x] Auto-redirect to Dashboard if active tab is owner-only when switching to Client View
+### App Identity Config
+- [x] appName: The Core Agency (in App.tsx header h1)
+- [x] tagline: AI Marketing Team Workspace (in App.tsx subheader)
+- [x] mode badge: Real Operations MVP — Phase 1
 
-### Dashboard View Context Card
-- [x] Owner View card: "Manage brands, review AI outputs, run approval, configure campaigns. Switch to Client View before presenting."
-- [x] Client View card: "Present campaign plan and outputs to your client. Internal tools hidden. Sample data — approval required before export."
+### Architecture Documented
+- [x] Core = quản lý và phê duyệt (source of truth)
+- [x] n8n = automation backbone (không phải database)
+- [x] Modules = xử lý chuyên môn
+- [x] Webhook = báo kết quả về Core
+- [x] UI = chỉ hiển thị dữ liệu đã lưu ở Core database
 
-### Safety Labels (preserved in both views)
-- [x] Sample Data ✅ (shown in both views)
-- [x] Approval Required ✅ (shown in both views)
-- [x] No Auto-post ✅
-- [x] No Real Ads ✅
-- [x] No Live Publishing ✅
-
-### Codex Review
-- [x] Codex review round 1: NEEDS FIX — Client View still showing internal technical clutter
-- [x] Fix applied (commit `2037f61`):
-  - Brand Workspace: conditional Phase I connector card — Owner View keeps technical arch notes; Client View shows "🛡️ Workspace Scope" with client-facing trust language
-  - Presentation & Export step 06: Owner View body unchanged; Client View body uses "Sample Data / Approval Required / No Live Publishing" language
-  - Stale "Current (H.6)" label → "Current (H.7)" fixed in same block
-- [x] Codex re-review: PASS
-
-### Build & Safety
-- [x] npm run build PASS — 0 errors (343.60 kB JS, all rounds)
-- [x] Push to GitHub
-- [x] No backend/database/API/secrets/connectors added
-- [x] FnB OS V1 not touched
-
-### Docs & Logs
-- [x] CURRENT_PHASE.md (file này)
-- [x] SESSION_SUMMARY.md
-- [x] phase_log.md
-- [x] agent_activity_log.md
+### Safety
+- [x] No secrets added
+- [x] No backend/database/auth added (Phase 2–3)
+- [x] Build passes (tsc + vite build)
+- [x] Production not broken
 
 ---
 
-## 🔀 View Mode Spec
-
-| Aspect | Owner View | Client View |
-|--------|-----------|-------------|
-| Purpose | Manage, review, approve | Present campaign, collect feedback, export |
-| Tabs shown | All 9 tabs | 6 tabs (internal tools hidden) |
-| Safety sidebar | Full Guard (7 items) | Trust & Safety (4 items, client-friendly) |
-| New Campaign Brief | ✅ Visible | ❌ Hidden |
-| AI Team Board | ✅ Visible | ❌ Hidden |
-| Manual Export Pack | ✅ Visible | ❌ Hidden |
-| Client Workspace View | ✅ Visible | ❌ Hidden |
-| Technical labels | FnB OS V1, Secrets, Connectors visible | Hidden |
-| Brand switching | ✅ Available | ✅ Available |
-
----
-
-## 🛡️ Safety Guard (H.7 — confirmed)
+## 🛡️ Safety Guard (Phase 1)
 - Auto-post: NO
 - Real Ads: NO
 - Real Messaging: NO
 - Real Connectors: NO
 - Secrets Added: NO
-- FnB OS V1 Touched: NO
-- Backend added: NO
-- Database added: NO
-- Real API: NO
-- Sample/Seed Data Only: YES
+- Database Added: NO (planned Phase 2)
+- Auth Added: NO (planned Phase 3)
+- Backend Added: NO (planned Phase 2+)
+- Sample/Seed Data Only: YES (H.5 seed brands still active)
 
 ---
 
 ## 📝 Closeout Note
-H.7 added Owner View and Client View inside the same AI Marketing Team Workspace. Owner View keeps internal review/control information, while Client View is cleaner for client presentation and hides internal technical clutter. Client View now uses trust/scope wording such as Sample Data, Approval Required, No Live Publishing, and No Real Ads unless approved. Two rounds of Codex review: initial NEEDS FIX → fix applied → re-review PASS. Commits: `9dc235a` (feat), `2037f61` (fix).
+Phase 1 locks the product scope for The Core Agency Real Operations MVP (18 phases / 7 days). Strategy documents added to `00_strategy/`. Public UI name changed from CLAUDE MARKETING TEAM to THE CORE AGENCY. Tagline and phase badge updated. Pitch text in export section updated. No backend, database, or auth changes made — those are Phase 2–3.
 
 ---
 
+## ✅ Phase H.7 (tiền nhiệm) — CLOSED
+- Status: DONE + CODEX PASS + FIXES APPLIED + BUILT + PUSHED
+- Commits: `9dc235a` (feat), `2037f61` (fix)
+- Features: Owner View + Client View two-mode workspace experience
+
 ## ✅ Phase H.6 (tiền nhiệm) — CLOSED
 - Commit: `1f83eb1` — docs: close phase h6 client ready workspace polish
-- Status: DONE + CODEX PASS + FIXES APPLIED + BUILT + PUSHED + READY FOR OWNER PRODUCTION CHECK
+- Status: DONE + CODEX PASS + FIXES APPLIED + BUILT + PUSHED
 
 ## ✅ Phase H.5 (tiền nhiệm) — CLOSED
 - Commit: `45c141a` — docs: close phase h5 multi brand workspace readiness

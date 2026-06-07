@@ -97,10 +97,29 @@ Polish workspace để client-ready: chuẩn hoá ngôn ngữ, loại bỏ demo/
 - **Phase A–G**: Core workspace infrastructure, React UI, mock data, AI agents simulation
 
 ## ➡️ Bước tiếp theo
-1. **Phase H.7** — ✅ CLOSED. H.7 added Owner View and Client View inside the same AI Marketing Team Workspace. Owner View keeps internal review/control information, while Client View is cleaner for client presentation and hides internal technical clutter. Client View uses trust/scope wording: Sample Data, Approval Required, No Live Publishing, No Real Ads unless approved.
-2. **Phase H.6** — ✅ CLOSED. H.6 polished the app into a more client-ready AI Marketing Team Workspace. Visible product wording corrected from demo/mock framing to Workspace, Sample Data, Sandbox Safe Mode, Client Presentation Pack, and Client Workspace View. Owner/client guide flow and approval-safe framing are now clearer.
-2. **Phase I (Future)** — Real data connectors (pending Owner approval):
-   - Real brand brief input
-   - Meta/Google Ads connector (sandbox)
-   - Canva/asset connector
-   - n8n workflow integration
+
+### ✅ Phase 1 — DONE (2026-06-07)
+The Core Agency Real Operations MVP started. 18-phase/7-day plan locked. Strategy docs created in `00_strategy/`. Public UI branding updated: CLAUDE MARKETING TEAM → THE CORE AGENCY. No backend/database/auth changes in Phase 1.
+
+### Phase 2 — Database Schema V1 (Next)
+- Supabase project setup
+- Schema: users, brands, campaigns, content_items, approval_events, assets
+- `.env.example` with all required env vars
+- Migration scripts
+
+### Phase 3 — Auth / Login
+- Supabase Auth or NextAuth
+- Role assignment on signup
+- Protected routes
+
+---
+
+## ✅ Phase H.7 (tiền nhiệm) — CLOSED
+- Status: DONE + CODEX PASS + FIXES APPLIED + BUILT + PUSHED
+- H.7 added Owner View and Client View inside the same AI Marketing Team Workspace.
+
+## ✅ Phase H.6 (tiền nhiệm) — CLOSED
+- H.6 polished the app into a more client-ready workspace. Demo/mock framing corrected throughout.
+
+## ✅ Phase H.5 (tiền nhiệm) — CLOSED
+- 3 seed brands, Brand Workspace Gallery, Brand Switcher, localStorage v3.

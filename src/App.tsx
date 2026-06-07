@@ -486,14 +486,14 @@ export default function App() {
           <div className="logo-glow"></div>
           <div>
             <h1 style={{ fontSize: '1.5rem', fontWeight: 700, background: 'linear-gradient(135deg, #fff, #a1a1aa)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-              CLAUDE MARKETING TEAM
+              THE CORE AGENCY
             </h1>
-            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Multi-brand AI Marketing Team Workspace</p>
+            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>AI Marketing Team Workspace</p>
           </div>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-end' }}>
           <span className="badge badge-indigo" style={{ background: 'rgba(99, 102, 241, 0.15)', color: '#818cf8', borderColor: 'rgba(99, 102, 241, 0.3)', border: '1px solid' }}>
-            Phase H.7 — Owner &amp; Client Views
+            Real Operations MVP — Phase 1
           </span>
           <div style={{ display: 'flex', gap: '3px', background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '3px' }}>
             <button
@@ -1853,7 +1853,7 @@ export default function App() {
                           `Ranh giới an toàn: Hệ thống chạy hoàn toàn ở chế độ Offline Sandbox (Auto-post: NO, Real Ads: NO, Real Message: NO).\n` +
                           `Quy trình phê duyệt (Owner Review) là bắt buộc trước khi lấy nội dung chạy thực tế.\n\n` +
                           `Trân trọng,\n` +
-                          `Đội ngũ Claude AI Marketing Team`;
+                          `Đội ngũ The Core Agency`;
                         copyToClipboard(pitchText, 'pitch_summary');
                       }}
                     >
