@@ -695,6 +695,54 @@ export interface LocalAssetCollection {
 }
 
 // ---------------------------------------------------------------------------
+// PHASE 11 — REPORT MODULE
+// ---------------------------------------------------------------------------
+
+export type LocalReportType =
+  | 'internal_summary'
+  | 'client_summary'
+  | 'campaign_progress'
+  | 'content_status'
+  | 'approval_status'
+  | 'asset_status';
+
+export type LocalReportStatus = 'draft' | 'generated' | 'approved' | 'archived';
+
+export interface ReportMetrics {
+  total_briefs: number;
+  total_generation_jobs: number;
+  total_content_items: number;
+  content_by_status: Record<string, number>;
+  content_by_channel: Record<string, number>;
+  approval_requests_total: number;
+  approval_by_status: Record<string, number>;
+  pending_approval_count: number;
+  approved_content_count: number;
+  revision_requested_count: number;
+  rejected_count: number;
+  asset_count: number;
+  approved_asset_count: number;
+  campaign_progress_percent: number;
+}
+
+export interface LocalReport {
+  id: string;
+  client_id: string | null;
+  brand_id: string | null;
+  campaign_id: string | null;
+  report_type: LocalReportType;
+  title: string;
+  period_start: string | null;
+  period_end: string | null;
+  summary: string;
+  metrics: ReportMetrics;
+  client_summary_text: string;
+  status: LocalReportStatus;
+  generated_by: string;
+  created_at: string;
+}
+
+// ---------------------------------------------------------------------------
 // COMPOSITE / VIEW TYPES (used by UI)
 // ---------------------------------------------------------------------------
 

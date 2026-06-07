@@ -27,6 +27,7 @@ import {
   ClipboardCheck,
   UserCheck,
   FolderOpen,
+  BarChart2,
 } from 'lucide-react';
 import { sampleCampaigns, Campaign, CampaignBrief, CalendarItem, ChecklistItem } from './mockData';
 import { useAuth } from './lib/auth/AuthContext';
@@ -42,6 +43,7 @@ import ContentCalendarTab from './components/core/ContentCalendarTab';
 import ApprovalsTab from './components/core/ApprovalsTab';
 import ClientViewTab from './components/core/ClientViewTab';
 import AssetLibraryTab from './components/core/AssetLibraryTab';
+import ReportsTab from './components/core/ReportsTab';
 import { loadCoreData, saveCoreData, loadGenerationData, saveGenerationData, loadApprovalData, saveApprovalData, loadAssetData, saveAssetData, canSubmitItem } from './lib/core/coreData';
 import type { CoreDataStore, GenerationDataStore, ApprovalDataStore, AssetDataStore } from './lib/core/coreData';
 
@@ -724,6 +726,14 @@ export default function App() {
               )}
             </button>
 
+            <button
+              className={`btn btn-secondary ${activeTab === 'reports' ? 'active' : ''}`}
+              style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'reports' ? '1px solid rgba(129,140,248,0.5)' : '', background: activeTab === 'reports' ? 'rgba(99,102,241,0.1)' : '' }}
+              onClick={() => setActiveTab('reports')}
+            >
+              <BarChart2 size={18} /> Reports
+            </button>
+
             {/* ── Client ── */}
             <div style={{ margin: '4px 0 2px', padding: '0 4px', fontSize: '0.68rem', fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Client</div>
 
@@ -1031,6 +1041,22 @@ export default function App() {
                   campaigns={coreData.campaigns}
                   assetData={assetData}
                   onAssetUpdate={handleAssetUpdate}
+                  userRole={user?.role ?? null}
+                  actorLabel={actorLabel}
+                  isSupabaseConfigured={isSupabaseConfigured}
+                />
+              )}
+
+              {/* ── Phase 11: Reports Tab ── */}
+              {activeTab === 'reports' && (
+                <ReportsTab
+                  clients={coreData.clients}
+                  brands={coreData.brands}
+                  campaigns={coreData.campaigns}
+                  briefs={coreData.briefs}
+                  genData={genData}
+                  approvalData={approvalData}
+                  assetData={assetData}
                   userRole={user?.role ?? null}
                   actorLabel={actorLabel}
                   isSupabaseConfigured={isSupabaseConfigured}
