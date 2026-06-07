@@ -120,13 +120,22 @@ Auth/Login + Role Permission Foundation:
 - Header: user email + role badge + sign-out button
 - `src/vite-env.d.ts` — Vite env types
 
-### Phase 4 — Client/Brand/Campaign Management Foundation (Next)
-- Supabase project setup (apply schema_v1.sql)
-- Add RLS policies (owner/manager full, client/viewer read-only)
-- Client CRUD (create, list, edit, archive)
-- Brand CRUD (per client)
-- Campaign creation + brief intake form
-- Wire to Core DB (replace mock data with real Supabase queries)
+### ✅ Phase 4 — DONE (2026-06-07)
+Client/Brand/Campaign Management Foundation:
+- `src/lib/core/coreData.ts` — seed data (3 clients/brands/campaigns), localStorage store, display helpers
+- `src/components/core/ClientsTab.tsx` — list, create, detail, archive, cross-tab nav
+- `src/components/core/BrandsTab.tsx` — card grid, filter, create, detail, cross-tab nav
+- `src/components/core/CampaignsTab.tsx` — table, filter, create, status update, detail
+- `src/App.tsx` — coreData state, Core sidebar section, tab rendering, Phase 4 badge
+- Permission integration: canManageClients / canManageBrands / canCreateCampaigns / canEditCampaigns
+- Local demo data mode with "Supabase not configured" badge
+
+### Phase 5 — Brief Intake Foundation (Next)
+- Wire `campaign_briefs` table to campaigns
+- Brief intake form (brand summary, hero product, tone, target, goals, channels, duration)
+- Brief submitted → campaign status changes to "active"
+- Supabase CRUD wiring for clients/brands/campaigns (coreRepository.ts)
+- RLS policies applied
 
 ---
 

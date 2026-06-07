@@ -1,104 +1,112 @@
-# CURRENT PHASE — Phase 3: Auth/Login + Role Permission Foundation ✅ DONE
+# CURRENT PHASE — Phase 4: Client/Brand/Campaign Management Foundation ✅ DONE
 
 Tài liệu này dùng để theo dõi tiến độ thực hiện và trạng thái của Phase hiện tại.
 
 ## 📌 Thông tin chung
-- **Phase hiện tại:** Phase 3 — Auth/Login + Role Permission Foundation
-- **Mục tiêu:** Tạo nền tảng đăng nhập thật và role permission foundation cho The Core Agency MVP.
-- **Trạng thái:** ✅ DONE — Auth context, permissions, login UI, auth gate, docs updated, build pass, pushed.
+- **Phase hiện tại:** Phase 4 — Client/Brand/Campaign Management Foundation
+- **Mục tiêu:** Tạo nền tảng quản lý Client / Brand / Campaign trong Core Product.
+- **Trạng thái:** ✅ DONE — Core data layer, 3 tab components, permission integration, build pass, pushed.
 
 ---
 
-## 📋 Checklist Phase 3
+## 📋 Checklist Phase 4
 
-### Package
-- [x] `@supabase/supabase-js` installed (9 packages added)
+### Core Data Layer
+- [x] `src/lib/core/coreData.ts`
+  - [x] `ClientFormData`, `BrandFormData`, `CampaignFormData` form types
+  - [x] `SEED_CLIENTS` — 3 clients: Vị Cuốn, Cơm Tấm Bản Khói, Forme
+  - [x] `SEED_BRANDS` — 3 brands (1 per client)
+  - [x] `SEED_CAMPAIGNS` — 3 campaigns (1 per brand, 3 different statuses)
+  - [x] `loadCoreData()` / `saveCoreData()` — localStorage-backed store
+  - [x] `generateId()` — prefixed local IDs
+  - [x] `CLIENT_STATUS_LABEL/COLOR`, `CAMPAIGN_STATUS_LABEL/COLOR` display helpers
+  - [x] Storage key: `core_agency_core_data_v1`
 
-### Auth Foundation
-- [x] `src/vite-env.d.ts` — Vite env type declarations (VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY, etc.)
-- [x] `src/lib/supabaseClient.ts` — null-safe Supabase client
-  - [x] Reads `VITE_SUPABASE_URL` + `VITE_SUPABASE_ANON_KEY` from Vite env
-  - [x] `isSupabaseConfigured: boolean` exported
-  - [x] Returns `null` if not configured (no crash)
-  - [x] Never uses service role key in frontend
-
-### Auth Context
-- [x] `src/lib/auth/AuthContext.tsx` — React context + `useAuth()` hook
-  - [x] `AuthState`: user, session, loading, isAuthenticated, mode, error
-  - [x] Three modes: `supabase` | `demo` | `unconfigured`
-  - [x] `signIn(email, password)` — real Supabase or demo fallback
-  - [x] `signOut()` — real Supabase or demo clear
-  - [x] Session bootstrap on mount (`getSession` + `onAuthStateChange`)
-  - [x] `fetchUserRole(userId)` — two-step query (user_roles → roles), falls back to 'viewer'
-
-### Role Permission Foundation
-- [x] `src/lib/auth/permissions.ts`
-  - [x] `PERMISSION_ROLES` matrix: 30+ permissions × 4 roles
-  - [x] `hasPermission(role, permission)` core function
-  - [x] `can.*` convenience helpers (all permissions)
-  - [x] `ROLE_LABELS` + `ROLE_COLORS` display constants
-  - [x] `isInternalRole()` + `isClientRole()` helpers
-  - [x] Permissions: manageClients, manageBrands, createCampaigns, generateContent, approveContent, **publishContent (owner-only)**, manageConnectors, viewAutomationLogs, etc.
-
-### Login UI
-- [x] `src/components/auth/LoginScreen.tsx`
-  - [x] Email + password form
-  - [x] "Supabase not configured" amber warning banner
-  - [x] Demo credentials pre-filled when unconfigured
-  - [x] Loading/error states
-  - [x] The Core Agency branding (dark theme, consistent with workspace)
-  - [x] Demo footer hint
+### Components
+- [x] `src/components/core/ClientsTab.tsx`
+  - [x] Client list with status badges (active/paused/archived)
+  - [x] Create client form (name, industry, contact_name, contact_email, notes)
+  - [x] Client detail: info + brands summary + navigate-to-brands
+  - [x] Archive / Reactivate actions (owner/manager only)
+  - [x] "Local demo data · Supabase not configured" badge
+- [x] `src/components/core/BrandsTab.tsx`
+  - [x] Brand cards grid, filterable by client
+  - [x] Create brand form (client, name, industry, hero_product, tone, target, channels)
+  - [x] Brand detail: full info + campaigns summary + navigate-to-campaigns
+  - [x] `initialFilterClientId` prop for cross-tab navigation
+- [x] `src/components/core/CampaignsTab.tsx`
+  - [x] Campaign table, filterable by client + brand
+  - [x] Create campaign form (client, brand, name, description, dates, budget, status)
+  - [x] Campaign detail view with status update
+  - [x] Inline status dropdown for owner/manager (edit permission)
+  - [x] `initialFilterClientId`, `initialFilterBrandId` props
 
 ### App Shell
-- [x] `src/main.tsx` — wrapped with `<AuthProvider>`
-- [x] `src/App.tsx` — auth gate added
-  - [x] Loading state → spinner
-  - [x] Not authenticated → `<LoginScreen />`
-  - [x] Authenticated → workspace
-  - [x] Header user status area: email, role badge (color-coded), DEMO tag, sign-out button
-  - [x] Phase badge updated: "Real Operations MVP — Phase 3"
+- [x] `src/App.tsx`
+  - [x] Imports: `ClientsTab`, `BrandsTab`, `CampaignsTab`, `loadCoreData`, `saveCoreData`, `CoreDataStore`, `isSupabaseConfigured`, `Zap`
+  - [x] State: `coreData`, `coreNavFilter`
+  - [x] `handleCoreUpdate(updated)` — saves to localStorage
+  - [x] `handleCoreNavigate(tab, filter)` — cross-tab navigation
+  - [x] Sidebar: "Core" section header + Clients / Brands / Campaigns buttons
+  - [x] Sidebar: "Workspace" section header before existing tabs
+  - [x] Rendering: `{activeTab === 'clients'}`, `{activeTab === 'brands'}`, `{activeTab === 'campaigns'}`
+  - [x] Phase badge: "Real Operations MVP — Phase 4"
+
+### Permission Integration
+- [x] `can.manageClients(role)` — show/hide create/archive in ClientsTab
+- [x] `can.manageBrands(role)` — show/hide create in BrandsTab
+- [x] `can.createCampaigns(role)` — show/hide create in CampaignsTab
+- [x] `can.editCampaigns(role)` — show/hide status dropdown in CampaignsTab
+- [x] Read-only hint shown to lower roles
 
 ### Docs
-- [x] `CLAUDE_MARKETING_TEAM/03_core/auth/README.md` — auth modes, role hierarchy, RLS notes, env vars
+- [x] `CLAUDE_MARKETING_TEAM/03_core/client_brand_campaign_README.md`
 
 ### Safety
 - [x] No secrets in source
-- [x] Service role key never in frontend
-- [x] Demo mode clearly labeled
-- [x] `publishContent` permission: owner-only
-- [x] No auto-post / auto-ads / auto-message gates not bypassed
-- [x] Build pass: tsc + vite (0 errors, 563KB bundle with Supabase)
+- [x] No auto-post / auto-ads / auto-message
+- [x] All data local/demo — no real client data committed
+- [x] Service role key never used
+- [x] "Local demo data" badge visible when Supabase not configured
+- [x] Build pass: tsc + vite (0 errors, 606KB bundle — Supabase + new components)
 
 ---
 
-## 🔑 Auth Quick Reference
-| | |
-|-|-|
-| **Demo login** | owner@thecore.agency / demo1234 |
-| **Real login** | requires VITE_SUPABASE_URL + VITE_SUPABASE_ANON_KEY in .env.local |
-| **Role lookup** | `user_roles` → `roles` tables (falls back to 'viewer') |
+## 🗂️ Data Model Quick Reference
+
+```
+Client (id, name, slug, contact_name, contact_email, status, notes)
+  └── Brand (id, client_id, name, industry, hero_product, tone_of_voice, target_audience, channels)
+        └── Campaign (id, brand_id, client_id, name, description, start_date, end_date, status, budget)
+```
+
+**Storage:** localStorage key `core_agency_core_data_v1`  
+**Supabase:** wired in Phase 5+ via `coreRepository.ts`
 
 ---
 
-## 🛡️ Safety Guard (Phase 3)
+## 🛡️ Safety Guard (Phase 4)
 - Auto-post: NO
 - Real Ads: NO
 - Real Messaging: NO
 - Real Connectors: NO
 - Secrets Added: NO
 - Service Role Key in Frontend: NO
-- Build Pass: YES
+- Build Pass: YES (0 errors)
 
 ---
 
 ## 📝 Closeout Note
-Phase 3 adds a real auth foundation on top of the existing static workspace. Supabase Auth is the target. When env vars are not configured, the app runs in demo mode with a mock owner user — no crash, no blank screen. Permission matrix covers all 18-phase scenarios. Phase 4 will add RLS policies to the DB and wire the first real data CRUD (client/brand management).
+Phase 4 lays the management layer for Client → Brand → Campaign. All data is local/demo via localStorage. Permission matrix fully applied — owners/managers can create/edit, viewers/clients are read-only. Cross-tab navigation works (Clients → Brands → Campaigns by filter). Phase 5 will wire Supabase CRUD and add Brief Intake form.
 
 ---
 
+## ✅ Phase 3 (tiền nhiệm) — CLOSED
+- Commit: `d8b972a` — feat: add auth and role permission foundation
+- Features: Supabase Auth, AuthContext, permissions matrix, LoginScreen, auth gate.
+
 ## ✅ Phase 2 (tiền nhiệm) — CLOSED
 - Commit: `d0cb365` — feat: add database schema v1 for the core agency
-- Features: Supabase Postgres schema, 30+ tables, 7 groups, TypeScript types, .env.example.
 
 ## ✅ Phase 1 (tiền nhiệm) — CLOSED
 - Commit: `317c6c8` — docs: add the core agency real mvp strategy and branding

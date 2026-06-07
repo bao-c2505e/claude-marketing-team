@@ -19,12 +19,19 @@ import {
   Store,
   Eye,
   LogOut,
-  Lock
+  Lock,
+  Zap
 } from 'lucide-react';
 import { sampleCampaigns, Campaign, CampaignBrief, CalendarItem, ChecklistItem } from './mockData';
 import { useAuth } from './lib/auth/AuthContext';
 import { ROLE_LABELS, ROLE_COLORS } from './lib/auth/permissions';
+import { isSupabaseConfigured } from './lib/supabaseClient';
 import LoginScreen from './components/auth/LoginScreen';
+import ClientsTab from './components/core/ClientsTab';
+import BrandsTab from './components/core/BrandsTab';
+import CampaignsTab from './components/core/CampaignsTab';
+import { loadCoreData, saveCoreData } from './lib/core/coreData';
+import type { CoreDataStore } from './lib/core/coreData';
 
 const manualExportBlocks = [
   {
@@ -218,6 +225,20 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<string>('dashboard');
   const [outputSubTab, setOutputSubTab] = useState<string>('calendar');
   const [viewMode, setViewMode] = useState<'owner' | 'client'>('owner');
+
+  // Phase 4 — Core data (clients, brands, campaigns)
+  const [coreData, setCoreData] = useState<CoreDataStore>(() => loadCoreData());
+  const [coreNavFilter, setCoreNavFilter] = useState<{ clientId?: string; brandId?: string }>({});
+
+  const handleCoreUpdate = (updated: CoreDataStore) => {
+    setCoreData(updated);
+    saveCoreData(updated);
+  };
+
+  const handleCoreNavigate = (tab: string, filter?: { clientId?: string; brandId?: string }) => {
+    setActiveTab(tab);
+    setCoreNavFilter(filter ?? {});
+  };
   const handleViewModeSwitch = (mode: 'owner' | 'client') => {
     setViewMode(mode);
     if (mode === 'client') {
@@ -514,7 +535,7 @@ export default function App() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-end' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <span className="badge badge-indigo" style={{ background: 'rgba(99, 102, 241, 0.15)', color: '#818cf8', borderColor: 'rgba(99, 102, 241, 0.3)', border: '1px solid' }}>
-              Real Operations MVP — Phase 3
+              Real Operations MVP — Phase 4
             </span>
             {/* User status */}
             {user && (
@@ -584,6 +605,35 @@ export default function App() {
             >
               <LayoutDashboard size={18} /> Dashboard
             </button>
+
+            {/* ── Core Management ── */}
+            <div style={{ margin: '4px 0 2px', padding: '0 4px', fontSize: '0.68rem', fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Core</div>
+
+            <button
+              className={`btn btn-secondary ${activeTab === 'clients' ? 'active' : ''}`}
+              style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'clients' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'clients' ? 'rgba(99, 102, 241, 0.1)' : '' }}
+              onClick={() => setActiveTab('clients')}
+            >
+              <Users size={18} /> Clients
+            </button>
+
+            <button
+              className={`btn btn-secondary ${activeTab === 'brands' ? 'active' : ''}`}
+              style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'brands' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'brands' ? 'rgba(99, 102, 241, 0.1)' : '' }}
+              onClick={() => setActiveTab('brands')}
+            >
+              <Store size={18} /> Brands
+            </button>
+
+            <button
+              className={`btn btn-secondary ${activeTab === 'campaigns' ? 'active' : ''}`}
+              style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'campaigns' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'campaigns' ? 'rgba(99, 102, 241, 0.1)' : '' }}
+              onClick={() => setActiveTab('campaigns')}
+            >
+              <Zap size={18} /> Campaigns
+            </button>
+
+            <div style={{ margin: '4px 0 2px', padding: '0 4px', fontSize: '0.68rem', fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Workspace</div>
 
             <button
               className={`btn btn-secondary ${activeTab === 'brand-gallery' ? 'active' : ''}`}
@@ -736,6 +786,47 @@ export default function App() {
 
           {!isSimulating && (
             <>
+              {/* ── Phase 4: Clients Tab ── */}
+              {activeTab === 'clients' && (
+                <ClientsTab
+                  clients={coreData.clients}
+                  brands={coreData.brands}
+                  campaigns={coreData.campaigns}
+                  onUpdate={handleCoreUpdate}
+                  userRole={user?.role ?? null}
+                  isSupabaseConfigured={isSupabaseConfigured}
+                  onNavigate={handleCoreNavigate}
+                />
+              )}
+
+              {/* ── Phase 4: Brands Tab ── */}
+              {activeTab === 'brands' && (
+                <BrandsTab
+                  clients={coreData.clients}
+                  brands={coreData.brands}
+                  campaigns={coreData.campaigns}
+                  onUpdate={handleCoreUpdate}
+                  userRole={user?.role ?? null}
+                  isSupabaseConfigured={isSupabaseConfigured}
+                  initialFilterClientId={coreNavFilter.clientId}
+                  onNavigate={handleCoreNavigate}
+                />
+              )}
+
+              {/* ── Phase 4: Campaigns Tab ── */}
+              {activeTab === 'campaigns' && (
+                <CampaignsTab
+                  clients={coreData.clients}
+                  brands={coreData.brands}
+                  campaigns={coreData.campaigns}
+                  onUpdate={handleCoreUpdate}
+                  userRole={user?.role ?? null}
+                  isSupabaseConfigured={isSupabaseConfigured}
+                  initialFilterClientId={coreNavFilter.clientId}
+                  initialFilterBrandId={coreNavFilter.brandId}
+                />
+              )}
+
               {/* 1. DASHBOARD TAB */}
               {activeTab === 'dashboard' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>

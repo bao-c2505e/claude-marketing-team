@@ -6,6 +6,25 @@ Nhật ký theo dõi các mốc hoàn thành kỹ thuật qua các Phase.
 
 ## 📅 Nhật Ký Sự Kiện (Event Logs)
 
+### 🗓️ Ngày 07/06/2026 — Phase 4: Client/Brand/Campaign Management Foundation
+- **Sự kiện:** Hoàn thành Core Management layer cho The Core Agency.
+- **Người thực hiện:** Claude Code Builder (PC1).
+- **Hành động đã hoàn tất:**
+  1. Tạo `src/lib/core/coreData.ts` — seed data (3 clients, 3 brands, 3 campaigns), localStorage store, form types, display helpers.
+  2. Tạo `src/components/core/ClientsTab.tsx` — list, create form, detail view, archive/activate, cross-tab nav.
+  3. Tạo `src/components/core/BrandsTab.tsx` — card grid, filter by client, create form, detail view, cross-tab nav.
+  4. Tạo `src/components/core/CampaignsTab.tsx` — table, filter by client+brand, create form, status update, detail view.
+  5. Cập nhật `src/App.tsx` — imports, coreData state, handleCoreUpdate, handleCoreNavigate, sidebar "Core" section (Clients/Brands/Campaigns), tab rendering, phase badge → Phase 4.
+  6. Tạo `CLAUDE_MARKETING_TEAM/03_core/client_brand_campaign_README.md`.
+  7. Cập nhật CURRENT_PHASE.md, SESSION_SUMMARY.md, phase_log.md, agent_activity_log.md.
+  8. Build pass (tsc + vite, 0 errors, 606KB bundle). Push to GitHub.
+- **Permission integration:** canManageClients / canManageBrands / canCreateCampaigns / canEditCampaigns applied.
+- **Data mode:** Local demo (localStorage `core_agency_core_data_v1`). Supabase wired in Phase 5+.
+- **Trạng thái Phase 4:** ✅ DONE.
+- **Next:** Phase 5 — Brief Intake Foundation + Supabase CRUD wiring.
+
+---
+
 ### 🗓️ Ngày 07/06/2026 — Phase 3: Auth/Login + Role Permission Foundation
 - **Sự kiện:** Hoàn thành Auth foundation cho The Core Agency.
 - **Người thực hiện:** Claude Code Builder (PC1).

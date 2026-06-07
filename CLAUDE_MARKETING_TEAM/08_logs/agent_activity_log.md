@@ -6,6 +6,19 @@ Nhật ký ghi lại các hành động mô phỏng của các AI Agent khi vậ
 
 ## 🗓️ Nhật Ký Hoạt Động (Simulated Activity Logs)
 
+### 🗓️ Ngày 07/06/2026 — Phase 4: Client/Brand/Campaign Management Foundation
+- **[PC1 Claude Code Builder]:** Phase 4 initiated. Read all docs: CURRENT_PHASE, SESSION_SUMMARY, strategy plan, DB schema, auth README, types/core.ts, App.tsx, permissions.ts.
+- **[PC1]:** Created `src/lib/core/coreData.ts` — seed 3 clients, 3 brands, 3 campaigns. LocalStorage store. Form types. Display helpers.
+- **[PC1]:** Created `src/components/core/ClientsTab.tsx` — list + create + detail (with brands summary + cross-tab navigate). Archive/activate actions gated on canManageClients.
+- **[PC1]:** Created `src/components/core/BrandsTab.tsx` — card grid + filter by client + create + detail (with campaigns). Cross-tab navigate to Campaigns. canManageBrands gate.
+- **[PC1]:** Created `src/components/core/CampaignsTab.tsx` — table + filter by client+brand + create + status update + detail. canCreateCampaigns / canEditCampaigns gates.
+- **[PC1]:** Updated `src/App.tsx` — added imports (Zap, ClientsTab, BrandsTab, CampaignsTab, coreData utils, isSupabaseConfigured). Added coreData state + saveCoreData effect. Added handleCoreUpdate, handleCoreNavigate. Added "Core" sidebar section (Clients/Brands/Campaigns). Added "Workspace" section header. Added tab rendering. Phase badge → Phase 4.
+- **[PC1]:** Created `CLAUDE_MARKETING_TEAM/03_core/client_brand_campaign_README.md`.
+- **[SYSTEM]:** tsc --noEmit → 0 errors. vite build → 0 errors, 606KB bundle. Pushed to GitHub.
+- **[SYSTEM]:** Phase 4 DONE.
+
+---
+
 ### 🗓️ Ngày 07/06/2026 — Phase 3: Auth/Login + Role Permission Foundation
 - **[PC1 Claude Code Builder]:** Phase 3 initiated. Stack: React 18 + Vite, no router, no Supabase yet.
 - **[PC1]:** Installed `@supabase/supabase-js`. Noted esbuild/vite audit warning (dev-only, not fixing to avoid breaking change).
