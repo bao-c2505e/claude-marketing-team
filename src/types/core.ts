@@ -769,3 +769,33 @@ export interface ModuleEventWithCallback extends ModuleEvent {
   webhook_callback?: WebhookCallback;
   module?: ModuleRegistry;
 }
+
+// ---------------------------------------------------------------------------
+// PHASE 12 — EXPORT PACK
+// ---------------------------------------------------------------------------
+
+export type ExportPackType =
+  | 'campaign_summary'
+  | 'content_calendar'
+  | 'approved_content'
+  | 'client_report'
+  | 'asset_checklist'
+  | 'full_campaign_pack';
+
+export type ExportPackFormat = 'markdown' | 'plain_text' | 'json_preview';
+
+export type ExportPackStatus = 'draft' | 'generated' | 'copied' | 'archived';
+
+export interface LocalExportPack {
+  id: string;
+  client_id: string | null;
+  brand_id: string | null;
+  campaign_id: string | null;
+  export_type: ExportPackType;
+  title: string;
+  format: ExportPackFormat;
+  status: ExportPackStatus;
+  content: string;
+  created_at: string;
+  updated_at: string;
+}

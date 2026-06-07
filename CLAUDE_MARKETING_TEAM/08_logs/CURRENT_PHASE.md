@@ -1,10 +1,10 @@
 # CURRENT PHASE — The Core Agency PC1
 
-## Active Phase: Phase 9 ✅ DONE
+## Active Phase: Phase 11 ✅ DONE
 
-**Phase 9 — Client View Foundation**
+**Phase 11 — Report Module Foundation**
 - Status: COMPLETED 2026-06-08
-- Commit: feat: add client view foundation
+- Commit: feat: add report module foundation (6e15e25)
 - Build: pass
 
 ## Completed Phases
@@ -20,13 +20,16 @@
 | Phase 7 | Content Calendar Foundation | ✅ DONE |
 | Phase 8 | Approval Workflow Foundation | ✅ DONE |
 | Phase 9 | Client View Foundation | ✅ DONE |
+| Phase 10 | Asset Library Foundation | ✅ DONE |
+| Phase 11 | Report Module Foundation | ✅ DONE |
 
 ## Next Phase
 
-**Phase 10 — Asset Library Foundation**
-- Upload and manage brand assets (images, videos, docs)
-- Link assets to content items and campaigns
-- Asset approval workflow integration
+**Phase 12 — Export Pack Foundation**
+- Bundle campaign outputs into shareable export packs
+- Copy-ready content packs per campaign/brand
+- Client-facing export summary (approved content only)
+- Permission: canExportPacks (owner/manager)
 
 ## Active Constraints
 

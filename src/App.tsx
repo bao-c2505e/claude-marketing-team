@@ -28,6 +28,7 @@ import {
   UserCheck,
   FolderOpen,
   BarChart2,
+  Package,
 } from 'lucide-react';
 import { sampleCampaigns, Campaign, CampaignBrief, CalendarItem, ChecklistItem } from './mockData';
 import { useAuth } from './lib/auth/AuthContext';
@@ -44,6 +45,7 @@ import ApprovalsTab from './components/core/ApprovalsTab';
 import ClientViewTab from './components/core/ClientViewTab';
 import AssetLibraryTab from './components/core/AssetLibraryTab';
 import ReportsTab from './components/core/ReportsTab';
+import ExportPackTab from './components/core/ExportPackTab';
 import { loadCoreData, saveCoreData, loadGenerationData, saveGenerationData, loadApprovalData, saveApprovalData, loadAssetData, saveAssetData, canSubmitItem } from './lib/core/coreData';
 import type { CoreDataStore, GenerationDataStore, ApprovalDataStore, AssetDataStore } from './lib/core/coreData';
 
@@ -591,7 +593,7 @@ export default function App() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-end' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <span className="badge badge-indigo" style={{ background: 'rgba(99, 102, 241, 0.15)', color: '#818cf8', borderColor: 'rgba(99, 102, 241, 0.3)', border: '1px solid' }}>
-              Real Operations MVP — Phase 6
+              Real Operations MVP — Phase 12
             </span>
             {/* User status */}
             {user && (
@@ -732,6 +734,14 @@ export default function App() {
               onClick={() => setActiveTab('reports')}
             >
               <BarChart2 size={18} /> Reports
+            </button>
+
+            <button
+              className={`btn btn-secondary ${activeTab === 'export-pack' ? 'active' : ''}`}
+              style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'export-pack' ? '1px solid rgba(129,140,248,0.5)' : '', background: activeTab === 'export-pack' ? 'rgba(99,102,241,0.1)' : '' }}
+              onClick={() => setActiveTab('export-pack')}
+            >
+              <Package size={18} /> Export Pack
             </button>
 
             {/* ── Client ── */}
@@ -1050,6 +1060,22 @@ export default function App() {
               {/* ── Phase 11: Reports Tab ── */}
               {activeTab === 'reports' && (
                 <ReportsTab
+                  clients={coreData.clients}
+                  brands={coreData.brands}
+                  campaigns={coreData.campaigns}
+                  briefs={coreData.briefs}
+                  genData={genData}
+                  approvalData={approvalData}
+                  assetData={assetData}
+                  userRole={user?.role ?? null}
+                  actorLabel={actorLabel}
+                  isSupabaseConfigured={isSupabaseConfigured}
+                />
+              )}
+
+              {/* ── Phase 12: Export Pack Tab ── */}
+              {activeTab === 'export-pack' && (
+                <ExportPackTab
                   clients={coreData.clients}
                   brands={coreData.brands}
                   campaigns={coreData.campaigns}

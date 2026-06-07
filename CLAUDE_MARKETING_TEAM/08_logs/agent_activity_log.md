@@ -6,6 +6,20 @@ Nhật ký ghi lại các hành động mô phỏng của các AI Agent khi vậ
 
 ## 🗓️ Nhật Ký Hoạt Động (Simulated Activity Logs)
 
+### 🗓️ Ngày 08/06/2026 — Phase 12: Export Pack Foundation
+- **[PC1 Claude Code Builder]:** Phase 12 initiated.
+- **[PC1]:** Added `ExportPackType`, `ExportPackFormat`, `ExportPackStatus`, `LocalExportPack` types to `src/types/core.ts`.
+- **[PC1]:** Added `ExportPackDataStore`, `loadExportPackData()`, `saveExportPackData()` to `src/lib/core/coreData.ts`. Storage key: `core_agency_export_pack_data_v1`.
+- **[PC1]:** Created `src/lib/core/exportPackGenerator.ts`: `generateExportPack()`, 6 content builders (campaign_summary, content_calendar, approved_content, client_report, asset_checklist, full_campaign_pack), `formatContent()` (markdown/plain_text/json_preview), `CLIENT_SAFE_EXPORT_TYPES` constant.
+- **[PC1]:** Created `src/components/core/ExportPackTab.tsx`: safety banner, header with phase badge + history toggle, history panel (50 packs), configure panel (scope → export type → format → Generate), preview panel (pack meta, textarea, copy-to-clipboard, regenerate, governance note), permission gate.
+- **[PC1]:** Updated `src/App.tsx`: `Package` icon import, `ExportPackTab` import; sidebar "Export Pack" button (under Reports in Core section); tab routing `export-pack`; phase badge → Phase 12.
+- **[PC1]:** Created `CLAUDE_MARKETING_TEAM/03_core/export_pack_README.md`.
+- **[PC1]:** Updated CURRENT_PHASE.md, SESSION_SUMMARY.md, phase_log.md, agent_activity_log.md.
+- **[SYSTEM]:** Build pass.
+- **[SYSTEM]:** Phase 12 DONE. Committing and pushing.
+
+---
+
 ### 🗓️ Ngày 08/06/2026 — Phase 9: Client View Foundation
 - **[PC1 Claude Code Builder]:** Phase 9 initiated.
 - **[PC1]:** Created `src/components/core/ClientViewTab.tsx`: safety banner, internal preview badge, campaign selector, campaign overview card, content summary stats, content item list (client-facing fields only), expand/collapse, feedback form, public comment display, empty states.

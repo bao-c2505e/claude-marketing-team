@@ -6,6 +6,53 @@ Nhật ký theo dõi các mốc hoàn thành kỹ thuật qua các Phase.
 
 ## 📅 Nhật Ký Sự Kiện (Event Logs)
 
+### 🗓️ Ngày 08/06/2026 — Phase 12: Export Pack Foundation
+- **Sự kiện:** Hoàn thành Export Pack Foundation cho The Core Agency.
+- **Người thực hiện:** Claude Code Builder (PC1).
+- **Hành động đã hoàn tất:**
+  1. Thêm types vào `src/types/core.ts`: `ExportPackType` (6 loại), `ExportPackFormat`, `ExportPackStatus`, `LocalExportPack`.
+  2. Mở rộng `src/lib/core/coreData.ts`: `ExportPackDataStore`, `loadExportPackData()`, `saveExportPackData()` (max 50 packs). Storage key: `core_agency_export_pack_data_v1`.
+  3. Tạo `src/lib/core/exportPackGenerator.ts`: `generateExportPack()` deterministic, 6 content builders, format converter (markdown/plain_text/json_preview), `CLIENT_SAFE_EXPORT_TYPES`.
+  4. Tạo `src/components/core/ExportPackTab.tsx`: safety banner, configure panel (scope/type/format/generate), preview panel (textarea + copy + regenerate), history panel (50 recent packs), governance reminders, permission gate.
+  5. Cập nhật `src/App.tsx`: import `Package`, `ExportPackTab`; sidebar "Export Pack" button; tab routing `export-pack`; phase badge → Phase 12.
+  6. Tạo `CLAUDE_MARKETING_TEAM/03_core/export_pack_README.md`.
+- **Safety:** No real API, no upload, no email, no auto-post. Safety banner always visible. Approved ≠ Published.
+- **Permissions:** `canViewExportPacks` = owner/manager/client; `canExportPacks` (generate) = owner/manager. Client/viewer restricted to 3 client-safe types.
+- **Trạng thái Phase 12:** ✅ DONE.
+- **Next:** Phase 13 — Connector Registry + Module Event Inbox Foundation.
+
+---
+
+### 🗓️ Ngày 08/06/2026 — Phase 11: Report Module Foundation
+- **Sự kiện:** Hoàn thành Report Module Foundation cho The Core Agency.
+- **Người thực hiện:** Claude Code Builder (PC1).
+- **Hành động đã hoàn tất:**
+  1. Thêm types vào `src/types/core.ts`: `LocalReportType` (6 loại), `LocalReportStatus`, `ReportMetrics`, `LocalReport`.
+  2. Tạo `src/lib/core/reportGenerator.ts`: `generateLocalReport()` deterministic (không gọi AI thật), display maps cho content/approval/asset status, `CLIENT_ACCESSIBLE_REPORT_TYPES`, `buildClientSummaryText()`, `buildSummaryText()`.
+  3. Tạo `src/components/core/ReportsTab.tsx`: filter bar (client/brand/campaign cascading + report type), Generate button (owner/manager only), metric cards (6 cards: total content, approved, pending, revision, assets, progress%), progress bar visual, detailed breakdown (4 sections: by status, by channel, approval by status, asset by status), client summary text (copyable), internal summary (copyable, internal only), governance note.
+  4. Cập nhật `src/App.tsx`: import `BarChart2`, `ReportsTab`; sidebar "Reports" button (indigo, under Approvals in Core section); tab routing `reports`.
+- **Safety:** No real API calls. No auto-post/ads/message. Report clearly labeled "Core workspace data only. No real platform analytics." Approved ≠ Published.
+- **Permissions:** `canViewReports` = all roles; `canGenerateReports` = owner/manager. Client/viewer chỉ thấy client_summary và campaign_progress types.
+- **Trạng thái Phase 11:** ✅ DONE. Commit: 6e15e25.
+- **Next:** Phase 12 — Export Pack Foundation.
+
+---
+
+### 🗓️ Ngày 08/06/2026 — Phase 10: Asset Library Foundation
+- **Sự kiện:** Hoàn thành Asset Library Foundation cho The Core Agency.
+- **Người thực hiện:** Claude Code Builder (PC1).
+- **Hành động đã hoàn tất:**
+  1. Thêm types vào `src/types/core.ts`: `AssetType`, `AssetSourceType`, `AssetApprovalStatus`, `AssetItem`, `LocalAssetCollection`.
+  2. Mở rộng `src/lib/core/coreData.ts`: `AssetDataStore`, `SEED_COLLECTIONS` (3), `SEED_ASSETS` (6 cho Vị Cuốn/Cơm Tấm/Forme), `loadAssetData`, `saveAssetData`, `createAsset`, `updateAsset`, display maps.
+  3. Tạo `src/components/core/AssetLibraryTab.tsx`: filter bar (client/brand/campaign/type/status cascading), asset card list (expand detail), create/edit metadata form, archive action, asset collections panel, safety banner, permission guard.
+  4. Cập nhật `src/App.tsx`: import `FolderOpen`, `AssetLibraryTab`, `loadAssetData/saveAssetData`, state `assetData`, handler `handleAssetUpdate`, sidebar "Asset Library" button, tab routing `asset-library`.
+- **Safety:** Metadata only, no real file upload. Usage rights note field required. Storage upload deferred. Approved asset ≠ published content. No auto-post/ads/messaging.
+- **Permissions:** `canViewAssets` = all roles; `canManageAssets` = owner/manager. Client/viewer only see approved assets.
+- **Trạng thái Phase 10:** ✅ DONE. Commit: 2ff8007.
+- **Next:** Phase 11 — Report Module Foundation.
+
+---
+
 ### 🗓️ Ngày 08/06/2026 — Phase 9: Client View Foundation
 - **Sự kiện:** Hoàn thành Client View Foundation cho The Core Agency.
 - **Người thực hiện:** Claude Code Builder (PC1).

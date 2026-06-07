@@ -1,4 +1,4 @@
-import type { Client, Brand, Campaign, CampaignBrief, ResourceStatus, CampaignStatus, BriefStatus, ContentPlanJob, ContentPlanItem, ContentApprovalRequest, ContentApprovalEvent, ContentApprovalComment, ContentApprovalStatus, ApprovalActionType, ApprovalPriority, AssetType, AssetSourceType, AssetApprovalStatus, AssetItem, LocalAssetCollection } from '../../types/core';
+import type { Client, Brand, Campaign, CampaignBrief, ResourceStatus, CampaignStatus, BriefStatus, ContentPlanJob, ContentPlanItem, ContentApprovalRequest, ContentApprovalEvent, ContentApprovalComment, ContentApprovalStatus, ApprovalActionType, ApprovalPriority, AssetType, AssetSourceType, AssetApprovalStatus, AssetItem, LocalAssetCollection, LocalExportPack } from '../../types/core';
 
 // ---------------------------------------------------------------------------
 // Local form types for create operations
@@ -1116,3 +1116,31 @@ export const ASSET_TYPES: AssetType[] = [
 export const ASSET_APPROVAL_STATUSES: AssetApprovalStatus[] = [
   'draft', 'needs_review', 'approved', 'rejected', 'archived',
 ];
+
+// ---------------------------------------------------------------------------
+// Export Pack Data Store (Phase 12) — separate localStorage key
+// ---------------------------------------------------------------------------
+
+export interface ExportPackDataStore {
+  packs: LocalExportPack[];
+}
+
+const EXPORT_PACK_STORAGE_KEY = 'core_agency_export_pack_data_v1';
+
+export function loadExportPackData(): ExportPackDataStore {
+  try {
+    const stored = localStorage.getItem(EXPORT_PACK_STORAGE_KEY);
+    if (stored) {
+      const parsed = JSON.parse(stored) as Partial<ExportPackDataStore>;
+      return { packs: parsed.packs ?? [] };
+    }
+  } catch (_) { /* ignore */ }
+  return { packs: [] };
+}
+
+export function saveExportPackData(data: ExportPackDataStore): void {
+  try {
+    const trimmed: ExportPackDataStore = { packs: data.packs.slice(0, 50) };
+    localStorage.setItem(EXPORT_PACK_STORAGE_KEY, JSON.stringify(trimmed));
+  } catch (_) { /* ignore */ }
+}

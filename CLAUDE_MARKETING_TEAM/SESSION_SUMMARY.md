@@ -22,6 +22,41 @@ Chúng ta đang xây dựng **The Core Agency — Real Operations MVP**. Đây l
 
 ---
 
+## ✅ Phase 12 — Export Pack Foundation (DONE — 2026-06-08)
+
+### Mục tiêu:
+Tạo nền tảng Export Pack: gom dữ liệu campaign thành bộ xuất nội dung phục vụ team/client. Local text/markdown only — không PDF/DOCX thật, không upload, không gửi email.
+
+### Đã build:
+1. **`src/types/core.ts`**: Added `ExportPackType` (6 values), `ExportPackFormat`, `ExportPackStatus`, `LocalExportPack`.
+2. **`src/lib/core/coreData.ts`**: Added `ExportPackDataStore`, `loadExportPackData()`, `saveExportPackData()`. Storage key: `core_agency_export_pack_data_v1`.
+3. **`src/lib/core/exportPackGenerator.ts`** (NEW): `generateExportPack()`, 6 section builders, `formatContent()`, `CLIENT_SAFE_EXPORT_TYPES`.
+4. **`src/components/core/ExportPackTab.tsx`** (NEW): Safety banner, configure panel (scope/type/format/generate), preview panel (textarea + copy + regenerate), history panel (50 packs), permission gate.
+5. **`src/App.tsx`**: `Package` icon, `ExportPackTab` import, sidebar "Export Pack" button, tab routing `export-pack`, phase badge → Phase 12.
+6. **`CLAUDE_MARKETING_TEAM/03_core/export_pack_README.md`**: Created.
+
+### Export Types:
+| Type | Client-safe |
+|---|---|
+| `campaign_summary` | ✅ |
+| `content_calendar` | ❌ internal |
+| `approved_content` | ✅ |
+| `client_report` | ✅ |
+| `asset_checklist` | ❌ internal |
+| `full_campaign_pack` | ❌ internal |
+
+### Permission Integration:
+- `canViewExportPacks` = owner/manager/client
+- `canExportPacks` (generate) = owner/manager
+- Client/viewer: restricted to 3 client-safe types, view-only
+
+### Safety:
+- No AI API, no upload, no email, no auto-post, no publish.
+- Safety banner always visible.
+- Internal fields (angle, owner_note, publish_note, asset.notes) stripped from client-safe exports.
+
+---
+
 ## ✅ Phase 9 — Client View Foundation (DONE — 2026-06-08)
 
 ### Mục tiêu:
