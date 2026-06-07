@@ -22,6 +22,34 @@ Chúng ta đang xây dựng **The Core Agency — Real Operations MVP**. Đây l
 
 ---
 
+## ✅ Phase 9 — Client View Foundation (DONE — 2026-06-08)
+
+### Mục tiêu:
+Tạo Client Portal: client-facing view của campaign content. Client xem được nội dung approved/pending/revision, add feedback/comment, không lộ workspace nội bộ, không thể publish.
+
+### Đã build:
+1. **`src/components/core/ClientViewTab.tsx`** (NEW): Safety banner, "Internal Preview" badge (owner/manager), campaign selector (Phase 4 campaigns), campaign overview card (brand, brief title, goal, dates, channels, status), content summary stats (Approved/Pending Review/Revision Requested), content item list với expand/collapse. Client-facing fields: hook, caption, visual_brief, cta, hashtags. Hidden: owner_note, angle, pillar, job internals. Feedback form (stores via `addApprovalComment`, isInternal=false). Public comment display. Empty states.
+2. **`src/App.tsx`**: UserCheck icon import, ClientViewTab import, "Client" sidebar section label, "Client Portal" button (emerald highlight), tab routing `client-view`.
+3. **`CLAUDE_MARKETING_TEAM/03_core/client_view_README.md`**: Created.
+
+### Client-Visible Status Mapping:
+- `approved` → "Approved" (emerald)
+- `needs_review` / `generated` → "Pending Review" (amber)
+- `revision_requested` → "Revision Requested" (orange)
+- Hidden: `rejected`, `archived`, `failed`, `draft`
+
+### Client Actions:
+- View content (all roles with `canViewContent`)
+- Add feedback comment (all roles, only if approval request exists for item)
+- No publish, no approve/reject, no internal data edit
+
+### Safety:
+- Approved ≠ Published. No publish action in Phase 9.
+- Safety banner always visible in Client Portal.
+- Internal workspace not exposed to client view.
+
+---
+
 ## ✅ Phase 8 — Approval Workflow Foundation (DONE — 2026-06-08)
 
 ### Mục tiêu:

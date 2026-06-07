@@ -6,6 +6,23 @@ Nhật ký theo dõi các mốc hoàn thành kỹ thuật qua các Phase.
 
 ## 📅 Nhật Ký Sự Kiện (Event Logs)
 
+### 🗓️ Ngày 08/06/2026 — Phase 9: Client View Foundation
+- **Sự kiện:** Hoàn thành Client View Foundation cho The Core Agency.
+- **Người thực hiện:** Claude Code Builder (PC1).
+- **Hành động đã hoàn tất:**
+  1. Tạo `src/components/core/ClientViewTab.tsx` — Client Portal với campaign selector, campaign overview card, content summary stats (Approved/Pending/Revision), content item cards (hook, caption, visual_brief, cta, hashtags — không lộ internal data), feedback form (lưu vào approvalComments), safety banner, empty states, "Internal Preview" badge cho owner/manager.
+  2. Cập nhật `src/App.tsx` — import `UserCheck`, `ClientViewTab`; thêm "Client" sidebar section với "Client Portal" button; thêm tab routing `client-view`.
+  3. Tạo `CLAUDE_MARKETING_TEAM/03_core/client_view_README.md`.
+  4. Cập nhật logs và SESSION_SUMMARY.
+- **Client-visible statuses:** `approved` → "Approved", `needs_review`/`generated` → "Pending Review", `revision_requested` → "Revision Requested". Hidden: rejected, archived, failed, draft.
+- **Client actions:** Add feedback comment (stored via `addApprovalComment(..., isInternal=false)`). No publish, no approve, no internal edits.
+- **Permission gate:** canViewContent = all roles. canAddFeedback = all roles (requires active approval request). canApprove = Approvals tab only (owner/manager).
+- **Safety:** Approved ≠ Published. No publish action in Phase 9. Safety banner always visible. No auto-post/ads/messaging.
+- **Trạng thái Phase 9:** ✅ DONE.
+- **Next:** Phase 10 — Asset Library Foundation.
+
+---
+
 ### 🗓️ Ngày 08/06/2026 — Phase 8: Approval Workflow Foundation
 - **Sự kiện:** Hoàn thành Approval Workflow Foundation cho The Core Agency.
 - **Người thực hiện:** Claude Code Builder (PC1).

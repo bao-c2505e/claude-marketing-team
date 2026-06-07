@@ -6,6 +6,17 @@ Nhật ký ghi lại các hành động mô phỏng của các AI Agent khi vậ
 
 ## 🗓️ Nhật Ký Hoạt Động (Simulated Activity Logs)
 
+### 🗓️ Ngày 08/06/2026 — Phase 9: Client View Foundation
+- **[PC1 Claude Code Builder]:** Phase 9 initiated.
+- **[PC1]:** Created `src/components/core/ClientViewTab.tsx`: safety banner, internal preview badge, campaign selector, campaign overview card, content summary stats, content item list (client-facing fields only), expand/collapse, feedback form, public comment display, empty states.
+- **[PC1]:** Updated `src/App.tsx`: UserCheck icon, ClientViewTab import, "Client" sidebar section, "Client Portal" button, tab routing `client-view`.
+- **[PC1]:** Created `CLAUDE_MARKETING_TEAM/03_core/client_view_README.md`.
+- **[PC1]:** Updated CURRENT_PHASE.md, phase_log.md, agent_activity_log.md, SESSION_SUMMARY.md.
+- **[SYSTEM]:** Build pass.
+- **[SYSTEM]:** Phase 9 DONE. Committing and pushing.
+
+---
+
 ### 🗓️ Ngày 08/06/2026 — Phase 8: Approval Workflow Foundation
 - **[PC1 Claude Code Builder]:** Phase 8 initiated.
 - **[PC1]:** Added Phase 8 types to `src/types/core.ts`: ContentApprovalStatus, ApprovalPriority, ApprovalActionType, ContentApprovalRequest, ContentApprovalEvent, ContentApprovalComment.

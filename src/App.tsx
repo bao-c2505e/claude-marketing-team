@@ -24,7 +24,8 @@ import {
   ClipboardList,
   Wand2,
   CalendarDays,
-  ClipboardCheck
+  ClipboardCheck,
+  UserCheck,
 } from 'lucide-react';
 import { sampleCampaigns, Campaign, CampaignBrief, CalendarItem, ChecklistItem } from './mockData';
 import { useAuth } from './lib/auth/AuthContext';
@@ -38,6 +39,7 @@ import BriefIntakeTab from './components/core/BriefIntakeTab';
 import ContentGenerationTab from './components/core/ContentGenerationTab';
 import ContentCalendarTab from './components/core/ContentCalendarTab';
 import ApprovalsTab from './components/core/ApprovalsTab';
+import ClientViewTab from './components/core/ClientViewTab';
 import { loadCoreData, saveCoreData, loadGenerationData, saveGenerationData, loadApprovalData, saveApprovalData, canSubmitItem } from './lib/core/coreData';
 import type { CoreDataStore, GenerationDataStore, ApprovalDataStore } from './lib/core/coreData';
 
@@ -712,6 +714,17 @@ export default function App() {
               )}
             </button>
 
+            {/* ── Client ── */}
+            <div style={{ margin: '4px 0 2px', padding: '0 4px', fontSize: '0.68rem', fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Client</div>
+
+            <button
+              className={`btn btn-secondary ${activeTab === 'client-view' ? 'active' : ''}`}
+              style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'client-view' ? '1px solid rgba(52,211,153,0.5)' : '', background: activeTab === 'client-view' ? 'rgba(16,185,129,0.1)' : '' }}
+              onClick={() => setActiveTab('client-view')}
+            >
+              <UserCheck size={18} /> Client Portal
+            </button>
+
             <div style={{ margin: '4px 0 2px', padding: '0 4px', fontSize: '0.68rem', fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Workspace</div>
 
             <button
@@ -969,6 +982,23 @@ export default function App() {
                   approvalData={approvalData}
                   genData={genData}
                   onUpdate={handleApprovalUpdate}
+                  userRole={user?.role ?? null}
+                  actorLabel={actorLabel}
+                  isSupabaseConfigured={isSupabaseConfigured}
+                />
+              )}
+
+              {/* ── Phase 9: Client Portal Tab ── */}
+              {activeTab === 'client-view' && (
+                <ClientViewTab
+                  clients={coreData.clients}
+                  brands={coreData.brands}
+                  campaigns={coreData.campaigns}
+                  briefs={coreData.briefs}
+                  contentItems={genData.contentItems}
+                  approvalData={approvalData}
+                  genData={genData}
+                  onApprovalUpdate={handleApprovalUpdate}
                   userRole={user?.role ?? null}
                   actorLabel={actorLabel}
                   isSupabaseConfigured={isSupabaseConfigured}
