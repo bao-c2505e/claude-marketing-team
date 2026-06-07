@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Plus, ChevronRight, ArrowLeft, Users, Tag } from 'lucide-react';
-import type { Client, Brand, Campaign, ResourceStatus } from '../../types/core';
+import type { Client, Brand, Campaign, CampaignBrief, ResourceStatus } from '../../types/core';
 import type { ClientFormData, CoreDataStore } from '../../lib/core/coreData';
 import { generateId, CLIENT_STATUS_LABEL, CLIENT_STATUS_COLOR } from '../../lib/core/coreData';
 import { can } from '../../lib/auth/permissions';
@@ -10,6 +10,7 @@ interface Props {
   clients: Client[];
   brands: Brand[];
   campaigns: Campaign[];
+  briefs: CampaignBrief[];
   onUpdate: (updated: CoreDataStore) => void;
   userRole: RoleName | null;
   isSupabaseConfigured: boolean;
@@ -24,7 +25,7 @@ const EMPTY_FORM: ClientFormData = {
   notes: '',
 };
 
-export default function ClientsTab({ clients, brands, campaigns, onUpdate, userRole, isSupabaseConfigured, onNavigate }: Props) {
+export default function ClientsTab({ clients, brands, campaigns, briefs, onUpdate, userRole, isSupabaseConfigured, onNavigate }: Props) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState<ClientFormData>(EMPTY_FORM);
@@ -53,7 +54,7 @@ export default function ClientsTab({ clients, brands, campaigns, onUpdate, userR
       created_at: now,
       updated_at: now,
     };
-    onUpdate({ clients: [newClient, ...clients], brands, campaigns });
+    onUpdate({ clients: [newClient, ...clients], brands, campaigns, briefs });
     setForm(EMPTY_FORM);
     setFormError('');
     setShowForm(false);
@@ -65,6 +66,7 @@ export default function ClientsTab({ clients, brands, campaigns, onUpdate, userR
       clients: clients.map(c => c.id === clientId ? { ...c, status: 'archived' as ResourceStatus, updated_at: now } : c),
       brands,
       campaigns,
+      briefs,
     });
     if (selectedId === clientId) setSelectedId(null);
   };
@@ -75,6 +77,7 @@ export default function ClientsTab({ clients, brands, campaigns, onUpdate, userR
       clients: clients.map(c => c.id === clientId ? { ...c, status: 'active' as ResourceStatus, updated_at: now } : c),
       brands,
       campaigns,
+      briefs,
     });
   };
 

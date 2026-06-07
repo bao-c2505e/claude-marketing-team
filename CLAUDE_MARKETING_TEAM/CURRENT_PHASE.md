@@ -1,11 +1,74 @@
-# CURRENT PHASE — Phase 4: Client/Brand/Campaign Management Foundation ✅ DONE
+# CURRENT PHASE — Phase 5: Brief Intake Foundation ✅ DONE
 
 Tài liệu này dùng để theo dõi tiến độ thực hiện và trạng thái của Phase hiện tại.
 
 ## 📌 Thông tin chung
-- **Phase hiện tại:** Phase 4 — Client/Brand/Campaign Management Foundation
-- **Mục tiêu:** Tạo nền tảng quản lý Client / Brand / Campaign trong Core Product.
-- **Trạng thái:** ✅ DONE — Core data layer, 3 tab components, permission integration, build pass, pushed.
+- **Phase hiện tại:** Phase 5 — Brief Intake Foundation
+- **Mục tiêu:** Tạo nền tảng Brief Intake — input layer trước khi AI generation (Phase 6+).
+- **Trạng thái:** ✅ DONE — BriefIntakeTab, extended types/coreData, permission integration, build pass, pushed.
+
+---
+
+## 📋 Checklist Phase 5
+
+### Data Layer
+- [x] `src/types/core.ts` — added `BriefStatus` union type; extended `CampaignBrief` with 15 new fields (brief_title, campaign_goal, product_focus, offer, tone_of_voice, content_pillars, must_include, must_avoid, competitors, reference_links, budget_note, timeline_note, approval_requirements, brand_id, client_id)
+- [x] `src/lib/core/coreData.ts` — added `BriefFormData`; `SEED_BRIEFS` (3 briefs); extended `CoreDataStore` with `briefs`; `loadCoreData()` migration; `BRIEF_STATUS_LABEL/COLOR`, `BRIEF_STATUSES`, `EMPTY_BRIEF_FORM` helpers
+
+### Components
+- [x] `src/components/core/BriefIntakeTab.tsx` — NEW
+  - [x] List view: filter (client/brand/campaign/status), brief cards with StatusBadge, "Mark Ready" quick-action, campaigns-without-brief panel
+  - [x] Detail view: all fields, status transitions, disabled "Generate — Phase 6" button
+  - [x] Create/Edit form: 5 sections, auto-populate from brand, required field validation
+  - [x] Safety notice in detail view
+- [x] `src/components/core/ClientsTab.tsx` — added `briefs` prop + pass-through
+- [x] `src/components/core/BrandsTab.tsx` — added `briefs` prop + pass-through
+- [x] `src/components/core/CampaignsTab.tsx` — added `briefs` prop + pass-through
+
+### App Shell
+- [x] `src/App.tsx` — imported `BriefIntakeTab`, `ClipboardList`; Brief Intake sidebar button; tab rendering; phase badge → Phase 5
+
+### Docs
+- [x] `CLAUDE_MARKETING_TEAM/03_core/brief_intake_README.md`
+
+### Safety
+- [x] "Generate" button disabled — label "Generate — Phase 6"
+- [x] Safety notice: Brief = Input only. Generated ≠ Approved ≠ Published. No auto-post.
+- [x] No secrets in source
+- [x] Build pass: tsc + vite (0 errors, ~634KB bundle)
+
+---
+
+## 🗂️ Data Model Quick Reference
+
+```
+Client
+  └── Brand
+        └── Campaign
+              └── CampaignBrief (1:1 per campaign)
+                    status: draft → ready_for_generation → approved_for_generation
+                                                        ↘ needs_revision → archived
+```
+
+**Storage:** localStorage key `core_agency_core_data_v1`  
+**Next phase (6):** Content Generation — "Generate" button enabled for `approved_for_generation` briefs.
+
+---
+
+## 🛡️ Safety Guard (Phase 5)
+- Auto-post: NO
+- Real Ads: NO
+- Real Messaging: NO
+- Real Connectors: NO
+- Secrets Added: NO
+- Service Role Key in Frontend: NO
+- Generate button: DISABLED (Phase 6 placeholder)
+- Build Pass: YES (0 errors)
+
+---
+
+## 📝 Closeout Note
+Phase 5 adds the Brief Intake layer. Briefs capture all inputs needed for content generation. The "Generate" button is present but disabled until Phase 6. Safety boundary: Brief ready_for_generation ≠ generated. Generated ≠ Approved. Approved ≠ Published. No auto-post at any stage.
 
 ---
 

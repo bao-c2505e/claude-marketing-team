@@ -6,6 +6,17 @@ Nhật ký ghi lại các hành động mô phỏng của các AI Agent khi vậ
 
 ## 🗓️ Nhật Ký Hoạt Động (Simulated Activity Logs)
 
+### 🗓️ Ngày 08/06/2026 — Phase 5: Brief Intake Foundation
+- **[PC1 Claude Code Builder]:** Phase 5 initiated. Resumed from previous session (context compacted).
+- **[PC1]:** Fixed remaining TypeScript errors: added `briefs: CampaignBrief[]` prop + onUpdate pass-through to `BrandsTab.tsx` and `CampaignsTab.tsx`. Removed unused `BRIEF_STATUSES` import from `BriefIntakeTab.tsx`.
+- **[PC1]:** Updated `src/App.tsx` — added `briefs={coreData.briefs}` to `<ClientsTab>`, `<BrandsTab>`, `<CampaignsTab>` renderers.
+- **[SYSTEM]:** tsc --noEmit → 0 errors. vite build → 0 errors, ~634KB bundle.
+- **[PC1]:** Created `CLAUDE_MARKETING_TEAM/03_core/brief_intake_README.md`.
+- **[PC1]:** Updated CURRENT_PHASE.md (Phase 4 → Phase 5), SESSION_SUMMARY.md, phase_log.md, agent_activity_log.md.
+- **[SYSTEM]:** Phase 5 DONE. Committing and pushing.
+
+---
+
 ### 🗓️ Ngày 07/06/2026 — Phase 4: Client/Brand/Campaign Management Foundation
 - **[PC1 Claude Code Builder]:** Phase 4 initiated. Read all docs: CURRENT_PHASE, SESSION_SUMMARY, strategy plan, DB schema, auth README, types/core.ts, App.tsx, permissions.ts.
 - **[PC1]:** Created `src/lib/core/coreData.ts` — seed 3 clients, 3 brands, 3 campaigns. LocalStorage store. Form types. Display helpers.

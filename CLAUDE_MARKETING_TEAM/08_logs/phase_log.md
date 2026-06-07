@@ -6,6 +6,25 @@ Nhật ký theo dõi các mốc hoàn thành kỹ thuật qua các Phase.
 
 ## 📅 Nhật Ký Sự Kiện (Event Logs)
 
+### 🗓️ Ngày 08/06/2026 — Phase 5: Brief Intake Foundation
+- **Sự kiện:** Hoàn thành Brief Intake Foundation cho The Core Agency.
+- **Người thực hiện:** Claude Code Builder (PC1).
+- **Hành động đã hoàn tất:**
+  1. Cập nhật `src/types/core.ts` — thêm `BriefStatus` union type, mở rộng `CampaignBrief` với 15 fields mới (brief_title, campaign_goal, product_focus, offer, tone_of_voice, content_pillars, must_include, must_avoid, competitors, reference_links, budget_note, timeline_note, approval_requirements, brand_id, client_id).
+  2. Cập nhật `src/lib/core/coreData.ts` — thêm `BriefFormData`, `SEED_BRIEFS` (3 briefs), mở rộng `CoreDataStore` với `briefs`, migration trong `loadCoreData()`, helpers BRIEF_STATUS_LABEL/COLOR/EMPTY_BRIEF_FORM.
+  3. Tạo `src/components/core/BriefIntakeTab.tsx` — list view (filter, cards, quick-actions), detail view (all fields, status transitions, disabled Generate placeholder), create/edit form (5 sections, auto-populate, validation), safety notice.
+  4. Cập nhật `ClientsTab.tsx`, `BrandsTab.tsx`, `CampaignsTab.tsx` — thêm `briefs` prop và pass-through trong `onUpdate`.
+  5. Cập nhật `src/App.tsx` — import BriefIntakeTab + ClipboardList, Brief Intake sidebar button + tab rendering, phase badge → Phase 5.
+  6. Tạo `CLAUDE_MARKETING_TEAM/03_core/brief_intake_README.md`.
+  7. Cập nhật CURRENT_PHASE.md, SESSION_SUMMARY.md, phase_log.md, agent_activity_log.md.
+  8. Build pass (tsc + vite, 0 errors, ~634KB bundle). Push to GitHub.
+- **Status machine:** draft → ready_for_generation → approved_for_generation | needs_revision → archived.
+- **Safety:** Generate button disabled (Phase 6 placeholder). Brief = input only. Generated ≠ Approved ≠ Published.
+- **Trạng thái Phase 5:** ✅ DONE.
+- **Next:** Phase 6 — Content Generation (enable Generate button for approved_for_generation briefs).
+
+---
+
 ### 🗓️ Ngày 07/06/2026 — Phase 4: Client/Brand/Campaign Management Foundation
 - **Sự kiện:** Hoàn thành Core Management layer cho The Core Agency.
 - **Người thực hiện:** Claude Code Builder (PC1).

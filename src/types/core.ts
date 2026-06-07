@@ -33,6 +33,13 @@ export type ResourceStatus = 'active' | 'inactive' | 'archived';
 
 export type CampaignStatus = 'draft' | 'active' | 'paused' | 'completed' | 'archived';
 
+export type BriefStatus =
+  | 'draft'
+  | 'ready_for_generation'
+  | 'needs_revision'
+  | 'approved_for_generation'
+  | 'archived';
+
 export type CampaignType = '7_day' | '15_day' | '30_day' | 'custom';
 
 export type ModuleType =
@@ -167,16 +174,34 @@ export interface Campaign {
 export interface CampaignBrief {
   id: string;
   campaign_id: string;
+  // denormalised refs (Phase 5+)
+  brand_id: string | null;
+  client_id: string | null;
   brand_name: string;
   hero_product: string | null;
   industry: string | null;
+  // Phase 5 fields — all nullable for backward compat
+  brief_title: string | null;
+  campaign_goal: string | null;
+  product_focus: string | null;
+  offer: string | null;
+  tone_of_voice: string | null;
   tone: string | null;
   target_audience: string | null;
   campaign_goals: string[] | null;
   key_messages: string[] | null;
   channels: string[] | null;
+  content_pillars: string[] | null;
+  must_include: string | null;
+  must_avoid: string | null;
+  competitors: string | null;
+  reference_links: string | null;
+  budget_note: string | null;
+  timeline_note: string | null;
+  approval_requirements: string | null;
   duration_days: number | null;
   additional_notes: string | null;
+  status: BriefStatus | null;
   submitted_by: string | null;
   submitted_at: string | null;
   created_at: string;

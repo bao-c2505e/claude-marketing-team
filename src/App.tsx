@@ -20,7 +20,8 @@ import {
   Eye,
   LogOut,
   Lock,
-  Zap
+  Zap,
+  ClipboardList
 } from 'lucide-react';
 import { sampleCampaigns, Campaign, CampaignBrief, CalendarItem, ChecklistItem } from './mockData';
 import { useAuth } from './lib/auth/AuthContext';
@@ -30,6 +31,7 @@ import LoginScreen from './components/auth/LoginScreen';
 import ClientsTab from './components/core/ClientsTab';
 import BrandsTab from './components/core/BrandsTab';
 import CampaignsTab from './components/core/CampaignsTab';
+import BriefIntakeTab from './components/core/BriefIntakeTab';
 import { loadCoreData, saveCoreData } from './lib/core/coreData';
 import type { CoreDataStore } from './lib/core/coreData';
 
@@ -535,7 +537,7 @@ export default function App() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-end' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <span className="badge badge-indigo" style={{ background: 'rgba(99, 102, 241, 0.15)', color: '#818cf8', borderColor: 'rgba(99, 102, 241, 0.3)', border: '1px solid' }}>
-              Real Operations MVP — Phase 4
+              Real Operations MVP — Phase 5
             </span>
             {/* User status */}
             {user && (
@@ -631,6 +633,14 @@ export default function App() {
               onClick={() => setActiveTab('campaigns')}
             >
               <Zap size={18} /> Campaigns
+            </button>
+
+            <button
+              className={`btn btn-secondary ${activeTab === 'brief-intake' ? 'active' : ''}`}
+              style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'brief-intake' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'brief-intake' ? 'rgba(99, 102, 241, 0.1)' : '' }}
+              onClick={() => setActiveTab('brief-intake')}
+            >
+              <ClipboardList size={18} /> Brief Intake
             </button>
 
             <div style={{ margin: '4px 0 2px', padding: '0 4px', fontSize: '0.68rem', fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Workspace</div>
@@ -792,6 +802,7 @@ export default function App() {
                   clients={coreData.clients}
                   brands={coreData.brands}
                   campaigns={coreData.campaigns}
+                  briefs={coreData.briefs}
                   onUpdate={handleCoreUpdate}
                   userRole={user?.role ?? null}
                   isSupabaseConfigured={isSupabaseConfigured}
@@ -805,6 +816,7 @@ export default function App() {
                   clients={coreData.clients}
                   brands={coreData.brands}
                   campaigns={coreData.campaigns}
+                  briefs={coreData.briefs}
                   onUpdate={handleCoreUpdate}
                   userRole={user?.role ?? null}
                   isSupabaseConfigured={isSupabaseConfigured}
@@ -819,11 +831,25 @@ export default function App() {
                   clients={coreData.clients}
                   brands={coreData.brands}
                   campaigns={coreData.campaigns}
+                  briefs={coreData.briefs}
                   onUpdate={handleCoreUpdate}
                   userRole={user?.role ?? null}
                   isSupabaseConfigured={isSupabaseConfigured}
                   initialFilterClientId={coreNavFilter.clientId}
                   initialFilterBrandId={coreNavFilter.brandId}
+                />
+              )}
+
+              {/* ── Phase 5: Brief Intake Tab ── */}
+              {activeTab === 'brief-intake' && (
+                <BriefIntakeTab
+                  clients={coreData.clients}
+                  brands={coreData.brands}
+                  campaigns={coreData.campaigns}
+                  briefs={coreData.briefs}
+                  onUpdate={handleCoreUpdate}
+                  userRole={user?.role ?? null}
+                  isSupabaseConfigured={isSupabaseConfigured}
                 />
               )}
 

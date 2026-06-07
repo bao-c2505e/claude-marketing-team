@@ -22,6 +22,36 @@ Chúng ta đang xây dựng **The Core Agency — Real Operations MVP**. Đây l
 
 ---
 
+## ✅ Phase 5 — Brief Intake Foundation (DONE + BUILT + PUSHED — 2026-06-08)
+
+### Mục tiêu:
+Tạo nền tảng Brief Intake — input layer trước khi AI content generation (Phase 6+).
+
+### Đã build:
+1. **`src/types/core.ts`**: Added `BriefStatus` union; extended `CampaignBrief` with 15 new fields.
+2. **`src/lib/core/coreData.ts`**: Added `BriefFormData`, `SEED_BRIEFS` (3), extended `CoreDataStore`, migration in `loadCoreData()`, display helpers.
+3. **`src/components/core/BriefIntakeTab.tsx`** (NEW): List view (filters, cards, quick-actions), Detail view (all fields, status transitions, disabled Generate placeholder), Create/Edit form (5 sections, auto-populate brand, validation), Safety notice.
+4. **ClientsTab / BrandsTab / CampaignsTab**: Added `briefs` prop + pass-through in `onUpdate`.
+5. **`src/App.tsx`**: Imported `BriefIntakeTab`, `ClipboardList`; Brief Intake sidebar button; tab rendering; phase badge → Phase 5.
+6. **`CLAUDE_MARKETING_TEAM/03_core/brief_intake_README.md`**: Created.
+
+### Brief Status Machine:
+`draft → ready_for_generation → approved_for_generation | needs_revision → archived`
+
+### Safety:
+- "Generate" button disabled (label: "Generate — Phase 6")
+- Brief = Input only. Generated ≠ Approved ≠ Published. No auto-post.
+- Build PASS: tsc + vite, 0 errors, ~634KB bundle.
+
+---
+
+## ✅ Phase 4 — Client/Brand/Campaign Management Foundation (DONE + BUILT + PUSHED — 2026-06-07)
+
+### Đã build:
+Core data layer (coreData.ts), ClientsTab, BrandsTab, CampaignsTab, App.tsx updates, permission integration, localStorage store.
+
+---
+
 ## ✅ Phase H.7 — Owner View + Client View (DONE + CODEX PASS + FIXES APPLIED + BUILT + PUSHED + READY FOR OWNER PRODUCTION CHECK — 2026-06-05)
 
 ### Mục tiêu:

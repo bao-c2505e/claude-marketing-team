@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Plus, ArrowLeft, ChevronRight, Zap } from 'lucide-react';
-import type { Client, Brand, Campaign, CampaignStatus } from '../../types/core';
+import type { Client, Brand, Campaign, CampaignBrief, CampaignStatus } from '../../types/core';
 import type { CampaignFormData, CoreDataStore } from '../../lib/core/coreData';
 import { generateId, CAMPAIGN_STATUS_LABEL, CAMPAIGN_STATUS_COLOR } from '../../lib/core/coreData';
 import { can } from '../../lib/auth/permissions';
@@ -10,6 +10,7 @@ interface Props {
   clients: Client[];
   brands: Brand[];
   campaigns: Campaign[];
+  briefs: CampaignBrief[];
   onUpdate: (updated: CoreDataStore) => void;
   userRole: RoleName | null;
   isSupabaseConfigured: boolean;
@@ -30,7 +31,7 @@ const EMPTY_FORM: CampaignFormData = {
 
 const STATUSES: CampaignStatus[] = ['draft', 'active', 'paused', 'completed', 'archived'];
 
-export default function CampaignsTab({ clients, brands, campaigns, onUpdate, userRole, isSupabaseConfigured, initialFilterClientId, initialFilterBrandId }: Props) {
+export default function CampaignsTab({ clients, brands, campaigns, briefs, onUpdate, userRole, isSupabaseConfigured, initialFilterClientId, initialFilterBrandId }: Props) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState<CampaignFormData>(EMPTY_FORM);
@@ -83,7 +84,7 @@ export default function CampaignsTab({ clients, brands, campaigns, onUpdate, use
       created_at: now,
       updated_at: now,
     };
-    onUpdate({ clients, brands, campaigns: [newCampaign, ...campaigns] });
+    onUpdate({ clients, brands, campaigns: [newCampaign, ...campaigns], briefs });
     setForm(EMPTY_FORM);
     setFormError('');
     setShowForm(false);
@@ -95,6 +96,7 @@ export default function CampaignsTab({ clients, brands, campaigns, onUpdate, use
       clients,
       brands,
       campaigns: campaigns.map(c => c.id === campaignId ? { ...c, status: newStatus, updated_at: now } : c),
+      briefs,
     });
   };
 

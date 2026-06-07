@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Plus, ArrowLeft, ChevronRight, Store } from 'lucide-react';
-import type { Client, Brand, Campaign, ResourceStatus } from '../../types/core';
+import type { Client, Brand, Campaign, CampaignBrief, ResourceStatus } from '../../types/core';
 import type { BrandFormData, CoreDataStore } from '../../lib/core/coreData';
 import { generateId, CAMPAIGN_STATUS_LABEL, CAMPAIGN_STATUS_COLOR } from '../../lib/core/coreData';
 import { can } from '../../lib/auth/permissions';
@@ -10,6 +10,7 @@ interface Props {
   clients: Client[];
   brands: Brand[];
   campaigns: Campaign[];
+  briefs: CampaignBrief[];
   onUpdate: (updated: CoreDataStore) => void;
   userRole: RoleName | null;
   isSupabaseConfigured: boolean;
@@ -27,7 +28,7 @@ const EMPTY_FORM: BrandFormData = {
   primary_channels: 'Facebook',
 };
 
-export default function BrandsTab({ clients, brands, campaigns, onUpdate, userRole, isSupabaseConfigured, initialFilterClientId, onNavigate }: Props) {
+export default function BrandsTab({ clients, brands, campaigns, briefs, onUpdate, userRole, isSupabaseConfigured, initialFilterClientId, onNavigate }: Props) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState<BrandFormData>(EMPTY_FORM);
@@ -67,7 +68,7 @@ export default function BrandsTab({ clients, brands, campaigns, onUpdate, userRo
       created_at: now,
       updated_at: now,
     };
-    onUpdate({ clients, brands: [newBrand, ...brands], campaigns });
+    onUpdate({ clients, brands: [newBrand, ...brands], campaigns, briefs });
     setForm(EMPTY_FORM);
     setFormError('');
     setShowForm(false);
