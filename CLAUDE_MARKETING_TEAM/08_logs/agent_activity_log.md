@@ -6,6 +6,21 @@ Nhật ký ghi lại các hành động mô phỏng của các AI Agent khi vậ
 
 ## 🗓️ Nhật Ký Hoạt Động (Simulated Activity Logs)
 
+### 🗓️ Ngày 07/06/2026 — Phase 2: Database Schema V1
+- **[PC1 Claude Code Builder]:** Phase 2 initiated. Target: Supabase Postgres schema V1.
+- **[PC1]:** Confirmed stack: React + TypeScript + Vite. No backend/DB yet. No existing Supabase setup.
+- **[PC1]:** Created `00_strategy/THE_CORE_AGENCY_DATABASE_SCHEMA_V1.md`.
+- **[PC1]:** Created `CLAUDE_MARKETING_TEAM/03_core/database/schema_v1.sql` — 30+ tables covering all 7 domain groups. ENUMs, FKs, indexes, `set_updated_at()` trigger, RLS enabled on key tables.
+- **[PC1]:** Created `CLAUDE_MARKETING_TEAM/03_core/database/README.md`.
+- **[PC1]:** Created `src/types/core.ts` — all table interfaces + enum union types + composite view types.
+- **[PC1]:** Created `.env.example` — Supabase, webhook, n8n, Anthropic placeholders. No real secrets.
+- **[PC1]:** Verified `.gitignore` covers `.env.local`. Safe.
+- **[PC1]:** Updated CURRENT_PHASE.md, SESSION_SUMMARY.md, phase_log.md.
+- **[SYSTEM]:** Build verified (npm run build — tsc + vite). 0 errors. Pushed to GitHub.
+- **[SYSTEM]:** Phase 2 DONE. Schema ready for Phase 3 Supabase Auth + RLS policies.
+
+---
+
 ### 🗓️ Ngày 07/06/2026 — Phase 1: The Core Agency Real Operations MVP
 - **[SYSTEM — PC1 Claude Code Builder]:** Phase 1 initiated. The Core Agency Real Operations MVP begins.
 - **[PC1]:** Read all existing docs (CURRENT_PHASE.md, SESSION_SUMMARY.md, phase_log.md, agent_activity_log.md). Previous state: Phase H.7 DONE, static frontend UI with Owner/Client View modes.

@@ -6,6 +6,23 @@ Nhật ký theo dõi các mốc hoàn thành kỹ thuật qua các Phase.
 
 ## 📅 Nhật Ký Sự Kiện (Event Logs)
 
+### 🗓️ Ngày 07/06/2026 — Phase 2: Database Schema V1
+- **Sự kiện:** Hoàn thành Database Schema V1 cho The Core Agency Real Operations MVP.
+- **Người thực hiện:** Claude Code Builder (PC1).
+- **Hành động đã hoàn tất:**
+  1. Tạo `00_strategy/THE_CORE_AGENCY_DATABASE_SCHEMA_V1.md` — tài liệu schema đầy đủ, phase dependency map.
+  2. Tạo `CLAUDE_MARKETING_TEAM/03_core/database/schema_v1.sql` — SQL Supabase Postgres: 30+ bảng, 7 nhóm, enums, indexes, triggers, RLS.
+  3. Tạo `CLAUDE_MARKETING_TEAM/03_core/database/README.md` — hướng dẫn apply schema.
+  4. Tạo `src/types/core.ts` — TypeScript types khớp hoàn toàn với schema.
+  5. Tạo `.env.example` — placeholder an toàn cho Supabase, webhook, n8n, Anthropic.
+  6. Kiểm tra `.gitignore` — `.env.local`, `.env` đã được gitignore ✅.
+  7. Cập nhật CURRENT_PHASE.md, SESSION_SUMMARY.md, phase_log.md, agent_activity_log.md.
+  8. Build pass (tsc + vite). Push to GitHub.
+- **Trạng thái Phase 2:** ✅ DONE.
+- **Next:** Phase 3 — Auth/Login + Role Permission Foundation (Supabase Auth, RLS policies).
+
+---
+
 ### 🗓️ Ngày 07/06/2026 — Real Operations MVP Start
 - **Sự kiện:** Bắt đầu The Core Agency Real Operations MVP — Phase 1.
 - **Người thực hiện:** Claude Code Builder (PC1).

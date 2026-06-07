@@ -1,74 +1,86 @@
-# CURRENT PHASE — Phase 1: Product Scope Lock + Branding ✅ DONE
+# CURRENT PHASE — Phase 2: Database Schema V1 ✅ DONE
 
 Tài liệu này dùng để theo dõi tiến độ thực hiện và trạng thái của Phase hiện tại.
 
 ## 📌 Thông tin chung
-- **Phase hiện tại:** Phase 1 — Product Scope Lock + Source Strategy + The Core Agency Branding
-- **Mục tiêu:** Khoá scope sản phẩm Real Operations MVP, tạo strategy docs, đổi UI branding sang The Core Agency.
-- **Trạng thái:** ✅ DONE — Strategy docs created, branding updated, logs updated, build pass, pushed.
+- **Phase hiện tại:** Phase 2 — Database Schema V1
+- **Mục tiêu:** Thiết kế và đưa vào source database schema V1 cho The Core Agency Real Operations MVP. Bao phủ toàn bộ domain: Identity/Access, Business Objects, Content Production, Approval Workflow, Assets/Reports, Automation/Modules, Safety/Governance.
+- **Trạng thái:** ✅ DONE — Schema SQL created, TypeScript types created, .env.example created, strategy doc created, logs updated, build pass, pushed.
 
 ---
 
-## 📋 Checklist Phase 1
+## 📋 Checklist Phase 2
 
-### Strategy Documents
-- [x] `00_strategy/THE_CORE_AGENCY_7_DAY_REAL_MVP_PLAN.md` — 18-phase/7-day plan created
-- [x] `00_strategy/THE_CORE_AGENCY_MODULES_AND_N8N_WORKSTREAM.md` — Architecture + module contracts documented
+### Strategy Document
+- [x] `00_strategy/THE_CORE_AGENCY_DATABASE_SCHEMA_V1.md` — full schema overview, group map, phase dependency map
 
-### UI Branding
-- [x] `src/App.tsx` header: `CLAUDE MARKETING TEAM` → `THE CORE AGENCY`
-- [x] `src/App.tsx` tagline: `Multi-brand AI Marketing Team Workspace` → `AI Marketing Team Workspace`
-- [x] `src/App.tsx` phase badge: `Phase H.7 — Owner & Client Views` → `Real Operations MVP — Phase 1`
-- [x] `src/App.tsx` pitch text: `Đội ngũ Claude AI Marketing Team` → `Đội ngũ The Core Agency`
-- [x] `index.html` title: `AI Marketing Team Workspace` → `The Core Agency`
+### SQL Schema
+- [x] `CLAUDE_MARKETING_TEAM/03_core/database/schema_v1.sql`
+  - [x] All ENUMs defined (content_status, approval_status, campaign_status, module_type, etc.)
+  - [x] Group A: users, user_profiles, roles (seeded), user_roles
+  - [x] Group B: clients, brands, campaigns, campaign_briefs
+  - [x] Group C: generation_jobs, content_items, content_calendar_items, creative_briefs, ad_briefs
+  - [x] Group D: approval_requests, approval_events, approval_comments
+  - [x] Group E: asset_collections, assets, reports, report_metrics
+  - [x] Group F: connector_registry, module_registry, module_events, webhook_callbacks, automation_logs
+  - [x] Group G: audit_logs, system_settings (seeded: app_name, auto_post_enabled=false, require_approval=true)
+  - [x] Indexes on all FK + high-cardinality query columns
+  - [x] `set_updated_at()` trigger on all tables with updated_at
+  - [x] RLS enabled on key tables (policies deferred to Phase 3)
+- [x] `CLAUDE_MARKETING_TEAM/03_core/database/README.md`
 
-### App Identity Config
-- [x] appName: The Core Agency (in App.tsx header h1)
-- [x] tagline: AI Marketing Team Workspace (in App.tsx subheader)
-- [x] mode badge: Real Operations MVP — Phase 1
+### TypeScript Types
+- [x] `src/types/core.ts` — full type definitions matching schema
+  - [x] All ENUMs as TypeScript union types
+  - [x] All 30+ table interfaces
+  - [x] Composite view types (BrandWithClient, CampaignWithBrand, ApprovalRequestWithEvents, etc.)
 
-### Architecture Documented
-- [x] Core = quản lý và phê duyệt (source of truth)
-- [x] n8n = automation backbone (không phải database)
-- [x] Modules = xử lý chuyên môn
-- [x] Webhook = báo kết quả về Core
-- [x] UI = chỉ hiển thị dữ liệu đã lưu ở Core database
+### Environment Variables
+- [x] `.env.example` — safe placeholders only
+  - [x] VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY
+  - [x] SUPABASE_SERVICE_ROLE_KEY=do_not_commit_real_secret
+  - [x] DATABASE_URL, WEBHOOK_SHARED_SECRET, N8N_API_KEY, ANTHROPIC_API_KEY
+  - [x] VITE_APP_NAME, VITE_APP_TAGLINE, VITE_APP_MODE
+- [x] `.gitignore` already includes .env, .env.local, *.local — verified ✅
 
 ### Safety
-- [x] No secrets added
-- [x] No backend/database/auth added (Phase 2–3)
-- [x] Build passes (tsc + vite build)
-- [x] Production not broken
+- [x] No real secrets in any committed file
+- [x] `auto_post_enabled = false` seeded in system_settings
+- [x] `auto_ads_enabled = false` seeded in system_settings
+- [x] `require_approval = true` seeded in system_settings
+- [x] RLS enabled on key tables (policies in Phase 3)
+- [x] Generated ≠ Approved ≠ Published — enforced via content_status enum + approval workflow tables
+- [x] App build pass (tsc + vite): 0 errors
 
 ---
 
-## 🛡️ Safety Guard (Phase 1)
-- Auto-post: NO
-- Real Ads: NO
+## 🗄️ Database: Supabase Postgres (recommended)
+- 7 table groups, 30+ tables
+- Status enum enforces Generated → Approved → Published gate
+- Core DB = single source of truth. n8n/modules do NOT store data.
+
+---
+
+## 🛡️ Safety Guard (Phase 2)
+- Auto-post: NO (seeded system_settings.auto_post_enabled = false)
+- Real Ads: NO (seeded system_settings.auto_ads_enabled = false)
 - Real Messaging: NO
 - Real Connectors: NO
-- Secrets Added: NO
-- Database Added: NO (planned Phase 2)
-- Auth Added: NO (planned Phase 3)
-- Backend Added: NO (planned Phase 2+)
-- Sample/Seed Data Only: YES (H.5 seed brands still active)
+- Secrets Added: NO (only .env.example with placeholders)
+- Backend Added: NO (schema only, no live connection in Phase 2)
+- Auth Added: NO (Phase 3)
 
 ---
 
 ## 📝 Closeout Note
-Phase 1 locks the product scope for The Core Agency Real Operations MVP (18 phases / 7 days). Strategy documents added to `00_strategy/`. Public UI name changed from CLAUDE MARKETING TEAM to THE CORE AGENCY. Tagline and phase badge updated. Pitch text in export section updated. No backend, database, or auth changes made — those are Phase 2–3.
+Phase 2 delivered a complete Supabase Postgres schema covering all 7 domain groups. SQL migration file ready to run. TypeScript types ready for Phase 3 integration. `.env.example` prepared for Phase 3 backend wiring. RLS enabled on key tables — policies added in Phase 3.
 
 ---
 
+## ✅ Phase 1 (tiền nhiệm) — CLOSED
+- Commit: `317c6c8` — docs: add the core agency real mvp strategy and branding
+- Features: Brand renamed to The Core Agency, strategy docs created, 18-phase plan locked.
+
 ## ✅ Phase H.7 (tiền nhiệm) — CLOSED
-- Status: DONE + CODEX PASS + FIXES APPLIED + BUILT + PUSHED
-- Commits: `9dc235a` (feat), `2037f61` (fix)
-- Features: Owner View + Client View two-mode workspace experience
-
-## ✅ Phase H.6 (tiền nhiệm) — CLOSED
-- Commit: `1f83eb1` — docs: close phase h6 client ready workspace polish
-- Status: DONE + CODEX PASS + FIXES APPLIED + BUILT + PUSHED
-
-## ✅ Phase H.5 (tiền nhiệm) — CLOSED
-- Commit: `45c141a` — docs: close phase h5 multi brand workspace readiness
-- Features: 3 seed brands (Vị Cuốn, Cơm Tấm Bản Khói, Forme), Brand Workspace Gallery, Brand Switcher, localStorage v3
+- Commits: `9dc235a`, `2037f61`
+- Features: Owner View + Client View two-mode workspace experience.

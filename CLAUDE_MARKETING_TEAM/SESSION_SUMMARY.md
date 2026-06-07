@@ -3,18 +3,22 @@
 Tài liệu này tóm tắt bối cảnh, ranh giới an toàn hiện tại của dự án và các bước tiếp theo cần triển khai.
 
 ## 📝 Bối cảnh dự án (Project Context)
-Chúng ta đang xây dựng **AI Marketing Team Workspace** — một workspace thực sự cho phép quản lý nhiều thương hiệu/khách hàng, hoạt động hoàn toàn static/frontend với sample/seed data cho đến khi real connectors được phê duyệt. Workspace cung cấp giao diện trực quan cao cấp, hỗ trợ 5 AI Agents song song, approval flow, manual export, và presentation-ready UI.
+Chúng ta đang xây dựng **The Core Agency — Real Operations MVP**. Đây là hệ thống quản lý marketing agency thực sự với đầy đủ backend, database, auth, approval workflow, và automation integration. Public brand: **The Core Agency**. Repo kỹ thuật: claude-marketing-team (giữ nguyên).
 
-**Lưu ý framing (Phase H.7):** Đây không phải "demo toy". Đây là workspace architecture thực tế với two-mode experience: Owner View (internal management) và Client View (presentation-ready). Sẵn sàng cho real data/connectors ở Phase I.
+**Kiến trúc chốt:**
+- Core (this repo) = quản lý + phê duyệt + source of truth DB
+- n8n = automation backbone (không phải database)
+- Modules = xử lý chuyên môn
+- Webhook = modules → Core callback
+- UI = chỉ đọc từ Core DB
 
 ## 🔒 Ranh giới an toàn cốt lõi (Safety Boundaries)
-- **Độc lập tuyệt đối:** Dự án tại `CLAUDE_MARKETING_TEAM/`, tách biệt khỏi FnB OS V1.
-- **Không tự động đăng tải (Auto-post: NO)**
-- **Không chạy quảng cáo thật (Real Ads: NO)**
-- **Không nhắn tin khách hàng thật (Real Messaging: NO)**
-- **Không lưu credentials (Secrets: NO)**
-- **Sample/Seed Data (Workspace Sandbox Mode)**
-- **Không backend, không database, không real API connectors**
+- **Không auto-post**
+- **Không auto-ads spending**
+- **Không auto-message khách thật**
+- **Không hardcode secrets** — chỉ dùng .env.example
+- **Generated ≠ Approved ≠ Published** — approval gate bắt buộc
+- **Không làm vỡ production** (Vercel deploy vẫn đang live)
 
 ---
 
@@ -98,19 +102,25 @@ Polish workspace để client-ready: chuẩn hoá ngôn ngữ, loại bỏ demo/
 
 ## ➡️ Bước tiếp theo
 
-### ✅ Phase 1 — DONE (2026-06-07)
-The Core Agency Real Operations MVP started. 18-phase/7-day plan locked. Strategy docs created in `00_strategy/`. Public UI branding updated: CLAUDE MARKETING TEAM → THE CORE AGENCY. No backend/database/auth changes in Phase 1.
+### ✅ Phase 1 — DONE (2026-06-07, commit 317c6c8)
+Scope lock. Strategy docs. Branding: CLAUDE MARKETING TEAM → THE CORE AGENCY.
 
-### Phase 2 — Database Schema V1 (Next)
-- Supabase project setup
-- Schema: users, brands, campaigns, content_items, approval_events, assets
-- `.env.example` with all required env vars
-- Migration scripts
+### ✅ Phase 2 — DONE (2026-06-07)
+Database Schema V1 complete:
+- `00_strategy/THE_CORE_AGENCY_DATABASE_SCHEMA_V1.md` — schema overview + phase dependency map
+- `CLAUDE_MARKETING_TEAM/03_core/database/schema_v1.sql` — full Supabase Postgres SQL (30+ tables, 7 groups, indexes, triggers, RLS enabled)
+- `CLAUDE_MARKETING_TEAM/03_core/database/README.md`
+- `src/types/core.ts` — TypeScript types for all tables
+- `.env.example` — safe placeholders for Supabase, webhook, n8n, Anthropic
 
-### Phase 3 — Auth / Login
-- Supabase Auth or NextAuth
-- Role assignment on signup
-- Protected routes
+### Phase 3 — Auth / Login + Role Permission Foundation (Next)
+- Supabase Auth integration
+- `@supabase/supabase-js` added to package.json
+- Auth context (React) — session, user, signIn, signOut
+- Route protection (PrivateRoute or similar)
+- Role assignment on first login
+- RLS policies per role (owner, manager, client, viewer)
+- Protected API surface
 
 ---
 
