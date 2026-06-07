@@ -632,6 +632,69 @@ export interface SystemSetting {
 }
 
 // ---------------------------------------------------------------------------
+// PHASE 10 — ASSET LIBRARY
+// ---------------------------------------------------------------------------
+
+export type AssetType =
+  | 'image'
+  | 'video'
+  | 'design'
+  | 'document'
+  | 'logo'
+  | 'raw_footage'
+  | 'reference'
+  | 'other';
+
+export type AssetSourceType =
+  | 'local_placeholder'
+  | 'external_url'
+  | 'storage_ready'
+  | 'generated_placeholder';
+
+export type AssetApprovalStatus =
+  | 'draft'
+  | 'needs_review'
+  | 'approved'
+  | 'rejected'
+  | 'archived';
+
+export interface AssetItem {
+  id: string;
+  client_id: string | null;
+  brand_id: string | null;
+  campaign_id: string | null;
+  content_item_id: string | null;
+  asset_collection_id: string | null;
+  name: string;
+  asset_type: AssetType;
+  source_type: AssetSourceType;
+  url: string | null;
+  thumbnail_url: string | null;
+  file_name: string | null;
+  file_size_note: string | null;
+  mime_type: string | null;
+  tags: string[];
+  usage_rights_note: string | null;
+  approval_status: AssetApprovalStatus;
+  notes: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface LocalAssetCollection {
+  id: string;
+  client_id: string | null;
+  brand_id: string | null;
+  campaign_id: string | null;
+  name: string;
+  description: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+// ---------------------------------------------------------------------------
 // COMPOSITE / VIEW TYPES (used by UI)
 // ---------------------------------------------------------------------------
 

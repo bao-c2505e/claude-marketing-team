@@ -1,4 +1,4 @@
-import type { Client, Brand, Campaign, CampaignBrief, ResourceStatus, CampaignStatus, BriefStatus, ContentPlanJob, ContentPlanItem, ContentApprovalRequest, ContentApprovalEvent, ContentApprovalComment, ContentApprovalStatus, ApprovalActionType, ApprovalPriority } from '../../types/core';
+import type { Client, Brand, Campaign, CampaignBrief, ResourceStatus, CampaignStatus, BriefStatus, ContentPlanJob, ContentPlanItem, ContentApprovalRequest, ContentApprovalEvent, ContentApprovalComment, ContentApprovalStatus, ApprovalActionType, ApprovalPriority, AssetType, AssetSourceType, AssetApprovalStatus, AssetItem, LocalAssetCollection } from '../../types/core';
 
 // ---------------------------------------------------------------------------
 // Local form types for create operations
@@ -817,3 +817,302 @@ export const EMPTY_BRIEF_FORM: BriefFormData = {
   timeline_note: '',
   approval_requirements: '',
 };
+
+// ---------------------------------------------------------------------------
+// Asset Data Store (Phase 10) — separate localStorage key
+// ---------------------------------------------------------------------------
+
+export interface AssetDataStore {
+  assets: AssetItem[];
+  collections: LocalAssetCollection[];
+}
+
+const ASSET_STORAGE_KEY = 'core_agency_asset_data_v1';
+
+// ── Seed data ─────────────────────────────────────────────────────────────
+
+export const SEED_COLLECTIONS: LocalAssetCollection[] = [
+  {
+    id: 'col-vc-brand',
+    client_id: 'client-vi-cuon',
+    brand_id: 'brand-vi-cuon',
+    campaign_id: null,
+    name: 'Vị Cuốn — Brand Assets',
+    description: 'Logo, ảnh sản phẩm, brand identity chính thức của Vị Cuốn.',
+    created_by: 'demo-owner-000',
+    created_at: NOW,
+    updated_at: NOW,
+  },
+  {
+    id: 'col-ct-brand',
+    client_id: 'client-com-tam',
+    brand_id: 'brand-com-tam',
+    campaign_id: null,
+    name: 'Cơm Tấm Bản Khói — Brand Assets',
+    description: 'Design references, brand colors và identity assets.',
+    created_by: 'demo-owner-000',
+    created_at: NOW,
+    updated_at: NOW,
+  },
+  {
+    id: 'col-forme-brand',
+    client_id: 'client-forme',
+    brand_id: 'brand-forme',
+    campaign_id: null,
+    name: 'Forme — Brand Guidelines & Assets',
+    description: 'Brand guideline, product photography, marketing assets cao cấp.',
+    created_by: 'demo-owner-000',
+    created_at: NOW,
+    updated_at: NOW,
+  },
+];
+
+export const SEED_ASSETS: AssetItem[] = [
+  {
+    id: 'asset-vc-logo',
+    client_id: 'client-vi-cuon',
+    brand_id: 'brand-vi-cuon',
+    campaign_id: null,
+    content_item_id: null,
+    asset_collection_id: 'col-vc-brand',
+    name: 'Vị Cuốn — Logo Chính',
+    asset_type: 'logo',
+    source_type: 'local_placeholder',
+    url: null,
+    thumbnail_url: null,
+    file_name: 'vi-cuon-logo.png',
+    file_size_note: 'Placeholder — chưa có file thật',
+    mime_type: 'image/png',
+    tags: ['logo', 'brand-identity', 'official'],
+    usage_rights_note: 'Sở hữu bởi Vị Cuốn. Chỉ dùng cho mục đích marketing của thương hiệu. Owner cần xác nhận màu sắc thực tế trước khi dùng.',
+    approval_status: 'approved',
+    notes: 'Logo chính thức. Cần owner xác nhận bản màu CMYK và RGB trước khi dùng in ấn.',
+    created_by: 'demo-owner-000',
+    created_at: NOW,
+    updated_at: NOW,
+  },
+  {
+    id: 'asset-vc-photo-hero',
+    client_id: 'client-vi-cuon',
+    brand_id: 'brand-vi-cuon',
+    campaign_id: 'campaign-vi-cuon-he',
+    content_item_id: null,
+    asset_collection_id: 'col-vc-brand',
+    name: 'Heo Quay Giòn — Hero Shot #1',
+    asset_type: 'image',
+    source_type: 'local_placeholder',
+    url: null,
+    thumbnail_url: null,
+    file_name: 'heo-quay-gion-hero-01.jpg',
+    file_size_note: '~3MB JPEG (cần chụp thực tế)',
+    mime_type: 'image/jpeg',
+    tags: ['product', 'hero-shot', 'mùa-hè', 'heo-quay'],
+    usage_rights_note: 'Cần chụp thực tế tại cửa hàng. Chưa có ảnh chính thức. Usage rights thuộc về Vị Cuốn sau khi chụp.',
+    approval_status: 'needs_review',
+    notes: 'Placeholder cho ảnh chụp thực tế heo quay giòn rụm — da giòn rụm, thịt mềm. Cần nhiếp ảnh gia food photography.',
+    created_by: 'demo-owner-000',
+    created_at: NOW,
+    updated_at: NOW,
+  },
+  {
+    id: 'asset-vc-footage-bep',
+    client_id: 'client-vi-cuon',
+    brand_id: 'brand-vi-cuon',
+    campaign_id: 'campaign-vi-cuon-he',
+    content_item_id: null,
+    asset_collection_id: null,
+    name: 'Raw Footage — Bếp Nướng Lu Đất',
+    asset_type: 'raw_footage',
+    source_type: 'local_placeholder',
+    url: null,
+    thumbnail_url: null,
+    file_name: 'raw-bep-nuong-lu-dat.mp4',
+    file_size_note: '~500MB MP4 (dự kiến sau khi quay)',
+    mime_type: 'video/mp4',
+    tags: ['raw-footage', 'bep', 'asmr', 'process'],
+    usage_rights_note: 'Quyền sở hữu thuộc về Vị Cuốn. Cần sự đồng ý của chủ để sử dụng bên ngoài. Không chia sẻ footage thô.',
+    approval_status: 'draft',
+    notes: 'Cần quay thực tế tại bếp. Footage chưa có. Dự kiến quay cùng ngày chụp ảnh sản phẩm. Phong cách ASMR — tiếng nổ crackling của da heo quay.',
+    created_by: 'demo-owner-000',
+    created_at: NOW,
+    updated_at: NOW,
+  },
+  {
+    id: 'asset-ct-palette',
+    client_id: 'client-com-tam',
+    brand_id: 'brand-com-tam',
+    campaign_id: 'campaign-com-tam-menu',
+    content_item_id: null,
+    asset_collection_id: 'col-ct-brand',
+    name: 'Design Reference — Brand Palette Màu Q3/2026',
+    asset_type: 'reference',
+    source_type: 'external_url',
+    url: 'https://placeholder.example.com/ct-palette-q3-2026',
+    thumbnail_url: null,
+    file_name: null,
+    file_size_note: null,
+    mime_type: null,
+    tags: ['design-reference', 'palette', 'brand-colors', 'Q3-2026'],
+    usage_rights_note: 'Reference board nội bộ. Không phân phối ra bên ngoài.',
+    approval_status: 'approved',
+    notes: 'Palette màu chính cho chiến dịch Q3/2026 — cam đất #f4a261, xanh lá #2a9d8f. Dùng nhất quán trên tất cả creative.',
+    created_by: 'demo-owner-000',
+    created_at: NOW,
+    updated_at: NOW,
+  },
+  {
+    id: 'asset-forme-guideline',
+    client_id: 'client-forme',
+    brand_id: 'brand-forme',
+    campaign_id: null,
+    content_item_id: null,
+    asset_collection_id: 'col-forme-brand',
+    name: 'Forme Brand Guideline 2026',
+    asset_type: 'document',
+    source_type: 'local_placeholder',
+    url: null,
+    thumbnail_url: null,
+    file_name: 'forme-brand-guideline-2026.pdf',
+    file_size_note: '~15MB PDF',
+    mime_type: 'application/pdf',
+    tags: ['brand-guideline', 'official-document', 'typography', 'colors', 'logo-usage'],
+    usage_rights_note: 'Tài liệu nội bộ Forme. Bảo mật — không chia sẻ ra bên ngoài. Chỉ dùng trong team The Core Agency khi phục vụ Forme.',
+    approval_status: 'approved',
+    notes: 'Brand guideline chính thức Forme 2026. Bao gồm typography, màu sắc, quy tắc dùng logo, tone of voice. Cần owner Forme confirm version mới nhất.',
+    created_by: 'demo-owner-000',
+    created_at: NOW,
+    updated_at: NOW,
+  },
+  {
+    id: 'asset-forme-sofa-ref',
+    client_id: 'client-forme',
+    brand_id: 'brand-forme',
+    campaign_id: 'campaign-forme-f1',
+    content_item_id: null,
+    asset_collection_id: 'col-forme-brand',
+    name: 'Sofa F-1 — Lifestyle Photography Brief',
+    asset_type: 'reference',
+    source_type: 'local_placeholder',
+    url: null,
+    thumbnail_url: null,
+    file_name: 'sofa-f1-photo-brief.pdf',
+    file_size_note: '~2MB PDF',
+    mime_type: 'application/pdf',
+    tags: ['reference', 'photo-brief', 'lifestyle', 'sofa-f1'],
+    usage_rights_note: 'Tài liệu brief nội bộ. Quyền sở hữu ảnh thuộc về Forme sau khi chụp. Cần hợp đồng nhiếp ảnh trước khi sử dụng thương mại.',
+    approval_status: 'needs_review',
+    notes: 'Brief hướng dẫn phong cách chụp ảnh lifestyle cho Sofa F-1. Phòng khách hiện đại, ánh sáng tự nhiên, gia đình trẻ thành đạt. Cần manager review.',
+    created_by: 'demo-owner-000',
+    created_at: NOW,
+    updated_at: NOW,
+  },
+];
+
+// ── Store ─────────────────────────────────────────────────────────────────
+
+export function loadAssetData(): AssetDataStore {
+  try {
+    const stored = localStorage.getItem(ASSET_STORAGE_KEY);
+    if (stored) {
+      const parsed = JSON.parse(stored) as Partial<AssetDataStore>;
+      return {
+        assets:      parsed.assets      ?? SEED_ASSETS,
+        collections: parsed.collections ?? SEED_COLLECTIONS,
+      };
+    }
+  } catch (_) { /* ignore */ }
+  return { assets: SEED_ASSETS, collections: SEED_COLLECTIONS };
+}
+
+export function saveAssetData(data: AssetDataStore): void {
+  try {
+    localStorage.setItem(ASSET_STORAGE_KEY, JSON.stringify(data));
+  } catch (_) { /* ignore */ }
+}
+
+// ── CRUD helpers ──────────────────────────────────────────────────────────
+
+export function createAsset(
+  store: AssetDataStore,
+  data: Omit<AssetItem, 'id' | 'created_at' | 'updated_at'>,
+): AssetDataStore {
+  const now = new Date().toISOString();
+  const asset: AssetItem = { ...data, id: generateId('ast'), created_at: now, updated_at: now };
+  return { ...store, assets: [asset, ...store.assets] };
+}
+
+export function updateAsset(
+  store: AssetDataStore,
+  assetId: string,
+  patch: Partial<Omit<AssetItem, 'id' | 'created_at'>>,
+): AssetDataStore {
+  const now = new Date().toISOString();
+  return {
+    ...store,
+    assets: store.assets.map(a => a.id === assetId ? { ...a, ...patch, updated_at: now } : a),
+  };
+}
+
+export function createCollection(
+  store: AssetDataStore,
+  data: Omit<LocalAssetCollection, 'id' | 'created_at' | 'updated_at'>,
+): AssetDataStore {
+  const now = new Date().toISOString();
+  const col: LocalAssetCollection = { ...data, id: generateId('col'), created_at: now, updated_at: now };
+  return { ...store, collections: [col, ...store.collections] };
+}
+
+// ── Display helpers ───────────────────────────────────────────────────────
+
+export const ASSET_TYPE_LABEL: Record<AssetType, string> = {
+  image:        'Image',
+  video:        'Video',
+  design:       'Design File',
+  document:     'Document',
+  logo:         'Logo',
+  raw_footage:  'Raw Footage',
+  reference:    'Reference',
+  other:        'Other',
+};
+
+export const ASSET_TYPE_COLOR: Record<AssetType, string> = {
+  image:        '#60a5fa',
+  video:        '#818cf8',
+  design:       '#f59e0b',
+  document:     '#94a3b8',
+  logo:         '#34d399',
+  raw_footage:  '#fb923c',
+  reference:    '#a78bfa',
+  other:        '#71717a',
+};
+
+export const ASSET_SOURCE_LABEL: Record<AssetSourceType, string> = {
+  local_placeholder:    'Local Placeholder',
+  external_url:         'External URL',
+  storage_ready:        'Storage Ready',
+  generated_placeholder: 'Generated Placeholder',
+};
+
+export const ASSET_APPROVAL_LABEL: Record<AssetApprovalStatus, string> = {
+  draft:        'Draft',
+  needs_review: 'Needs Review',
+  approved:     'Approved',
+  rejected:     'Rejected',
+  archived:     'Archived',
+};
+
+export const ASSET_APPROVAL_COLOR: Record<AssetApprovalStatus, string> = {
+  draft:        '#94a3b8',
+  needs_review: '#f59e0b',
+  approved:     '#34d399',
+  rejected:     '#f87171',
+  archived:     '#71717a',
+};
+
+export const ASSET_TYPES: AssetType[] = [
+  'image', 'video', 'design', 'document', 'logo', 'raw_footage', 'reference', 'other',
+];
+
+export const ASSET_APPROVAL_STATUSES: AssetApprovalStatus[] = [
+  'draft', 'needs_review', 'approved', 'rejected', 'archived',
+];

@@ -26,6 +26,7 @@ import {
   CalendarDays,
   ClipboardCheck,
   UserCheck,
+  FolderOpen,
 } from 'lucide-react';
 import { sampleCampaigns, Campaign, CampaignBrief, CalendarItem, ChecklistItem } from './mockData';
 import { useAuth } from './lib/auth/AuthContext';
@@ -40,8 +41,9 @@ import ContentGenerationTab from './components/core/ContentGenerationTab';
 import ContentCalendarTab from './components/core/ContentCalendarTab';
 import ApprovalsTab from './components/core/ApprovalsTab';
 import ClientViewTab from './components/core/ClientViewTab';
-import { loadCoreData, saveCoreData, loadGenerationData, saveGenerationData, loadApprovalData, saveApprovalData, canSubmitItem } from './lib/core/coreData';
-import type { CoreDataStore, GenerationDataStore, ApprovalDataStore } from './lib/core/coreData';
+import AssetLibraryTab from './components/core/AssetLibraryTab';
+import { loadCoreData, saveCoreData, loadGenerationData, saveGenerationData, loadApprovalData, saveApprovalData, loadAssetData, saveAssetData, canSubmitItem } from './lib/core/coreData';
+import type { CoreDataStore, GenerationDataStore, ApprovalDataStore, AssetDataStore } from './lib/core/coreData';
 
 const manualExportBlocks = [
   {
@@ -276,6 +278,14 @@ export default function App() {
 
   const handleNavigateToApprovals = () => {
     setActiveTab('approvals');
+  };
+
+  // Phase 10 — Asset Library data (separate store)
+  const [assetData, setAssetData] = useState<AssetDataStore>(() => loadAssetData());
+
+  const handleAssetUpdate = (data: AssetDataStore) => {
+    setAssetData(data);
+    saveAssetData(data);
   };
 
   const actorLabel = user?.email ?? user?.role ?? 'System';
@@ -725,6 +735,14 @@ export default function App() {
               <UserCheck size={18} /> Client Portal
             </button>
 
+            <button
+              className={`btn btn-secondary ${activeTab === 'asset-library' ? 'active' : ''}`}
+              style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'asset-library' ? '1px solid rgba(245,158,11,0.5)' : '', background: activeTab === 'asset-library' ? 'rgba(245,158,11,0.08)' : '' }}
+              onClick={() => setActiveTab('asset-library')}
+            >
+              <FolderOpen size={18} /> Asset Library
+            </button>
+
             <div style={{ margin: '4px 0 2px', padding: '0 4px', fontSize: '0.68rem', fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Workspace</div>
 
             <button
@@ -999,6 +1017,20 @@ export default function App() {
                   approvalData={approvalData}
                   genData={genData}
                   onApprovalUpdate={handleApprovalUpdate}
+                  userRole={user?.role ?? null}
+                  actorLabel={actorLabel}
+                  isSupabaseConfigured={isSupabaseConfigured}
+                />
+              )}
+
+              {/* ── Phase 10: Asset Library Tab ── */}
+              {activeTab === 'asset-library' && (
+                <AssetLibraryTab
+                  clients={coreData.clients}
+                  brands={coreData.brands}
+                  campaigns={coreData.campaigns}
+                  assetData={assetData}
+                  onAssetUpdate={handleAssetUpdate}
                   userRole={user?.role ?? null}
                   actorLabel={actorLabel}
                   isSupabaseConfigured={isSupabaseConfigured}
