@@ -40,6 +40,52 @@ export type BriefStatus =
   | 'approved_for_generation'
   | 'archived';
 
+// Phase 6: Content Generation
+export type ContentPlanJobStatus = 'draft' | 'queued' | 'generating' | 'completed' | 'failed' | 'archived';
+export type GenerationMode = 'mock' | 'ai_ready' | 'external_module';
+export type PlanLengthDays = 7 | 15 | 30;
+export type ContentItemStatus6 = 'generated' | 'needs_review' | 'revision_requested' | 'approved' | 'scheduled' | 'published' | 'rejected' | 'archived';
+
+export interface ContentPlanJob {
+  id: string;
+  brief_id: string;
+  campaign_id: string;
+  brand_id: string | null;
+  client_id: string | null;
+  plan_length_days: PlanLengthDays;
+  generation_mode: GenerationMode;
+  status: ContentPlanJobStatus;
+  requested_by: string | null;
+  item_count: number;
+  created_at: string;
+  updated_at: string;
+  completed_at: string | null;
+  error_message: string | null;
+}
+
+export interface ContentPlanItem {
+  id: string;
+  generation_job_id: string;
+  brief_id: string;
+  campaign_id: string;
+  brand_id: string | null;
+  client_id: string | null;
+  day_number: number;
+  planned_date: string | null;
+  channel: string;
+  content_type: string;
+  pillar: string;
+  angle: string;
+  hook: string;
+  caption: string;
+  visual_brief: string;
+  cta: string;
+  hashtags: string;
+  status: ContentItemStatus6;
+  created_at: string;
+  updated_at: string;
+}
+
 export type CampaignType = '7_day' | '15_day' | '30_day' | 'custom';
 
 export type ModuleType =

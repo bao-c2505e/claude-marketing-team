@@ -16,6 +16,7 @@ interface Props {
   onUpdate: (updated: CoreDataStore) => void;
   userRole: RoleName | null;
   isSupabaseConfigured: boolean;
+  onNavigateToGenerate?: (briefId: string) => void;
 }
 
 type Mode = 'list' | 'detail' | 'create' | 'edit';
@@ -42,7 +43,7 @@ function SectionLabel({ children }: { children: string }) {
   );
 }
 
-export default function BriefIntakeTab({ clients, brands, campaigns, briefs, onUpdate, userRole, isSupabaseConfigured }: Props) {
+export default function BriefIntakeTab({ clients, brands, campaigns, briefs, onUpdate, userRole, isSupabaseConfigured, onNavigateToGenerate }: Props) {
   const [mode, setMode] = useState<Mode>('list');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [form, setForm] = useState<BriefFormData>(EMPTY_BRIEF_FORM);
@@ -272,10 +273,19 @@ export default function BriefIntakeTab({ clients, brands, campaigns, briefs, onU
                   Needs Revision
                 </button>
               )}
-              {/* Phase 6 placeholder */}
-              <button disabled style={{ opacity: 0.45, cursor: 'not-allowed', display: 'flex', alignItems: 'center', gap: '5px', padding: '5px 14px', borderRadius: '6px', fontSize: '0.82rem', fontWeight: 600, border: '1px solid rgba(99,102,241,0.3)', background: 'rgba(99,102,241,0.08)', color: '#818cf8' }}>
-                <Zap size={13} /> Generate — Phase 6
-              </button>
+              {/* Phase 6: navigate to content generation */}
+              {brief.status === 'approved_for_generation' && canEdit && onNavigateToGenerate ? (
+                <button
+                  onClick={() => onNavigateToGenerate(brief.id)}
+                  style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '5px 14px', borderRadius: '6px', fontSize: '0.82rem', fontWeight: 600, border: '1px solid rgba(99,102,241,0.5)', background: 'rgba(99,102,241,0.15)', color: '#818cf8', cursor: 'pointer' }}
+                >
+                  <Zap size={13} /> Generate Content
+                </button>
+              ) : (
+                <button disabled style={{ opacity: 0.45, cursor: 'not-allowed', display: 'flex', alignItems: 'center', gap: '5px', padding: '5px 14px', borderRadius: '6px', fontSize: '0.82rem', fontWeight: 600, border: '1px solid rgba(99,102,241,0.3)', background: 'rgba(99,102,241,0.08)', color: '#818cf8' }}>
+                  <Zap size={13} /> Generate Content
+                </button>
+              )}
             </div>
           </div>
 

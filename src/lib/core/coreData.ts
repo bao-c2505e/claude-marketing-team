@@ -1,4 +1,4 @@
-import type { Client, Brand, Campaign, CampaignBrief, ResourceStatus, CampaignStatus, BriefStatus } from '../../types/core';
+import type { Client, Brand, Campaign, CampaignBrief, ResourceStatus, CampaignStatus, BriefStatus, ContentPlanJob, ContentPlanItem } from '../../types/core';
 
 // ---------------------------------------------------------------------------
 // Local form types for create operations
@@ -420,6 +420,79 @@ export const BRIEF_STATUSES = [
   'approved_for_generation',
   'archived',
 ] as const;
+
+// ---------------------------------------------------------------------------
+// Generation Data Store (Phase 6) — separate localStorage key
+// Keeps generation state independent from CoreDataStore to avoid cascade
+// changes in existing tabs.
+// ---------------------------------------------------------------------------
+
+export interface GenerationDataStore {
+  generationJobs: ContentPlanJob[];
+  contentItems: ContentPlanItem[];
+}
+
+const GEN_STORAGE_KEY = 'core_agency_gen_data_v1';
+
+export function loadGenerationData(): GenerationDataStore {
+  try {
+    const stored = localStorage.getItem(GEN_STORAGE_KEY);
+    if (stored) {
+      const parsed = JSON.parse(stored) as Partial<GenerationDataStore>;
+      return {
+        generationJobs: parsed.generationJobs ?? [],
+        contentItems: parsed.contentItems ?? [],
+      };
+    }
+  } catch (_) { /* ignore */ }
+  return { generationJobs: [], contentItems: [] };
+}
+
+export function saveGenerationData(data: GenerationDataStore): void {
+  try {
+    localStorage.setItem(GEN_STORAGE_KEY, JSON.stringify(data));
+  } catch (_) { /* ignore */ }
+}
+
+export const JOB_STATUS_LABEL: Record<string, string> = {
+  draft:      'Draft',
+  queued:     'Queued',
+  generating: 'Generating…',
+  completed:  'Completed',
+  failed:     'Failed',
+  archived:   'Archived',
+};
+
+export const JOB_STATUS_COLOR: Record<string, string> = {
+  draft:      '#94a3b8',
+  queued:     '#60a5fa',
+  generating: '#f59e0b',
+  completed:  '#34d399',
+  failed:     '#f87171',
+  archived:   '#71717a',
+};
+
+export const CONTENT_ITEM_STATUS_LABEL: Record<string, string> = {
+  generated:          'Generated',
+  needs_review:       'Needs Review',
+  revision_requested: 'Revision Requested',
+  approved:           'Approved',
+  scheduled:          'Scheduled',
+  published:          'Published',
+  rejected:           'Rejected',
+  archived:           'Archived',
+};
+
+export const CONTENT_ITEM_STATUS_COLOR: Record<string, string> = {
+  generated:          '#60a5fa',
+  needs_review:       '#f59e0b',
+  revision_requested: '#fb923c',
+  approved:           '#34d399',
+  scheduled:          '#818cf8',
+  published:          '#10b981',
+  rejected:           '#f87171',
+  archived:           '#71717a',
+};
 
 export const EMPTY_BRIEF_FORM: BriefFormData = {
   campaign_id: '',

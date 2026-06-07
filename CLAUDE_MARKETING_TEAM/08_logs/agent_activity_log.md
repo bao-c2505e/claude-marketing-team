@@ -6,6 +6,20 @@ Nhật ký ghi lại các hành động mô phỏng của các AI Agent khi vậ
 
 ## 🗓️ Nhật Ký Hoạt Động (Simulated Activity Logs)
 
+### 🗓️ Ngày 08/06/2026 — Phase 6: Content Generation Foundation
+- **[PC1 Claude Code Builder]:** Phase 6 initiated. Resumed from previous session (context compacted).
+- **[PC1]:** Updated `src/types/core.ts` — Phase 6 types added (ContentPlanJob, ContentPlanItem, etc.).
+- **[PC1]:** Updated `src/lib/core/coreData.ts` — GenerationDataStore + helpers. Separate storage key.
+- **[PC1]:** Created `src/lib/core/contentGenerator.ts` — 7-angle deterministic mock generator. Vietnamese templates. Default item status: needs_review.
+- **[PC1]:** Created `src/components/core/ContentGenerationTab.tsx` — list + detail mode. Safety banner. Permission gate.
+- **[PC1]:** Updated `src/components/core/BriefIntakeTab.tsx` — onNavigateToGenerate prop + enabled Generate button.
+- **[PC1]:** Updated `src/App.tsx` — Wand2 icon, ContentGenerationTab, genData state, sidebar button, tab rendering, Phase 6 badge.
+- **[PC1]:** Created `CLAUDE_MARKETING_TEAM/03_core/content_generation_README.md`.
+- **[SYSTEM]:** tsc --noEmit → 0 errors. vite build → 0 errors, ~663KB bundle.
+- **[SYSTEM]:** Phase 6 DONE. Committing and pushing.
+
+---
+
 ### 🗓️ Ngày 08/06/2026 — Phase 5: Brief Intake Foundation
 - **[PC1 Claude Code Builder]:** Phase 5 initiated. Resumed from previous session (context compacted).
 - **[PC1]:** Fixed remaining TypeScript errors: added `briefs: CampaignBrief[]` prop + onUpdate pass-through to `BrandsTab.tsx` and `CampaignsTab.tsx`. Removed unused `BRIEF_STATUSES` import from `BriefIntakeTab.tsx`.

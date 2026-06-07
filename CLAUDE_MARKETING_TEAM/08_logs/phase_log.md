@@ -6,6 +6,26 @@ Nhật ký theo dõi các mốc hoàn thành kỹ thuật qua các Phase.
 
 ## 📅 Nhật Ký Sự Kiện (Event Logs)
 
+### 🗓️ Ngày 08/06/2026 — Phase 6: Content Generation Foundation
+- **Sự kiện:** Hoàn thành Content Generation Foundation cho The Core Agency.
+- **Người thực hiện:** Claude Code Builder (PC1).
+- **Hành động đã hoàn tất:**
+  1. Cập nhật `src/types/core.ts` — thêm Phase 6 types: `ContentPlanJobStatus`, `GenerationMode`, `PlanLengthDays`, `ContentItemStatus6`, `ContentPlanJob`, `ContentPlanItem`.
+  2. Cập nhật `src/lib/core/coreData.ts` — thêm `GenerationDataStore`, `loadGenerationData()`, `saveGenerationData()`, `JOB_STATUS_LABEL/COLOR`, `CONTENT_ITEM_STATUS_LABEL/COLOR`. Storage key riêng: `core_agency_gen_data_v1`.
+  3. Tạo `src/lib/core/contentGenerator.ts` — deterministic mock generator. 7 ContentAngles, Vietnamese templates, industry-aware CTA, per-channel visual brief. Default item status: `needs_review`.
+  4. Tạo `src/components/core/ContentGenerationTab.tsx` — list view (approved briefs, generate form, job history) + detail view (job summary, expandable content items: hook/caption/visual brief/CTA/hashtags). Safety banner required.
+  5. Cập nhật `src/components/core/BriefIntakeTab.tsx` — thêm `onNavigateToGenerate` prop, enable Generate button khi brief = `approved_for_generation`.
+  6. Cập nhật `src/App.tsx` — import `Wand2`, `ContentGenerationTab`, generation data imports; thêm `genData` state + `handleGenerationUpdate` + `genNavBriefId`; sidebar "Content Generation" button; tab rendering; phase badge → Phase 6.
+  7. Tạo `CLAUDE_MARKETING_TEAM/03_core/content_generation_README.md`.
+  8. Build pass (tsc + vite, 0 errors, ~663KB bundle). Commit + push.
+- **Generation flow:** Brief (approved_for_generation) → generate() → ContentPlanJob + ContentPlanItem[]. Job mode: mock. Item status: needs_review (never auto-approved/published).
+- **Permission gate:** generateContent = owner + manager only. viewContent = all roles.
+- **Safety:** Generated ≠ Approved ≠ Published. No AI API. No auto-post. No ads.
+- **Trạng thái Phase 6:** ✅ DONE.
+- **Next:** Phase 7 — Content Calendar Foundation.
+
+---
+
 ### 🗓️ Ngày 08/06/2026 — Phase 5: Brief Intake Foundation
 - **Sự kiện:** Hoàn thành Brief Intake Foundation cho The Core Agency.
 - **Người thực hiện:** Claude Code Builder (PC1).

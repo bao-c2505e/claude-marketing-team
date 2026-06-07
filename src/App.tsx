@@ -21,7 +21,8 @@ import {
   LogOut,
   Lock,
   Zap,
-  ClipboardList
+  ClipboardList,
+  Wand2
 } from 'lucide-react';
 import { sampleCampaigns, Campaign, CampaignBrief, CalendarItem, ChecklistItem } from './mockData';
 import { useAuth } from './lib/auth/AuthContext';
@@ -32,8 +33,9 @@ import ClientsTab from './components/core/ClientsTab';
 import BrandsTab from './components/core/BrandsTab';
 import CampaignsTab from './components/core/CampaignsTab';
 import BriefIntakeTab from './components/core/BriefIntakeTab';
-import { loadCoreData, saveCoreData } from './lib/core/coreData';
-import type { CoreDataStore } from './lib/core/coreData';
+import ContentGenerationTab from './components/core/ContentGenerationTab';
+import { loadCoreData, saveCoreData, loadGenerationData, saveGenerationData } from './lib/core/coreData';
+import type { CoreDataStore, GenerationDataStore } from './lib/core/coreData';
 
 const manualExportBlocks = [
   {
@@ -240,6 +242,20 @@ export default function App() {
   const handleCoreNavigate = (tab: string, filter?: { clientId?: string; brandId?: string }) => {
     setActiveTab(tab);
     setCoreNavFilter(filter ?? {});
+  };
+
+  // Phase 6 — Generation data (separate store to avoid cascade prop changes)
+  const [genData, setGenData] = useState<GenerationDataStore>(() => loadGenerationData());
+  const [genNavBriefId, setGenNavBriefId] = useState<string | undefined>(undefined);
+
+  const handleGenerationUpdate = (updated: GenerationDataStore) => {
+    setGenData(updated);
+    saveGenerationData(updated);
+  };
+
+  const handleNavigateToGenerate = (briefId: string) => {
+    setGenNavBriefId(briefId);
+    setActiveTab('content-gen');
   };
   const handleViewModeSwitch = (mode: 'owner' | 'client') => {
     setViewMode(mode);
@@ -537,7 +553,7 @@ export default function App() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-end' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <span className="badge badge-indigo" style={{ background: 'rgba(99, 102, 241, 0.15)', color: '#818cf8', borderColor: 'rgba(99, 102, 241, 0.3)', border: '1px solid' }}>
-              Real Operations MVP — Phase 5
+              Real Operations MVP — Phase 6
             </span>
             {/* User status */}
             {user && (
@@ -641,6 +657,14 @@ export default function App() {
               onClick={() => setActiveTab('brief-intake')}
             >
               <ClipboardList size={18} /> Brief Intake
+            </button>
+
+            <button
+              className={`btn btn-secondary ${activeTab === 'content-gen' ? 'active' : ''}`}
+              style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'content-gen' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'content-gen' ? 'rgba(99, 102, 241, 0.1)' : '' }}
+              onClick={() => { setGenNavBriefId(undefined); setActiveTab('content-gen'); }}
+            >
+              <Wand2 size={18} /> Content Generation
             </button>
 
             <div style={{ margin: '4px 0 2px', padding: '0 4px', fontSize: '0.68rem', fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Workspace</div>
@@ -850,6 +874,23 @@ export default function App() {
                   onUpdate={handleCoreUpdate}
                   userRole={user?.role ?? null}
                   isSupabaseConfigured={isSupabaseConfigured}
+                  onNavigateToGenerate={handleNavigateToGenerate}
+                />
+              )}
+
+              {/* ── Phase 6: Content Generation Tab ── */}
+              {activeTab === 'content-gen' && (
+                <ContentGenerationTab
+                  clients={coreData.clients}
+                  brands={coreData.brands}
+                  campaigns={coreData.campaigns}
+                  briefs={coreData.briefs}
+                  generationJobs={genData.generationJobs}
+                  contentItems={genData.contentItems}
+                  onUpdate={handleGenerationUpdate}
+                  userRole={user?.role ?? null}
+                  isSupabaseConfigured={isSupabaseConfigured}
+                  initialBriefId={genNavBriefId}
                 />
               )}
 
