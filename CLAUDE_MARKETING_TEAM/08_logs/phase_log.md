@@ -6,6 +6,27 @@ Nhật ký theo dõi các mốc hoàn thành kỹ thuật qua các Phase.
 
 ## 📅 Nhật Ký Sự Kiện (Event Logs)
 
+### 🗓️ Ngày 07/06/2026 — Phase 3: Auth/Login + Role Permission Foundation
+- **Sự kiện:** Hoàn thành Auth foundation cho The Core Agency.
+- **Người thực hiện:** Claude Code Builder (PC1).
+- **Hành động đã hoàn tất:**
+  1. Cài `@supabase/supabase-js` (9 packages).
+  2. Tạo `src/vite-env.d.ts` — Vite env type declarations.
+  3. Tạo `src/lib/supabaseClient.ts` — null-safe Supabase client.
+  4. Tạo `src/lib/auth/AuthContext.tsx` — React context, 3 modes, signIn/signOut, fetchUserRole.
+  5. Tạo `src/lib/auth/permissions.ts` — 30+ permission keys, `can.*` helpers, role colors/labels.
+  6. Tạo `src/components/auth/LoginScreen.tsx` — login UI, demo fallback.
+  7. Cập nhật `src/main.tsx` — wrap `<AuthProvider>`.
+  8. Cập nhật `src/App.tsx` — auth gate, user status header.
+  9. Tạo `src/vite-env.d.ts` — fix ImportMeta.env types.
+  10. Tạo `CLAUDE_MARKETING_TEAM/03_core/auth/README.md`.
+  11. Cập nhật CURRENT_PHASE.md, SESSION_SUMMARY.md, phase_log.md, agent_activity_log.md.
+  12. Build pass (tsc + vite). Push to GitHub.
+- **Trạng thái Phase 3:** ✅ DONE.
+- **Next:** Phase 4 — Client/Brand/Campaign Management + RLS policies.
+
+---
+
 ### 🗓️ Ngày 07/06/2026 — Phase 2: Database Schema V1
 - **Sự kiện:** Hoàn thành Database Schema V1 cho The Core Agency Real Operations MVP.
 - **Người thực hiện:** Claude Code Builder (PC1).

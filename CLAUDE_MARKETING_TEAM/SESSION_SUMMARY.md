@@ -105,22 +105,28 @@ Polish workspace để client-ready: chuẩn hoá ngôn ngữ, loại bỏ demo/
 ### ✅ Phase 1 — DONE (2026-06-07, commit 317c6c8)
 Scope lock. Strategy docs. Branding: CLAUDE MARKETING TEAM → THE CORE AGENCY.
 
-### ✅ Phase 2 — DONE (2026-06-07)
-Database Schema V1 complete:
-- `00_strategy/THE_CORE_AGENCY_DATABASE_SCHEMA_V1.md` — schema overview + phase dependency map
-- `CLAUDE_MARKETING_TEAM/03_core/database/schema_v1.sql` — full Supabase Postgres SQL (30+ tables, 7 groups, indexes, triggers, RLS enabled)
-- `CLAUDE_MARKETING_TEAM/03_core/database/README.md`
-- `src/types/core.ts` — TypeScript types for all tables
-- `.env.example` — safe placeholders for Supabase, webhook, n8n, Anthropic
+### ✅ Phase 2 — DONE (2026-06-07, commit d0cb365)
+Database Schema V1: 30+ tables, Supabase Postgres, TypeScript types, .env.example.
 
-### Phase 3 — Auth / Login + Role Permission Foundation (Next)
-- Supabase Auth integration
-- `@supabase/supabase-js` added to package.json
-- Auth context (React) — session, user, signIn, signOut
-- Route protection (PrivateRoute or similar)
-- Role assignment on first login
-- RLS policies per role (owner, manager, client, viewer)
-- Protected API surface
+### ✅ Phase 3 — DONE (2026-06-07)
+Auth/Login + Role Permission Foundation:
+- `@supabase/supabase-js` installed
+- `src/lib/supabaseClient.ts` — null-safe client (demo mode if env missing)
+- `src/lib/auth/AuthContext.tsx` — React context, 3 modes (supabase/demo/unconfigured)
+- `src/lib/auth/permissions.ts` — 30+ permission keys, 4 roles, `can.*` helpers
+- `src/components/auth/LoginScreen.tsx` — login UI with demo fallback
+- `src/main.tsx` — wrapped with `<AuthProvider>`
+- `src/App.tsx` — auth gate (loading → spinner, !authenticated → LoginScreen, authenticated → workspace)
+- Header: user email + role badge + sign-out button
+- `src/vite-env.d.ts` — Vite env types
+
+### Phase 4 — Client/Brand/Campaign Management Foundation (Next)
+- Supabase project setup (apply schema_v1.sql)
+- Add RLS policies (owner/manager full, client/viewer read-only)
+- Client CRUD (create, list, edit, archive)
+- Brand CRUD (per client)
+- Campaign creation + brief intake form
+- Wire to Core DB (replace mock data with real Supabase queries)
 
 ---
 

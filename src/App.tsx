@@ -17,9 +17,14 @@ import {
   Monitor,
   BookOpen,
   Store,
-  Eye
+  Eye,
+  LogOut,
+  Lock
 } from 'lucide-react';
 import { sampleCampaigns, Campaign, CampaignBrief, CalendarItem, ChecklistItem } from './mockData';
+import { useAuth } from './lib/auth/AuthContext';
+import { ROLE_LABELS, ROLE_COLORS } from './lib/auth/permissions';
+import LoginScreen from './components/auth/LoginScreen';
 
 const manualExportBlocks = [
   {
@@ -167,6 +172,8 @@ Chiến dịch truyền thông tích hợp cho thương hiệu "Vị Cuốn", h�
 ];
 
 export default function App() {
+  const { user, loading: authLoading, isAuthenticated, signOut, mode } = useAuth();
+
   const [campaigns, setCampaigns] = useState<Campaign[]>(() => {
     try {
       const stored = localStorage.getItem('claude_marketing_team_campaigns_v3');
@@ -478,6 +485,19 @@ export default function App() {
     }));
   };
 
+  // Auth gate — must be after all hooks
+  if (authLoading) {
+    return (
+      <div style={{ minHeight: '100vh', background: '#0a0a0f', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ color: '#52525b', fontSize: '0.875rem' }}>Loading…</div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <LoginScreen />;
+  }
+
   return (
     <div className="app-container">
       {/* Header section */}
@@ -492,9 +512,33 @@ export default function App() {
           </div>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-end' }}>
-          <span className="badge badge-indigo" style={{ background: 'rgba(99, 102, 241, 0.15)', color: '#818cf8', borderColor: 'rgba(99, 102, 241, 0.3)', border: '1px solid' }}>
-            Real Operations MVP — Phase 1
-          </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span className="badge badge-indigo" style={{ background: 'rgba(99, 102, 241, 0.15)', color: '#818cf8', borderColor: 'rgba(99, 102, 241, 0.3)', border: '1px solid' }}>
+              Real Operations MVP — Phase 3
+            </span>
+            {/* User status */}
+            {user && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '5px 10px' }}>
+                <Lock size={11} style={{ color: 'var(--text-muted)' }} />
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', maxWidth: '140px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {user.email}
+                </span>
+                <span style={{ fontSize: '0.68rem', fontWeight: 600, color: ROLE_COLORS[user.role] ?? '#818cf8', background: `${ROLE_COLORS[user.role] ?? '#818cf8'}18`, borderRadius: '4px', padding: '1px 6px' }}>
+                  {ROLE_LABELS[user.role] ?? user.role}
+                </span>
+                {mode === 'demo' && (
+                  <span style={{ fontSize: '0.65rem', color: '#f59e0b', background: 'rgba(245,158,11,0.12)', borderRadius: '4px', padding: '1px 5px' }}>DEMO</span>
+                )}
+                <button
+                  onClick={() => signOut()}
+                  title="Sign out"
+                  style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', padding: '2px' }}
+                >
+                  <LogOut size={13} />
+                </button>
+              </div>
+            )}
+          </div>
           <div style={{ display: 'flex', gap: '3px', background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '3px' }}>
             <button
               onClick={() => handleViewModeSwitch('owner')}

@@ -6,6 +6,21 @@ Nhật ký ghi lại các hành động mô phỏng của các AI Agent khi vậ
 
 ## 🗓️ Nhật Ký Hoạt Động (Simulated Activity Logs)
 
+### 🗓️ Ngày 07/06/2026 — Phase 3: Auth/Login + Role Permission Foundation
+- **[PC1 Claude Code Builder]:** Phase 3 initiated. Stack: React 18 + Vite, no router, no Supabase yet.
+- **[PC1]:** Installed `@supabase/supabase-js`. Noted esbuild/vite audit warning (dev-only, not fixing to avoid breaking change).
+- **[PC1]:** Created `src/vite-env.d.ts` (missing from project — caused TS2339 on import.meta.env).
+- **[PC1]:** Created `src/lib/supabaseClient.ts` — null-safe, reads VITE_SUPABASE_URL/ANON_KEY. Returns null if not configured.
+- **[PC1]:** Created `src/lib/auth/AuthContext.tsx` — AuthProvider, useAuth(), 3 modes, signIn/signOut, fetchUserRole via 2-step query.
+- **[PC1]:** Created `src/lib/auth/permissions.ts` — 30+ permission keys, `can.*` helpers, ROLE_LABELS, ROLE_COLORS.
+- **[PC1]:** Created `src/components/auth/LoginScreen.tsx` — The Core Agency branded login, demo fallback.
+- **[PC1]:** Updated `src/main.tsx` — AuthProvider wrapper. Updated `src/App.tsx` — auth gate + user status header.
+- **[PC1]:** Fixed 4 TypeScript errors: unused React import, missing vite-env.d.ts, Supabase join type issue → rewritten to 2-step query.
+- **[SYSTEM]:** Build pass (tsc + vite). 0 errors. 563KB bundle (Supabase adds ~220KB). Pushed to GitHub.
+- **[SYSTEM]:** Phase 3 DONE.
+
+---
+
 ### 🗓️ Ngày 07/06/2026 — Phase 2: Database Schema V1
 - **[PC1 Claude Code Builder]:** Phase 2 initiated. Target: Supabase Postgres schema V1.
 - **[PC1]:** Confirmed stack: React + TypeScript + Vite. No backend/DB yet. No existing Supabase setup.
