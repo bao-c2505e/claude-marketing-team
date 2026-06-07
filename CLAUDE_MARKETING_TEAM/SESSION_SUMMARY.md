@@ -22,6 +22,33 @@ Chúng ta đang xây dựng **The Core Agency — Real Operations MVP**. Đây l
 
 ---
 
+## ✅ Phase 8 — Approval Workflow Foundation (DONE — 2026-06-08)
+
+### Mục tiêu:
+Tạo nền tảng approval workflow: Generated/Needs Review → Submit for Approval → Approve/Reject/Request Revision. Approval record là nguồn quyết định trạng thái. Không publish ở Phase 8.
+
+### Đã build:
+1. **`src/types/core.ts`**: Added `ContentApprovalStatus`, `ApprovalPriority`, `ApprovalActionType`, `ContentApprovalRequest`, `ContentApprovalEvent`, `ContentApprovalComment`.
+2. **`src/lib/core/coreData.ts`**: Added `ApprovalDataStore`, `loadApprovalData()`, `saveApprovalData()`, display helpers (LABEL/COLOR maps), `SUBMITTABLE_ITEM_STATUSES`, `getActiveRequestForItem()`, `canSubmitItem()`, `submitForApproval()`, `executeApprovalAction()`, `addApprovalComment()`. Storage key: `core_agency_approval_data_v1`.
+3. **`src/components/core/ApprovalsTab.tsx`** (NEW): Submit panel (eligible items), cascading filter bar, request list cards, detail view (content preview, metadata, Approve/Reject/Revision/Cancel action buttons with confirm step, comment form, history timeline). Safety banner.
+4. **`src/components/core/ContentGenerationTab.tsx`**: Added `onNavigateToApprovals` + `submittableItemIds` props. "→ Submit for Approval" button on expanded eligible items.
+5. **`src/components/core/ContentCalendarTab.tsx`**: Added `approvalRequests` + `onNavigateToApprovals` props. Approval status badge on item cards (links to Approvals tab).
+6. **`src/App.tsx`**: `ClipboardCheck` icon, `ApprovalsTab` import; `approvalData` state; `handleApprovalUpdate(approval, gen)` atomic updater; `actorLabel`; `submittableItemIds` set; sidebar "Approvals" button with pending count badge; `approvals` tab routing.
+7. **`CLAUDE_MARKETING_TEAM/03_core/approval_workflow_README.md`**: Created.
+
+### Status Transitions:
+- Submit → `approval_request.status = submitted`, `content_item.status = needs_review`
+- Approve → `approval_request.status = approved`, `content_item.status = approved`
+- Reject → `approval_request.status = rejected`, `content_item.status = rejected`
+- Revision → `approval_request.status = revision_requested`, `content_item.status = revision_requested`
+- Cancel → `approval_request.status = cancelled`, `content_item.status = needs_review`
+
+### Safety:
+- Approved ≠ Published. No publish action in Phase 8. Safety banner always visible.
+- Publishing blocked until Phase 9+.
+
+---
+
 ## ✅ Phase 7 — Content Calendar Foundation (DONE — 2026-06-08)
 
 ### Mục tiêu:

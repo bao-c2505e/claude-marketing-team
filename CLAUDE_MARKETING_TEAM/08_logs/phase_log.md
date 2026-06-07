@@ -6,6 +6,26 @@ Nhật ký theo dõi các mốc hoàn thành kỹ thuật qua các Phase.
 
 ## 📅 Nhật Ký Sự Kiện (Event Logs)
 
+### 🗓️ Ngày 08/06/2026 — Phase 8: Approval Workflow Foundation
+- **Sự kiện:** Hoàn thành Approval Workflow Foundation cho The Core Agency.
+- **Người thực hiện:** Claude Code Builder (PC1).
+- **Hành động đã hoàn tất:**
+  1. Cập nhật `src/types/core.ts` — thêm Phase 8 types: `ContentApprovalStatus`, `ApprovalPriority`, `ApprovalActionType`, `ContentApprovalRequest`, `ContentApprovalEvent`, `ContentApprovalComment`.
+  2. Cập nhật `src/lib/core/coreData.ts` — thêm `ApprovalDataStore`, `loadApprovalData()`, `saveApprovalData()`, display helpers (APPROVAL_STATUS_LABEL/COLOR, PRIORITY_LABEL/COLOR, ACTION_LABEL), `SUBMITTABLE_ITEM_STATUSES`, `getActiveRequestForItem()`, `canSubmitItem()`, `submitForApproval()`, `executeApprovalAction()`, `addApprovalComment()`. Storage key: `core_agency_approval_data_v1`.
+  3. Tạo `src/components/core/ApprovalsTab.tsx` — list view (submit panel, filter bar, request cards) + detail view (content preview, approval metadata, action buttons [Approve/Reject/Request Revision/Cancel], comment form, history timeline). Safety banner.
+  4. Cập nhật `src/components/core/ContentGenerationTab.tsx` — thêm `onNavigateToApprovals` + `submittableItemIds` props; "→ Submit for Approval" button trên expanded items đủ điều kiện.
+  5. Cập nhật `src/components/core/ContentCalendarTab.tsx` — thêm `approvalRequests` + `onNavigateToApprovals` props; hiển thị approval status badge trên item cards; `approvalStatusByItemId` map computed via useMemo.
+  6. Cập nhật `src/App.tsx` — import `ClipboardCheck`, `ApprovalsTab`; `approvalData` state; `handleApprovalUpdate()` (atomic update cả hai stores); `handleNavigateToApprovals()`; `actorLabel`; `submittableItemIds`; sidebar "Approvals" button với pending count badge; tab routing `approvals`.
+  7. Tạo `CLAUDE_MARKETING_TEAM/03_core/approval_workflow_README.md`.
+  8. Cập nhật logs và SESSION_SUMMARY.
+- **Status transition:** submitted → approved/rejected/revision_requested/cancelled. approve → content item `approved`. reject → `rejected`. revision → `revision_requested`. cancel → reverts to `needs_review`.
+- **Permission gate:** canApproveContent = owner + manager. canSubmit = generateContent OR editCampaigns. canView = all roles.
+- **Safety:** Approved ≠ Published. No publish action in Phase 8. Safety banner always visible.
+- **Trạng thái Phase 8:** ✅ DONE.
+- **Next:** Phase 9 — Client View Foundation.
+
+---
+
 ### 🗓️ Ngày 08/06/2026 — Phase 7: Content Calendar Foundation
 - **Sự kiện:** Hoàn thành Content Calendar Foundation cho The Core Agency.
 - **Người thực hiện:** Claude Code Builder (PC1).

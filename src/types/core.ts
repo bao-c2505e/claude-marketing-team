@@ -42,6 +42,66 @@ export type BriefStatus =
 
 // Phase 6: Content Generation
 export type ContentPlanJobStatus = 'draft' | 'queued' | 'generating' | 'completed' | 'failed' | 'archived';
+
+// Phase 8: Approval Workflow
+export type ContentApprovalStatus =
+  | 'draft'
+  | 'submitted'
+  | 'approved'
+  | 'rejected'
+  | 'revision_requested'
+  | 'cancelled';
+
+export type ApprovalPriority = 'low' | 'normal' | 'high';
+
+export type ApprovalActionType =
+  | 'submitted'
+  | 'approved'
+  | 'rejected'
+  | 'revision_requested'
+  | 'commented'
+  | 'cancelled';
+
+export interface ContentApprovalRequest {
+  id: string;
+  content_item_id: string;
+  generation_job_id: string | null;
+  brief_id: string | null;
+  campaign_id: string;
+  brand_id: string | null;
+  client_id: string | null;
+  title: string;
+  status: ContentApprovalStatus;
+  priority: ApprovalPriority;
+  requested_by: string;
+  assigned_to_role: string | null;
+  due_date: string | null;
+  created_at: string;
+  updated_at: string;
+  resolved_at: string | null;
+}
+
+export interface ContentApprovalEvent {
+  id: string;
+  approval_request_id: string;
+  content_item_id: string;
+  action: ApprovalActionType;
+  actor_label: string;
+  comment: string | null;
+  previous_status: ContentApprovalStatus | null;
+  new_status: ContentApprovalStatus | null;
+  created_at: string;
+}
+
+export interface ContentApprovalComment {
+  id: string;
+  approval_request_id: string;
+  content_item_id: string;
+  actor_label: string;
+  comment: string;
+  is_internal: boolean;
+  created_at: string;
+}
 export type GenerationMode = 'mock' | 'ai_ready' | 'external_module';
 export type PlanLengthDays = 7 | 15 | 30;
 export type ContentItemStatus6 = 'generated' | 'needs_review' | 'revision_requested' | 'approved' | 'scheduled' | 'published' | 'rejected' | 'archived';

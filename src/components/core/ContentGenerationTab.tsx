@@ -24,6 +24,8 @@ interface Props {
   userRole: RoleName | null;
   isSupabaseConfigured: boolean;
   initialBriefId?: string;
+  onNavigateToApprovals?: () => void;
+  submittableItemIds?: Set<string>;
 }
 
 type Mode = 'list' | 'detail';
@@ -66,6 +68,7 @@ export default function ContentGenerationTab({
   clients, brands, campaigns, briefs,
   generationJobs, contentItems,
   onUpdate, userRole, isSupabaseConfigured, initialBriefId,
+  onNavigateToApprovals, submittableItemIds,
 }: Props) {
   const [mode, setMode] = useState<Mode>('list');
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
@@ -288,10 +291,20 @@ export default function ContentGenerationTab({
                         </div>
                       </div>
 
-                      {/* Safety note */}
-                      <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontStyle: 'italic', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '8px' }}>
-                        🔒 This content requires human review and approval before publishing. No auto-post.
-                      </p>
+                      {/* Approval action */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '8px' }}>
+                        <p style={{ flex: 1, fontSize: '0.72rem', color: 'var(--text-muted)', fontStyle: 'italic', margin: 0 }}>
+                          🔒 This content requires human review and approval before publishing. No auto-post.
+                        </p>
+                        {onNavigateToApprovals && submittableItemIds?.has(item.id) && (
+                          <button
+                            onClick={e => { e.stopPropagation(); onNavigateToApprovals(); }}
+                            style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '4px 10px', borderRadius: '6px', fontSize: '0.72rem', fontWeight: 700, background: 'rgba(96,165,250,0.15)', border: '1px solid rgba(96,165,250,0.35)', color: '#60a5fa', cursor: 'pointer', flexShrink: 0 }}
+                          >
+                            → Submit for Approval
+                          </button>
+                        )}
+                      </div>
                     </div>
                   )}
                 </div>

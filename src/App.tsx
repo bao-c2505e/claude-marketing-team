@@ -23,7 +23,8 @@ import {
   Zap,
   ClipboardList,
   Wand2,
-  CalendarDays
+  CalendarDays,
+  ClipboardCheck
 } from 'lucide-react';
 import { sampleCampaigns, Campaign, CampaignBrief, CalendarItem, ChecklistItem } from './mockData';
 import { useAuth } from './lib/auth/AuthContext';
@@ -36,8 +37,9 @@ import CampaignsTab from './components/core/CampaignsTab';
 import BriefIntakeTab from './components/core/BriefIntakeTab';
 import ContentGenerationTab from './components/core/ContentGenerationTab';
 import ContentCalendarTab from './components/core/ContentCalendarTab';
-import { loadCoreData, saveCoreData, loadGenerationData, saveGenerationData } from './lib/core/coreData';
-import type { CoreDataStore, GenerationDataStore } from './lib/core/coreData';
+import ApprovalsTab from './components/core/ApprovalsTab';
+import { loadCoreData, saveCoreData, loadGenerationData, saveGenerationData, loadApprovalData, saveApprovalData, canSubmitItem } from './lib/core/coreData';
+import type { CoreDataStore, GenerationDataStore, ApprovalDataStore } from './lib/core/coreData';
 
 const manualExportBlocks = [
   {
@@ -259,6 +261,26 @@ export default function App() {
     setGenNavBriefId(briefId);
     setActiveTab('content-gen');
   };
+
+  // Phase 8 — Approval data (separate store)
+  const [approvalData, setApprovalData] = useState<ApprovalDataStore>(() => loadApprovalData());
+
+  const handleApprovalUpdate = (approval: ApprovalDataStore, gen: GenerationDataStore) => {
+    setApprovalData(approval);
+    saveApprovalData(approval);
+    setGenData(gen);
+    saveGenerationData(gen);
+  };
+
+  const handleNavigateToApprovals = () => {
+    setActiveTab('approvals');
+  };
+
+  const actorLabel = user?.email ?? user?.role ?? 'System';
+
+  const submittableItemIds = new Set(
+    genData.contentItems.filter(i => canSubmitItem(approvalData, i)).map(i => i.id)
+  );
   const handleViewModeSwitch = (mode: 'owner' | 'client') => {
     setViewMode(mode);
     if (mode === 'client') {
@@ -677,6 +699,19 @@ export default function App() {
               <CalendarDays size={18} /> Content Calendar
             </button>
 
+            <button
+              className={`btn btn-secondary ${activeTab === 'approvals' ? 'active' : ''}`}
+              style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'approvals' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'approvals' ? 'rgba(99, 102, 241, 0.1)' : '', position: 'relative' }}
+              onClick={() => setActiveTab('approvals')}
+            >
+              <ClipboardCheck size={18} /> Approvals
+              {approvalData.approvalRequests.filter(r => r.status === 'submitted').length > 0 && (
+                <span style={{ marginLeft: 'auto', fontSize: '0.65rem', fontWeight: 700, color: '#60a5fa', background: 'rgba(96,165,250,0.2)', borderRadius: '10px', padding: '1px 6px' }}>
+                  {approvalData.approvalRequests.filter(r => r.status === 'submitted').length}
+                </span>
+              )}
+            </button>
+
             <div style={{ margin: '4px 0 2px', padding: '0 4px', fontSize: '0.68rem', fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Workspace</div>
 
             <button
@@ -901,6 +936,8 @@ export default function App() {
                   userRole={user?.role ?? null}
                   isSupabaseConfigured={isSupabaseConfigured}
                   initialBriefId={genNavBriefId}
+                  onNavigateToApprovals={handleNavigateToApprovals}
+                  submittableItemIds={submittableItemIds}
                 />
               )}
 
@@ -915,6 +952,25 @@ export default function App() {
                   contentItems={genData.contentItems}
                   onUpdate={handleGenerationUpdate}
                   userRole={user?.role ?? null}
+                  isSupabaseConfigured={isSupabaseConfigured}
+                  approvalRequests={approvalData.approvalRequests}
+                  onNavigateToApprovals={handleNavigateToApprovals}
+                />
+              )}
+
+              {/* ── Phase 8: Approvals Tab ── */}
+              {activeTab === 'approvals' && (
+                <ApprovalsTab
+                  clients={coreData.clients}
+                  brands={coreData.brands}
+                  campaigns={coreData.campaigns}
+                  contentItems={genData.contentItems}
+                  generationJobs={genData.generationJobs}
+                  approvalData={approvalData}
+                  genData={genData}
+                  onUpdate={handleApprovalUpdate}
+                  userRole={user?.role ?? null}
+                  actorLabel={actorLabel}
                   isSupabaseConfigured={isSupabaseConfigured}
                 />
               )}

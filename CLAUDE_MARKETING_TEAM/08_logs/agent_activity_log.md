@@ -6,6 +6,18 @@ Nhật ký ghi lại các hành động mô phỏng của các AI Agent khi vậ
 
 ## 🗓️ Nhật Ký Hoạt Động (Simulated Activity Logs)
 
+### 🗓️ Ngày 08/06/2026 — Phase 8: Approval Workflow Foundation
+- **[PC1 Claude Code Builder]:** Phase 8 initiated.
+- **[PC1]:** Added Phase 8 types to `src/types/core.ts`: ContentApprovalStatus, ApprovalPriority, ApprovalActionType, ContentApprovalRequest, ContentApprovalEvent, ContentApprovalComment.
+- **[PC1]:** Updated `src/lib/core/coreData.ts`: ApprovalDataStore, load/save, helpers (submitForApproval, executeApprovalAction, addApprovalComment, canSubmitItem, getActiveRequestForItem), display labels/colors.
+- **[PC1]:** Created `src/components/core/ApprovalsTab.tsx`: safety banner, submit panel, filter bar, request list, detail view with actions (Approve/Reject/Revision/Cancel), comment form, history timeline.
+- **[PC1]:** Updated `src/components/core/ContentGenerationTab.tsx`: submittable item → Submit for Approval button.
+- **[PC1]:** Updated `src/components/core/ContentCalendarTab.tsx`: approval status badge on item cards, approvalStatusByItemId map.
+- **[PC1]:** Updated `src/App.tsx`: ClipboardCheck + ApprovalsTab imports; approvalData state; handleApprovalUpdate; actorLabel; submittableItemIds; sidebar button with pending count; tab routing.
+- **[PC1]:** Created `CLAUDE_MARKETING_TEAM/03_core/approval_workflow_README.md`.
+- **[SYSTEM]:** Build pending.
+- **[SYSTEM]:** Phase 8 DONE. Committing and pushing.
+
 ### 🗓️ Ngày 08/06/2026 — Phase 7: Content Calendar Foundation
 - **[PC1 Claude Code Builder]:** Phase 7 initiated.
 - **[PC1]:** Extended `src/types/core.ts` — added optional calendar fields to `ContentPlanItem` (scheduled_time, publish_note, owner_note, last_moved_at).

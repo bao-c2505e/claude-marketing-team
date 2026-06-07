@@ -1,10 +1,10 @@
 # CURRENT PHASE — The Core Agency PC1
 
-## Active Phase: Phase 7 ✅ DONE
+## Active Phase: Phase 8 ✅ DONE
 
-**Phase 7 — Content Calendar Foundation**
+**Phase 8 — Approval Workflow Foundation**
 - Status: COMPLETED 2026-06-08
-- Commit: feat: add content calendar foundation
+- Commit: feat: add approval workflow foundation
 - Build: pending (run after commit)
 
 ## Completed Phases
@@ -18,14 +18,14 @@
 | Phase 5 | Brief Intake Foundation | ✅ DONE |
 | Phase 6 | Content Generation Foundation | ✅ DONE |
 | Phase 7 | Content Calendar Foundation | ✅ DONE |
+| Phase 8 | Approval Workflow Foundation | ✅ DONE |
 
 ## Next Phase
 
-**Phase 8 — Approval Workflow Foundation**
-- Submit content items for approval
-- Approval request CRUD (ApprovalRequest, ApprovalEvent, ApprovalComment)
-- Review / approve / reject / revision_requested transitions
-- `approved` status becomes settable via approval record only
+**Phase 9 — Client View Foundation**
+- Client-facing read-only view of approved content
+- Shareable presentation mode for client review
+- Publishing gate (owner-only, explicit action, Phase 9+)
 
 ## Active Constraints
 

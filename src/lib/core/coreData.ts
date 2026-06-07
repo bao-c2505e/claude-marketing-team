@@ -1,4 +1,4 @@
-import type { Client, Brand, Campaign, CampaignBrief, ResourceStatus, CampaignStatus, BriefStatus, ContentPlanJob, ContentPlanItem } from '../../types/core';
+import type { Client, Brand, Campaign, CampaignBrief, ResourceStatus, CampaignStatus, BriefStatus, ContentPlanJob, ContentPlanItem, ContentApprovalRequest, ContentApprovalEvent, ContentApprovalComment, ContentApprovalStatus, ApprovalActionType, ApprovalPriority } from '../../types/core';
 
 // ---------------------------------------------------------------------------
 // Local form types for create operations
@@ -530,6 +530,269 @@ export function updateContentItemInStore(
         ? { ...item, ...patch, last_moved_at: patch.planned_date !== undefined ? now : item.last_moved_at, updated_at: now }
         : item
     ),
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Approval Data Store (Phase 8) — separate localStorage key
+// ---------------------------------------------------------------------------
+
+export interface ApprovalDataStore {
+  approvalRequests: ContentApprovalRequest[];
+  approvalEvents:   ContentApprovalEvent[];
+  approvalComments: ContentApprovalComment[];
+}
+
+const APPROVAL_STORAGE_KEY = 'core_agency_approval_data_v1';
+
+export function loadApprovalData(): ApprovalDataStore {
+  try {
+    const stored = localStorage.getItem(APPROVAL_STORAGE_KEY);
+    if (stored) {
+      const parsed = JSON.parse(stored) as Partial<ApprovalDataStore>;
+      return {
+        approvalRequests: parsed.approvalRequests ?? [],
+        approvalEvents:   parsed.approvalEvents   ?? [],
+        approvalComments: parsed.approvalComments ?? [],
+      };
+    }
+  } catch (_) { /* ignore */ }
+  return { approvalRequests: [], approvalEvents: [], approvalComments: [] };
+}
+
+export function saveApprovalData(data: ApprovalDataStore): void {
+  try {
+    localStorage.setItem(APPROVAL_STORAGE_KEY, JSON.stringify(data));
+  } catch (_) { /* ignore */ }
+}
+
+// Display helpers
+export const APPROVAL_STATUS_LABEL: Record<ContentApprovalStatus, string> = {
+  draft:              'Draft',
+  submitted:          'Submitted',
+  approved:           'Approved',
+  rejected:           'Rejected',
+  revision_requested: 'Revision Requested',
+  cancelled:          'Cancelled',
+};
+
+export const APPROVAL_STATUS_COLOR: Record<ContentApprovalStatus, string> = {
+  draft:              '#94a3b8',
+  submitted:          '#60a5fa',
+  approved:           '#34d399',
+  rejected:           '#f87171',
+  revision_requested: '#fb923c',
+  cancelled:          '#71717a',
+};
+
+export const APPROVAL_PRIORITY_LABEL: Record<ApprovalPriority, string> = {
+  low:    'Low',
+  normal: 'Normal',
+  high:   'High',
+};
+
+export const APPROVAL_PRIORITY_COLOR: Record<ApprovalPriority, string> = {
+  low:    '#94a3b8',
+  normal: '#60a5fa',
+  high:   '#f87171',
+};
+
+export const APPROVAL_ACTION_LABEL: Record<string, string> = {
+  submitted:          'Submitted for approval',
+  approved:           'Approved',
+  rejected:           'Rejected',
+  revision_requested: 'Revision requested',
+  commented:          'Comment added',
+  cancelled:          'Cancelled',
+};
+
+// Statuses that allow submission
+export const SUBMITTABLE_ITEM_STATUSES = ['generated', 'needs_review', 'revision_requested'] as const;
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
+// Get the most recent active (submitted) request for a content item
+export function getActiveRequestForItem(
+  store: ApprovalDataStore,
+  contentItemId: string,
+): ContentApprovalRequest | undefined {
+  return store.approvalRequests.find(
+    r => r.content_item_id === contentItemId && r.status === 'submitted',
+  );
+}
+
+// Check if a content item can be submitted for approval
+export function canSubmitItem(
+  store: ApprovalDataStore,
+  contentItem: ContentPlanItem,
+): boolean {
+  if (!(SUBMITTABLE_ITEM_STATUSES as readonly string[]).includes(contentItem.status)) return false;
+  return !getActiveRequestForItem(store, contentItem.id);
+}
+
+// Submit a content item for approval
+export function submitForApproval(
+  approvalStore: ApprovalDataStore,
+  genStore: GenerationDataStore,
+  contentItem: ContentPlanItem,
+  actorLabel: string,
+  options?: { priority?: ApprovalPriority; due_date?: string },
+): { approval: ApprovalDataStore; gen: GenerationDataStore } {
+  const now   = new Date().toISOString();
+  const reqId = generateId('apr');
+
+  const request: ContentApprovalRequest = {
+    id:                reqId,
+    content_item_id:   contentItem.id,
+    generation_job_id: contentItem.generation_job_id,
+    brief_id:          contentItem.brief_id,
+    campaign_id:       contentItem.campaign_id,
+    brand_id:          contentItem.brand_id,
+    client_id:         contentItem.client_id,
+    title:             contentItem.hook.slice(0, 80),
+    status:            'submitted',
+    priority:          options?.priority ?? 'normal',
+    requested_by:      actorLabel,
+    assigned_to_role:  'manager',
+    due_date:          options?.due_date ?? null,
+    created_at:        now,
+    updated_at:        now,
+    resolved_at:       null,
+  };
+
+  const event: ContentApprovalEvent = {
+    id:                  generateId('aev'),
+    approval_request_id: reqId,
+    content_item_id:     contentItem.id,
+    action:              'submitted',
+    actor_label:         actorLabel,
+    comment:             null,
+    previous_status:     null,
+    new_status:          'submitted',
+    created_at:          now,
+  };
+
+  // Update content item status to needs_review (submitted for review)
+  const updatedGen: GenerationDataStore = {
+    ...genStore,
+    contentItems: genStore.contentItems.map(i =>
+      i.id === contentItem.id ? { ...i, status: 'needs_review', updated_at: now } : i
+    ),
+  };
+
+  return {
+    approval: {
+      ...approvalStore,
+      approvalRequests: [request, ...approvalStore.approvalRequests],
+      approvalEvents:   [event,   ...approvalStore.approvalEvents],
+    },
+    gen: updatedGen,
+  };
+}
+
+// Execute an approval action (approve / reject / revision_requested / cancelled)
+type ResolvingAction = 'approved' | 'rejected' | 'revision_requested' | 'cancelled';
+
+const ACTION_TO_APPROVAL_STATUS: Record<ResolvingAction, ContentApprovalStatus> = {
+  approved:           'approved',
+  rejected:           'rejected',
+  revision_requested: 'revision_requested',
+  cancelled:          'cancelled',
+};
+
+const ACTION_TO_ITEM_STATUS: Record<ResolvingAction, string> = {
+  approved:           'approved',
+  rejected:           'rejected',
+  revision_requested: 'revision_requested',
+  cancelled:          'needs_review', // cancelled approval → item goes back to needs_review
+};
+
+export function executeApprovalAction(
+  approvalStore: ApprovalDataStore,
+  genStore: GenerationDataStore,
+  requestId: string,
+  action: ResolvingAction,
+  actorLabel: string,
+  comment?: string,
+): { approval: ApprovalDataStore; gen: GenerationDataStore } {
+  const now     = new Date().toISOString();
+  const request = approvalStore.approvalRequests.find(r => r.id === requestId);
+  if (!request) return { approval: approvalStore, gen: genStore };
+
+  const newApprovalStatus = ACTION_TO_APPROVAL_STATUS[action];
+  const newItemStatus     = ACTION_TO_ITEM_STATUS[action];
+
+  const event: ContentApprovalEvent = {
+    id:                  generateId('aev'),
+    approval_request_id: requestId,
+    content_item_id:     request.content_item_id,
+    action:              action as ApprovalActionType,
+    actor_label:         actorLabel,
+    comment:             comment ?? null,
+    previous_status:     request.status,
+    new_status:          newApprovalStatus,
+    created_at:          now,
+  };
+
+  const updatedApproval: ApprovalDataStore = {
+    ...approvalStore,
+    approvalRequests: approvalStore.approvalRequests.map(r =>
+      r.id === requestId
+        ? { ...r, status: newApprovalStatus, updated_at: now, resolved_at: now }
+        : r
+    ),
+    approvalEvents: [event, ...approvalStore.approvalEvents],
+  };
+
+  const updatedGen: GenerationDataStore = {
+    ...genStore,
+    contentItems: genStore.contentItems.map(i =>
+      i.id === request.content_item_id
+        ? { ...i, status: newItemStatus as ContentPlanItem['status'], updated_at: now }
+        : i
+    ),
+  };
+
+  return { approval: updatedApproval, gen: updatedGen };
+}
+
+// Add a comment without changing status
+export function addApprovalComment(
+  approvalStore: ApprovalDataStore,
+  requestId: string,
+  contentItemId: string,
+  actorLabel: string,
+  commentText: string,
+  isInternal = true,
+): ApprovalDataStore {
+  const now = new Date().toISOString();
+
+  const comment: ContentApprovalComment = {
+    id:                  generateId('acm'),
+    approval_request_id: requestId,
+    content_item_id:     contentItemId,
+    actor_label:         actorLabel,
+    comment:             commentText,
+    is_internal:         isInternal,
+    created_at:          now,
+  };
+
+  const event: ContentApprovalEvent = {
+    id:                  generateId('aev'),
+    approval_request_id: requestId,
+    content_item_id:     contentItemId,
+    action:              'commented',
+    actor_label:         actorLabel,
+    comment:             commentText,
+    previous_status:     null,
+    new_status:          null,
+    created_at:          now,
+  };
+
+  return {
+    ...approvalStore,
+    approvalComments: [comment, ...approvalStore.approvalComments],
+    approvalEvents:   [event,   ...approvalStore.approvalEvents],
   };
 }
 

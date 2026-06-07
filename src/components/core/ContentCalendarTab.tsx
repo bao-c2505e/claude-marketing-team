@@ -8,6 +8,7 @@ import type { GenerationDataStore } from '../../lib/core/coreData';
 import {
   CONTENT_ITEM_STATUS_LABEL, CONTENT_ITEM_STATUS_COLOR,
   CALENDAR_SAFE_STATUSES, updateContentItemInStore,
+  APPROVAL_STATUS_COLOR, APPROVAL_STATUS_LABEL,
 } from '../../lib/core/coreData';
 import type { CalendarItemPatch } from '../../lib/core/coreData';
 import { can } from '../../lib/auth/permissions';
@@ -26,6 +27,8 @@ interface Props {
   onUpdate: (updated: GenerationDataStore) => void;
   userRole: RoleName | null;
   isSupabaseConfigured: boolean;
+  approvalRequests?: import('../../types/core').ContentApprovalRequest[];
+  onNavigateToApprovals?: (itemId?: string) => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -401,6 +404,7 @@ function ItemCard({
   item, expanded, onToggle, onEdit, editing, allChannels,
   canEdit, onSaveEdit, onCancelEdit,
   clientName, brandName, campaignName,
+  approvalStatus, onNavigateToApprovals,
 }: {
   item: ContentPlanItem;
   expanded: boolean;
@@ -414,6 +418,8 @@ function ItemCard({
   clientName: string;
   brandName: string;
   campaignName: string;
+  approvalStatus?: string | null;
+  onNavigateToApprovals?: () => void;
 }) {
   const statusColor = CONTENT_ITEM_STATUS_COLOR[item.status] ?? '#94a3b8';
   const statusLabel = CONTENT_ITEM_STATUS_LABEL[item.status] ?? item.status;
@@ -484,9 +490,25 @@ function ItemCard({
           </div>
         </div>
 
-        {/* Right side: status + edit + chevron */}
+        {/* Right side: status + approval badge + edit + chevron */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
           <StatusChip label={statusLabel} color={statusColor} />
+          {approvalStatus && (
+            <button
+              onClick={e => { e.stopPropagation(); onNavigateToApprovals?.(); }}
+              title="View approval"
+              style={{
+                display: 'flex', alignItems: 'center', gap: '3px',
+                fontSize: '0.65rem', fontWeight: 700, cursor: 'pointer',
+                color: APPROVAL_STATUS_COLOR[approvalStatus as keyof typeof APPROVAL_STATUS_COLOR] ?? '#94a3b8',
+                background: `${APPROVAL_STATUS_COLOR[approvalStatus as keyof typeof APPROVAL_STATUS_COLOR] ?? '#94a3b8'}14`,
+                border: `1px solid ${APPROVAL_STATUS_COLOR[approvalStatus as keyof typeof APPROVAL_STATUS_COLOR] ?? '#94a3b8'}35`,
+                borderRadius: '4px', padding: '1px 6px',
+              }}
+            >
+              ✓ {APPROVAL_STATUS_LABEL[approvalStatus as keyof typeof APPROVAL_STATUS_LABEL] ?? approvalStatus}
+            </button>
+          )}
           {canEdit && (
             <button
               onClick={e => { e.stopPropagation(); onEdit(); }}
@@ -542,6 +564,8 @@ function DayGroup({ date, items, ...cardProps }: {
   clientName: (id: string | null) => string;
   brandName: (id: string | null) => string;
   campaignName: (id: string) => string;
+  approvalStatusByItemId: Record<string, string | undefined>;
+  onNavigateToApprovals?: () => void;
 }) {
   const label = date === 'unscheduled' ? 'Unscheduled' : formatDate(date);
   const dayOfWeek = date !== 'unscheduled'
@@ -580,6 +604,8 @@ function DayGroup({ date, items, ...cardProps }: {
             clientName={cardProps.clientName(item.client_id)}
             brandName={cardProps.brandName(item.brand_id)}
             campaignName={cardProps.campaignName(item.campaign_id)}
+            approvalStatus={cardProps.approvalStatusByItemId[item.id]}
+            onNavigateToApprovals={cardProps.onNavigateToApprovals}
           />
         ))}
       </div>
@@ -595,6 +621,8 @@ export default function ContentCalendarTab({
   clients, brands, campaigns,
   contentItems, generationJobs,
   onUpdate, userRole, isSupabaseConfigured,
+  approvalRequests = [],
+  onNavigateToApprovals,
 }: Props) {
   const canView  = can.viewContent(userRole);
   const canEdit  = can.editContent(userRole) || can.generateContent(userRole);
@@ -606,6 +634,18 @@ export default function ContentCalendarTab({
   const clientName  = (id: string | null) => id ? (clients.find(c => c.id === id)?.name ?? '—') : '—';
   const brandName   = (id: string | null) => id ? (brands.find(b => b.id === id)?.name ?? '—') : '—';
   const campaignName = (id: string) => campaigns.find(c => c.id === id)?.name ?? '—';
+
+  // Build item → most recent approval status map
+  const approvalStatusByItemId = useMemo<Record<string, string | undefined>>(() => {
+    const map: Record<string, string | undefined> = {};
+    for (const req of approvalRequests) {
+      const existing = map[req.content_item_id];
+      if (!existing || req.created_at > (approvalRequests.find(r => r.content_item_id === req.content_item_id && r.status === existing)?.created_at ?? '')) {
+        map[req.content_item_id] = req.status;
+      }
+    }
+    return map;
+  }, [approvalRequests]);
 
   // Derive unique channels and statuses from items
   const allChannels = useMemo(() => {
@@ -771,6 +811,8 @@ export default function ContentCalendarTab({
               clientName={clientName}
               brandName={brandName}
               campaignName={campaignName}
+              approvalStatusByItemId={approvalStatusByItemId}
+              onNavigateToApprovals={onNavigateToApprovals}
             />
           ))}
         </div>
