@@ -1,11 +1,11 @@
 # CURRENT PHASE — The Core Agency PC1
 
-## Active Phase: Phase 6 ✅ DONE
+## Active Phase: Phase 7 ✅ DONE
 
-**Phase 6 — Content Generation Foundation**
+**Phase 7 — Content Calendar Foundation**
 - Status: COMPLETED 2026-06-08
-- Commit: feat: add content generation foundation
-- Build: ✅ 0 errors (~663KB)
+- Commit: feat: add content calendar foundation
+- Build: pending (run after commit)
 
 ## Completed Phases
 
@@ -17,13 +17,15 @@
 | Phase 4 | Client/Brand/Campaign Management | ✅ DONE |
 | Phase 5 | Brief Intake Foundation | ✅ DONE |
 | Phase 6 | Content Generation Foundation | ✅ DONE |
+| Phase 7 | Content Calendar Foundation | ✅ DONE |
 
 ## Next Phase
 
-**Phase 7 — Content Calendar Foundation**
-- Assign approved content items to calendar dates
-- View by week/month, channel filter
-- No auto-schedule. Human assigns dates.
+**Phase 8 — Approval Workflow Foundation**
+- Submit content items for approval
+- Approval request CRUD (ApprovalRequest, ApprovalEvent, ApprovalComment)
+- Review / approve / reject / revision_requested transitions
+- `approved` status becomes settable via approval record only
 
 ## Active Constraints
 

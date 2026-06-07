@@ -6,6 +6,24 @@ Nhật ký theo dõi các mốc hoàn thành kỹ thuật qua các Phase.
 
 ## 📅 Nhật Ký Sự Kiện (Event Logs)
 
+### 🗓️ Ngày 08/06/2026 — Phase 7: Content Calendar Foundation
+- **Sự kiện:** Hoàn thành Content Calendar Foundation cho The Core Agency.
+- **Người thực hiện:** Claude Code Builder (PC1).
+- **Hành động đã hoàn tất:**
+  1. Cập nhật `src/types/core.ts` — thêm 4 optional calendar fields vào `ContentPlanItem`: `scheduled_time`, `publish_note`, `owner_note`, `last_moved_at`. Backward-compatible với data cũ (all optional).
+  2. Cập nhật `src/lib/core/coreData.ts` — thêm `CalendarSafeStatus`, `CALENDAR_SAFE_STATUSES`, `CalendarItemPatch`, `updateContentItemInStore()`. Safe statuses Phase 7: generated, needs_review, revision_requested, rejected, archived. approved/scheduled/published bị block.
+  3. Tạo `src/components/core/ContentCalendarTab.tsx` — full calendar feature: safety banner, cascading filter bar (client→brand→campaign→channel→status), day-grouped item list sorted by planned_date, item cards với expand inline, detail view (caption/visual brief/hashtags/CTA/angle/pillar/approval note), edit panel (planned_date/scheduled_time/channel/owner_note/publish_note/status), permission gate, empty states, summary stats.
+  4. Cập nhật `src/App.tsx` — import `CalendarDays` icon + `ContentCalendarTab`; sidebar button "Content Calendar" (sau Content Generation, trước Workspace section); tab routing `content-calendar`.
+  5. Tạo `CLAUDE_MARKETING_TEAM/03_core/content_calendar_README.md`.
+  6. Cập nhật logs: CURRENT_PHASE.md, phase_log.md, agent_activity_log.md, SESSION_SUMMARY.md.
+- **Calendar features:** filter by client/brand/campaign/channel/status; group by planned_date; expand/collapse per item; inline edit safe fields; safety banner always visible.
+- **Permission gate:** canViewContent = all roles; canEditContent || canGenerateContent = owner + manager only.
+- **Safety:** Calendar is planning only. Scheduled ≠ Published. Generated ≠ Approved. Approved ≠ Published. No auto-post. No publish action in Phase 7.
+- **Trạng thái Phase 7:** ✅ DONE.
+- **Next:** Phase 8 — Approval Workflow Foundation.
+
+---
+
 ### 🗓️ Ngày 08/06/2026 — Phase 6: Content Generation Foundation
 - **Sự kiện:** Hoàn thành Content Generation Foundation cho The Core Agency.
 - **Người thực hiện:** Claude Code Builder (PC1).

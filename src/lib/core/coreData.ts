@@ -494,6 +494,45 @@ export const CONTENT_ITEM_STATUS_COLOR: Record<string, string> = {
   archived:           '#71717a',
 };
 
+// ---------------------------------------------------------------------------
+// Calendar helpers (Phase 7) — update a single ContentPlanItem in the store
+// ---------------------------------------------------------------------------
+
+export type CalendarSafeStatus = 'generated' | 'needs_review' | 'revision_requested' | 'rejected' | 'archived';
+
+export const CALENDAR_SAFE_STATUSES: CalendarSafeStatus[] = [
+  'generated',
+  'needs_review',
+  'revision_requested',
+  'rejected',
+  'archived',
+];
+
+export interface CalendarItemPatch {
+  planned_date?: string | null;
+  scheduled_time?: string | null;
+  channel?: string;
+  owner_note?: string | null;
+  publish_note?: string | null;
+  status?: CalendarSafeStatus;
+}
+
+export function updateContentItemInStore(
+  store: GenerationDataStore,
+  itemId: string,
+  patch: CalendarItemPatch,
+): GenerationDataStore {
+  const now = new Date().toISOString();
+  return {
+    ...store,
+    contentItems: store.contentItems.map(item =>
+      item.id === itemId
+        ? { ...item, ...patch, last_moved_at: patch.planned_date !== undefined ? now : item.last_moved_at, updated_at: now }
+        : item
+    ),
+  };
+}
+
 export const EMPTY_BRIEF_FORM: BriefFormData = {
   campaign_id: '',
   brand_id: '',

@@ -22,6 +22,28 @@ Chúng ta đang xây dựng **The Core Agency — Real Operations MVP**. Đây l
 
 ---
 
+## ✅ Phase 7 — Content Calendar Foundation (DONE — 2026-06-08)
+
+### Mục tiêu:
+Tạo nền tảng Content Calendar để xem, lọc, chỉnh lịch và quản lý các content items đã được generate từ Phase 6.
+
+### Đã build:
+1. **`src/types/core.ts`**: Extended `ContentPlanItem` — 4 optional calendar fields: `scheduled_time`, `publish_note`, `owner_note`, `last_moved_at`. Backward-compatible (all optional).
+2. **`src/lib/core/coreData.ts`**: Added `CalendarSafeStatus`, `CALENDAR_SAFE_STATUSES`, `CalendarItemPatch`, `updateContentItemInStore()`. Safe statuses: generated, needs_review, revision_requested, rejected, archived. approved/scheduled/published blocked.
+3. **`src/components/core/ContentCalendarTab.tsx`** (NEW): Safety banner, cascading filter bar (client→brand→campaign→channel→status), day-grouped list sorted by planned_date, item cards (day badge, date, channel, hook preview, caption preview, status chip), detail view (full caption/visual brief/hashtags/CTA/angle/pillar/approval note), edit panel (safe fields: date/time/channel/owner_note/publish_note/status), permission gate, 2 empty states, summary stats bar.
+4. **`src/App.tsx`**: CalendarDays icon import, ContentCalendarTab import, sidebar "Content Calendar" button (after Content Generation), content-calendar tab routing.
+5. **`CLAUDE_MARKETING_TEAM/03_core/content_calendar_README.md`**: Created.
+
+### Calendar Status Gate (Phase 7):
+- Editable: `generated`, `needs_review`, `revision_requested`, `rejected`, `archived`
+- Blocked: `approved`, `scheduled`, `published` — requires Phase 8 Approval Workflow
+
+### Safety:
+- "Calendar is planning only. Scheduled ≠ Published. Generated ≠ Approved. Approved ≠ Published. No auto-post."
+- No publish action in Phase 7. Safety banner always visible.
+
+---
+
 ## ✅ Phase 5 — Brief Intake Foundation (DONE + BUILT + PUSHED — 2026-06-08)
 
 ### Mục tiêu:

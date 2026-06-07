@@ -22,7 +22,8 @@ import {
   Lock,
   Zap,
   ClipboardList,
-  Wand2
+  Wand2,
+  CalendarDays
 } from 'lucide-react';
 import { sampleCampaigns, Campaign, CampaignBrief, CalendarItem, ChecklistItem } from './mockData';
 import { useAuth } from './lib/auth/AuthContext';
@@ -34,6 +35,7 @@ import BrandsTab from './components/core/BrandsTab';
 import CampaignsTab from './components/core/CampaignsTab';
 import BriefIntakeTab from './components/core/BriefIntakeTab';
 import ContentGenerationTab from './components/core/ContentGenerationTab';
+import ContentCalendarTab from './components/core/ContentCalendarTab';
 import { loadCoreData, saveCoreData, loadGenerationData, saveGenerationData } from './lib/core/coreData';
 import type { CoreDataStore, GenerationDataStore } from './lib/core/coreData';
 
@@ -667,6 +669,14 @@ export default function App() {
               <Wand2 size={18} /> Content Generation
             </button>
 
+            <button
+              className={`btn btn-secondary ${activeTab === 'content-calendar' ? 'active' : ''}`}
+              style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'content-calendar' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'content-calendar' ? 'rgba(99, 102, 241, 0.1)' : '' }}
+              onClick={() => setActiveTab('content-calendar')}
+            >
+              <CalendarDays size={18} /> Content Calendar
+            </button>
+
             <div style={{ margin: '4px 0 2px', padding: '0 4px', fontSize: '0.68rem', fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Workspace</div>
 
             <button
@@ -891,6 +901,21 @@ export default function App() {
                   userRole={user?.role ?? null}
                   isSupabaseConfigured={isSupabaseConfigured}
                   initialBriefId={genNavBriefId}
+                />
+              )}
+
+              {/* ── Phase 7: Content Calendar Tab ── */}
+              {activeTab === 'content-calendar' && (
+                <ContentCalendarTab
+                  clients={coreData.clients}
+                  brands={coreData.brands}
+                  campaigns={coreData.campaigns}
+                  briefs={coreData.briefs}
+                  generationJobs={genData.generationJobs}
+                  contentItems={genData.contentItems}
+                  onUpdate={handleGenerationUpdate}
+                  userRole={user?.role ?? null}
+                  isSupabaseConfigured={isSupabaseConfigured}
                 />
               )}
 

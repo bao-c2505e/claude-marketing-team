@@ -84,6 +84,11 @@ export interface ContentPlanItem {
   status: ContentItemStatus6;
   created_at: string;
   updated_at: string;
+  // Phase 7 — Calendar metadata (all optional for backward compat)
+  scheduled_time?: string | null;
+  publish_note?: string | null;
+  owner_note?: string | null;
+  last_moved_at?: string | null;
 }
 
 export type CampaignType = '7_day' | '15_day' | '30_day' | 'custom';

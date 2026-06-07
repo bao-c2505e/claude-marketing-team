@@ -6,6 +6,17 @@ Nhật ký ghi lại các hành động mô phỏng của các AI Agent khi vậ
 
 ## 🗓️ Nhật Ký Hoạt Động (Simulated Activity Logs)
 
+### 🗓️ Ngày 08/06/2026 — Phase 7: Content Calendar Foundation
+- **[PC1 Claude Code Builder]:** Phase 7 initiated.
+- **[PC1]:** Extended `src/types/core.ts` — added optional calendar fields to `ContentPlanItem` (scheduled_time, publish_note, owner_note, last_moved_at).
+- **[PC1]:** Updated `src/lib/core/coreData.ts` — added CalendarSafeStatus type, CALENDAR_SAFE_STATUSES array, CalendarItemPatch interface, updateContentItemInStore() helper.
+- **[PC1]:** Created `src/components/core/ContentCalendarTab.tsx` — full component: safety banner, cascading filter bar, day-grouped list, item cards, expand/detail view, edit panel (safe fields), permission gate, empty states, summary stats.
+- **[PC1]:** Updated `src/App.tsx` — CalendarDays icon, ContentCalendarTab import, sidebar nav button, content-calendar tab routing.
+- **[PC1]:** Created `CLAUDE_MARKETING_TEAM/03_core/content_calendar_README.md`.
+- **[PC1]:** Updated CURRENT_PHASE.md, phase_log.md, agent_activity_log.md, SESSION_SUMMARY.md.
+- **[SYSTEM]:** Build pending.
+- **[SYSTEM]:** Phase 7 DONE. Committing and pushing.
+
 ### 🗓️ Ngày 08/06/2026 — Phase 6: Content Generation Foundation
 - **[PC1 Claude Code Builder]:** Phase 6 initiated. Resumed from previous session (context compacted).
 - **[PC1]:** Updated `src/types/core.ts` — Phase 6 types added (ContentPlanJob, ContentPlanItem, etc.).
