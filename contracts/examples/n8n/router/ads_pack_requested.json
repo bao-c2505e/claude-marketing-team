@@ -1,0 +1,20 @@
+{
+  "contract_version": "n8n_event_router_v0.1",
+  "event_type": "ads_pack.requested",
+  "request_id": "b901f82d-82c1-4824-9b2f-3d601cf94e09",
+  "brand_id": "brand_demo_001",
+  "campaign_id": "campaign_demo_001",
+  "requested_by": "user_demo_001@example.com",
+  "callback_url": "http://localhost:5678/mock-callback",
+  "payload": {
+    "platform": "meta",
+    "objective": "lead_generation",
+    "target_audience": "Marketing managers and startup founders aged 25-45",
+    "offer": "Get a free 14-day premium agency plan trial today",
+    "budget_mode": "mock"
+  },
+  "metadata": {
+    "client": "local_dev_test",
+    "workflow_engine": "n8n_v1"
+  }
+}

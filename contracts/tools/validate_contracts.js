@@ -347,6 +347,165 @@ try {
 }
 
 
+// Validate Phase N5 files
+console.log('--- STARTING PHASE N5 VALIDATION CHECKS ---');
+const routerExamplesDir = path.join(baseDir, 'examples/n8n/router');
+const routerOutputsDir = path.join(routerExamplesDir, 'expected_outputs');
+
+const n5Events = [
+  'creative_asset_requested.json',
+  'content_pack_requested.json',
+  'ads_pack_requested.json',
+  'crm_followup_requested.json',
+  'analytics_report_requested.json'
+];
+
+const n5Outputs = [
+  'creative_asset_routing_output.json',
+  'content_pack_routing_output.json',
+  'ads_pack_routing_output.json',
+  'crm_followup_routing_output.json',
+  'analytics_report_routing_output.json'
+];
+
+const supportedEventTypes = [
+  'creative_asset.requested',
+  'content_pack.requested',
+  'ads_pack.requested',
+  'crm_followup.requested',
+  'analytics_report.requested'
+];
+
+n5Events.forEach(file => {
+  const filePath = path.join(routerExamplesDir, file);
+  try {
+    const content = fs.readFileSync(filePath, 'utf8');
+    
+    // Check brand name blocking
+    if (content.toLowerCase().includes('vicuon') || content.includes('Vị Cuốn')) {
+      console.error(`[FAIL] ${file} contains Vị Cuốn / vicuon brand hardcoding`);
+      failed = true;
+    }
+    
+    // Check production URL blocking
+    if (content.includes('thecoreagency.com')) {
+      console.error(`[FAIL] ${file} contains production-like URL (thecoreagency.com)`);
+      failed = true;
+    }
+
+    // Check suspicious keys/secrets
+    if (/api_key|secret|token/i.test(content) && !content.includes('workflow_engine')) {
+      console.error(`[FAIL] ${file} contains suspicious secret keywords`);
+      failed = true;
+    }
+
+    const parsed = JSON.parse(content);
+    console.log(`[PASS] Example parses as valid JSON: router/${file}`);
+
+    // Required fields check
+    const required = [
+      'contract_version', 'event_type', 'request_id', 'brand_id',
+      'campaign_id', 'requested_by', 'callback_url', 'payload', 'metadata'
+    ];
+    required.forEach(f => {
+      if (parsed[f] === undefined) {
+        console.error(`[FAIL] ${file} is missing required field '${f}'`);
+        failed = true;
+      }
+    });
+
+    // Check brand_id
+    if (parsed.brand_id !== 'brand_demo_001') {
+      console.error(`[FAIL] ${file} must have brand_id = 'brand_demo_001', found '${parsed.brand_id}'`);
+      failed = true;
+    }
+
+    // Check event_type
+    if (!supportedEventTypes.includes(parsed.event_type)) {
+      console.error(`[FAIL] ${file} has unsupported event_type '${parsed.event_type}'`);
+      failed = true;
+    }
+
+  } catch (err) {
+    console.error(`[FAIL] Error parsing Phase N5 event example ${file}: ${err.message}`);
+    failed = true;
+  }
+});
+
+n5Outputs.forEach(file => {
+  const filePath = path.join(routerOutputsDir, file);
+  try {
+    const content = fs.readFileSync(filePath, 'utf8');
+    
+    if (content.toLowerCase().includes('vicuon') || content.includes('Vị Cuốn')) {
+      console.error(`[FAIL] ${file} contains Vị Cuốn / vicuon brand hardcoding`);
+      failed = true;
+    }
+    
+    if (content.includes('thecoreagency.com')) {
+      console.error(`[FAIL] ${file} contains production-like URL (thecoreagency.com)`);
+      failed = true;
+    }
+
+    const parsed = JSON.parse(content);
+    console.log(`[PASS] Example parses as valid JSON: router/expected_outputs/${file}`);
+
+    // Required fields check
+    const required = [
+      'request_id', 'event_type', 'module_id', 'route_status',
+      'endpoint_type', 'callback_preview', 'source', 'notes'
+    ];
+    required.forEach(f => {
+      if (parsed[f] === undefined) {
+        console.error(`[FAIL] ${file} is missing required field '${f}'`);
+        failed = true;
+      }
+    });
+
+    // Validate callback_preview structure
+    if (parsed.callback_preview) {
+      const cbRequired = [
+        'request_id', 'event_type', 'module_id', 'status',
+        'output', 'errors', 'source', 'generated_at', 'notes'
+      ];
+      cbRequired.forEach(cbf => {
+        if (parsed.callback_preview[cbf] === undefined) {
+          console.error(`[FAIL] ${file} callback_preview is missing field '${cbf}'`);
+          failed = true;
+        }
+      });
+    }
+
+  } catch (err) {
+    console.error(`[FAIL] Error parsing Phase N5 routing output example ${file}: ${err.message}`);
+    failed = true;
+  }
+});
+
+// Validate Phase N5 workflow JSON
+const n5WorkflowPath = path.join(baseDir, '../n8n-workflows/n5_multi_module_event_router.workflow.json');
+try {
+  const content = fs.readFileSync(n5WorkflowPath, 'utf8');
+  if (content.toLowerCase().includes('vicuon') || content.includes('Vị Cuốn')) {
+    console.error(`[FAIL] n5_multi_module_event_router.workflow.json contains Vị Cuốn / vicuon brand hardcoding`);
+    failed = true;
+  }
+  if (content.includes('thecoreagency.com')) {
+    console.error(`[FAIL] n5_multi_module_event_router.workflow.json contains production-like URLs`);
+    failed = true;
+  }
+  if (/api_key|secret|token/i.test(content) && !content.includes('workflow_engine')) {
+    console.error(`[FAIL] n5_multi_module_event_router.workflow.json contains suspicious secret keywords`);
+    failed = true;
+  }
+  JSON.parse(content);
+  console.log(`[PASS] n5_multi_module_event_router.workflow.json parses as valid JSON`);
+} catch (err) {
+  console.error(`[FAIL] Error parsing n5_multi_module_event_router.workflow.json: ${err.message}`);
+  failed = true;
+}
+
+
 if (failed) {
   console.error('--- CONTRACT VALIDATION CHECKS FAILED ---');
   process.exit(1);
@@ -354,3 +513,4 @@ if (failed) {
   console.log('--- ALL CONTRACT VALIDATION CHECKS PASSED SUCCESSFULLY ---');
   process.exit(0);
 }
+

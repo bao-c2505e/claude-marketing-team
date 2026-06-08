@@ -1,0 +1,412 @@
+{
+  "name": "Phase N5 Multi-Module Event Router Skeleton",
+  "nodes": [
+    {
+      "parameters": {},
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        100,
+        300
+      ],
+      "id": "manual-trigger"
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "contract_version",
+              "value": "n8n_event_router_v0.1"
+            },
+            {
+              "name": "event_type",
+              "value": "creative_asset.requested"
+            },
+            {
+              "name": "request_id",
+              "value": "782f9d5e-ca87-439f-a89c-8eb139f4a088"
+            },
+            {
+              "name": "brand_id",
+              "value": "brand_demo_001"
+            },
+            {
+              "name": "campaign_id",
+              "value": "campaign_demo_001"
+            },
+            {
+              "name": "requested_by",
+              "value": "user_demo_001@example.com"
+            },
+            {
+              "name": "callback_url",
+              "value": "http://localhost:5678/mock-callback"
+            }
+          ],
+          "other": [
+            {
+              "name": "payload",
+              "value": {
+                "asset_type": "image",
+                "creative_brief": "A modern co-working space banner with glassmorphism effects",
+                "dimensions": "1024x1024",
+                "style_notes": "Vibrant accents, futuristic neon lighting"
+              }
+            },
+            {
+              "name": "metadata",
+              "value": {
+                "client": "local_dev_test",
+                "workflow_engine": "n8n_v1"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Set: Mock Event",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        260,
+        300
+      ],
+      "id": "set-mock-event"
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = items[0].json;\nreturn [{\n  json: {\n    contract_version: body.contract_version || \"n8n_event_router_v0.1\",\n    event_type: body.event_type || \"creative_asset.requested\",\n    request_id: body.request_id || \"782f9d5e-ca87-439f-a89c-8eb139f4a088\",\n    brand_id: body.brand_id || \"brand_demo_001\",\n    campaign_id: body.campaign_id || \"campaign_demo_001\",\n    requested_by: body.requested_by || \"user_demo_001@example.com\",\n    callback_url: body.callback_url || \"http://localhost:5678/mock-callback\",\n    payload: body.payload || {},\n    metadata: body.metadata || {}\n  }\n}];"
+      },
+      "name": "Code: Normalize Event Envelope",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        420,
+        300
+      ],
+      "id": "code-normalize"
+    },
+    {
+      "parameters": {
+        "dataType": "string",
+        "value1": "={{ $json.event_type }}",
+        "rules": {
+          "rules": [
+            {
+              "value2": "creative_asset.requested"
+            },
+            {
+              "value2": "content_pack.requested"
+            },
+            {
+              "value2": "ads_pack.requested"
+            },
+            {
+              "value2": "crm_followup.requested"
+            },
+            {
+              "value2": "analytics_report.requested"
+            }
+          ]
+        }
+      },
+      "name": "Switch: Route by event_type",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [
+        580,
+        300
+      ],
+      "id": "switch-route"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:8188/run",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"event_id\": \"{{ $json.request_id }}\",\n  \"event_type\": \"COMFYUI_GENERATION_REQUESTED\",\n  \"correlation_id\": \"c92a7e2b-f11a-4bc2-812d-98ba29a28e3b\",\n  \"brand_id\": \"{{ $json.brand_id }}\",\n  \"campaign_id\": \"{{ $json.campaign_id }}\",\n  \"job_id\": \"job_demo_001\",\n  \"module_name\": \"creative_asset_comfyui\",\n  \"callback_url\": \"{{ $json.callback_url }}\",\n  \"created_at\": \"{{ new Date().toISOString() }}\",\n  \"payload\": {{ JSON.stringify($json.payload) }},\n  \"safety\": {\n    \"requires_approval\": true,\n    \"final_approval_granted\": true,\n    \"allow_real_world_action\": true,\n    \"allow_auto_publish\": false,\n    \"allow_ads_spend\": false,\n    \"allow_customer_messaging\": false\n  }\n}",
+        "options": {}
+      },
+      "name": "HTTP Request: POST ComfyUI Stub /run",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        800,
+        100
+      ],
+      "id": "http-comfyui"
+    },
+    {
+      "parameters": {
+        "jsCode": "const originalEvent = $node[\"Code: Normalize Event Envelope\"].json;\nreturn [{\n  json: {\n    request_id: originalEvent.request_id,\n    event_type: originalEvent.event_type,\n    module_id: \"creative_asset_comfyui\",\n    route_status: \"routed_mock\",\n    endpoint_type: \"local_stub\",\n    callback_preview: {\n      request_id: originalEvent.request_id,\n      event_type: originalEvent.event_type,\n      module_id: \"creative_asset_comfyui\",\n      status: \"mock_completed\",\n      output: {\n        asset_preview: \"mock://assets/workspace_generated_001.png\",\n        mock_asset_url: \"mock://assets/workspace_generated_001.png\",\n        mock_output_path: \"storage/assets/placeholder_workspace_001.png\"\n      },\n      errors: [],\n      source: \"n8n_n5_multi_module_router\",\n      generated_at: new Date().toISOString(),\n      notes: \"This is a local ComfyUI stub mock response.\"\n    },\n    source: \"n8n_n5_multi_module_router\",\n    notes: \"Event routed to ComfyUI local pipeline stub.\"\n  }\n}];"
+      },
+      "name": "Code: Prepare Creative Callback Preview",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        1000,
+        100
+      ],
+      "id": "prep-creative-callback"
+    },
+    {
+      "parameters": {
+        "jsCode": "const originalEvent = $node[\"Code: Normalize Event Envelope\"].json;\nreturn [{\n  json: {\n    request_id: originalEvent.request_id,\n    event_type: originalEvent.event_type,\n    module_id: \"content_pack_generator\",\n    route_status: \"routed_mock\",\n    endpoint_type: \"mock_only\",\n    callback_preview: {\n      request_id: originalEvent.request_id,\n      event_type: originalEvent.event_type,\n      module_id: \"content_pack_generator\",\n      status: \"mock_completed\",\n      output: {\n        posts: [\n          {\n            channel: \"facebook\",\n            content: \"Collaborate in style. Discover our new remote platform template!\"\n          },\n          {\n            channel: \"linkedin\",\n            content: \"How remote teams stay aligned. Check out our latest framework design.\"\n          },\n          {\n            channel: \"twitter\",\n            content: \"Say goodbye to misalignment. Meet the future of remote work.\"\n          }\n        ]\n      },\n      errors: [],\n      source: \"n8n_n5_multi_module_router\",\n      generated_at: new Date().toISOString(),\n      notes: \"Mock content generated successfully.\"\n    },\n    source: \"n8n_n5_multi_module_router\",\n    notes: \"Event routed to mock-only content pack generator.\"\n  }\n}];"
+      },
+      "name": "Code: Mock Content Pack Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        800,
+        220
+      ],
+      "id": "mock-content-pack"
+    },
+    {
+      "parameters": {
+        "jsCode": "const originalEvent = $node[\"Code: Normalize Event Envelope\"].json;\nreturn [{\n  json: {\n    request_id: originalEvent.request_id,\n    event_type: originalEvent.event_type,\n    module_id: \"ads_pack_generator\",\n    route_status: \"routed_mock\",\n    endpoint_type: \"mock_only\",\n    callback_preview: {\n      request_id: originalEvent.request_id,\n      event_type: originalEvent.event_type,\n      module_id: \"ads_pack_generator\",\n      status: \"mock_completed\",\n      output: {\n        platform: \"meta\",\n        ad_creative: {\n          headline: \"Boost Your Agency 10x\",\n          primary_text: \"Sign up today for our free 14-day trial. Offer expires soon!\",\n          cta: \"SIGN_UP\"\n        },\n        budget_mode: \"mock\"\n      },\n      errors: [],\n      source: \"n8n_n5_multi_module_router\",\n      generated_at: new Date().toISOString(),\n      notes: \"Mock ad configuration generated.\"\n    },\n    source: \"n8n_n5_multi_module_router\",\n    notes: \"Event routed to mock-only ads pack generator.\"\n  }\n}];"
+      },
+      "name": "Code: Mock Ads Pack Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        800,
+        340
+      ],
+      "id": "mock-ads-pack"
+    },
+    {
+      "parameters": {
+        "jsCode": "const originalEvent = $node[\"Code: Normalize Event Envelope\"].json;\nreturn [{\n  json: {\n    request_id: originalEvent.request_id,\n    event_type: originalEvent.event_type,\n    module_id: \"crm_followup_generator\",\n    route_status: \"routed_mock\",\n    endpoint_type: \"mock_only\",\n    callback_preview: {\n      request_id: originalEvent.request_id,\n      event_type: originalEvent.event_type,\n      module_id: \"crm_followup_generator\",\n      status: \"mock_completed\",\n      output: {\n        segment: \"inactive_subscribers_90_days\",\n        email_sequence: [\n          {\n            subject: \"We miss you! Here is something special.\",\n            body: \"Hey there! It's been a while...\"\n          },\n          {\n            subject: \"Last chance to claim your discount.\",\n            body: \"Just checking back on our previous offer...\"\n          }\n        ],\n        safety_mode: \"draft_only\"\n      },\n      errors: [],\n      source: \"n8n_n5_multi_module_router\",\n      generated_at: new Date().toISOString(),\n      notes: \"CRM followup sequence mock drafted.\"\n    },\n    source: \"n8n_n5_multi_module_router\",\n    notes: \"Event routed to mock-only CRM followup generator.\"\n  }\n}];"
+      },
+      "name": "Code: Mock CRM Follow-up Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        800,
+        460
+      ],
+      "id": "mock-crm-followup"
+    },
+    {
+      "parameters": {
+        "jsCode": "const originalEvent = $node[\"Code: Normalize Event Envelope\"].json;\nreturn [{\n  json: {\n    request_id: originalEvent.request_id,\n    event_type: originalEvent.event_type,\n    module_id: \"analytics_report_generator\",\n    route_status: \"routed_mock\",\n    endpoint_type: \"mock_only\",\n    callback_preview: {\n      request_id: originalEvent.request_id,\n      event_type: originalEvent.event_type,\n      module_id: \"analytics_report_generator\",\n      status: \"mock_completed\",\n      output: {\n        period: \"last_quarter\",\n        summary_markdown: \"### Quarterly Performance Report\\n- **Total Clicks:** 14,250 (mock)\\n- **Conversions:** 820 (mock)\\n- **ROAS:** 3.4 (mock)\"\n      },\n      errors: [],\n      source: \"n8n_n5_multi_module_router\",\n      generated_at: new Date().toISOString(),\n      notes: \"Analytics report compiled as mock markdown.\"\n    },\n    source: \"n8n_n5_multi_module_router\",\n    notes: \"Event routed to mock-only analytics report generator.\"\n  }\n}];"
+      },
+      "name": "Code: Mock Analytics Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        800,
+        580
+      ],
+      "id": "mock-analytics"
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "request_id",
+              "value": "={{ $json.request_id }}"
+            },
+            {
+              "name": "event_type",
+              "value": "={{ $json.event_type }}"
+            },
+            {
+              "name": "module_id",
+              "value": "={{ $json.module_id }}"
+            },
+            {
+              "name": "route_status",
+              "value": "={{ $json.route_status }}"
+            },
+            {
+              "name": "endpoint_type",
+              "value": "={{ $json.endpoint_type }}"
+            },
+            {
+              "name": "source",
+              "value": "={{ $json.source }}"
+            },
+            {
+              "name": "notes",
+              "value": "={{ $json.notes }}"
+            }
+          ],
+          "other": [
+            {
+              "name": "callback_preview",
+              "value": "={{ $json.callback_preview }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Respond / Output Routing Result",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        1200,
+        340
+      ],
+      "id": "respond-output-result"
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Set: Mock Event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set: Mock Event": {
+      "main": [
+        [
+          {
+            "node": "Code: Normalize Event Envelope",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Normalize Event Envelope": {
+      "main": [
+        [
+          {
+            "node": "Switch: Route by event_type",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch: Route by event_type": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request: POST ComfyUI Stub /run",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code: Mock Content Pack Response",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code: Mock Ads Pack Response",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code: Mock CRM Follow-up Response",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code: Mock Analytics Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request: POST ComfyUI Stub /run": {
+      "main": [
+        [
+          {
+            "node": "Code: Prepare Creative Callback Preview",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Prepare Creative Callback Preview": {
+      "main": [
+        [
+          {
+            "node": "Respond / Output Routing Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Mock Content Pack Response": {
+      "main": [
+        [
+          {
+            "node": "Respond / Output Routing Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Mock Ads Pack Response": {
+      "main": [
+        [
+          {
+            "node": "Respond / Output Routing Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Mock CRM Follow-up Response": {
+      "main": [
+        [
+          {
+            "node": "Respond / Output Routing Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Mock Analytics Response": {
+      "main": [
+        [
+          {
+            "node": "Respond / Output Routing Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionTimeout": 3600
+  }
+}

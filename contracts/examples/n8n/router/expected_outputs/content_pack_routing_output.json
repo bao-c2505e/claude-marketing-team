@@ -1,0 +1,35 @@
+{
+  "request_id": "a189f3b2-6523-45cd-b912-78d10b7f8002",
+  "event_type": "content_pack.requested",
+  "module_id": "content_pack_generator",
+  "route_status": "routed_mock",
+  "endpoint_type": "mock_only",
+  "callback_preview": {
+    "request_id": "a189f3b2-6523-45cd-b912-78d10b7f8002",
+    "event_type": "content_pack.requested",
+    "module_id": "content_pack_generator",
+    "status": "mock_completed",
+    "output": {
+      "posts": [
+        {
+          "channel": "facebook",
+          "content": "Collaborate in style. Discover our new remote platform template!"
+        },
+        {
+          "channel": "linkedin",
+          "content": "How remote teams stay aligned. Check out our latest framework design."
+        },
+        {
+          "channel": "twitter",
+          "content": "Say goodbye to misalignment. Meet the future of remote work."
+        }
+      ]
+    },
+    "errors": [],
+    "source": "n8n_n5_multi_module_router",
+    "generated_at": "2026-06-08T15:21:30Z",
+    "notes": "Mock content generated successfully."
+  },
+  "source": "n8n_n5_multi_module_router",
+  "notes": "Event routed to mock-only content pack generator."
+}

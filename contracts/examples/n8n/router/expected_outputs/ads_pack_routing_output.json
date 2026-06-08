@@ -1,0 +1,28 @@
+{
+  "request_id": "b901f82d-82c1-4824-9b2f-3d601cf94e09",
+  "event_type": "ads_pack.requested",
+  "module_id": "ads_pack_generator",
+  "route_status": "routed_mock",
+  "endpoint_type": "mock_only",
+  "callback_preview": {
+    "request_id": "b901f82d-82c1-4824-9b2f-3d601cf94e09",
+    "event_type": "ads_pack.requested",
+    "module_id": "ads_pack_generator",
+    "status": "mock_completed",
+    "output": {
+      "platform": "meta",
+      "ad_creative": {
+        "headline": "Boost Your Agency 10x",
+        "primary_text": "Sign up today for our free 14-day trial. Offer expires soon!",
+        "cta": "SIGN_UP"
+      },
+      "budget_mode": "mock"
+    },
+    "errors": [],
+    "source": "n8n_n5_multi_module_router",
+    "generated_at": "2026-06-08T15:21:30Z",
+    "notes": "Mock ad configuration generated."
+  },
+  "source": "n8n_n5_multi_module_router",
+  "notes": "Event routed to mock-only ads pack generator."
+}

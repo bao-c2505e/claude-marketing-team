@@ -4,6 +4,21 @@ This log tracks the progress, status, and deliverables for the PC2 (n8n & Specia
 
 ---
 
+## Phase N5 — Multi-Module n8n Event Router Contract + Workflow Skeleton
+- **Status**: IMPLEMENTED / READY FOR REVIEW
+- **Reviewer**: Codex
+- **Date**: 2026-06-08
+- **Deliverables**:
+  - `contracts/n8n_event_router_contract.md` (Event router routing contract specifications)
+  - `contracts/examples/n8n/router/*.json` (5 Mock Core input event payloads)
+  - `contracts/examples/n8n/router/expected_outputs/*.json` (5 Expected callback output previews)
+  - `n8n-workflows/n5_multi_module_event_router.workflow.json` (5-way event router workflow skeleton)
+  - `docs/pc2/phase_n5_multi_module_event_router.md` (manual testing guide)
+- **Validation**: `node contracts/tools/validate_contracts.js` successfully PASS.
+- **Scope check**: No database queries, no real secrets/APIs, no Core UI modifications. No production URLs. Mock-routed only for Content, Ads, CRM, and Analytics. `creative_asset.requested` routes to ComfyUI local stub only.
+
+---
+
 ## Phase N4 — n8n to ComfyUI Stub Integration Workflow Test
 - **Status**: IMPLEMENTED / READY FOR REVIEW
 - **Reviewer**: Codex
