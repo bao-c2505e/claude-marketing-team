@@ -6,7 +6,7 @@
   "status": "COMPLETED",
   "payload": {
     "module_run_id": "run_comfyui_demo_001",
-    "asset_url": "https://storage.thecoreagency.com/assets/workspace_generated_001.png",
+    "asset_url": "mock://assets/workspace_generated_001.png",
     "asset_type": "image/png",
     "generation_params": {
       "prompt": "A modern workspace mockup, dark theme, glassmorphism UI overlay",

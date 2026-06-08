@@ -233,6 +233,14 @@ moduleExamples.forEach(moduleExampleFile => {
       console.log(`[PASS] Example '${moduleExampleFile}' does not contain brand hardcoding`);
     }
 
+    // Check no production-like URLs are present in modules examples
+    if (content.includes('https://storage.thecoreagency.com') || content.includes('https://thecoreagency.com')) {
+      console.error(`[FAIL] Example '${moduleExampleFile}' contains production-like URL targeting thecoreagency.com`);
+      failed = true;
+    } else {
+      console.log(`[PASS] Example '${moduleExampleFile}' does not contain production-like URLs`);
+    }
+
     const parsed = JSON.parse(content);
     console.log(`[PASS] Example parses as valid JSON: modules/${moduleExampleFile}`);
 
