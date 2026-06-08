@@ -35,6 +35,24 @@
       "format": "date-time",
       "description": "ISO timestamp when the event was created"
     },
+    "module_name": {
+      "type": "string",
+      "description": "Target or originating module name"
+    },
+    "requested_by": {
+      "type": "string",
+      "description": "User identifier of the requester"
+    },
+    "callback_url": {
+      "type": "string",
+      "format": "uri",
+      "description": "Callback url for downstream actions"
+    },
+    "approval_status": {
+      "type": "string",
+      "enum": ["APPROVED", "REJECTED", "PENDING"],
+      "description": "Current approval state"
+    },
     "payload": {
       "type": "object",
       "description": "Specific event data payload, dynamic per event_type"

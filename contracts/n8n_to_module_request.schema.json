@@ -32,6 +32,27 @@
       "format": "date-time",
       "description": "ISO timestamp when the request was initiated"
     },
+    "event_type": {
+      "type": "string",
+      "description": "Type of event triggering this request"
+    },
+    "brand_id": {
+      "type": "string",
+      "description": "Identifier for the target brand"
+    },
+    "campaign_id": {
+      "type": "string",
+      "description": "Identifier for the target campaign"
+    },
+    "requested_by": {
+      "type": "string",
+      "description": "User identifier of the requester"
+    },
+    "approval_status": {
+      "type": "string",
+      "enum": ["APPROVED", "REJECTED", "PENDING"],
+      "description": "Current approval state"
+    },
     "payload": {
       "type": "object",
       "description": "Input parameters for the specialized module"

@@ -60,3 +60,17 @@ Một số ý tưởng nâng cao từ FnB OS V1 sẽ được thảo luận và 
 1. **Kiểm tra rò rỉ dữ liệu**: Luôn chạy script quét bí mật (secret scanner) trước khi push code lên remote branch.
 2. **Nguyên tắc "Clean Room"**: Nếu tham khảo code từ FnB OS V1, hãy tự viết lại (rewrite) dựa trên đặc tả của The Core Agency thay vì sao chép trực tiếp.
 3. **Môi trường Sandbox**: Mọi module kết nối quảng cáo hay nhắn tin (Meta Ads, Facebook Publisher) trong giai đoạn phát triển phải cấu hình mặc định chạy ở môi trường Sandbox/Mock client.
+
+---
+
+## 6. N2 Mapping
+Dưới đây là sơ đồ ánh xạ chi tiết cho Phase N2:
+- **V1 approval gate pattern → PC2 router safety gate**: Cổng kiểm tra phê duyệt và quyền hành động ở V1 được tích hợp trực tiếp vào router dưới dạng các node kiểm soát điều kiện rẽ nhánh (`IF: Safety Gate`).
+- **V1 workflow skeleton → PC2 importable workflow placeholders**: Các luồng tự động hóa được chuẩn hóa thành khung sườn JSON có sẵn các cổng validation, an toàn và định tuyến sự kiện mà không cài cắm credential cứng.
+- **V1 logs/governance → PC2 callback statuses + contract validation logs**: Quy trình kiểm tra log và trạng thái được chuẩn hóa bằng bảng mã Callback Statuses thống nhất (`INVALID_CONTRACT`, `REJECTED_BY_SAFETY`, etc.).
+- **V1 Brand Brain idea → PC2 brand_id/brand context payload**: Ý tưởng lưu ngữ cảnh thương hiệu được chuyển đổi thành cấu trúc truyền dữ liệu `brand_id` trong payload của schema.
+- **Nguyên tắc độc lập**:
+  - Không đưa cấu hình hay logic hardcode của Vị Cuốn vào Core.
+  - Không sử dụng runtime dependency vào FnB OS V1.
+  - Không sao chép các workflows chứa credentials thật từ dự án cũ.
+

@@ -1,0 +1,24 @@
+{
+  "event_id": "8c8db142-ff01-4475-bf5a-2cb79a55c2d3",
+  "event_type": "CAMPAIGN_PUBLISH",
+  "correlation_id": "18f94e96-a83d-4c3e-8c34-77e8a9394fa9",
+  "brand_id": "brand_vicuon_001",
+  "campaign_id": "campaign_summer_2026",
+  "job_id": "job_publish_999",
+  "created_at": "2026-06-08T13:40:00Z",
+  "payload": {
+    "title": "Summer Promotion Post",
+    "content": "Enjoy 20% off on all items starting this Friday!",
+    "media_references": [
+      "https://storage.thecoreagency.com/assets/summer_promo.png"
+    ]
+  },
+  "safety": {
+    "requires_approval": true,
+    "final_approval_granted": true,
+    "allow_real_world_action": true,
+    "allow_auto_publish": true,
+    "allow_ads_spend": false,
+    "allow_customer_messaging": false
+  }
+}

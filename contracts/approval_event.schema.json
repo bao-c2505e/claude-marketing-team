@@ -27,6 +27,36 @@
       "type": "string",
       "description": "User identifier of the person who made the decision"
     },
+    "event_type": {
+      "type": "string",
+      "description": "Type of event"
+    },
+    "brand_id": {
+      "type": "string",
+      "description": "Identifier for the target brand"
+    },
+    "campaign_id": {
+      "type": "string",
+      "description": "Identifier for the target campaign"
+    },
+    "module_name": {
+      "type": "string",
+      "description": "Target specialized module name"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO timestamp when the approval was logged"
+    },
+    "callback_url": {
+      "type": "string",
+      "format": "uri",
+      "description": "Webhook URL for reporting"
+    },
+    "payload": {
+      "type": "object",
+      "description": "Additional context payload"
+    },
     "safety": {
       "type": "object",
       "description": "Resulting safety permissions granted by this approval decision",

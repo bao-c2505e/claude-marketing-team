@@ -7,27 +7,116 @@
         "path": "core-events",
         "options": {}
       },
-      "name": "Webhook: Receive from Core",
+      "name": "Webhook: Receive Core Event",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1,
       "position": [
-        100,
-        300
+        50,
+        350
       ],
-      "id": "webhook-receive-core"
+      "id": "webhook-receive-core-event"
     },
     {
       "parameters": {
-        "jsCode": "// Validate core_to_n8n_event payload structure and safety flags\nconst body = items[0].json.body;\n\nif (!body.event_id || !body.event_type || !body.safety) {\n  throw new Error('Invalid payload: Missing core_to_n8n_event properties');\n}\n\n// Propagate safety flags into workflow parameters\nreturn [{\n  json: {\n    ...body,\n    safety_validated: true\n  }\n}];"
+        "values": {
+          "string": [
+            {
+              "name": "event_id",
+              "value": "={{ $json.body.event_id }}"
+            },
+            {
+              "name": "event_type",
+              "value": "={{ $json.body.event_type }}"
+            },
+            {
+              "name": "correlation_id",
+              "value": "={{ $json.body.correlation_id }}"
+            },
+            {
+              "name": "brand_id",
+              "value": "={{ $json.body.brand_id }}"
+            },
+            {
+              "name": "campaign_id",
+              "value": "={{ $json.body.campaign_id }}"
+            },
+            {
+              "name": "job_id",
+              "value": "={{ $json.body.job_id }}"
+            },
+            {
+              "name": "created_at",
+              "value": "={{ $json.body.created_at }}"
+            }
+          ]
+        },
+        "options": {}
       },
-      "name": "Code: Validate & Prep Payload",
+      "name": "Set: Normalize Core Event",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        200,
+        350
+      ],
+      "id": "set-normalize-event"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Validate contract constraints from core_to_n8n_event\nconst body = items[0].json;\n\nconst hasRequiredFields = body.event_id && \n                         body.event_type && \n                         body.correlation_id && \n                         body.brand_id && \n                         body.campaign_id && \n                         body.job_id && \n                         body.created_at;\n\n// Simple UUID check placeholder\nconst isUUID = (str) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);\nconst isValidUUIDs = isUUID(body.event_id) && isUUID(body.correlation_id);\n\nreturn [{\n  json: {\n    ...body,\n    contract_valid: !!(hasRequiredFields && isValidUUIDs),\n    validation_error: hasRequiredFields ? (isValidUUIDs ? '' : 'Invalid UUID format') : 'Missing required contract properties'\n  }\n}];"
+      },
+      "name": "Code: Validate Contract Placeholder",
       "type": "n8n-nodes-base.code",
       "typeVersion": 1,
       "position": [
-        300,
-        300
+        350,
+        350
       ],
-      "id": "code-validate-payload"
+      "id": "code-validate-contract"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.contract_valid }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "name": "IF: Contract Valid?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        500,
+        350
+      ],
+      "id": "if-contract-valid"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.safety.requires_approval }}",
+              "value2": false
+            },
+            {
+              "value1": "={{ $json.safety.allow_real_world_action }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "name": "IF: Safety Gate - General",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        650,
+        250
+      ],
+      "id": "if-safety-general"
     },
     {
       "parameters": {
@@ -36,56 +125,103 @@
         "rules": {
           "rules": [
             {
-              "value2": "DESIGN_REQUEST",
+              "value2": "CONTENT_GENERATION_REQUESTED",
               "output": 0
             },
             {
-              "value2": "CAMPAIGN_PUBLISH",
+              "value2": "COMFYUI_GENERATION_REQUESTED",
               "output": 1
             },
             {
-              "value2": "ADS_SPEND_TRIGGER",
+              "value2": "ADS_PACK_REQUESTED",
               "output": 2
+            },
+            {
+              "value2": "CAMPAIGN_PUBLISH_REQUESTED",
+              "output": 3
+            },
+            {
+              "value2": "ADS_SPEND_REQUESTED",
+              "output": 4
+            },
+            {
+              "value2": "INBOX_REPLY_DRAFT_REQUESTED",
+              "output": 5
+            },
+            {
+              "value2": "ANALYTICS_REPORT_REQUESTED",
+              "output": 6
+            },
+            {
+              "value2": "BILLING_SYNC_REQUESTED",
+              "output": 7
             }
           ]
         },
-        "fallbackOutput": 3
+        "fallbackOutput": 8
       },
-      "name": "Switch: Event Type Router",
+      "name": "Switch: Route by event_type",
       "type": "n8n-nodes-base.switch",
       "typeVersion": 1,
       "position": [
-        500,
-        300
+        800,
+        250
       ],
-      "id": "switch-router"
+      "id": "switch-route-event"
     },
     {
       "parameters": {
         "method": "POST",
-        "url": "MODULE_COMFYUI_PIPELINE_URL",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            }
-          ]
-        },
+        "url": "MODULE_CONTENT_GENERATOR_URL",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"event_id\": \"{{ $json.event_id }}\",\n  \"correlation_id\": \"{{ $json.correlation_id }}\",\n  \"job_id\": \"{{ $json.job_id }}\",\n  \"module_name\": \"comfyui-pipeline\",\n  \"callback_url\": \"CORE_CALLBACK_URL\",\n  \"payload\": {{ JSON.stringify($json.payload) }},\n  \"safety\": {{ JSON.stringify($json.safety) }},\n  \"created_at\": \"{{ $json.created_at }}\"\n}",
+        "jsonBody": "={\n  \"event_id\": \"{{ $json.event_id }}\",\n  \"correlation_id\": \"{{ $json.correlation_id }}\",\n  \"job_id\": \"{{ $json.job_id }}\",\n  \"module_name\": \"content-generator\",\n  \"callback_url\": \"CORE_CALLBACK_URL\",\n  \"payload\": {{ JSON.stringify($json.payload) }},\n  \"safety\": {{ JSON.stringify($json.safety) }}\n}",
         "options": {}
       },
-      "name": "HTTP: Trigger ComfyUI Workflow",
+      "name": "HTTP: Invoke Content Module",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4,
       "position": [
-        700,
+        1100,
+        50
+      ],
+      "id": "http-invoke-content"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "MODULE_COMFYUI_URL",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"event_id\": \"{{ $json.event_id }}\",\n  \"correlation_id\": \"{{ $json.correlation_id }}\",\n  \"job_id\": \"{{ $json.job_id }}\",\n  \"module_name\": \"comfyui-pipeline\",\n  \"callback_url\": \"CORE_CALLBACK_URL\",\n  \"payload\": {{ JSON.stringify($json.payload) }},\n  \"safety\": {{ JSON.stringify($json.safety) }}\n}",
+        "options": {}
+      },
+      "name": "HTTP: Invoke ComfyUI Module",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        1100,
         150
       ],
-      "id": "http-trigger-comfyui"
+      "id": "http-invoke-comfyui"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "MODULE_ADS_PACK_URL",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"event_id\": \"{{ $json.event_id }}\",\n  \"correlation_id\": \"{{ $json.correlation_id }}\",\n  \"job_id\": \"{{ $json.job_id }}\",\n  \"module_name\": \"meta-ads-connector\",\n  \"callback_url\": \"CORE_CALLBACK_URL\",\n  \"payload\": {{ JSON.stringify($json.payload) }},\n  \"safety\": {{ JSON.stringify($json.safety) }}\n}",
+        "options": {}
+      },
+      "name": "HTTP: Invoke Ads Pack Module",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        1100,
+        250
+      ],
+      "id": "http-invoke-ads-pack"
     },
     {
       "parameters": {
@@ -118,8 +254,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 1,
       "position": [
-        700,
-        300
+        1100,
+        350
       ],
       "id": "if-publishing-approved"
     },
@@ -127,28 +263,19 @@
       "parameters": {
         "method": "POST",
         "url": "MODULE_FACEBOOK_PUBLISHER_URL",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            }
-          ]
-        },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"event_id\": \"{{ $json.event_id }}\",\n  \"correlation_id\": \"{{ $json.correlation_id }}\",\n  \"job_id\": \"{{ $json.job_id }}\",\n  \"module_name\": \"facebook-publisher\",\n  \"callback_url\": \"CORE_CALLBACK_URL\",\n  \"payload\": {{ JSON.stringify($json.payload) }},\n  \"safety\": {{ JSON.stringify($json.safety) }},\n  \"created_at\": \"{{ $json.created_at }}\"\n}",
+        "jsonBody": "={\n  \"event_id\": \"{{ $json.event_id }}\",\n  \"correlation_id\": \"{{ $json.correlation_id }}\",\n  \"job_id\": \"{{ $json.job_id }}\",\n  \"module_name\": \"facebook-publisher\",\n  \"callback_url\": \"CORE_CALLBACK_URL\",\n  \"payload\": {{ JSON.stringify($json.payload) }},\n  \"safety\": {{ JSON.stringify($json.safety) }}\n}",
         "options": {}
       },
       "name": "HTTP: Invoke FB Publisher Module",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4,
       "position": [
-        950,
-        250
+        1350,
+        320
       ],
-      "id": "http-trigger-fb"
+      "id": "http-invoke-fb-publisher"
     },
     {
       "parameters": {
@@ -181,8 +308,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 1,
       "position": [
-        700,
-        450
+        1100,
+        480
       ],
       "id": "if-ads-spend-approved"
     },
@@ -190,28 +317,73 @@
       "parameters": {
         "method": "POST",
         "url": "MODULE_META_ADS_CONNECTOR_URL",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            }
-          ]
-        },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"event_id\": \"{{ $json.event_id }}\",\n  \"correlation_id\": \"{{ $json.correlation_id }}\",\n  \"job_id\": \"{{ $json.job_id }}\",\n  \"module_name\": \"meta-ads-connector\",\n  \"callback_url\": \"CORE_CALLBACK_URL\",\n  \"payload\": {{ JSON.stringify($json.payload) }},\n  \"safety\": {{ JSON.stringify($json.safety) }},\n  \"created_at\": \"{{ $json.created_at }}\"\n}",
+        "jsonBody": "={\n  \"event_id\": \"{{ $json.event_id }}\",\n  \"correlation_id\": \"{{ $json.correlation_id }}\",\n  \"job_id\": \"{{ $json.job_id }}\",\n  \"module_name\": \"meta-ads-connector\",\n  \"callback_url\": \"CORE_CALLBACK_URL\",\n  \"payload\": {{ JSON.stringify($json.payload) }},\n  \"safety\": {{ JSON.stringify($json.safety) }}\n}",
         "options": {}
       },
       "name": "HTTP: Invoke Meta Ads Connector",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4,
       "position": [
-        950,
-        400
+        1350,
+        450
       ],
-      "id": "http-trigger-meta-ads"
+      "id": "http-invoke-meta-ads"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "MODULE_INBOX_ASSISTANT_URL",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"event_id\": \"{{ $json.event_id }}\",\n  \"correlation_id\": \"{{ $json.correlation_id }}\",\n  \"job_id\": \"{{ $json.job_id }}\",\n  \"module_name\": \"inbox-assistant\",\n  \"callback_url\": \"CORE_CALLBACK_URL\",\n  \"payload\": {{ JSON.stringify($json.payload) }},\n  \"safety\": {{ JSON.stringify($json.safety) }}\n}",
+        "options": {}
+      },
+      "name": "HTTP: Invoke Inbox Assistant",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        1100,
+        600
+      ],
+      "id": "http-invoke-inbox-assistant"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "MODULE_ANALYTICS_ENGINE_URL",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"event_id\": \"{{ $json.event_id }}\",\n  \"correlation_id\": \"{{ $json.correlation_id }}\",\n  \"job_id\": \"{{ $json.job_id }}\",\n  \"module_name\": \"analytics-engine\",\n  \"callback_url\": \"CORE_CALLBACK_URL\",\n  \"payload\": {{ JSON.stringify($json.payload) }},\n  \"safety\": {{ JSON.stringify($json.safety) }}\n}",
+        "options": {}
+      },
+      "name": "HTTP: Invoke Analytics Engine",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        1100,
+        700
+      ],
+      "id": "http-invoke-analytics-engine"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "MODULE_BILLING_MODULE_URL",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"event_id\": \"{{ $json.event_id }}\",\n  \"correlation_id\": \"{{ $json.correlation_id }}\",\n  \"job_id\": \"{{ $json.job_id }}\",\n  \"module_name\": \"billing-module\",\n  \"callback_url\": \"CORE_CALLBACK_URL\",\n  \"payload\": {{ JSON.stringify($json.payload) }},\n  \"safety\": {{ JSON.stringify($json.safety) }}\n}",
+        "options": {}
+      },
+      "name": "HTTP: Invoke Billing Module",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        1100,
+        800
+      ],
+      "id": "http-invoke-billing"
     },
     {
       "parameters": {
@@ -228,17 +400,62 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"status\": \"REJECTED_BY_SAFETY\",\n  \"reason\": \"Workflow-level approval/safety gate blocked real-world action\",\n  \"event_id\": \"{{ $json.event_id }}\",\n  \"correlation_id\": \"{{ $json.correlation_id }}\",\n  \"campaign_id\": \"{{ $json.campaign_id }}\",\n  \"job_id\": \"{{ $json.job_id }}\",\n  \"module_name\": \"{{ $json.event_type === 'CAMPAIGN_PUBLISH' ? 'facebook-publisher' : 'meta-ads-connector' }}\",\n  \"safety\": {{ JSON.stringify($json.safety) }},\n  \"original_event_type\": \"{{ $json.event_type }}\",\n  \"rejected_at\": \"{{ new Date().toISOString() }}\"\n}",
+        "jsonBody": "={\n  \"event_id\": \"{{ $json.event_id }}\",\n  \"correlation_id\": \"{{ $json.correlation_id }}\",\n  \"job_id\": \"{{ $json.job_id }}\",\n  \"status\": \"INVALID_CONTRACT\",\n  \"payload\": {\n    \"error\": \"{{ $json.validation_error }}\",\n    \"original_event_type\": \"{{ $json.event_type }}\"\n  },\n  \"safety\": {{ JSON.stringify($json.safety || {}) }}\n}",
+        "options": {}
+      },
+      "name": "HTTP: Callback Core - Invalid Contract",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        500,
+        600
+      ],
+      "id": "http-callback-invalid-contract"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "CORE_CALLBACK_URL",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"status\": \"REJECTED_BY_SAFETY\",\n  \"reason\": \"Workflow-level approval/safety gate blocked real-world action\",\n  \"event_id\": \"{{ $json.event_id }}\",\n  \"correlation_id\": \"{{ $json.correlation_id }}\",\n  \"campaign_id\": \"{{ $json.campaign_id }}\",\n  \"job_id\": \"{{ $json.job_id }}\",\n  \"module_name\": \"{{ $json.event_type === 'CAMPAIGN_PUBLISH_REQUESTED' ? 'facebook-publisher' : 'meta-ads-connector' }}\",\n  \"safety\": {{ JSON.stringify($json.safety) }},\n  \"original_event_type\": \"{{ $json.event_type }}\",\n  \"rejected_at\": \"{{ new Date().toISOString() }}\"\n}",
         "options": {}
       },
       "name": "HTTP: Callback Core - Rejected By Safety",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4,
       "position": [
-        950,
-        550
+        1350,
+        600
       ],
-      "id": "http-callback-core-rejected"
+      "id": "http-callback-rejected-safety"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "CORE_CALLBACK_URL",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"event_id\": \"{{ $json.event_id }}\",\n  \"correlation_id\": \"{{ $json.correlation_id }}\",\n  \"job_id\": \"{{ $json.job_id }}\",\n  \"status\": \"QUEUED\",\n  \"payload\": {\n    \"message\": \"Request successfully routed and queued for execution.\"\n  }\n}",
+        "options": {}
+      },
+      "name": "HTTP: Callback Core - Queued",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        1600,
+        350
+      ],
+      "id": "http-callback-queued"
     },
     {
       "parameters": {
@@ -248,40 +465,101 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 1,
       "position": [
-        700,
-        600
+        1100,
+        900
       ],
       "id": "code-fallback"
     }
   ],
   "connections": {
-    "Webhook: Receive from Core": {
+    "Webhook: Receive Core Event": {
       "main": [
         [
           {
-            "node": "Code: Validate & Prep Payload",
+            "node": "Set: Normalize Core Event",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Code: Validate & Prep Payload": {
+    "Set: Normalize Core Event": {
       "main": [
         [
           {
-            "node": "Switch: Event Type Router",
+            "node": "Code: Validate Contract Placeholder",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Switch: Event Type Router": {
+    "Code: Validate Contract Placeholder": {
       "main": [
         [
           {
-            "node": "HTTP: Trigger ComfyUI Workflow",
+            "node": "IF: Contract Valid?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: Contract Valid?": {
+      "main": [
+        [
+          {
+            "node": "IF: Safety Gate - General",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP: Callback Core - Invalid Contract",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: Safety Gate - General": {
+      "main": [
+        [
+          {
+            "node": "Switch: Route by event_type",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP: Callback Core - Rejected By Safety",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch: Route by event_type": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Invoke Content Module",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP: Invoke ComfyUI Module",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP: Invoke Ads Pack Module",
             "type": "main",
             "index": 0
           }
@@ -296,6 +574,27 @@
         [
           {
             "node": "IF: Safety Gate - Ads Spend Approved",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP: Invoke Inbox Assistant",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP: Invoke Analytics Engine",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP: Invoke Billing Module",
             "type": "main",
             "index": 0
           }
@@ -339,6 +638,94 @@
         [
           {
             "node": "HTTP: Callback Core - Rejected By Safety",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Invoke Content Module": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Callback Core - Queued",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Invoke ComfyUI Module": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Callback Core - Queued",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Invoke Ads Pack Module": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Callback Core - Queued",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Invoke FB Publisher Module": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Callback Core - Queued",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Invoke Meta Ads Connector": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Callback Core - Queued",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Invoke Inbox Assistant": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Callback Core - Queued",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Invoke Analytics Engine": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Callback Core - Queued",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Invoke Billing Module": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Callback Core - Queued",
             "type": "main",
             "index": 0
           }

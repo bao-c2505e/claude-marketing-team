@@ -24,8 +24,53 @@
     },
     "status": {
       "type": "string",
-      "enum": ["SUCCESS", "FAILED", "REJECTED_BY_SAFETY"],
+      "enum": [
+        "SUCCESS",
+        "FAILED",
+        "REJECTED_BY_SAFETY",
+        "RECEIVED",
+        "VALIDATING",
+        "INVALID_CONTRACT",
+        "QUEUED",
+        "RUNNING",
+        "NEEDS_REVIEW",
+        "APPROVED",
+        "REJECTED",
+        "COMPLETED",
+        "CANCELLED"
+      ],
       "description": "Execution status of the task"
+    },
+    "event_type": {
+      "type": "string",
+      "description": "Type of originating event"
+    },
+    "brand_id": {
+      "type": "string",
+      "description": "Identifier for the target brand"
+    },
+    "campaign_id": {
+      "type": "string",
+      "description": "Identifier for the target campaign"
+    },
+    "requested_by": {
+      "type": "string",
+      "description": "User identifier of the requester"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO timestamp when the callback occurred"
+    },
+    "callback_url": {
+      "type": "string",
+      "format": "uri",
+      "description": "Webhook URL where the module should post results"
+    },
+    "approval_status": {
+      "type": "string",
+      "enum": ["APPROVED", "REJECTED", "PENDING"],
+      "description": "Current approval state"
     },
     "payload": {
       "type": "object",

@@ -1,0 +1,20 @@
+{
+  "event_id": "f5e92cd3-5cb7-45bf-8547-a8b23c91d4e2",
+  "correlation_id": "18f94e96-a83d-4c3e-8c34-77e8a9394fa9",
+  "job_id": "job_publish_999",
+  "module_name": "facebook-publisher",
+  "status": "SUCCESS",
+  "payload": {
+    "fb_post_id": "page_post_1234567890",
+    "permalink_url": "https://facebook.com/vicuon/posts/1234567890",
+    "published_at": "2026-06-08T13:41:15Z"
+  },
+  "safety": {
+    "requires_approval": true,
+    "final_approval_granted": true,
+    "allow_real_world_action": true,
+    "allow_auto_publish": true,
+    "allow_ads_spend": false,
+    "allow_customer_messaging": false
+  }
+}

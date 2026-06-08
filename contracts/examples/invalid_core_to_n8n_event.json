@@ -1,0 +1,9 @@
+{
+  "event_type": "CAMPAIGN_PUBLISH",
+  "correlation_id": "invalid-uuid-format-123456",
+  "brand_id": "brand_vicuon_001",
+  "campaign_id": "campaign_summer_2026",
+  "payload": {
+    "title": "Summer Promotion Post"
+  }
+}

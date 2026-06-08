@@ -1,0 +1,21 @@
+{
+  "event_id": "9a0a4c2d-947b-4029-bd58-df5963a7be2a",
+  "correlation_id": "18f94e96-a83d-4c3e-8c34-77e8a9394fa9",
+  "job_id": "job_publish_999",
+  "module_name": "facebook-publisher",
+  "status": "REJECTED_BY_SAFETY",
+  "payload": {
+    "reason": "Workflow-level approval/safety gate blocked real-world action",
+    "details": "Requires auto-publishing permission but safety.allow_auto_publish is false.",
+    "original_event_type": "CAMPAIGN_PUBLISH",
+    "rejected_at": "2026-06-08T13:40:02Z"
+  },
+  "safety": {
+    "requires_approval": true,
+    "final_approval_granted": false,
+    "allow_real_world_action": true,
+    "allow_auto_publish": false,
+    "allow_ads_spend": false,
+    "allow_customer_messaging": false
+  }
+}
