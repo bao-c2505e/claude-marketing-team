@@ -13,11 +13,19 @@ n8n chịu trách nhiệm điều phối toàn bộ luồng công việc tự đ
 n8n sẽ quản lý 3 luồng công việc chính thông qua các template/placeholder workflows:
 
 ### A. Core Event Router (Bộ định tuyến sự kiện từ Core)
-- **Mục tiêu**: Nhận tất cả webhook sự kiện từ Core, phân loại dựa trên `event_type` và chuyển đến workflow tương ứng hoặc trực tiếp đến Module API.
+- **Mục tiêu**: Nhận tất cả webhook sự kiện từ Core, phân loại dựa trên `event_type`, áp dụng các workflow-level safety gates và chuyển đến các module tương ứng.
 - **Luồng xử lý**:
   1. Nhận Event Payload (đáp ứng `core_to_n8n_event.schema.json`).
-  2. Xác thực cấu trúc payload cơ bản.
-  3. Sử dụng Node Switch/Router để điều hướng dựa trên `event_type` (ví dụ: `DESIGN_REQUEST` → gửi đến ComfyUI, `CAMPAIGN_PUBLISH_REQUEST` → gửi đến Facebook Publisher).
+  2. Xác thực cấu trúc payload cơ bản và trích xuất thông số an toàn.
+  3. Sử dụng Node Switch/Router để điều hướng dựa trên `event_type`:
+     - `DESIGN_REQUEST` → Định tuyến tới ComfyUI Module.
+     - `CAMPAIGN_PUBLISH` → Định tuyến tới cổng an toàn `IF: Safety Gate - Publishing Approved`.
+     - `ADS_SPEND_TRIGGER` → Định tuyến tới cổng an toàn `IF: Safety Gate - Ads Spend Approved`.
+  4. Tại mỗi cổng an toàn (IF Node), kiểm tra toàn bộ điều kiện:
+     - Với Publishing: `approval_status == "APPROVED" && final_approval_granted == true && allow_auto_publish == true && allow_real_world_action == true`.
+     - Với Ads Spend: `approval_status == "APPROVED" && final_approval_granted == true && allow_ads_spend == true && allow_real_world_action == true`.
+  5. Nếu thỏa mãn tất cả điều kiện, chuyển tiếp yêu cầu tới module API tương ứng (Facebook Publisher hoặc Meta Ads Connector).
+  6. Nếu bất kỳ điều kiện nào thất bại (False), định tuyến đến Node `HTTP: Callback Core - Rejected By Safety` để gửi callback từ chối với status `REJECTED_BY_SAFETY` và lý do an toàn về Core.
 
 ### B. Approved Design to ComfyUI (Điều phối sinh Asset)
 - **Mục tiêu**: Điều phối tác vụ sinh thiết kế tự động khi có yêu cầu sinh ảnh/video.
@@ -48,5 +56,5 @@ n8n bắt buộc phải thực thi các ràng buộc an toàn sau đối với m
 | `allow_customer_messaging` | Boolean | Cho phép gửi tin nhắn tới khách hàng thật. |
 
 - **Quy tắc chặn cứng (Hard Constraints) trong n8n**:
-  - Tại các node chuẩn bị gọi API ngoài (như Meta Ads API, Facebook Publisher), n8n phải có một Node Conditional (IF) kiểm tra giá trị của các cờ `final_approval_granted` và các cờ `allow_*` tương ứng.
-  - Nếu điều kiện không thỏa mãn, workflow ghi log lỗi và gọi webhook trả kết quả thất bại (Status: `REJECTED_BY_SAFETY`) về Core, tuyệt đối không thực hiện API call thật.
+  - Tại router-level, trước khi chuyển tiếp yêu cầu đến các module tác động thực tế (như Facebook Publisher, Meta Ads Connector), n8n phải có một cổng an toàn Conditional (IF) kiểm tra giá trị của các cờ `final_approval_granted`, `allow_*` tương ứng, và trạng thái `approval_status == "APPROVED"`.
+  - Nếu điều kiện không thỏa mãn, workflow định hướng qua nhánh False để kích hoạt Node `HTTP: Callback Core - Rejected By Safety`, gửi payload chứa status `REJECTED_BY_SAFETY` và lý do an toàn về Core webhook. Tuyệt đối không thực hiện API call thật tới các Module.

@@ -63,7 +63,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "http://localhost:5678/api/v1/workflows/approved-design-to-comfyui",
+        "url": "MODULE_COMFYUI_PIPELINE_URL",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -75,22 +75,58 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"correlation_id\": \"{{ $json.correlation_id }}\",\n  \"job_id\": \"{{ $json.job_id }}\",\n  \"module_name\": \"comfyui-pipeline\",\n  \"callback_url\": \"http://localhost:5678/webhook/module-callback\",\n  \"payload\": {{ JSON.stringify($json.payload) }},\n  \"safety\": {{ JSON.stringify($json.safety) }}\n}",
+        "jsonBody": "={\n  \"event_id\": \"{{ $json.event_id }}\",\n  \"correlation_id\": \"{{ $json.correlation_id }}\",\n  \"job_id\": \"{{ $json.job_id }}\",\n  \"module_name\": \"comfyui-pipeline\",\n  \"callback_url\": \"CORE_CALLBACK_URL\",\n  \"payload\": {{ JSON.stringify($json.payload) }},\n  \"safety\": {{ JSON.stringify($json.safety) }},\n  \"created_at\": \"{{ $json.created_at }}\"\n}",
         "options": {}
       },
       "name": "HTTP: Trigger ComfyUI Workflow",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4,
       "position": [
-        800,
+        700,
         150
       ],
       "id": "http-trigger-comfyui"
     },
     {
       "parameters": {
+        "conditions": {
+          "combinator": "all",
+          "string": [
+            {
+              "value1": "={{ $json.approval_status }}",
+              "operation": "equal",
+              "value2": "APPROVED"
+            }
+          ],
+          "boolean": [
+            {
+              "value1": "={{ $json.safety.final_approval_granted }}",
+              "value2": true
+            },
+            {
+              "value1": "={{ $json.safety.allow_auto_publish }}",
+              "value2": true
+            },
+            {
+              "value1": "={{ $json.safety.allow_real_world_action }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "name": "IF: Safety Gate - Publishing Approved",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        700,
+        300
+      ],
+      "id": "if-publishing-approved"
+    },
+    {
+      "parameters": {
         "method": "POST",
-        "url": "http://localhost:8000/api/v1/modules/facebook-publisher/publish",
+        "url": "MODULE_FACEBOOK_PUBLISHER_URL",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -102,22 +138,58 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"correlation_id\": \"{{ $json.correlation_id }}\",\n  \"job_id\": \"{{ $json.job_id }}\",\n  \"module_name\": \"facebook-publisher\",\n  \"callback_url\": \"http://localhost:5678/webhook/module-callback\",\n  \"payload\": {{ JSON.stringify($json.payload) }},\n  \"safety\": {{ JSON.stringify($json.safety) }}\n}",
+        "jsonBody": "={\n  \"event_id\": \"{{ $json.event_id }}\",\n  \"correlation_id\": \"{{ $json.correlation_id }}\",\n  \"job_id\": \"{{ $json.job_id }}\",\n  \"module_name\": \"facebook-publisher\",\n  \"callback_url\": \"CORE_CALLBACK_URL\",\n  \"payload\": {{ JSON.stringify($json.payload) }},\n  \"safety\": {{ JSON.stringify($json.safety) }},\n  \"created_at\": \"{{ $json.created_at }}\"\n}",
         "options": {}
       },
       "name": "HTTP: Invoke FB Publisher Module",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4,
       "position": [
-        800,
-        300
+        950,
+        250
       ],
       "id": "http-trigger-fb"
     },
     {
       "parameters": {
+        "conditions": {
+          "combinator": "all",
+          "string": [
+            {
+              "value1": "={{ $json.approval_status }}",
+              "operation": "equal",
+              "value2": "APPROVED"
+            }
+          ],
+          "boolean": [
+            {
+              "value1": "={{ $json.safety.final_approval_granted }}",
+              "value2": true
+            },
+            {
+              "value1": "={{ $json.safety.allow_ads_spend }}",
+              "value2": true
+            },
+            {
+              "value1": "={{ $json.safety.allow_real_world_action }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "name": "IF: Safety Gate - Ads Spend Approved",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        700,
+        450
+      ],
+      "id": "if-ads-spend-approved"
+    },
+    {
+      "parameters": {
         "method": "POST",
-        "url": "http://localhost:8000/api/v1/modules/meta-ads-connector/spend",
+        "url": "MODULE_META_ADS_CONNECTOR_URL",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -129,17 +201,44 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"correlation_id\": \"{{ $json.correlation_id }}\",\n  \"job_id\": \"{{ $json.job_id }}\",\n  \"module_name\": \"meta-ads-connector\",\n  \"callback_url\": \"http://localhost:5678/webhook/module-callback\",\n  \"payload\": {{ JSON.stringify($json.payload) }},\n  \"safety\": {{ JSON.stringify($json.safety) }}\n}",
+        "jsonBody": "={\n  \"event_id\": \"{{ $json.event_id }}\",\n  \"correlation_id\": \"{{ $json.correlation_id }}\",\n  \"job_id\": \"{{ $json.job_id }}\",\n  \"module_name\": \"meta-ads-connector\",\n  \"callback_url\": \"CORE_CALLBACK_URL\",\n  \"payload\": {{ JSON.stringify($json.payload) }},\n  \"safety\": {{ JSON.stringify($json.safety) }},\n  \"created_at\": \"{{ $json.created_at }}\"\n}",
         "options": {}
       },
       "name": "HTTP: Invoke Meta Ads Connector",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4,
       "position": [
-        800,
-        450
+        950,
+        400
       ],
       "id": "http-trigger-meta-ads"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "CORE_CALLBACK_URL",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"status\": \"REJECTED_BY_SAFETY\",\n  \"reason\": \"Workflow-level approval/safety gate blocked real-world action\",\n  \"event_id\": \"{{ $json.event_id }}\",\n  \"correlation_id\": \"{{ $json.correlation_id }}\",\n  \"campaign_id\": \"{{ $json.campaign_id }}\",\n  \"job_id\": \"{{ $json.job_id }}\",\n  \"module_name\": \"{{ $json.event_type === 'CAMPAIGN_PUBLISH' ? 'facebook-publisher' : 'meta-ads-connector' }}\",\n  \"safety\": {{ JSON.stringify($json.safety) }},\n  \"original_event_type\": \"{{ $json.event_type }}\",\n  \"rejected_at\": \"{{ new Date().toISOString() }}\"\n}",
+        "options": {}
+      },
+      "name": "HTTP: Callback Core - Rejected By Safety",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        950,
+        550
+      ],
+      "id": "http-callback-core-rejected"
     },
     {
       "parameters": {
@@ -149,7 +248,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 1,
       "position": [
-        800,
+        700,
         600
       ],
       "id": "code-fallback"
@@ -189,11 +288,47 @@
         ],
         [
           {
+            "node": "IF: Safety Gate - Publishing Approved",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "IF: Safety Gate - Ads Spend Approved",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code: Fallback Ignored",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: Safety Gate - Publishing Approved": {
+      "main": [
+        [
+          {
             "node": "HTTP: Invoke FB Publisher Module",
             "type": "main",
             "index": 0
           }
         ],
+        [
+          {
+            "node": "HTTP: Callback Core - Rejected By Safety",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: Safety Gate - Ads Spend Approved": {
+      "main": [
         [
           {
             "node": "HTTP: Invoke Meta Ads Connector",
@@ -203,7 +338,7 @@
         ],
         [
           {
-            "node": "Code: Fallback Ignored",
+            "node": "HTTP: Callback Core - Rejected By Safety",
             "type": "main",
             "index": 0
           }

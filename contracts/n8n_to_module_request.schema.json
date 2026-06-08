@@ -4,6 +4,11 @@
   "description": "Request schema sent from n8n to specialized modules",
   "type": "object",
   "properties": {
+    "event_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique identifier for the specific request event"
+    },
     "correlation_id": {
       "type": "string",
       "format": "uuid",
@@ -21,6 +26,11 @@
       "type": "string",
       "format": "uri",
       "description": "Webhook URL where the module should post its results/callbacks"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO timestamp when the request was initiated"
     },
     "payload": {
       "type": "object",
@@ -61,10 +71,12 @@
     }
   },
   "required": [
+    "event_id",
     "correlation_id",
     "job_id",
     "module_name",
     "callback_url",
+    "created_at",
     "payload",
     "safety"
   ],
