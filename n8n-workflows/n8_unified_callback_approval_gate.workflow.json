@@ -1,0 +1,428 @@
+{
+  "name": "Phase N8 Unified Callback Approval Gate",
+  "nodes": [
+    {
+      "parameters": {},
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        100,
+        300
+      ],
+      "id": "manual-trigger"
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "contract_version",
+              "value": "unified_callback_v0.1"
+            },
+            {
+              "name": "request_id",
+              "value": "782f9d5e-ca87-439f-a89c-8eb139f4a088"
+            },
+            {
+              "name": "event_type",
+              "value": "creative_asset.requested"
+            },
+            {
+              "name": "brand_id",
+              "value": "brand_demo_001"
+            },
+            {
+              "name": "campaign_id",
+              "value": "campaign_demo_001"
+            },
+            {
+              "name": "module_id",
+              "value": "creative_asset_comfyui"
+            },
+            {
+              "name": "module_status",
+              "value": "mock_completed"
+            },
+            {
+              "name": "approval_status",
+              "value": "pending_approval"
+            },
+            {
+              "name": "source",
+              "value": "n8n_n7_full_multi_module_stub_integration"
+            },
+            {
+              "name": "generated_at",
+              "value": "2026-06-08T15:21:30Z"
+            },
+            {
+              "name": "notes",
+              "value": "Generated output ready for approval gate review."
+            }
+          ],
+          "other": [
+            {
+              "name": "output",
+              "value": {
+                "asset_preview": "mock://assets/workspace_generated_001.png",
+                "mock_asset_url": "mock://assets/workspace_generated_001.png",
+                "mock_output_path": "storage/assets/placeholder_workspace_001.png"
+              }
+            },
+            {
+              "name": "errors",
+              "value": []
+            },
+            {
+              "name": "metadata",
+              "value": {
+                "workflow": "workspace_creative_v1"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Set: Mock Module Response",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        260,
+        300
+      ],
+      "id": "set-mock-response"
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = items[0].json;\nreturn [{\n  json: {\n    contract_version: body.contract_version || \"unified_callback_v0.1\",\n    request_id: body.request_id || \"782f9d5e-ca87-439f-a89c-8eb139f4a088\",\n    event_type: body.event_type || \"creative_asset.requested\",\n    brand_id: body.brand_id || \"brand_demo_001\",\n    campaign_id: body.campaign_id || \"campaign_demo_001\",\n    module_id: body.module_id || \"creative_asset_comfyui\",\n    module_status: body.module_status || \"mock_completed\",\n    approval_status: body.approval_status || \"pending_approval\",\n    output: body.output || {},\n    errors: body.errors || [],\n    metadata: body.metadata || {},\n    source: body.source || \"n8n_n7_full_multi_module_stub_integration\",\n    generated_at: body.generated_at || new Date().toISOString(),\n    notes: body.notes || \"\"\n  }\n}];"
+      },
+      "name": "Code: Normalize Unified Callback",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        420,
+        300
+      ],
+      "id": "code-normalize"
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "approval_id",
+              "value": "app_dec_001_88921"
+            },
+            {
+              "name": "decision",
+              "value": "approved"
+            },
+            {
+              "name": "reviewer",
+              "value": "owner_mock"
+            },
+            {
+              "name": "reviewed_at",
+              "value": "2026-06-08T15:25:00Z"
+            },
+            {
+              "name": "reason",
+              "value": "All checks passed. Creative styling complies with mock requirements."
+            },
+            {
+              "name": "revision_notes",
+              "value": ""
+            },
+            {
+              "name": "next_action",
+              "value": "ready_for_mock_callback"
+            }
+          ],
+          "other": [
+            {
+              "name": "safety_flags",
+              "value": {
+                "brand_safe": true,
+                "copyright_clear": true,
+                "no_secrets": true
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Set: Mock Approval Decision",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        580,
+        300
+      ],
+      "id": "set-mock-decision"
+    },
+    {
+      "parameters": {
+        "dataType": "string",
+        "value1": "={{ $json.decision }}",
+        "rules": {
+          "rules": [
+            {
+              "value2": "approved"
+            },
+            {
+              "value2": "rejected"
+            },
+            {
+              "value2": "needs_revision"
+            },
+            {
+              "value2": "pending"
+            }
+          ]
+        }
+      },
+      "name": "Switch: Route by decision",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [
+        740,
+        300
+      ],
+      "id": "switch-decision"
+    },
+    {
+      "parameters": {
+        "jsCode": "const decision = items[0].json;\nconst callback = $node[\"Code: Normalize Unified Callback\"].json;\nreturn [{\n  json: {\n    request_id: callback.request_id,\n    event_type: callback.event_type,\n    module_id: callback.module_id,\n    approval_status: \"approved\",\n    final_status: \"ready_for_mock_callback\",\n    callback_preview: {\n      contract_version: \"unified_callback_v0.1\",\n      request_id: callback.request_id,\n      event_type: callback.event_type,\n      brand_id: callback.brand_id,\n      campaign_id: callback.campaign_id,\n      module_id: callback.module_id,\n      module_status: callback.module_status,\n      approval_status: \"approved\",\n      output: callback.output,\n      errors: callback.errors,\n      metadata: callback.metadata,\n      source: \"n8n_n8_approval_gate_mock\",\n      generated_at: new Date().toISOString(),\n      notes: \"Approved output ready for callback dispatch.\"\n    },\n    next_action: \"ready_for_mock_callback\",\n    source: \"n8n_n8_approval_gate_mock\",\n    notes: \"Approval review passed. Output is finalized.\"\n  }\n}];"
+      },
+      "name": "Code: Prepare Approved Callback Preview",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        950,
+        100
+      ],
+      "id": "prep-approved"
+    },
+    {
+      "parameters": {
+        "jsCode": "const decision = items[0].json;\nconst callback = $node[\"Code: Normalize Unified Callback\"].json;\nreturn [{\n  json: {\n    request_id: callback.request_id,\n    event_type: callback.event_type,\n    module_id: callback.module_id,\n    approval_status: \"rejected\",\n    final_status: \"stopped_rejected\",\n    callback_preview: {\n      contract_version: \"unified_callback_v0.1\",\n      request_id: callback.request_id,\n      event_type: callback.event_type,\n      brand_id: callback.brand_id,\n      campaign_id: callback.campaign_id,\n      module_id: callback.module_id,\n      module_status: callback.module_status,\n      approval_status: \"rejected\",\n      output: {},\n      errors: [\"Rejection reason: \" + (decision.reason || \"Violates style guidelines\")],\n      metadata: callback.metadata,\n      source: \"n8n_n8_approval_gate_mock\",\n      generated_at: new Date().toISOString(),\n      notes: \"Rejected callback log.\"\n    },\n    next_action: \"stop_no_callback\",\n    source: \"n8n_n8_approval_gate_mock\",\n    notes: \"Approval review rejected. Process terminated.\"\n  }\n}];"
+      },
+      "name": "Code: Prepare Rejected Output",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        950,
+        220
+      ],
+      "id": "prep-rejected"
+    },
+    {
+      "parameters": {
+        "jsCode": "const decision = items[0].json;\nconst callback = $node[\"Code: Normalize Unified Callback\"].json;\nreturn [{\n  json: {\n    request_id: callback.request_id,\n    event_type: callback.event_type,\n    module_id: callback.module_id,\n    approval_status: \"needs_revision\",\n    final_status: \"revision_required\",\n    callback_preview: {\n      contract_version: \"unified_callback_v0.1\",\n      request_id: callback.request_id,\n      event_type: callback.event_type,\n      brand_id: callback.brand_id,\n      campaign_id: callback.campaign_id,\n      module_id: callback.module_id,\n      module_status: callback.module_status,\n      approval_status: \"needs_revision\",\n      output: callback.output,\n      errors: callback.errors,\n      metadata: callback.metadata,\n      source: \"n8n_n8_approval_gate_mock\",\n      generated_at: new Date().toISOString(),\n      notes: \"Revision required: \" + (decision.revision_notes || \"Needs adjustment\")\n    },\n    next_action: \"return_to_module_or_human_revision\",\n    source: \"n8n_n8_approval_gate_mock\",\n    notes: \"Revision is requested. Draft returned to creator.\"\n  }\n}];"
+      },
+      "name": "Code: Prepare Revision Request Output",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        950,
+        340
+      ],
+      "id": "prep-revision"
+    },
+    {
+      "parameters": {
+        "jsCode": "const decision = items[0].json;\nconst callback = $node[\"Code: Normalize Unified Callback\"].json;\nreturn [{\n  json: {\n    request_id: callback.request_id,\n    event_type: callback.event_type,\n    module_id: callback.module_id,\n    approval_status: \"pending_approval\",\n    final_status: \"waiting_for_owner_approval\",\n    callback_preview: {\n      contract_version: \"unified_callback_v0.1\",\n      request_id: callback.request_id,\n      event_type: callback.event_type,\n      brand_id: callback.brand_id,\n      campaign_id: callback.campaign_id,\n      module_id: callback.module_id,\n      module_status: callback.module_status,\n      approval_status: \"pending_approval\",\n      output: callback.output,\n      errors: callback.errors,\n      metadata: callback.metadata,\n      source: \"n8n_n8_approval_gate_mock\",\n      generated_at: new Date().toISOString(),\n      notes: \"Awaiting review by owner.\"\n    },\n    next_action: \"wait_for_owner\",\n    source: \"n8n_n8_approval_gate_mock\",\n    notes: \"Task is pending owner review.\"\n  }\n}];"
+      },
+      "name": "Code: Prepare Pending Output",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        950,
+        460
+      ],
+      "id": "prep-pending"
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "request_id",
+              "value": "={{ $json.request_id }}"
+            },
+            {
+              "name": "event_type",
+              "value": "={{ $json.event_type }}"
+            },
+            {
+              "name": "module_id",
+              "value": "={{ $json.module_id }}"
+            },
+            {
+              "name": "approval_status",
+              "value": "={{ $json.approval_status }}"
+            },
+            {
+              "name": "final_status",
+              "value": "={{ $json.final_status }}"
+            },
+            {
+              "name": "next_action",
+              "value": "={{ $json.next_action }}"
+            },
+            {
+              "name": "source",
+              "value": "={{ $json.source }}"
+            },
+            {
+              "name": "notes",
+              "value": "={{ $json.notes }}"
+            }
+          ],
+          "other": [
+            {
+              "name": "callback_preview",
+              "value": "={{ $json.callback_preview }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Respond / Output Final Approval Gate Result",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        1200,
+        300
+      ],
+      "id": "respond-output-result"
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Set: Mock Module Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set: Mock Module Response": {
+      "main": [
+        [
+          {
+            "node": "Code: Normalize Unified Callback",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Normalize Unified Callback": {
+      "main": [
+        [
+          {
+            "node": "Set: Mock Approval Decision",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set: Mock Approval Decision": {
+      "main": [
+        [
+          {
+            "node": "Switch: Route by decision",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch: Route by decision": {
+      "main": [
+        [
+          {
+            "node": "Code: Prepare Approved Callback Preview",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code: Prepare Rejected Output",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code: Prepare Revision Request Output",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code: Prepare Pending Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Prepare Approved Callback Preview": {
+      "main": [
+        [
+          {
+            "node": "Respond / Output Final Approval Gate Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Prepare Rejected Output": {
+      "main": [
+        [
+          {
+            "node": "Respond / Output Final Approval Gate Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Prepare Revision Request Output": {
+      "main": [
+        [
+          {
+            "node": "Respond / Output Final Approval Gate Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Prepare Pending Output": {
+      "main": [
+        [
+          {
+            "node": "Respond / Output Final Approval Gate Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionTimeout": 3600
+  }
+}

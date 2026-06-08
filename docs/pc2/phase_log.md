@@ -4,6 +4,22 @@ This log tracks the progress, status, and deliverables for the PC2 (n8n & Specia
 
 ---
 
+## Phase N8 — Unified Callback + Approval Gate Contract
+- **Status**: IMPLEMENTED / READY FOR REVIEW
+- **Reviewer**: Codex
+- **Date**: 2026-06-08
+- **Deliverables**:
+  - `contracts/unified_callback_contract.md` (Unified Callback Contract)
+  - `contracts/examples/n8n/n8/unified_callback_*.json` (4 Mock Callback JSON payloads)
+  - `contracts/examples/n8n/n8/approval_decisions/approval_decision_*.json` (4 Mock Decision JSON payloads)
+  - `contracts/examples/n8n/n8/expected_outputs/*_expected_output.json` (4 Expected final outputs)
+  - `n8n-workflows/n8_unified_callback_approval_gate.workflow.json` (Approval Gate workflow)
+  - `docs/pc2/phase_n8_unified_callback_approval_gate.md` (manual testing guide)
+- **Validation**: `node contracts/tools/validate_contracts.js` successfully PASS.
+- **Scope check**: No database queries, no secrets/APIs, no Core UI modifications. No production URLs.
+
+---
+
 ## Phase N7 — n8n Full Multi-Module Stub Integration
 - **Status**: IMPLEMENTED / READY FOR REVIEW
 - **Reviewer**: Codex

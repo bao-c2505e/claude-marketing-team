@@ -77,24 +77,22 @@ Triggers marketing performance report compile task.
 | event_type | module_id | endpoint_type | local_endpoint / current_status |
 | :--- | :--- | :--- | :--- |
 | `creative_asset.requested` | `creative_asset_comfyui` | `local_stub` | `http://localhost:8188/run` (ACTIVE_LOCAL) |
-| `content_pack.requested` | `content_pack_generator` | `mock_only` | MOCK (INACTIVE_MOCK) |
-| `ads_pack.requested` | `ads_pack_generator` | `mock_only` | MOCK (INACTIVE_MOCK) |
-| `crm_followup.requested` | `crm_followup_generator` | `mock_only` | MOCK (INACTIVE_MOCK) |
-| `analytics_report.requested` | `analytics_report_generator`| `mock_only` | MOCK (INACTIVE_MOCK) |
+| `content_pack.requested` | `content_pack_generator` | `local_stub` | `http://localhost:8191/run` (ACTIVE_LOCAL) |
+| `ads_pack.requested` | `ads_pack_generator` | `local_stub` | `http://localhost:8192/run` (ACTIVE_LOCAL) |
+| `crm_followup.requested` | `crm_followup_generator` | `local_stub` | `http://localhost:8193/run` (ACTIVE_LOCAL) |
+| `analytics_report.requested` | `analytics_report_generator`| `local_stub` | `http://localhost:8194/run` (ACTIVE_LOCAL) |
 
 ---
 
-## 5. Callback Preview Standard
-When the event router finishes processing or mock-generating, it must return a response preview containing:
-- `request_id` (string): Matches the initial `request_id`.
-- `event_type` (string): Matches the initial `event_type`.
-- `module_id` (string): The ID of the module that processed it (e.g., `"creative_asset_comfyui"`).
-- `status` (string): Output status (e.g., `"mock_completed"`, `"routed_mock"`).
-- `output` (object): The result of the processing (e.g., generated text, image URI structure).
-- `errors` (array of strings): List of errors if any occurred, empty otherwise.
-- `source` (string): Set to `"n8n_n5_multi_module_router"`.
-- `generated_at` (string): ISO timestamp.
-- `notes` (string): Explanation and safety disclaimers.
+## 5. Callback & Approval Gate Integration
+For Phase N8, all module callback payloads are normalized into the standard format defined in [unified_callback_contract.md](file:///c:/Users/DELL/claude-marketing-team/contracts/unified_callback_contract.md). 
+All normalized callback payloads must route through the Unified Callback Approval Gate workflow (`n8_unified_callback_approval_gate.workflow.json`). 
+Final states are mapped as follows:
+- `approved` → `ready_for_mock_callback` (dispatched to mock callback queue)
+- `rejected` → `stopped_rejected`
+- `needs_revision` → `revision_required`
+- `pending_approval` → `waiting_for_owner_approval`
+
 
 ---
 

@@ -1,0 +1,15 @@
+{
+  "approval_id": "app_dec_002_10283",
+  "request_id": "782f9d5e-ca87-439f-a89c-8eb139f4a088",
+  "decision": "rejected",
+  "reviewer": "owner_mock",
+  "reviewed_at": "2026-06-08T15:25:00Z",
+  "reason": "Rejection: Creative assets do not meet visual guidelines.",
+  "revision_notes": "",
+  "safety_flags": {
+    "brand_safe": false,
+    "copyright_clear": true,
+    "no_secrets": true
+  },
+  "next_action": "stop_no_callback"
+}

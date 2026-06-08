@@ -78,3 +78,9 @@ This document lists all active specialist modules integrated under the PC2 works
 - `real_api_enabled` remains `false` across all modules.
 - `owner_approval_required` remains `true` across all modules.
 - `current_mode` remains `mock` across all modules. No production URL or real-world actions are enabled.
+
+## Integration Notes (Phase N8)
+- All specialist module callback payloads must route through the Unified Callback Approval Gate workflow (`n8_unified_callback_approval_gate.workflow.json`).
+- Callbacks from stubs are normalized into the `unified_callback_v0.1` format, and checked against the approval gate before final callback dispatch is mocked.
+- Rejection, revision, and pending states are routed to mock endpoints or queues without hitting real customer-facing integrations or firing live callbacks to Core callback URLs.
+

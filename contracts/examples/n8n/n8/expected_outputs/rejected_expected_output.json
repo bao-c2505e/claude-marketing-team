@@ -1,0 +1,30 @@
+{
+  "request_id": "782f9d5e-ca87-439f-a89c-8eb139f4a088",
+  "event_type": "creative_asset.requested",
+  "module_id": "creative_asset_comfyui",
+  "approval_status": "rejected",
+  "final_status": "stopped_rejected",
+  "callback_preview": {
+    "contract_version": "unified_callback_v0.1",
+    "request_id": "782f9d5e-ca87-439f-a89c-8eb139f4a088",
+    "event_type": "creative_asset.requested",
+    "brand_id": "brand_demo_001",
+    "campaign_id": "campaign_demo_001",
+    "module_id": "creative_asset_comfyui",
+    "module_status": "mock_completed",
+    "approval_status": "rejected",
+    "output": {},
+    "errors": [
+      "Rejection reason: Creative assets do not meet visual guidelines."
+    ],
+    "metadata": {
+      "workflow": "workspace_creative_v1"
+    },
+    "source": "n8n_n8_approval_gate_mock",
+    "generated_at": "2026-06-08T15:25:00Z",
+    "notes": "Rejected callback log."
+  },
+  "next_action": "stop_no_callback",
+  "source": "n8n_n8_approval_gate_mock",
+  "notes": "Approval review rejected. Process terminated."
+}

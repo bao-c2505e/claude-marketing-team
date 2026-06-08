@@ -1,0 +1,15 @@
+{
+  "approval_id": "app_dec_001_88921",
+  "request_id": "782f9d5e-ca87-439f-a89c-8eb139f4a088",
+  "decision": "approved",
+  "reviewer": "owner_mock",
+  "reviewed_at": "2026-06-08T15:25:00Z",
+  "reason": "All checks passed. Creative styling complies with mock requirements.",
+  "revision_notes": "",
+  "safety_flags": {
+    "brand_safe": true,
+    "copyright_clear": true,
+    "no_secrets": true
+  },
+  "next_action": "ready_for_mock_callback"
+}

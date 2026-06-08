@@ -749,6 +749,223 @@ try {
   failed = true;
 }
 
+// Validate Phase N8 files
+console.log('--- STARTING PHASE N8 VALIDATION CHECKS ---');
+const n8Dir = path.join(baseDir, 'examples/n8n/n8');
+const n8ApprovalDecisionsDir = path.join(n8Dir, 'approval_decisions');
+const n8ExpectedOutputsDir = path.join(n8Dir, 'expected_outputs');
+
+const n8CallbackFiles = [
+  'unified_callback_approved.json',
+  'unified_callback_needs_revision.json',
+  'unified_callback_pending_approval.json',
+  'unified_callback_rejected.json'
+];
+
+const n8DecisionFiles = [
+  'approval_decision_approved.json',
+  'approval_decision_rejected.json',
+  'approval_decision_needs_revision.json',
+  'approval_decision_pending.json'
+];
+
+const n8ExpectedOutputFiles = [
+  'approved_expected_output.json',
+  'rejected_expected_output.json',
+  'needs_revision_expected_output.json',
+  'pending_expected_output.json'
+];
+
+// 1. Validate callback files
+n8CallbackFiles.forEach(file => {
+  const filePath = path.join(n8Dir, file);
+  try {
+    const content = fs.readFileSync(filePath, 'utf8');
+    
+    // Safety checks
+    if (content.toLowerCase().includes('vicuon') || content.includes('Vị Cuốn')) {
+      console.error(`[FAIL] N8 callback ${file} contains Vị Cuốn / vicuon brand hardcoding`);
+      failed = true;
+    }
+    if (content.includes('thecoreagency.com')) {
+      console.error(`[FAIL] N8 callback ${file} contains production-like URL (thecoreagency.com)`);
+      failed = true;
+    }
+    if (/api_key|secret|token/i.test(content) && !content.includes('workflow_engine')) {
+      console.error(`[FAIL] N8 callback ${file} contains suspicious secret keywords`);
+      failed = true;
+    }
+
+    const parsed = JSON.parse(content);
+    console.log(`[PASS] N8 callback parses as valid JSON: n8/${file}`);
+
+    // Required fields check
+    const required = [
+      'contract_version', 'request_id', 'event_type', 'brand_id', 'campaign_id',
+      'module_id', 'module_status', 'approval_status', 'output', 'errors',
+      'metadata', 'source', 'generated_at', 'notes'
+    ];
+    required.forEach(f => {
+      if (parsed[f] === undefined) {
+        console.error(`[FAIL] N8 callback ${file} is missing required field '${f}'`);
+        failed = true;
+      }
+    });
+
+    if (parsed.brand_id !== 'brand_demo_001') {
+      console.error(`[FAIL] N8 callback ${file} must have brand_id = 'brand_demo_001', found '${parsed.brand_id}'`);
+      failed = true;
+    }
+
+    const allowedApprovalStatuses = ['pending_approval', 'approved', 'rejected', 'needs_revision'];
+    if (!allowedApprovalStatuses.includes(parsed.approval_status)) {
+      console.error(`[FAIL] N8 callback ${file} has invalid approval_status '${parsed.approval_status}'`);
+      failed = true;
+    }
+
+    const allowedModuleStatuses = ['mock_completed', 'completed', 'failed', 'skipped'];
+    if (!allowedModuleStatuses.includes(parsed.module_status)) {
+      console.error(`[FAIL] N8 callback ${file} has invalid module_status '${parsed.module_status}'`);
+      failed = true;
+    }
+
+  } catch (err) {
+    console.error(`[FAIL] Error parsing Phase N8 callback example ${file}: ${err.message}`);
+    failed = true;
+  }
+});
+
+// 2. Validate decision files
+n8DecisionFiles.forEach(file => {
+  const filePath = path.join(n8ApprovalDecisionsDir, file);
+  try {
+    const content = fs.readFileSync(filePath, 'utf8');
+    
+    if (content.toLowerCase().includes('vicuon') || content.includes('Vị Cuốn')) {
+      console.error(`[FAIL] N8 decision ${file} contains Vị Cuốn / vicuon brand hardcoding`);
+      failed = true;
+    }
+    if (content.includes('thecoreagency.com')) {
+      console.error(`[FAIL] N8 decision ${file} contains production-like URL (thecoreagency.com)`);
+      failed = true;
+    }
+    if (/api_key|secret|token/i.test(content) && !content.includes('no_secrets')) {
+      console.error(`[FAIL] N8 decision ${file} contains suspicious secret keywords`);
+      failed = true;
+    }
+
+    const parsed = JSON.parse(content);
+    console.log(`[PASS] N8 decision parses as valid JSON: n8/approval_decisions/${file}`);
+
+    const required = [
+      'approval_id', 'request_id', 'decision', 'reviewer', 'reviewed_at',
+      'reason', 'revision_notes', 'safety_flags', 'next_action'
+    ];
+    required.forEach(f => {
+      if (parsed[f] === undefined) {
+        console.error(`[FAIL] N8 decision ${file} is missing required field '${f}'`);
+        failed = true;
+      }
+    });
+
+    const allowedDecisions = ['approved', 'rejected', 'needs_revision', 'pending'];
+    if (!allowedDecisions.includes(parsed.decision)) {
+      console.error(`[FAIL] N8 decision ${file} has invalid decision value '${parsed.decision}'`);
+      failed = true;
+    }
+
+  } catch (err) {
+    console.error(`[FAIL] Error parsing Phase N8 decision example ${file}: ${err.message}`);
+    failed = true;
+  }
+});
+
+// 3. Validate expected output files
+n8ExpectedOutputFiles.forEach(file => {
+  const filePath = path.join(n8ExpectedOutputsDir, file);
+  try {
+    const content = fs.readFileSync(filePath, 'utf8');
+    
+    if (content.toLowerCase().includes('vicuon') || content.includes('Vị Cuốn')) {
+      console.error(`[FAIL] N8 expected output ${file} contains Vị Cuốn / vicuon brand hardcoding`);
+      failed = true;
+    }
+    if (content.includes('thecoreagency.com')) {
+      console.error(`[FAIL] N8 expected output ${file} contains production-like URL (thecoreagency.com)`);
+      failed = true;
+    }
+    if (/api_key|secret|token/i.test(content) && !content.includes('no_secrets')) {
+      console.error(`[FAIL] N8 expected output ${file} contains suspicious secret keywords`);
+      failed = true;
+    }
+
+    const parsed = JSON.parse(content);
+    console.log(`[PASS] N8 expected output parses as valid JSON: n8/expected_outputs/${file}`);
+
+    const required = [
+      'request_id', 'event_type', 'module_id', 'approval_status', 'final_status',
+      'callback_preview', 'next_action', 'source', 'notes'
+    ];
+    required.forEach(f => {
+      if (parsed[f] === undefined) {
+        console.error(`[FAIL] N8 expected output ${file} is missing required field '${f}'`);
+        failed = true;
+      }
+    });
+
+    if (parsed.source !== 'n8n_n8_approval_gate_mock') {
+      console.error(`[FAIL] N8 expected output ${file} must have source = 'n8n_n8_approval_gate_mock', found '${parsed.source}'`);
+      failed = true;
+    }
+
+    const allowedApprovalStatuses = ['pending_approval', 'approved', 'rejected', 'needs_revision'];
+    if (!allowedApprovalStatuses.includes(parsed.approval_status)) {
+      console.error(`[FAIL] N8 expected output ${file} has invalid approval_status '${parsed.approval_status}'`);
+      failed = true;
+    }
+
+    const allowedFinalStatuses = ['ready_for_mock_callback', 'stopped_rejected', 'revision_required', 'waiting_for_owner_approval'];
+    if (!allowedFinalStatuses.includes(parsed.final_status)) {
+      console.error(`[FAIL] N8 expected output ${file} has invalid final_status '${parsed.final_status}'`);
+      failed = true;
+    }
+
+  } catch (err) {
+    console.error(`[FAIL] Error parsing Phase N8 expected output example ${file}: ${err.message}`);
+    failed = true;
+  }
+});
+
+// 4. Validate Phase N8 workflow JSON
+const n8WorkflowPath = path.join(baseDir, '../n8n-workflows/n8_unified_callback_approval_gate.workflow.json');
+try {
+  const content = fs.readFileSync(n8WorkflowPath, 'utf8');
+  if (content.toLowerCase().includes('vicuon') || content.includes('Vị Cuốn')) {
+    console.error(`[FAIL] n8_unified_callback_approval_gate.workflow.json contains Vị Cuốn / vicuon brand hardcoding`);
+    failed = true;
+  }
+  if (content.includes('thecoreagency.com')) {
+    console.error(`[FAIL] n8_unified_callback_approval_gate.workflow.json contains production-like URLs`);
+    failed = true;
+  }
+  
+  // Verify no HTTP request nodes or credential references
+  if (content.includes('"type": "n8n-nodes-base.httpRequest"') && content.includes('"url"')) {
+    console.error(`[FAIL] n8_unified_callback_approval_gate.workflow.json contains an HTTP request node making calls`);
+    failed = true;
+  }
+  if (/credentials/i.test(content) && !content.includes('workflow_engine')) {
+    console.error(`[FAIL] n8_unified_callback_approval_gate.workflow.json contains credentials reference`);
+    failed = true;
+  }
+
+  const parsed = JSON.parse(content);
+  console.log(`[PASS] n8_unified_callback_approval_gate.workflow.json parses as valid JSON and matches safety rules`);
+
+} catch (err) {
+  console.error(`[FAIL] Error parsing n8_unified_callback_approval_gate.workflow.json: ${err.message}`);
+  failed = true;
+}
 
 if (failed) {
   console.error('--- CONTRACT VALIDATION CHECKS FAILED ---');
@@ -757,5 +974,6 @@ if (failed) {
   console.log('--- ALL CONTRACT VALIDATION CHECKS PASSED SUCCESSFULLY ---');
   process.exit(0);
 }
+
 
 

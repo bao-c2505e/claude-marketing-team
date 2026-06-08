@@ -1,0 +1,15 @@
+{
+  "approval_id": "app_dec_003_44829",
+  "request_id": "782f9d5e-ca87-439f-a89c-8eb139f4a088",
+  "decision": "needs_revision",
+  "reviewer": "owner_mock",
+  "reviewed_at": "2026-06-08T15:25:00Z",
+  "reason": "Accents could be cleaner. Neon glow is slightly too bright.",
+  "revision_notes": "Please reduce opacity/brightness of neon overlays by 15%.",
+  "safety_flags": {
+    "brand_safe": true,
+    "copyright_clear": true,
+    "no_secrets": true
+  },
+  "next_action": "return_to_module_or_human_revision"
+}

@@ -1,0 +1,22 @@
+{
+  "contract_version": "unified_callback_v0.1",
+  "request_id": "782f9d5e-ca87-439f-a89c-8eb139f4a088",
+  "event_type": "creative_asset.requested",
+  "brand_id": "brand_demo_001",
+  "campaign_id": "campaign_demo_001",
+  "module_id": "creative_asset_comfyui",
+  "module_status": "mock_completed",
+  "approval_status": "approved",
+  "output": {
+    "asset_preview": "mock://assets/workspace_generated_001.png",
+    "mock_asset_url": "mock://assets/workspace_generated_001.png",
+    "mock_output_path": "storage/assets/placeholder_workspace_001.png"
+  },
+  "errors": [],
+  "metadata": {
+    "workflow": "workspace_creative_v1"
+  },
+  "source": "n8n_n8_approval_gate_mock",
+  "generated_at": "2026-06-08T15:25:00Z",
+  "notes": "Generated output approved and ready for dispatch."
+}
