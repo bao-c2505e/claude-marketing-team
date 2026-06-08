@@ -1,0 +1,28 @@
+{
+  "request_id": "782f9d5e-ca87-439f-a89c-8eb139f4a088",
+  "event_type": "creative_asset.requested",
+  "module_id": "creative_asset_comfyui",
+  "route_status": "completed_mock",
+  "module_response": {
+    "status": "QUEUED",
+    "module_run_id": "run_comfyui_998127391",
+    "message": "Request validated and task queued successfully."
+  },
+  "callback_preview": {
+    "request_id": "782f9d5e-ca87-439f-a89c-8eb139f4a088",
+    "event_type": "creative_asset.requested",
+    "module_id": "creative_asset_comfyui",
+    "status": "mock_completed",
+    "output": {
+      "asset_preview": "mock://assets/workspace_generated_001.png",
+      "mock_asset_url": "mock://assets/workspace_generated_001.png",
+      "mock_output_path": "storage/assets/placeholder_workspace_001.png"
+    },
+    "errors": [],
+    "source": "n8n_n7_full_multi_module_stub_integration",
+    "generated_at": "2026-06-08T15:21:30Z",
+    "notes": "This is a local ComfyUI stub mock response."
+  },
+  "source": "n8n_n7_full_multi_module_stub_integration",
+  "notes": "Successfully integrated with ComfyUI pipeline."
+}

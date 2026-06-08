@@ -595,6 +595,161 @@ if (!fs.existsSync(registryPath)) {
 }
 
 
+// Validate Phase N7 files
+console.log('--- STARTING PHASE N7 VALIDATION CHECKS ---');
+const n7EventsDir = path.join(baseDir, 'examples/n8n/n7');
+const n7OutputsDir = path.join(n7EventsDir, 'expected_outputs');
+
+const n7Events = [
+  'creative_asset_test_event.json',
+  'content_pack_test_event.json',
+  'ads_pack_test_event.json',
+  'crm_followup_test_event.json',
+  'analytics_report_test_event.json'
+];
+
+const n7Outputs = [
+  'creative_asset_expected_output.json',
+  'content_pack_expected_output.json',
+  'ads_pack_expected_output.json',
+  'crm_followup_expected_output.json',
+  'analytics_report_expected_output.json'
+];
+
+n7Events.forEach(file => {
+  const filePath = path.join(n7EventsDir, file);
+  try {
+    const content = fs.readFileSync(filePath, 'utf8');
+    
+    // Check brand name blocking
+    if (content.toLowerCase().includes('vicuon') || content.includes('Vị Cuốn')) {
+      console.error(`[FAIL] N7 event ${file} contains Vị Cuốn / vicuon brand hardcoding`);
+      failed = true;
+    }
+    
+    // Check production URL blocking
+    if (content.includes('thecoreagency.com')) {
+      console.error(`[FAIL] N7 event ${file} contains production-like URL (thecoreagency.com)`);
+      failed = true;
+    }
+
+    // Check suspicious secrets
+    if (/api_key|secret|token/i.test(content) && !content.includes('workflow_engine')) {
+      console.error(`[FAIL] N7 event ${file} contains suspicious secret keywords`);
+      failed = true;
+    }
+
+    const parsed = JSON.parse(content);
+    console.log(`[PASS] N7 event parses as valid JSON: n7/${file}`);
+
+    // Required fields check
+    const required = [
+      'contract_version', 'event_type', 'request_id', 'brand_id',
+      'campaign_id', 'requested_by', 'callback_url', 'payload', 'metadata'
+    ];
+    required.forEach(f => {
+      if (parsed[f] === undefined) {
+        console.error(`[FAIL] N7 event ${file} is missing required field '${f}'`);
+        failed = true;
+      }
+    });
+
+    // Check brand_id
+    if (parsed.brand_id !== 'brand_demo_001') {
+      console.error(`[FAIL] N7 event ${file} must have brand_id = 'brand_demo_001', found '${parsed.brand_id}'`);
+      failed = true;
+    }
+
+    // Check event_type
+    if (!supportedEventTypes.includes(parsed.event_type)) {
+      console.error(`[FAIL] N7 event ${file} has unsupported event_type '${parsed.event_type}'`);
+      failed = true;
+    }
+
+  } catch (err) {
+    console.error(`[FAIL] Error parsing Phase N7 event example ${file}: ${err.message}`);
+    failed = true;
+  }
+});
+
+n7Outputs.forEach(file => {
+  const filePath = path.join(n7OutputsDir, file);
+  try {
+    const content = fs.readFileSync(filePath, 'utf8');
+    
+    if (content.toLowerCase().includes('vicuon') || content.includes('Vị Cuốn')) {
+      console.error(`[FAIL] N7 expected output ${file} contains Vị Cuốn / vicuon brand hardcoding`);
+      failed = true;
+    }
+    
+    if (content.includes('thecoreagency.com')) {
+      console.error(`[FAIL] N7 expected output ${file} contains production-like URL (thecoreagency.com)`);
+      failed = true;
+    }
+
+    const parsed = JSON.parse(content);
+    console.log(`[PASS] N7 expected output parses as valid JSON: n7/expected_outputs/${file}`);
+
+    // Required fields check
+    const required = [
+      'request_id', 'event_type', 'module_id', 'route_status',
+      'module_response', 'callback_preview', 'source', 'notes'
+    ];
+    required.forEach(f => {
+      if (parsed[f] === undefined) {
+        console.error(`[FAIL] N7 expected output ${file} is missing required field '${f}'`);
+        failed = true;
+      }
+    });
+
+  } catch (err) {
+    console.error(`[FAIL] Error parsing Phase N7 expected output example ${file}: ${err.message}`);
+    failed = true;
+  }
+});
+
+// Validate Phase N7 workflow JSON
+const n7WorkflowPath = path.join(baseDir, '../n8n-workflows/n7_full_multi_module_stub_integration.workflow.json');
+try {
+  const content = fs.readFileSync(n7WorkflowPath, 'utf8');
+  if (content.toLowerCase().includes('vicuon') || content.includes('Vị Cuốn')) {
+    console.error(`[FAIL] n7_full_multi_module_stub_integration.workflow.json contains Vị Cuốn / vicuon brand hardcoding`);
+    failed = true;
+  }
+  if (content.includes('thecoreagency.com')) {
+    console.error(`[FAIL] n7_full_multi_module_stub_integration.workflow.json contains production-like URLs`);
+    failed = true;
+  }
+  if (/api_key|secret|token/i.test(content) && !content.includes('workflow_engine')) {
+    console.error(`[FAIL] n7_full_multi_module_stub_integration.workflow.json contains suspicious secret keywords`);
+    failed = true;
+  }
+  
+  // Check local endpoint map
+  const expectedEndpoints = [
+    'localhost:8188/run',
+    'localhost:8191/run',
+    'localhost:8192/run',
+    'localhost:8193/run',
+    'localhost:8194/run'
+  ];
+  expectedEndpoints.forEach(ep => {
+    if (!content.includes(ep)) {
+      console.error(`[FAIL] n7_full_multi_module_stub_integration.workflow.json is missing local endpoint: ${ep}`);
+      failed = true;
+    } else {
+      console.log(`[PASS] n7 workflow contains local endpoint: ${ep}`);
+    }
+  });
+
+  JSON.parse(content);
+  console.log(`[PASS] n7_full_multi_module_stub_integration.workflow.json parses as valid JSON`);
+} catch (err) {
+  console.error(`[FAIL] Error parsing n7_full_multi_module_stub_integration.workflow.json: ${err.message}`);
+  failed = true;
+}
+
+
 if (failed) {
   console.error('--- CONTRACT VALIDATION CHECKS FAILED ---');
   process.exit(1);

@@ -70,3 +70,11 @@ This document lists all active specialist modules integrated under the PC2 works
 *   **current_mode:** `mock`
 *   **real_api_enabled:** `false`
 *   **owner_approval_required:** `true`
+
+---
+
+## Integration Notes (Phase N7)
+- The Phase N7 integration workflow (`n7_full_multi_module_stub_integration.workflow.json`) connects to these local stubs via their `POST /run` endpoints.
+- `real_api_enabled` remains `false` across all modules.
+- `owner_approval_required` remains `true` across all modules.
+- `current_mode` remains `mock` across all modules. No production URL or real-world actions are enabled.

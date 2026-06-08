@@ -1,0 +1,595 @@
+{
+  "name": "Phase N7 Full Multi-Module Stub Integration",
+  "nodes": [
+    {
+      "parameters": {},
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        100,
+        300
+      ],
+      "id": "manual-trigger"
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "contract_version",
+              "value": "n8n_event_router_v0.1"
+            },
+            {
+              "name": "event_type",
+              "value": "creative_asset.requested"
+            },
+            {
+              "name": "request_id",
+              "value": "782f9d5e-ca87-439f-a89c-8eb139f4a088"
+            },
+            {
+              "name": "brand_id",
+              "value": "brand_demo_001"
+            },
+            {
+              "name": "campaign_id",
+              "value": "campaign_demo_001"
+            },
+            {
+              "name": "requested_by",
+              "value": "user_demo_001@example.com"
+            },
+            {
+              "name": "callback_url",
+              "value": "http://localhost:5678/mock-callback"
+            }
+          ],
+          "other": [
+            {
+              "name": "payload",
+              "value": {
+                "asset_type": "image",
+                "creative_brief": "A modern co-working space banner with glassmorphism effects",
+                "dimensions": "1024x1024",
+                "style_notes": "Vibrant accents, futuristic neon lighting"
+              }
+            },
+            {
+              "name": "metadata",
+              "value": {
+                "client": "local_dev_test",
+                "workflow_engine": "n8n_v1"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Set: Mock Core Event",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        260,
+        300
+      ],
+      "id": "set-mock-event"
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = items[0].json;\nreturn [{\n  json: {\n    contract_version: body.contract_version || \"n8n_event_router_v0.1\",\n    event_type: body.event_type || \"creative_asset.requested\",\n    request_id: body.request_id || \"782f9d5e-ca87-439f-a89c-8eb139f4a088\",\n    brand_id: body.brand_id || \"brand_demo_001\",\n    campaign_id: body.campaign_id || \"campaign_demo_001\",\n    requested_by: body.requested_by || \"user_demo_001@example.com\",\n    callback_url: body.callback_url || \"http://localhost:5678/mock-callback\",\n    payload: body.payload || {},\n    metadata: body.metadata || {}\n  }\n}];"
+      },
+      "name": "Code: Normalize Event Envelope",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        420,
+        300
+      ],
+      "id": "code-normalize"
+    },
+    {
+      "parameters": {
+        "dataType": "string",
+        "value1": "={{ $json.event_type }}",
+        "rules": {
+          "rules": [
+            {
+              "value2": "creative_asset.requested"
+            },
+            {
+              "value2": "content_pack.requested"
+            },
+            {
+              "value2": "ads_pack.requested"
+            },
+            {
+              "value2": "crm_followup.requested"
+            },
+            {
+              "value2": "analytics_report.requested"
+            }
+          ]
+        }
+      },
+      "name": "Switch: Route by event_type",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [
+        580,
+        300
+      ],
+      "id": "switch-route"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:8188/run",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"event_id\": \"{{ $json.request_id }}\",\n  \"event_type\": \"COMFYUI_GENERATION_REQUESTED\",\n  \"correlation_id\": \"c92a7e2b-f11a-4bc2-812d-98ba29a28e3b\",\n  \"brand_id\": \"{{ $json.brand_id }}\",\n  \"campaign_id\": \"{{ $json.campaign_id }}\",\n  \"job_id\": \"job_demo_001\",\n  \"module_name\": \"creative_asset_comfyui\",\n  \"callback_url\": \"{{ $json.callback_url }}\",\n  \"created_at\": \"{{ new Date().toISOString() }}\",\n  \"payload\": {{ JSON.stringify($json.payload) }},\n  \"safety\": {\n    \"requires_approval\": true,\n    \"final_approval_granted\": true,\n    \"allow_real_world_action\": true,\n    \"allow_auto_publish\": false,\n    \"allow_ads_spend\": false,\n    \"allow_customer_messaging\": false\n  }\n}",
+        "options": {}
+      },
+      "name": "HTTP Request: POST ComfyUI Stub /run",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        800,
+        100
+      ],
+      "id": "http-comfyui"
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = items[0].json;\nconst originalEvent = $node[\"Code: Normalize Event Envelope\"].json;\nreturn [{\n  json: {\n    request_id: originalEvent.request_id,\n    event_type: originalEvent.event_type,\n    module_id: \"creative_asset_comfyui\",\n    route_status: \"completed_mock\",\n    module_response: response,\n    callback_preview: {\n      request_id: originalEvent.request_id,\n      event_type: originalEvent.event_type,\n      module_id: \"creative_asset_comfyui\",\n      status: \"mock_completed\",\n      output: {\n        asset_preview: \"mock://assets/workspace_generated_001.png\",\n        mock_asset_url: \"mock://assets/workspace_generated_001.png\",\n        mock_output_path: \"storage/assets/placeholder_workspace_001.png\"\n      },\n      errors: [],\n      source: \"n8n_n7_full_multi_module_stub_integration\",\n      generated_at: new Date().toISOString(),\n      notes: \"This is a local ComfyUI stub mock response.\"\n    },\n    source: \"n8n_n7_full_multi_module_stub_integration\",\n    notes: \"Successfully integrated with ComfyUI pipeline.\"\n  }\n}];"
+      },
+      "name": "Code: Prepare Creative Callback Preview",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        1000,
+        100
+      ],
+      "id": "prep-creative-callback"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:8191/run",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"request_id\": \"{{ $json.request_id }}\",\n  \"brand_id\": \"{{ $json.brand_id }}\",\n  \"campaign_id\": \"{{ $json.campaign_id }}\",\n  \"payload\": {{ JSON.stringify($json.payload) }},\n  \"metadata\": {{ JSON.stringify($json.metadata) }}\n}",
+        "options": {}
+      },
+      "name": "HTTP Request: POST Content Pack Generator /run",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        800,
+        220
+      ],
+      "id": "http-content-pack"
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = items[0].json;\nconst originalEvent = $node[\"Code: Normalize Event Envelope\"].json;\nreturn [{\n  json: {\n    request_id: originalEvent.request_id,\n    event_type: originalEvent.event_type,\n    module_id: \"content_pack_generator\",\n    route_status: \"completed_mock\",\n    module_response: response,\n    callback_preview: {\n      request_id: originalEvent.request_id,\n      event_type: originalEvent.event_type,\n      module_id: \"content_pack_generator\",\n      status: response.status || \"mock_completed\",\n      output: response.output || {},\n      errors: [],\n      source: \"n8n_n7_full_multi_module_stub_integration\",\n      generated_at: new Date().toISOString(),\n      notes: \"Unified mock callback preview.\"\n    },\n    source: \"n8n_n7_full_multi_module_stub_integration\",\n    notes: \"Successfully integrated with content_pack_generator.\"\n  }\n}];"
+      },
+      "name": "Code: Prepare Content Callback Preview",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        1000,
+        220
+      ],
+      "id": "prep-content-callback"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:8192/run",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"request_id\": \"{{ $json.request_id }}\",\n  \"brand_id\": \"{{ $json.brand_id }}\",\n  \"campaign_id\": \"{{ $json.campaign_id }}\",\n  \"payload\": {{ JSON.stringify($json.payload) }},\n  \"metadata\": {{ JSON.stringify($json.metadata) }}\n}",
+        "options": {}
+      },
+      "name": "HTTP Request: POST Ads Pack Generator /run",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        800,
+        340
+      ],
+      "id": "http-ads-pack"
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = items[0].json;\nconst originalEvent = $node[\"Code: Normalize Event Envelope\"].json;\nreturn [{\n  json: {\n    request_id: originalEvent.request_id,\n    event_type: originalEvent.event_type,\n    module_id: \"ads_pack_generator\",\n    route_status: \"completed_mock\",\n    module_response: response,\n    callback_preview: {\n      request_id: originalEvent.request_id,\n      event_type: originalEvent.event_type,\n      module_id: \"ads_pack_generator\",\n      status: response.status || \"mock_completed\",\n      output: response.output || {},\n      errors: [],\n      source: \"n8n_n7_full_multi_module_stub_integration\",\n      generated_at: new Date().toISOString(),\n      notes: \"Unified mock callback preview.\"\n    },\n    source: \"n8n_n7_full_multi_module_stub_integration\",\n    notes: \"Successfully integrated with ads_pack_generator.\"\n  }\n}];"
+      },
+      "name": "Code: Prepare Ads Callback Preview",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        1000,
+        340
+      ],
+      "id": "prep-ads-callback"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:8193/run",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"request_id\": \"{{ $json.request_id }}\",\n  \"brand_id\": \"{{ $json.brand_id }}\",\n  \"campaign_id\": \"{{ $json.campaign_id }}\",\n  \"payload\": {{ JSON.stringify($json.payload) }},\n  \"metadata\": {{ JSON.stringify($json.metadata) }}\n}",
+        "options": {}
+      },
+      "name": "HTTP Request: POST CRM Follow-up Generator /run",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        800,
+        460
+      ],
+      "id": "http-crm-followup"
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = items[0].json;\nconst originalEvent = $node[\"Code: Normalize Event Envelope\"].json;\nreturn [{\n  json: {\n    request_id: originalEvent.request_id,\n    event_type: originalEvent.event_type,\n    module_id: \"crm_followup_generator\",\n    route_status: \"completed_mock\",\n    module_response: response,\n    callback_preview: {\n      request_id: originalEvent.request_id,\n      event_type: originalEvent.event_type,\n      module_id: \"crm_followup_generator\",\n      status: response.status || \"mock_completed\",\n      output: response.output || {},\n      errors: [],\n      source: \"n8n_n7_full_multi_module_stub_integration\",\n      generated_at: new Date().toISOString(),\n      notes: \"Unified mock callback preview.\"\n    },\n    source: \"n8n_n7_full_multi_module_stub_integration\",\n    notes: \"Successfully integrated with crm_followup_generator.\"\n  }\n}];"
+      },
+      "name": "Code: Prepare CRM Callback Preview",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        1000,
+        460
+      ],
+      "id": "prep-crm-callback"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:8194/run",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"request_id\": \"{{ $json.request_id }}\",\n  \"brand_id\": \"{{ $json.brand_id }}\",\n  \"campaign_id\": \"{{ $json.campaign_id }}\",\n  \"payload\": {{ JSON.stringify($json.payload) }},\n  \"metadata\": {{ JSON.stringify($json.metadata) }}\n}",
+        "options": {}
+      },
+      "name": "HTTP Request: POST Analytics Report Generator /run",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        800,
+        580
+      ],
+      "id": "http-analytics"
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = items[0].json;\nconst originalEvent = $node[\"Code: Normalize Event Envelope\"].json;\nreturn [{\n  json: {\n    request_id: originalEvent.request_id,\n    event_type: originalEvent.event_type,\n    module_id: \"analytics_report_generator\",\n    route_status: \"completed_mock\",\n    module_response: response,\n    callback_preview: {\n      request_id: originalEvent.request_id,\n      event_type: originalEvent.event_type,\n      module_id: \"analytics_report_generator\",\n      status: response.status || \"mock_completed\",\n      output: response.output || {},\n      errors: [],\n      source: \"n8n_n7_full_multi_module_stub_integration\",\n      generated_at: new Date().toISOString(),\n      notes: \"Unified mock callback preview.\"\n    },\n    source: \"n8n_n7_full_multi_module_stub_integration\",\n    notes: \"Successfully integrated with analytics_report_generator.\"\n  }\n}];"
+      },
+      "name": "Code: Prepare Analytics Callback Preview",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        1000,
+        580
+      ],
+      "id": "prep-analytics-callback"
+    },
+    {
+      "parameters": {
+        "jsCode": "const originalEvent = $node[\"Code: Normalize Event Envelope\"].json;\nreturn [{\n  json: {\n    request_id: originalEvent.request_id,\n    event_type: originalEvent.event_type,\n    module_id: \"unsupported\",\n    route_status: \"unsupported_event_type\",\n    module_response: null,\n    callback_preview: null,\n    source: \"n8n_n7_full_multi_module_stub_integration\",\n    notes: `Unsupported event type: ${originalEvent.event_type}`\n  }\n}];"
+      },
+      "name": "Code: Handle Unsupported Event Type",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        800,
+        700
+      ],
+      "id": "handle-unsupported-event"
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "request_id",
+              "value": "={{ $json.request_id }}"
+            },
+            {
+              "name": "event_type",
+              "value": "={{ $json.event_type }}"
+            },
+            {
+              "name": "module_id",
+              "value": "={{ $json.module_id }}"
+            },
+            {
+              "name": "route_status",
+              "value": "={{ $json.route_status }}"
+            },
+            {
+              "name": "source",
+              "value": "={{ $json.source }}"
+            },
+            {
+              "name": "notes",
+              "value": "={{ $json.notes }}"
+            }
+          ],
+          "other": [
+            {
+              "name": "module_response",
+              "value": "={{ $json.module_response }}"
+            },
+            {
+              "name": "callback_preview",
+              "value": "={{ $json.callback_preview }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Respond / Output Unified Result",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        1250,
+        400
+      ],
+      "id": "respond-output-result"
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Set: Mock Core Event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set: Mock Core Event": {
+      "main": [
+        [
+          {
+            "node": "Code: Normalize Event Envelope",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Normalize Event Envelope": {
+      "main": [
+        [
+          {
+            "node": "Switch: Route by event_type",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch: Route by event_type": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request: POST ComfyUI Stub /run",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request: POST Content Pack Generator /run",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request: POST Ads Pack Generator /run",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request: POST CRM Follow-up Generator /run",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request: POST Analytics Report Generator /run",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code: Handle Unsupported Event Type",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request: POST ComfyUI Stub /run": {
+      "main": [
+        [
+          {
+            "node": "Code: Prepare Creative Callback Preview",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Prepare Creative Callback Preview": {
+      "main": [
+        [
+          {
+            "node": "Respond / Output Unified Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request: POST Content Pack Generator /run": {
+      "main": [
+        [
+          {
+            "node": "Code: Prepare Content Callback Preview",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Prepare Content Callback Preview": {
+      "main": [
+        [
+          {
+            "node": "Respond / Output Unified Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request: POST Ads Pack Generator /run": {
+      "main": [
+        [
+          {
+            "node": "Code: Prepare Ads Callback Preview",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Prepare Ads Callback Preview": {
+      "main": [
+        [
+          {
+            "node": "Respond / Output Unified Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request: POST CRM Follow-up Generator /run": {
+      "main": [
+        [
+          {
+            "node": "Code: Prepare CRM Callback Preview",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Prepare CRM Callback Preview": {
+      "main": [
+        [
+          {
+            "node": "Respond / Output Unified Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request: POST Analytics Report Generator /run": {
+      "main": [
+        [
+          {
+            "node": "Code: Prepare Analytics Callback Preview",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Prepare Analytics Callback Preview": {
+      "main": [
+        [
+          {
+            "node": "Respond / Output Unified Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Handle Unsupported Event Type": {
+      "main": [
+        [
+          {
+            "node": "Respond / Output Unified Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionTimeout": 3600
+  }
+}
