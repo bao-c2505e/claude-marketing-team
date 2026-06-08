@@ -1,0 +1,78 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ModuleToCoreCallback",
+  "description": "Callback schema sent from a module or n8n back to the Core webhook",
+  "type": "object",
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique identifier for the callback event"
+    },
+    "correlation_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "ID used to track the transaction flow across multiple services"
+    },
+    "job_id": {
+      "type": "string",
+      "description": "Identifier for the specific background job"
+    },
+    "module_name": {
+      "type": "string",
+      "description": "Name of the specialized module that executed the task"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["SUCCESS", "FAILED", "REJECTED_BY_SAFETY"],
+      "description": "Execution status of the task"
+    },
+    "payload": {
+      "type": "object",
+      "description": "Output data (e.g. generated assets, links, errors, etc.)"
+    },
+    "safety": {
+      "type": "object",
+      "description": "Safety evaluation and audit logs from execution",
+      "properties": {
+        "requires_approval": {
+          "type": "boolean"
+        },
+        "final_approval_granted": {
+          "type": "boolean"
+        },
+        "allow_real_world_action": {
+          "type": "boolean"
+        },
+        "allow_auto_publish": {
+          "type": "boolean"
+        },
+        "allow_ads_spend": {
+          "type": "boolean"
+        },
+        "allow_customer_messaging": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "requires_approval",
+        "final_approval_granted",
+        "allow_real_world_action",
+        "allow_auto_publish",
+        "allow_ads_spend",
+        "allow_customer_messaging"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "event_id",
+    "correlation_id",
+    "job_id",
+    "module_name",
+    "status",
+    "payload",
+    "safety"
+  ],
+  "additionalProperties": false
+}

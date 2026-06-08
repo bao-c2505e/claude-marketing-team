@@ -1,0 +1,167 @@
+{
+  "name": "Approved Design to ComfyUI",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "design-to-comfyui",
+        "options": {}
+      },
+      "name": "Webhook: Design Request",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        100,
+        300
+      ],
+      "id": "webhook-design-request"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.body.safety.requires_approval }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "name": "IF: Requires Approval?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        300,
+        300
+      ],
+      "id": "if-requires-approval"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.body.safety.final_approval_granted }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "name": "IF: Final Approval Granted?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        500,
+        200
+      ],
+      "id": "if-approval-granted"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:8188/api/v1/comfyui-pipeline/generate",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"correlation_id\": \"{{ $json.body.correlation_id }}\",\n  \"job_id\": \"{{ $json.body.job_id }}\",\n  \"callback_url\": \"{{ $json.body.callback_url }}\",\n  \"payload\": {\n    \"prompt\": \"{{ $json.body.payload.prompt }}\",\n    \"negative_prompt\": \"{{ $json.body.payload.negative_prompt }}\",\n    \"steps\": {{ $json.body.payload.steps || 20 }},\n    \"workflow\": \"{{ $json.body.payload.workflow }}\"\n  },\n  \"safety\": {{ JSON.stringify($json.body.safety) }}\n}",
+        "options": {}
+      },
+      "name": "HTTP: Call ComfyUI API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        800,
+        150
+      ],
+      "id": "http-call-comfyui-api"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.body.callback_url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"event_id\": \"{{ $uuid }}\",\n  \"correlation_id\": \"{{ $json.body.correlation_id }}\",\n  \"job_id\": \"{{ $json.body.job_id }}\",\n  \"module_name\": \"comfyui-pipeline\",\n  \"status\": \"REJECTED_BY_SAFETY\",\n  \"payload\": {\n    \"error\": \"Action blocked: Requires approval but final_approval_granted is false.\"\n  },\n  \"safety\": {{ JSON.stringify($json.body.safety) }}\n}",
+        "options": {}
+      },
+      "name": "HTTP: Callback Safety Rejected",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        800,
+        450
+      ],
+      "id": "http-callback-safety-rejected"
+    }
+  ],
+  "connections": {
+    "Webhook: Design Request": {
+      "main": [
+        [
+          {
+            "node": "IF: Requires Approval?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: Requires Approval?": {
+      "main": [
+        [
+          {
+            "node": "IF: Final Approval Granted?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP: Call ComfyUI API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: Final Approval Granted?": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Call ComfyUI API",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP: Callback Safety Rejected",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionTimeout": 3600
+  }
+}

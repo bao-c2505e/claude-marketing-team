@@ -1,0 +1,88 @@
+{
+  "name": "Module Result Callback to Core",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "module-callback",
+        "options": {}
+      },
+      "name": "Webhook: Receive Callback",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        100,
+        300
+      ],
+      "id": "webhook-receive-callback"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Validate the module callback conforms to schema\nconst body = items[0].json.body;\nif (!body.correlation_id || !body.job_id || !body.module_name || !body.status) {\n  throw new Error('Invalid callback structure: Missing required fields');\n}\nreturn [{\n  json: {\n    ...body,\n    validated_at: new Date().toISOString()\n  }\n}];"
+      },
+      "name": "Code: Validate Callback Schema",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        300,
+        300
+      ],
+      "id": "code-validate-callback"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:3000/api/v1/webhooks/module-callback",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"event_id\": \"{{ $json.event_id || $uuid }}\",\n  \"correlation_id\": \"{{ $json.correlation_id }}\",\n  \"job_id\": \"{{ $json.job_id }}\",\n  \"module_name\": \"{{ $json.module_name }}\",\n  \"status\": \"{{ $json.status }}\",\n  \"payload\": {{ JSON.stringify($json.payload) }},\n  \"safety\": {{ JSON.stringify($json.safety) }}\n}",
+        "options": {}
+      },
+      "name": "HTTP: Post to Core Callback API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        550,
+        300
+      ],
+      "id": "http-post-to-core"
+    }
+  ],
+  "connections": {
+    "Webhook: Receive Callback": {
+      "main": [
+        [
+          {
+            "node": "Code: Validate Callback Schema",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Validate Callback Schema": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Post to Core Callback API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionTimeout": 3600
+  }
+}

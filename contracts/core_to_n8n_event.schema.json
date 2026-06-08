@@ -1,0 +1,94 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CoreToN8nEvent",
+  "description": "Event schema sent from Core Product to n8n automation backbone",
+  "type": "object",
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique identifier for the event"
+    },
+    "event_type": {
+      "type": "string",
+      "description": "Type of event (e.g. CAMPAIGN_CREATED, DESIGN_REQUESTED)"
+    },
+    "correlation_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "ID used to track the transaction flow across multiple services"
+    },
+    "brand_id": {
+      "type": "string",
+      "description": "Identifier for the target brand"
+    },
+    "campaign_id": {
+      "type": "string",
+      "description": "Identifier for the target campaign"
+    },
+    "job_id": {
+      "type": "string",
+      "description": "Identifier for the specific background job"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO timestamp when the event was created"
+    },
+    "payload": {
+      "type": "object",
+      "description": "Specific event data payload, dynamic per event_type"
+    },
+    "safety": {
+      "type": "object",
+      "description": "Safety controls and approval flags for the event",
+      "properties": {
+        "requires_approval": {
+          "type": "boolean",
+          "description": "Indicates if the action requires manual human approval"
+        },
+        "final_approval_granted": {
+          "type": "boolean",
+          "description": "Indicates if final approval has been granted"
+        },
+        "allow_real_world_action": {
+          "type": "boolean",
+          "description": "Global safety switch to allow actions in the real world"
+        },
+        "allow_auto_publish": {
+          "type": "boolean",
+          "description": "Specific flag to allow auto-publishing content"
+        },
+        "allow_ads_spend": {
+          "type": "boolean",
+          "description": "Specific flag to allow advertising spend"
+        },
+        "allow_customer_messaging": {
+          "type": "boolean",
+          "description": "Specific flag to allow messaging real customers"
+        }
+      },
+      "required": [
+        "requires_approval",
+        "final_approval_granted",
+        "allow_real_world_action",
+        "allow_auto_publish",
+        "allow_ads_spend",
+        "allow_customer_messaging"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "event_id",
+    "event_type",
+    "correlation_id",
+    "brand_id",
+    "campaign_id",
+    "job_id",
+    "created_at",
+    "payload",
+    "safety"
+  ],
+  "additionalProperties": false
+}

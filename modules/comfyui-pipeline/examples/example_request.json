@@ -1,0 +1,20 @@
+{
+  "correlation_id": "a6b1897c-9cfb-4e12-bbf7-9f6cd9ab58e6",
+  "job_id": "job_comfyui_987654",
+  "module_name": "comfyui-pipeline",
+  "callback_url": "http://localhost:5678/webhook/module-callback",
+  "payload": {
+    "prompt": "Vibrant and aesthetic workspace backdrop with a coffee cup, glassmorphism design, Outfit font overlay saying 'Claude Code'",
+    "negative_prompt": "ugly, text distortion, low resolution, bad layout",
+    "workflow": "aesthetic_workspace_v2",
+    "steps": 30
+  },
+  "safety": {
+    "requires_approval": true,
+    "final_approval_granted": true,
+    "allow_real_world_action": true,
+    "allow_auto_publish": false,
+    "allow_ads_spend": false,
+    "allow_customer_messaging": false
+  }
+}

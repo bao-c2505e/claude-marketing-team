@@ -1,0 +1,73 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ApprovalEvent",
+  "description": "Event schema representing human approval updates sent from Core",
+  "type": "object",
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique identifier for the approval event"
+    },
+    "correlation_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "ID used to track the transaction flow across multiple services"
+    },
+    "job_id": {
+      "type": "string",
+      "description": "Identifier for the specific background job being approved"
+    },
+    "approval_status": {
+      "type": "string",
+      "enum": ["APPROVED", "REJECTED", "PENDING"],
+      "description": "The approval decision from the Core UI"
+    },
+    "requested_by": {
+      "type": "string",
+      "description": "User identifier of the person who made the decision"
+    },
+    "safety": {
+      "type": "object",
+      "description": "Resulting safety permissions granted by this approval decision",
+      "properties": {
+        "requires_approval": {
+          "type": "boolean"
+        },
+        "final_approval_granted": {
+          "type": "boolean"
+        },
+        "allow_real_world_action": {
+          "type": "boolean"
+        },
+        "allow_auto_publish": {
+          "type": "boolean"
+        },
+        "allow_ads_spend": {
+          "type": "boolean"
+        },
+        "allow_customer_messaging": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "requires_approval",
+        "final_approval_granted",
+        "allow_real_world_action",
+        "allow_auto_publish",
+        "allow_ads_spend",
+        "allow_customer_messaging"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "event_id",
+    "correlation_id",
+    "job_id",
+    "approval_status",
+    "requested_by",
+    "safety"
+  ],
+  "additionalProperties": false
+}

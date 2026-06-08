@@ -1,0 +1,72 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "N8nToModuleRequest",
+  "description": "Request schema sent from n8n to specialized modules",
+  "type": "object",
+  "properties": {
+    "correlation_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "ID used to track the transaction flow across multiple services"
+    },
+    "job_id": {
+      "type": "string",
+      "description": "Identifier for the specific background job"
+    },
+    "module_name": {
+      "type": "string",
+      "description": "Name of the target specialized module"
+    },
+    "callback_url": {
+      "type": "string",
+      "format": "uri",
+      "description": "Webhook URL where the module should post its results/callbacks"
+    },
+    "payload": {
+      "type": "object",
+      "description": "Input parameters for the specialized module"
+    },
+    "safety": {
+      "type": "object",
+      "description": "Safety status propagated by n8n",
+      "properties": {
+        "requires_approval": {
+          "type": "boolean"
+        },
+        "final_approval_granted": {
+          "type": "boolean"
+        },
+        "allow_real_world_action": {
+          "type": "boolean"
+        },
+        "allow_auto_publish": {
+          "type": "boolean"
+        },
+        "allow_ads_spend": {
+          "type": "boolean"
+        },
+        "allow_customer_messaging": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "requires_approval",
+        "final_approval_granted",
+        "allow_real_world_action",
+        "allow_auto_publish",
+        "allow_ads_spend",
+        "allow_customer_messaging"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "correlation_id",
+    "job_id",
+    "module_name",
+    "callback_url",
+    "payload",
+    "safety"
+  ],
+  "additionalProperties": false
+}

@@ -1,0 +1,218 @@
+{
+  "name": "Core Event Router",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "core-events",
+        "options": {}
+      },
+      "name": "Webhook: Receive from Core",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        100,
+        300
+      ],
+      "id": "webhook-receive-core"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Validate core_to_n8n_event payload structure and safety flags\nconst body = items[0].json.body;\n\nif (!body.event_id || !body.event_type || !body.safety) {\n  throw new Error('Invalid payload: Missing core_to_n8n_event properties');\n}\n\n// Propagate safety flags into workflow parameters\nreturn [{\n  json: {\n    ...body,\n    safety_validated: true\n  }\n}];"
+      },
+      "name": "Code: Validate & Prep Payload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        300,
+        300
+      ],
+      "id": "code-validate-payload"
+    },
+    {
+      "parameters": {
+        "dataType": "string",
+        "value1": "={{ $json.event_type }}",
+        "rules": {
+          "rules": [
+            {
+              "value2": "DESIGN_REQUEST",
+              "output": 0
+            },
+            {
+              "value2": "CAMPAIGN_PUBLISH",
+              "output": 1
+            },
+            {
+              "value2": "ADS_SPEND_TRIGGER",
+              "output": 2
+            }
+          ]
+        },
+        "fallbackOutput": 3
+      },
+      "name": "Switch: Event Type Router",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [
+        500,
+        300
+      ],
+      "id": "switch-router"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:5678/api/v1/workflows/approved-design-to-comfyui",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"correlation_id\": \"{{ $json.correlation_id }}\",\n  \"job_id\": \"{{ $json.job_id }}\",\n  \"module_name\": \"comfyui-pipeline\",\n  \"callback_url\": \"http://localhost:5678/webhook/module-callback\",\n  \"payload\": {{ JSON.stringify($json.payload) }},\n  \"safety\": {{ JSON.stringify($json.safety) }}\n}",
+        "options": {}
+      },
+      "name": "HTTP: Trigger ComfyUI Workflow",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        800,
+        150
+      ],
+      "id": "http-trigger-comfyui"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:8000/api/v1/modules/facebook-publisher/publish",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"correlation_id\": \"{{ $json.correlation_id }}\",\n  \"job_id\": \"{{ $json.job_id }}\",\n  \"module_name\": \"facebook-publisher\",\n  \"callback_url\": \"http://localhost:5678/webhook/module-callback\",\n  \"payload\": {{ JSON.stringify($json.payload) }},\n  \"safety\": {{ JSON.stringify($json.safety) }}\n}",
+        "options": {}
+      },
+      "name": "HTTP: Invoke FB Publisher Module",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        800,
+        300
+      ],
+      "id": "http-trigger-fb"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:8000/api/v1/modules/meta-ads-connector/spend",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"correlation_id\": \"{{ $json.correlation_id }}\",\n  \"job_id\": \"{{ $json.job_id }}\",\n  \"module_name\": \"meta-ads-connector\",\n  \"callback_url\": \"http://localhost:5678/webhook/module-callback\",\n  \"payload\": {{ JSON.stringify($json.payload) }},\n  \"safety\": {{ JSON.stringify($json.safety) }}\n}",
+        "options": {}
+      },
+      "name": "HTTP: Invoke Meta Ads Connector",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        800,
+        450
+      ],
+      "id": "http-trigger-meta-ads"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{\n  json: {\n    status: \"ignored\",\n    message: \"Unhandled event type: \" + items[0].json.event_type\n  }\n}];"
+      },
+      "name": "Code: Fallback Ignored",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        800,
+        600
+      ],
+      "id": "code-fallback"
+    }
+  ],
+  "connections": {
+    "Webhook: Receive from Core": {
+      "main": [
+        [
+          {
+            "node": "Code: Validate & Prep Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Validate & Prep Payload": {
+      "main": [
+        [
+          {
+            "node": "Switch: Event Type Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch: Event Type Router": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Trigger ComfyUI Workflow",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP: Invoke FB Publisher Module",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP: Invoke Meta Ads Connector",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code: Fallback Ignored",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionTimeout": 3600
+  }
+}
