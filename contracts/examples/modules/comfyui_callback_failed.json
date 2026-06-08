@@ -1,0 +1,19 @@
+{
+  "event_id": "0bc19b38-d6a1-432d-be28-a6e5b4528c11",
+  "correlation_id": "18f94e96-a83d-4c3e-8c34-77e8a9394fa9",
+  "job_id": "job_demo_001",
+  "module_name": "comfyui-pipeline",
+  "status": "FAILED",
+  "payload": {
+    "module_run_id": "run_comfyui_demo_001",
+    "error": "ComfyUI server connection timed out after 30 seconds."
+  },
+  "safety": {
+    "requires_approval": true,
+    "final_approval_granted": true,
+    "allow_real_world_action": true,
+    "allow_auto_publish": false,
+    "allow_ads_spend": false,
+    "allow_customer_messaging": false
+  }
+}

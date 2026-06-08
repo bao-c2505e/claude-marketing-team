@@ -209,6 +209,69 @@ try {
   failed = true;
 }
 
+// Additional module examples validation
+const modulesExamplesDir = path.join(examplesDir, 'modules');
+const moduleExamples = [
+  'comfyui_run_request.json',
+  'comfyui_sync_response.json',
+  'comfyui_callback_completed.json',
+  'comfyui_callback_failed.json',
+  'publisher_rejected_by_safety.json',
+  'meta_ads_rejected_by_safety.json'
+];
+
+moduleExamples.forEach(moduleExampleFile => {
+  const filePath = path.join(modulesExamplesDir, moduleExampleFile);
+  try {
+    const content = fs.readFileSync(filePath, 'utf8');
+    
+    // Check no "vicuon" or "Vị Cuốn" hardcoding is present
+    if (content.toLowerCase().includes('vicuon') || content.includes('Vị Cuốn')) {
+      console.error(`[FAIL] Example '${moduleExampleFile}' contains Vị Cuốn / vicuon brand hardcoding`);
+      failed = true;
+    } else {
+      console.log(`[PASS] Example '${moduleExampleFile}' does not contain brand hardcoding`);
+    }
+
+    const parsed = JSON.parse(content);
+    console.log(`[PASS] Example parses as valid JSON: modules/${moduleExampleFile}`);
+
+    // Rejected safety checks
+    if (moduleExampleFile.endsWith('rejected_by_safety.json')) {
+      if (parsed.status !== 'REJECTED_BY_SAFETY') {
+        console.error(`[FAIL] '${moduleExampleFile}' must have status = 'REJECTED_BY_SAFETY'`);
+        failed = true;
+      }
+    }
+
+    // ComfyUI run request checks
+    if (moduleExampleFile === 'comfyui_run_request.json') {
+      const requiredRunRequestFields = ['safety', 'callback_url', 'correlation_id', 'job_id'];
+      requiredRunRequestFields.forEach(f => {
+        if (parsed[f] === undefined) {
+          console.error(`[FAIL] comfyui_run_request.json is missing required field '${f}'`);
+          failed = true;
+        }
+      });
+    }
+
+  } catch (err) {
+    console.error(`[FAIL] Error parsing module example ${moduleExampleFile}: ${err.message}`);
+    failed = true;
+  }
+});
+
+// Validate modules package files
+const comfyuiPackagePath = path.join(baseDir, '../modules/comfyui-pipeline/package.json');
+try {
+  const packageContent = fs.readFileSync(comfyuiPackagePath, 'utf8');
+  JSON.parse(packageContent);
+  console.log(`[PASS] comfyui-pipeline package.json parses as valid JSON`);
+} catch (err) {
+  console.error(`[FAIL] Error parsing comfyui-pipeline package.json: ${err.message}`);
+  failed = true;
+}
+
 if (failed) {
   console.error('--- CONTRACT VALIDATION CHECKS FAILED ---');
   process.exit(1);

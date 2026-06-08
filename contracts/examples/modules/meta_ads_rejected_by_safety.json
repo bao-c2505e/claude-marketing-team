@@ -1,0 +1,19 @@
+{
+  "event_id": "c92a7e2b-f11a-4bc2-812d-98ba29a28e3b",
+  "correlation_id": "18f94e96-a83d-4c3e-8c34-77e8a9394fa9",
+  "job_id": "job_demo_001",
+  "module_name": "meta-ads-connector",
+  "status": "REJECTED_BY_SAFETY",
+  "payload": {
+    "reason": "Module-level safety gate blocked advertising spend.",
+    "error": "Requires allow_ads_spend flag to be true."
+  },
+  "safety": {
+    "requires_approval": true,
+    "final_approval_granted": true,
+    "allow_real_world_action": true,
+    "allow_auto_publish": false,
+    "allow_ads_spend": false,
+    "allow_customer_messaging": false
+  }
+}

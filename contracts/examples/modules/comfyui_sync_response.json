@@ -1,0 +1,5 @@
+{
+  "status": "QUEUED",
+  "module_run_id": "run_comfyui_demo_001",
+  "message": "ComfyUI generation task has been successfully parsed and queued."
+}

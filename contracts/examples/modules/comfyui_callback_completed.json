@@ -1,0 +1,27 @@
+{
+  "event_id": "aa9f36b2-6db8-49f3-85b2-3c2dbd11e847",
+  "correlation_id": "18f94e96-a83d-4c3e-8c34-77e8a9394fa9",
+  "job_id": "job_demo_001",
+  "module_name": "comfyui-pipeline",
+  "status": "COMPLETED",
+  "payload": {
+    "module_run_id": "run_comfyui_demo_001",
+    "asset_url": "https://storage.thecoreagency.com/assets/workspace_generated_001.png",
+    "asset_type": "image/png",
+    "generation_params": {
+      "prompt": "A modern workspace mockup, dark theme, glassmorphism UI overlay",
+      "sampler": "dpmpp_2m_sde",
+      "steps": 25,
+      "seed": 987654321
+    },
+    "file_placeholder": "storage/assets/placeholder_workspace_001.png"
+  },
+  "safety": {
+    "requires_approval": true,
+    "final_approval_granted": true,
+    "allow_real_world_action": true,
+    "allow_auto_publish": false,
+    "allow_ads_spend": false,
+    "allow_customer_messaging": false
+  }
+}

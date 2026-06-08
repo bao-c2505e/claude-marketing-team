@@ -1,0 +1,19 @@
+{
+  "event_id": "7b8e1f2a-d68a-40a2-921d-91b3fa102cd3",
+  "correlation_id": "18f94e96-a83d-4c3e-8c34-77e8a9394fa9",
+  "job_id": "job_demo_001",
+  "module_name": "facebook-publisher",
+  "status": "REJECTED_BY_SAFETY",
+  "payload": {
+    "reason": "Module-level safety gate blocked Facebook publishing.",
+    "error": "Requires allow_auto_publish flag to be true."
+  },
+  "safety": {
+    "requires_approval": true,
+    "final_approval_granted": false,
+    "allow_real_world_action": true,
+    "allow_auto_publish": false,
+    "allow_ads_spend": false,
+    "allow_customer_messaging": false
+  }
+}

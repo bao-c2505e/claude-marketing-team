@@ -1,0 +1,25 @@
+{
+  "event_id": "9b7a421e-ea14-48f1-8cb5-7eb77c8e9b88",
+  "event_type": "COMFYUI_GENERATION_REQUESTED",
+  "correlation_id": "18f94e96-a83d-4c3e-8c34-77e8a9394fa9",
+  "brand_id": "brand_demo_001",
+  "campaign_id": "campaign_demo_001",
+  "job_id": "job_demo_001",
+  "module_name": "comfyui-pipeline",
+  "callback_url": "http://localhost:5678/webhook/module-callback",
+  "created_at": "2026-06-08T14:48:00Z",
+  "payload": {
+    "prompt": "A modern workspace mockup, dark theme, glassmorphism UI overlay",
+    "negative_prompt": "ugly, blurry, low resolution",
+    "steps": 25,
+    "workflow": "workspace_creative_v1"
+  },
+  "safety": {
+    "requires_approval": true,
+    "final_approval_granted": true,
+    "allow_real_world_action": true,
+    "allow_auto_publish": false,
+    "allow_ads_spend": false,
+    "allow_customer_messaging": false
+  }
+}
