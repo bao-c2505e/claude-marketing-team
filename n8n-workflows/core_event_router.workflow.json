@@ -22,31 +22,57 @@
           "string": [
             {
               "name": "event_id",
-              "value": "={{ $json.body.event_id }}"
+              "value": "={{ $json.body?.event_id || $json.event_id }}"
             },
             {
               "name": "event_type",
-              "value": "={{ $json.body.event_type }}"
+              "value": "={{ $json.body?.event_type || $json.event_type }}"
             },
             {
               "name": "correlation_id",
-              "value": "={{ $json.body.correlation_id }}"
+              "value": "={{ $json.body?.correlation_id || $json.correlation_id }}"
             },
             {
               "name": "brand_id",
-              "value": "={{ $json.body.brand_id }}"
+              "value": "={{ $json.body?.brand_id || $json.brand_id }}"
             },
             {
               "name": "campaign_id",
-              "value": "={{ $json.body.campaign_id }}"
+              "value": "={{ $json.body?.campaign_id || $json.campaign_id }}"
             },
             {
               "name": "job_id",
-              "value": "={{ $json.body.job_id }}"
+              "value": "={{ $json.body?.job_id || $json.job_id }}"
+            },
+            {
+              "name": "requested_by",
+              "value": "={{ $json.body?.requested_by || $json.requested_by }}"
             },
             {
               "name": "created_at",
-              "value": "={{ $json.body.created_at }}"
+              "value": "={{ $json.body?.created_at || $json.created_at }}"
+            },
+            {
+              "name": "callback_url",
+              "value": "={{ $json.body?.callback_url || $json.callback_url }}"
+            },
+            {
+              "name": "approval_status",
+              "value": "={{ $json.body?.approval_status || $json.approval_status }}"
+            },
+            {
+              "name": "module_name",
+              "value": "={{ $json.body?.module_name || $json.module_name }}"
+            }
+          ],
+          "other": [
+            {
+              "name": "payload",
+              "value": "={{ $json.body?.payload || $json.payload }}"
+            },
+            {
+              "name": "safety",
+              "value": "={{ $json.body?.safety || $json.safety }}"
             }
           ]
         },

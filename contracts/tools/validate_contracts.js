@@ -112,6 +112,16 @@ examples.forEach(exampleFile => {
           }
         });
       }
+
+      // Check for approval_status in valid_core_to_n8n_event.json if event_type triggers real-world actions
+      if (['CAMPAIGN_PUBLISH_REQUESTED', 'ADS_SPEND_REQUESTED'].includes(parsed.event_type)) {
+        if (!parsed.approval_status) {
+          console.error(`[FAIL] valid_core_to_n8n_event.json must contain approval_status for ${parsed.event_type}`);
+          failed = true;
+        } else {
+          console.log(`[PASS] valid_core_to_n8n_event.json contains approval_status '${parsed.approval_status}' for ${parsed.event_type}`);
+        }
+      }
     }
 
     if (exampleFile === 'invalid_core_to_n8n_event.json') {
@@ -152,6 +162,52 @@ examples.forEach(exampleFile => {
     failed = true;
   }
 });
+
+// Additional n8n router workflow validations
+const routerPath = path.join(baseDir, '../n8n-workflows/core_event_router.workflow.json');
+try {
+  const routerContent = fs.readFileSync(routerPath, 'utf8');
+  const routerJson = JSON.parse(routerContent);
+  console.log(`[PASS] Router workflow parses as valid JSON`);
+
+  // Find the Normalize node
+  const normalizeNode = routerJson.nodes.find(n => n.name === 'Set: Normalize Core Event');
+  if (!normalizeNode) {
+    console.error(`[FAIL] Router workflow is missing node 'Set: Normalize Core Event'`);
+    failed = true;
+  } else {
+    // Check normalize mappings
+    const stringValues = normalizeNode.parameters.values.string || [];
+    const otherValues = normalizeNode.parameters.values.other || [];
+    const normalizedFields = [...stringValues, ...otherValues].map(v => v.name);
+
+    const expectedNormalized = ['approval_status', 'safety', 'payload'];
+    expectedNormalized.forEach(field => {
+      if (!normalizedFields.includes(field)) {
+        console.error(`[FAIL] Normalize node is missing mapping for: ${field}`);
+        failed = true;
+      } else {
+        console.log(`[PASS] Normalize node maps top-level field: ${field}`);
+      }
+    });
+  }
+
+  // Check specific safety gates do not read $json.body.safety or $json.body.approval_status
+  const safetyGates = routerJson.nodes.filter(n => n.name && n.name.startsWith('IF: Safety Gate -'));
+  safetyGates.forEach(gate => {
+    const gateStr = JSON.stringify(gate);
+    if (gateStr.includes('$json.body.safety') || gateStr.includes('$json.body.approval_status')) {
+      console.error(`[FAIL] Safety gate '${gate.name}' reads from $json.body.safety or $json.body.approval_status. It must read from top-level normalized fields.`);
+      failed = true;
+    } else {
+      console.log(`[PASS] Safety gate '${gate.name}' correctly reads from top-level normalized fields`);
+    }
+  });
+
+} catch (err) {
+  console.error(`[FAIL] Error validating router workflow: ${err.message}`);
+  failed = true;
+}
 
 if (failed) {
   console.error('--- CONTRACT VALIDATION CHECKS FAILED ---');
