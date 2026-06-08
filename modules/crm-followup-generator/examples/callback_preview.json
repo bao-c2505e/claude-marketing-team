@@ -1,0 +1,35 @@
+{
+  "request_id": "c1a9f02e-9d22-482a-ba02-7c8241e3d09a",
+  "module_id": "crm_followup_generator",
+  "callback_preview": {
+    "request_id": "c1a9f02e-9d22-482a-ba02-7c8241e3d09a",
+    "event_type": "crm_followup.requested",
+    "module_id": "crm_followup_generator",
+    "status": "mock_completed",
+    "output": {
+      "crm_pack_id": "crm_pack_100293",
+      "scenario": "re_engagement_sequence",
+      "messages": [
+        {
+          "message_id": "msg_1_88291",
+          "step": 1,
+          "text": "Mock followup email/sms body for step 1 under scenario re_engagement_sequence.",
+          "safety_status": "draft_only"
+        },
+        {
+          "message_id": "msg_2_30421",
+          "step": 2,
+          "text": "Mock followup email/sms body for step 2 under scenario re_engagement_sequence.",
+          "safety_status": "draft_only"
+        }
+      ],
+      "real_messaging_enabled": false
+    },
+    "errors": [],
+    "source": "local_mock_stub",
+    "generated_at": "2026-06-08T15:21:30Z",
+    "notes": "This is a mock callback preview."
+  },
+  "source": "local_mock_stub",
+  "notes": "Preview only. Callback not sent."
+}

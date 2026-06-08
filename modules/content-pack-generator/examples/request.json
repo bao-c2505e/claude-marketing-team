@@ -1,0 +1,16 @@
+{
+  "request_id": "a189f3b2-6523-45cd-b912-78d10b7f8002",
+  "brand_id": "brand_demo_001",
+  "campaign_id": "campaign_demo_001",
+  "payload": {
+    "channels": [
+      "facebook",
+      "linkedin",
+      "twitter"
+    ],
+    "number_of_posts": 3,
+    "tone": "inspiring",
+    "campaign_theme": "The future of remote collaboration platforms"
+  },
+  "metadata": {}
+}

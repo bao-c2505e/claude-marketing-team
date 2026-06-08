@@ -1,0 +1,41 @@
+{
+  "request_id": "a189f3b2-6523-45cd-b912-78d10b7f8002",
+  "module_id": "content_pack_generator",
+  "status": "mock_completed",
+  "output": {
+    "content_pack_id": "content_pack_992182",
+    "channels": [
+      "facebook",
+      "linkedin",
+      "twitter"
+    ],
+    "posts": [
+      {
+        "post_id": "post_1_93812",
+        "channel": "facebook",
+        "caption": "Mock post caption for facebook about The future of remote collaboration platforms.",
+        "hook": "Unlock your team's true potential today!",
+        "cta": "Learn More",
+        "safety_status": "draft_only"
+      },
+      {
+        "post_id": "post_2_10823",
+        "channel": "linkedin",
+        "caption": "Mock post caption for linkedin about The future of remote collaboration platforms.",
+        "hook": "Unlock your team's true potential today!",
+        "cta": "Learn More",
+        "safety_status": "draft_only"
+      },
+      {
+        "post_id": "post_3_44829",
+        "channel": "twitter",
+        "caption": "Mock post caption for twitter about The future of remote collaboration platforms.",
+        "hook": "Unlock your team's true potential today!",
+        "cta": "Learn More",
+        "safety_status": "draft_only"
+      }
+    ]
+  },
+  "source": "local_mock_stub",
+  "notes": "Mock output only. No real API used."
+}

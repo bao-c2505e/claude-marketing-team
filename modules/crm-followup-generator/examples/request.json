@@ -1,0 +1,13 @@
+{
+  "request_id": "c1a9f02e-9d22-482a-ba02-7c8241e3d09a",
+  "brand_id": "brand_demo_001",
+  "campaign_id": "campaign_demo_001",
+  "payload": {
+    "customer_segment": "inactive_subscribers_90_days",
+    "scenario": "re_engagement_sequence",
+    "message_count": 2,
+    "tone": "friendly_helpful",
+    "safety_mode": "draft_only"
+  },
+  "metadata": {}
+}

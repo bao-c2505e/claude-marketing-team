@@ -1,0 +1,40 @@
+{
+  "request_id": "b901f82d-82c1-4824-9b2f-3d601cf94e09",
+  "module_id": "ads_pack_generator",
+  "callback_preview": {
+    "request_id": "b901f82d-82c1-4824-9b2f-3d601cf94e09",
+    "event_type": "ads_pack.requested",
+    "module_id": "ads_pack_generator",
+    "status": "mock_completed",
+    "output": {
+      "ads_pack_id": "ads_pack_220912",
+      "platform": "meta",
+      "objective": "lead_generation",
+      "ad_variants": [
+        {
+          "ad_id": "ad_var_1_90831",
+          "primary_text": "Attention startup founders! Get a free 14-day premium agency plan trial today",
+          "headline": "Scale Your Operations Easily",
+          "description": "Limited time offer. Terms apply.",
+          "cta": "SIGN_UP",
+          "safety_status": "draft_only"
+        },
+        {
+          "ad_id": "ad_var_2_44821",
+          "primary_text": "Are you a marketing manager looking to improve your pipeline? Get a free 14-day premium agency plan trial today",
+          "headline": "10x Your Marketing Efficiency",
+          "description": "No credit card required.",
+          "cta": "LEARN_MORE",
+          "safety_status": "draft_only"
+        }
+      ],
+      "budget_mode": "mock"
+    },
+    "errors": [],
+    "source": "local_mock_stub",
+    "generated_at": "2026-06-08T15:21:30Z",
+    "notes": "This is a mock callback preview."
+  },
+  "source": "local_mock_stub",
+  "notes": "Preview only. Callback not sent."
+}

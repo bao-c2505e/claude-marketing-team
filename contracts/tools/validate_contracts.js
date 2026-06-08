@@ -506,6 +506,95 @@ try {
 }
 
 
+// Validate Phase N6 files
+console.log('--- STARTING PHASE N6 VALIDATION CHECKS ---');
+const n6Modules = [
+  'content-pack-generator',
+  'ads-pack-generator',
+  'crm-followup-generator',
+  'analytics-report-generator'
+];
+
+const modulesDir = path.join(baseDir, '../modules');
+
+n6Modules.forEach(moduleName => {
+  const modulePath = path.join(modulesDir, moduleName);
+  
+  // 1. Check file layout
+  const requiredFiles = ['package.json', 'server.js', 'README.md'];
+  requiredFiles.forEach(f => {
+    const filePath = path.join(modulePath, f);
+    if (!fs.existsSync(filePath)) {
+      console.error(`[FAIL] Module '${moduleName}' is missing required file '${f}'`);
+      failed = true;
+    } else {
+      console.log(`[PASS] Module '${moduleName}' contains '${f}'`);
+    }
+  });
+
+  const exampleFiles = ['request.json', 'response.json', 'callback_preview.json'];
+  exampleFiles.forEach(f => {
+    const filePath = path.join(modulePath, 'examples', f);
+    if (!fs.existsSync(filePath)) {
+      console.error(`[FAIL] Module '${moduleName}' is missing required example file 'examples/${f}'`);
+      failed = true;
+    } else {
+      // 2. Parse JSON and check safety
+      try {
+        const content = fs.readFileSync(filePath, 'utf8');
+        
+        // Check brand name blocking
+        if (content.toLowerCase().includes('vicuon') || content.includes('Vị Cuốn')) {
+          console.error(`[FAIL] Module '${moduleName}' example '${f}' contains Vị Cuốn / vicuon brand hardcoding`);
+          failed = true;
+        }
+
+        // Check production URL blocking
+        if (content.includes('thecoreagency.com')) {
+          console.error(`[FAIL] Module '${moduleName}' example '${f}' contains production-like URL targeting thecoreagency.com`);
+          failed = true;
+        }
+
+        // Check secrets keyword blocking
+        if (/api_key|secret|token/i.test(content)) {
+          console.error(`[FAIL] Module '${moduleName}' example '${f}' contains suspicious secret keywords`);
+          failed = true;
+        }
+
+        JSON.parse(content);
+        console.log(`[PASS] Module '${moduleName}' example '${f}' parses as valid JSON`);
+      } catch (err) {
+        console.error(`[FAIL] Error validating Module '${moduleName}' example '${f}': ${err.message}`);
+        failed = true;
+      }
+    }
+  });
+});
+
+// Check registry
+const registryPath = path.join(baseDir, 'module_registry.md');
+if (!fs.existsSync(registryPath)) {
+  console.error(`[FAIL] module_registry.md is missing`);
+  failed = true;
+} else {
+  try {
+    const registryContent = fs.readFileSync(registryPath, 'utf8');
+    if (registryContent.toLowerCase().includes('vicuon') || registryContent.includes('Vị Cuốn')) {
+      console.error(`[FAIL] module_registry.md contains Vị Cuốn / vicuon brand hardcoding`);
+      failed = true;
+    }
+    if (registryContent.includes('thecoreagency.com')) {
+      console.error(`[FAIL] module_registry.md contains production-like URL targeting thecoreagency.com`);
+      failed = true;
+    }
+    console.log(`[PASS] module_registry.md safety checks passed`);
+  } catch (err) {
+    console.error(`[FAIL] Error reading module_registry.md: ${err.message}`);
+    failed = true;
+  }
+}
+
+
 if (failed) {
   console.error('--- CONTRACT VALIDATION CHECKS FAILED ---');
   process.exit(1);
@@ -513,4 +602,5 @@ if (failed) {
   console.log('--- ALL CONTRACT VALIDATION CHECKS PASSED SUCCESSFULLY ---');
   process.exit(0);
 }
+
 

@@ -1,0 +1,37 @@
+{
+  "request_id": "d09a2e8c-1e24-4f01-92bb-3458cda28e99",
+  "module_id": "analytics_report_generator",
+  "callback_preview": {
+    "request_id": "d09a2e8c-1e24-4f01-92bb-3458cda28e99",
+    "event_type": "analytics_report.requested",
+    "module_id": "analytics_report_generator",
+    "status": "mock_completed",
+    "output": {
+      "report_id": "report_109281",
+      "reporting_period": "last_quarter",
+      "metrics_summary": {
+        "clicks": 14250,
+        "conversions": 820,
+        "ctr": 0.058,
+        "cpa": 12.5,
+        "roas": 3.4
+      },
+      "insights": [
+        "Click-through-rate (CTR) increased by 15% due to vibrant creative layouts.",
+        "Mobile accounts for 72% of total conversions, suggesting design-optimization is working well."
+      ],
+      "recommendations": [
+        "Allocate 20% more budget towards mobile-first ad sets.",
+        "Perform A/B test on glassmorphism variations next week."
+      ],
+      "data_source": "mock",
+      "real_data_used": false
+    },
+    "errors": [],
+    "source": "local_mock_stub",
+    "generated_at": "2026-06-08T15:21:30Z",
+    "notes": "This is a mock callback preview."
+  },
+  "source": "local_mock_stub",
+  "notes": "Preview only. Callback not sent."
+}

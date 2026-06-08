@@ -4,6 +4,22 @@ This log tracks the progress, status, and deliverables for the PC2 (n8n & Specia
 
 ---
 
+## Phase N6 — Local Mock Module Stubs Expansion
+- **Status**: IMPLEMENTED / READY FOR REVIEW
+- **Reviewer**: Codex
+- **Date**: 2026-06-08
+- **Deliverables**:
+  - `modules/content-pack-generator/` (mock server stub and examples)
+  - `modules/ads-pack-generator/` (mock server stub and examples)
+  - `modules/crm-followup-generator/` (mock server stub and examples)
+  - `modules/analytics-report-generator/` (mock server stub and examples)
+  - `contracts/module_registry.md` (registry entry specs for all 5 modules)
+  - `docs/pc2/phase_n6_local_mock_module_stubs.md` (manual testing guide)
+- **Validation**: `node contracts/tools/validate_contracts.js` successfully PASS.
+- **Scope check**: No database queries, no real secrets/APIs, no Core UI modifications. No production URLs.
+
+---
+
 ## Phase N5 — Multi-Module n8n Event Router Contract + Workflow Skeleton
 - **Status**: IMPLEMENTED / READY FOR REVIEW
 - **Reviewer**: Codex

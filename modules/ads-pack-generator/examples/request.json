@@ -1,0 +1,13 @@
+{
+  "request_id": "b901f82d-82c1-4824-9b2f-3d601cf94e09",
+  "brand_id": "brand_demo_001",
+  "campaign_id": "campaign_demo_001",
+  "payload": {
+    "platform": "meta",
+    "objective": "lead_generation",
+    "target_audience": "Marketing managers and startup founders aged 25-45",
+    "offer": "Get a free 14-day premium agency plan trial today",
+    "budget_mode": "mock"
+  },
+  "metadata": {}
+}

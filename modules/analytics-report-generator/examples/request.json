@@ -1,0 +1,16 @@
+{
+  "request_id": "d09a2e8c-1e24-4f01-92bb-3458cda28e99",
+  "brand_id": "brand_demo_001",
+  "campaign_id": "campaign_demo_001",
+  "payload": {
+    "data_source": "mock",
+    "reporting_period": "last_quarter",
+    "metrics": [
+      "clicks",
+      "conversions",
+      "ROAS"
+    ],
+    "report_format": "markdown"
+  },
+  "metadata": {}
+}
