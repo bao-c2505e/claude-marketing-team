@@ -97,14 +97,12 @@
     {
       "parameters": {
         "conditions": {
-          "boolean": [
+          "combinator": "all",
+          "string": [
             {
-              "value1": "={{ $json.safety.requires_approval }}",
-              "value2": false
-            },
-            {
-              "value1": "={{ $json.safety.allow_real_world_action }}",
-              "value2": true
+              "value1": "={{ typeof $json.safety }}",
+              "operation": "equal",
+              "value2": "object"
             }
           ]
         }

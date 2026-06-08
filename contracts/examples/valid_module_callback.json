@@ -1,12 +1,12 @@
 {
   "event_id": "f5e92cd3-5cb7-45bf-8547-a8b23c91d4e2",
   "correlation_id": "18f94e96-a83d-4c3e-8c34-77e8a9394fa9",
-  "job_id": "job_publish_999",
+  "job_id": "job_demo_001",
   "module_name": "facebook-publisher",
-  "status": "SUCCESS",
+  "status": "COMPLETED",
   "payload": {
     "fb_post_id": "page_post_1234567890",
-    "permalink_url": "https://facebook.com/vicuon/posts/1234567890",
+    "permalink_url": "https://facebook.com/demobrand/posts/1234567890",
     "published_at": "2026-06-08T13:41:15Z"
   },
   "safety": {

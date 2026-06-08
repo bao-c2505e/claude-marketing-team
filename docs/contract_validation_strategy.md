@@ -29,12 +29,12 @@ graph TD
   - Gửi một HTTP POST callback ngược về Core với status = `INVALID_CONTRACT` kèm thông tin chi tiết lỗi (ví dụ: thiếu `event_id`, sai định dạng `correlation_id`).
 
 ### Bước 2.2: Xác thực quy tắc an toàn (Safety Gates Check)
-- Nếu cấu trúc payload hợp lệ, n8n tiếp tục đánh giá các thuộc tính trong đối tượng `safety`.
-- Đối với các sự kiện kích hoạt hành động ngoài đời thực (như `CAMPAIGN_PUBLISH_REQUESTED` hay `ADS_SPEND_REQUESTED`):
-  - n8n kiểm tra xem `approval_status == "APPROVED"`, `safety.final_approval_granted == true` và các cờ cho phép tương ứng có bằng `true` hay không.
+- **General Safety Gate (Cổng an toàn chung)**: Kiểm tra cấu trúc đối tượng `safety` (phải tồn tại và đúng định dạng đối tượng) trước khi chuyển qua bộ định tuyến.
+- **Specific Safety Gates (Cổng an toàn nghiệp vụ)**: Sau khi rẽ nhánh theo `event_type`, đối với các sự kiện kích hoạt hành động ngoài đời thực (như `CAMPAIGN_PUBLISH_REQUESTED` hay `ADS_SPEND_REQUESTED`):
+  - n8n kiểm tra nghiêm ngặt điều kiện phê duyệt: `approval_status == "APPROVED"`, `safety.final_approval_granted == true` và các cờ cho phép tương ứng có bằng `true`.
   - **Nếu không thỏa mãn điều kiện an toàn (REJECTED_BY_SAFETY)**:
-    - n8n lập tức dừng luồng định tuyến.
-    - Gọi webhook callback trả kết quả về Core với status = `REJECTED_BY_SAFETY`, lý do lỗi an toàn, tuyệt đối không chuyển tiếp yêu cầu đến các module bên ngoài.
+    - n8n lập tức dừng luồng xử lý.
+    - Gọi webhook callback trả kết quả về Core với status = `REJECTED_BY_SAFETY` kèm mô tả chi tiết lỗi chặn, tuyệt đối không gọi API thật của Module.
 
 ### Bước 2.3: Định tuyến và Thực thi (Routing & Execution)
 - Khi cả hai bước trên đều thành công, n8n Event Router dựa trên `event_type` để chuyển yêu cầu đến Module tương ứng (ComfyUI, Facebook Publisher, Canva, etc.).

@@ -1,10 +1,10 @@
 {
   "event_id": "8c8db142-ff01-4475-bf5a-2cb79a55c2d3",
-  "event_type": "CAMPAIGN_PUBLISH",
+  "event_type": "CAMPAIGN_PUBLISH_REQUESTED",
   "correlation_id": "18f94e96-a83d-4c3e-8c34-77e8a9394fa9",
-  "brand_id": "brand_vicuon_001",
-  "campaign_id": "campaign_summer_2026",
-  "job_id": "job_publish_999",
+  "brand_id": "brand_demo_001",
+  "campaign_id": "campaign_demo_001",
+  "job_id": "job_demo_001",
   "created_at": "2026-06-08T13:40:00Z",
   "payload": {
     "title": "Summer Promotion Post",

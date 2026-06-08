@@ -20,7 +20,8 @@ This directory contains placeholder JSON workflows representing the automation b
 
 - **Router-Level Gates**:
   - Early contract schema check: Calls back Core with `INVALID_CONTRACT` if critical fields (UUID, timestamp) fail parsing.
-  - Generics and Specific gates: The `Core Event Router` implements specific IF nodes (`IF: Safety Gate - Publishing Approved`, `IF: Safety Gate - Ads Spend Approved`) to validate safety flags and block real-world action requests before invoking downstream modules.
+  - General Safety Gate: Structural safety check (verifies that the `safety` object is present and well-formed) to avoid errors, without blocking events before event type routing.
+  - Specific Safety Gates: Real-world action approval gates (like publishing or ad spend). Prevents invoking external modules unless `final_approval_granted = true`, `allow_* = true`, and `approval_status = APPROVED`. If checks fail, routes to safety rejection callback.
 - **Module-Level Gates**:
   - While the router performs early validation, each specialized module must still validate incoming request payload safety flags (e.g. `safety.final_approval_granted = true`) as a secondary security layer.
 - **Strict Execution Rules**:
