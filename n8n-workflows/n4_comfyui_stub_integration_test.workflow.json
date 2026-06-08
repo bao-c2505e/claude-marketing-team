@@ -1,0 +1,256 @@
+{
+  "name": "Phase N4 ComfyUI Stub Integration Test",
+  "nodes": [
+    {
+      "parameters": {},
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        100,
+        300
+      ],
+      "id": "manual-trigger"
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "event_type",
+              "value": "creative_asset.requested"
+            },
+            {
+              "name": "request_id",
+              "value": "782f9d5e-ca87-439f-a89c-8eb139f4a088"
+            },
+            {
+              "name": "brand_id",
+              "value": "brand_demo_001"
+            },
+            {
+              "name": "campaign_id",
+              "value": "campaign_demo_001"
+            },
+            {
+              "name": "asset_type",
+              "value": "image"
+            },
+            {
+              "name": "prompt",
+              "value": "A premium workspace design template, vibrant colors, neon glows, glassmorphism overlay"
+            },
+            {
+              "name": "callback_url",
+              "value": "mock://localhost/webhook/n4-test-callback"
+            }
+          ],
+          "other": [
+            {
+              "name": "metadata",
+              "value": {
+                "workflow": "workspace_creative_v1",
+                "steps": 25,
+                "negative_prompt": "blurry, low quality"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Set: Mock Core Event",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        280,
+        300
+      ],
+      "id": "set-mock-core-event"
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = items[0].json;\nconst uuid = () => '18f94e96-a83d-4c3e-8c34-77e8a9394fa9';\nconst correlation_id = 'c92a7e2b-f11a-4bc2-812d-98ba29a28e3b';\n\nreturn [{\n  json: {\n    event_id: body.request_id || uuid(),\n    event_type: \"COMFYUI_GENERATION_REQUESTED\",\n    correlation_id: correlation_id,\n    brand_id: body.brand_id || \"brand_demo_001\",\n    campaign_id: body.campaign_id || \"campaign_demo_001\",\n    job_id: \"job_demo_001\",\n    module_name: \"comfyui-pipeline\",\n    callback_url: body.callback_url || \"mock://localhost/webhook/n4-test-callback\",\n    created_at: new Date().toISOString(),\n    payload: {\n      prompt: body.prompt || \"A workspace banner template\",\n      negative_prompt: body.metadata?.negative_prompt || \"blurry\",\n      steps: body.metadata?.steps || 20,\n      workflow: body.metadata?.workflow || \"workspace_creative_v1\"\n    },\n    safety: {\n      requires_approval: true,\n      final_approval_granted: true,\n      allow_real_world_action: true,\n      allow_auto_publish: false,\n      allow_ads_spend: false,\n      allow_customer_messaging: false\n    }\n  }\n}];"
+      },
+      "name": "Code: Normalize Payload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        460,
+        300
+      ],
+      "id": "code-normalize-payload"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.module_name }}",
+              "operation": "equal",
+              "value2": "comfyui-pipeline"
+            }
+          ]
+        }
+      },
+      "name": "Switch: Route to Module",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        640,
+        300
+      ],
+      "id": "switch-route-to-module"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:8188/run",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"event_id\": \"{{ $json.event_id }}\",\n  \"event_type\": \"{{ $json.event_type }}\",\n  \"correlation_id\": \"{{ $json.correlation_id }}\",\n  \"brand_id\": \"{{ $json.brand_id }}\",\n  \"campaign_id\": \"{{ $json.campaign_id }}\",\n  \"job_id\": \"{{ $json.job_id }}\",\n  \"module_name\": \"{{ $json.module_name }}\",\n  \"callback_url\": \"{{ $json.callback_url }}\",\n  \"created_at\": \"{{ $json.created_at }}\",\n  \"payload\": {{ JSON.stringify($json.payload) }},\n  \"safety\": {{ JSON.stringify($json.safety) }}\n}",
+        "options": {}
+      },
+      "name": "HTTP Request: POST ComfyUI Stub /run",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        820,
+        280
+      ],
+      "id": "http-request-post-comfyui-stub"
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = items[0].json;\nconst originalEvent = $node[\"Set: Mock Core Event\"].json;\n\nreturn [{\n  json: {\n    request_id: originalEvent.request_id || \"782f9d5e-ca87-439f-a89c-8eb139f4a088\",\n    module_id: \"comfyui-pipeline\",\n    status: \"mock_completed\",\n    preview_callback_payload: {\n      request_id: originalEvent.request_id || \"782f9d5e-ca87-439f-a89c-8eb139f4a088\",\n      module_id: \"comfyui-pipeline\",\n      status: \"mock_completed\",\n      asset_preview: \"mock://assets/workspace_generated_001.png\",\n      mock_asset_url: \"mock://assets/workspace_generated_001.png\",\n      mock_output_path: \"storage/assets/placeholder_workspace_001.png\",\n      source: \"n8n_n4_integration_test\",\n      generated_at: new Date().toISOString(),\n      notes: \"This is a local integration test callback preview. No actual assets were generated or dispatched to production.\"\n    },\n    source: \"n8n_n4_integration_test\"\n  }\n}];"
+      },
+      "name": "Code: Prepare Callback Preview",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        1000,
+        280
+      ],
+      "id": "code-prepare-callback-preview"
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "request_id",
+              "value": "={{ $json.request_id }}"
+            },
+            {
+              "name": "module_id",
+              "value": "={{ $json.module_id }}"
+            },
+            {
+              "name": "status",
+              "value": "={{ $json.status }}"
+            },
+            {
+              "name": "source",
+              "value": "={{ $json.source }}"
+            }
+          ],
+          "other": [
+            {
+              "name": "preview_callback_payload",
+              "value": "={{ $json.preview_callback_payload }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Respond / Output Result",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        1180,
+        280
+      ],
+      "id": "respond-output-result"
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Set: Mock Core Event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set: Mock Core Event": {
+      "main": [
+        [
+          {
+            "node": "Code: Normalize Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Normalize Payload": {
+      "main": [
+        [
+          {
+            "node": "Switch: Route to Module",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch: Route to Module": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request: POST ComfyUI Stub /run",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request: POST ComfyUI Stub /run": {
+      "main": [
+        [
+          {
+            "node": "Code: Prepare Callback Preview",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Prepare Callback Preview": {
+      "main": [
+        [
+          {
+            "node": "Respond / Output Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionTimeout": 3600
+  }
+}

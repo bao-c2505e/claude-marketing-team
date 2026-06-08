@@ -280,6 +280,73 @@ try {
   failed = true;
 }
 
+// Validate Phase N4 files
+console.log('--- STARTING PHASE N4 VALIDATION CHECKS ---');
+const n4MockEventPath = path.join(baseDir, 'examples/n8n/n4_mock_core_event.json');
+try {
+  const content = fs.readFileSync(n4MockEventPath, 'utf8');
+  if (content.toLowerCase().includes('vicuon') || content.includes('Vị Cuốn')) {
+    console.error(`[FAIL] n4_mock_core_event.json contains Vị Cuốn / vicuon brand hardcoding`);
+    failed = true;
+  }
+  if (content.includes('https://storage.thecoreagency.com') || content.includes('https://thecoreagency.com')) {
+    console.error(`[FAIL] n4_mock_core_event.json contains production-like URLs`);
+    failed = true;
+  }
+  const parsed = JSON.parse(content);
+  if (!parsed.event_type || !parsed.request_id || !parsed.brand_id) {
+    console.error(`[FAIL] n4_mock_core_event.json is missing required fields`);
+    failed = true;
+  } else {
+    console.log(`[PASS] n4_mock_core_event.json validated successfully`);
+  }
+} catch (err) {
+  console.error(`[FAIL] Error parsing n4_mock_core_event.json: ${err.message}`);
+  failed = true;
+}
+
+const n4CallbackPath = path.join(baseDir, 'examples/n8n/n4_expected_callback_preview.json');
+try {
+  const content = fs.readFileSync(n4CallbackPath, 'utf8');
+  if (content.toLowerCase().includes('vicuon') || content.includes('Vị Cuốn')) {
+    console.error(`[FAIL] n4_expected_callback_preview.json contains Vị Cuốn / vicuon brand hardcoding`);
+    failed = true;
+  }
+  if (content.includes('https://storage.thecoreagency.com') || content.includes('https://thecoreagency.com')) {
+    console.error(`[FAIL] n4_expected_callback_preview.json contains production-like URLs`);
+    failed = true;
+  }
+  const parsed = JSON.parse(content);
+  if (!parsed.request_id || !parsed.module_id || !parsed.status) {
+    console.error(`[FAIL] n4_expected_callback_preview.json is missing required fields`);
+    failed = true;
+  } else {
+    console.log(`[PASS] n4_expected_callback_preview.json validated successfully`);
+  }
+} catch (err) {
+  console.error(`[FAIL] Error parsing n4_expected_callback_preview.json: ${err.message}`);
+  failed = true;
+}
+
+const n4WorkflowPath = path.join(baseDir, '../n8n-workflows/n4_comfyui_stub_integration_test.workflow.json');
+try {
+  const content = fs.readFileSync(n4WorkflowPath, 'utf8');
+  if (content.toLowerCase().includes('vicuon') || content.includes('Vị Cuốn')) {
+    console.error(`[FAIL] n4_comfyui_stub_integration_test.workflow.json contains Vị Cuốn / vicuon brand hardcoding`);
+    failed = true;
+  }
+  if (content.includes('https://storage.thecoreagency.com') || content.includes('https://thecoreagency.com')) {
+    console.error(`[FAIL] n4_comfyui_stub_integration_test.workflow.json contains production-like URLs`);
+    failed = true;
+  }
+  const parsed = JSON.parse(content);
+  console.log(`[PASS] n4_comfyui_stub_integration_test.workflow.json parses as valid JSON`);
+} catch (err) {
+  console.error(`[FAIL] Error parsing n4_comfyui_stub_integration_test.workflow.json: ${err.message}`);
+  failed = true;
+}
+
+
 if (failed) {
   console.error('--- CONTRACT VALIDATION CHECKS FAILED ---');
   process.exit(1);
