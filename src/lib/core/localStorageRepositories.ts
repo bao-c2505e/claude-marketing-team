@@ -67,9 +67,8 @@ export class LocalStorageClientRepository implements ClientRepository {
 // ---------------------------------------------------------------------------
 
 export class LocalStorageBrandRepository implements BrandRepository {
-  async list(clientId?: string): Promise<Brand[]> {
-    const brands = loadCoreData().brands;
-    return clientId ? brands.filter(b => b.client_id === clientId) : brands;
+  async list(clientId: string): Promise<Brand[]> {
+    return loadCoreData().brands.filter(b => b.client_id === clientId);
   }
 
   async get(id: string, clientId: string): Promise<Brand | null> {

@@ -139,6 +139,23 @@ With Supabase env (future):
 
 ---
 
+## ✅ Phase 16A Codex Fix 3 — Mandatory clientId on BrandRepository.list (Applied — 2026-06-09)
+
+### Issue fixed:
+- `BrandRepository.list(clientId?: string)` had `clientId` optional, allowing an unscoped all-brand read to compile without error.
+
+### Changes:
+1. **`coreRepository.ts`:** `list(clientId?: string)` → `list(clientId: string)` — TypeScript now rejects any call site that omits `clientId`.
+2. **`supabaseRepositories.ts`:** `SupabaseBrandRepository.list` signature made required; conditional `.eq('client_id', clientId)` replaced with unconditional `.eq('client_id', clientId)` — no code path can read all brands.
+3. **`localStorageRepositories.ts`:** `LocalStorageBrandRepository.list` signature made required; ternary `clientId ? filter : all` replaced with unconditional `filter(b => b.client_id === clientId)`.
+
+### Call site verification:
+- Only call site: `App.tsx:275` — `repos.brands.list(c.id)` — already passes `c.id`, no change required.
+
+### Build: PASS — 0 TS errors. git diff --check: PASS.
+
+---
+
 ## 🔮 Phase 16B Recommended Scope
 - Campaigns CRUD wiring (same repository pattern, `campaigns` table)
 - Campaign Briefs CRUD wiring (`campaign_briefs` table)

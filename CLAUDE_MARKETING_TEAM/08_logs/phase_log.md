@@ -6,6 +6,17 @@ Nhật ký theo dõi các mốc hoàn thành kỹ thuật qua các Phase.
 
 ## 📅 Nhật Ký Sự Kiện (Event Logs)
 
+### 🗓️ Ngày 09/06/2026 — Phase 16A Codex Fix 3: Mandatory clientId on BrandRepository.list
+- **Sự kiện:** `BrandRepository.list(clientId?: string)` vẫn cho phép gọi không có `clientId` — TypeScript không bắt lỗi.
+- **Fix:** Đổi `clientId?: string` → `clientId: string` trong interface và cả 2 implementations.
+- **Supabase:** Bỏ điều kiện `if (clientId)` — luôn apply `.eq('client_id', clientId)`. Không có code path nào đọc all brands nữa.
+- **LocalStorage:** Bỏ ternary `clientId ? filter : brands` — luôn filter theo `clientId`.
+- **Call site:** App.tsx:275 đã gọi `repos.brands.list(c.id)` — không cần sửa.
+- **Build:** tsc + vite PASS — 0 TS errors. git diff --check PASS.
+- **Trạng thái:** ✅ DONE — `BrandRepository.list` giờ bắt buộc `clientId`. TypeScript enforce tại compile time.
+
+---
+
 ### 🗓️ Ngày 09/06/2026 — Phase 16A Codex Fix 2: Scope brand operations by client_id
 - **Sự kiện:** Codex phát hiện brand operations chưa được scoped theo `client_id` — đã fix toàn bộ.
 - **Fix 1 (Unscoped list):** `App.tsx` gọi `repos.brands.list()` không có `clientId`. Fix: load clients trước, rồi `Promise.all(clients.map(c => repos.brands.list(c.id)))`.

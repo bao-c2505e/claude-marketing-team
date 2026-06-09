@@ -22,6 +22,20 @@ Chúng ta đang xây dựng **The Core Agency — Real Operations MVP**. Đây l
 
 ---
 
+## ✅ Phase 16A Codex Fix 3 — Mandatory clientId on BrandRepository.list (DONE — 2026-06-09)
+
+### Issue fixed:
+`BrandRepository.list(clientId?: string)` was optional — any caller could omit it and read all brands. Fixed: `clientId` is now required in the interface and both implementations. Supabase always applies `.eq('client_id', clientId)`; localStorage always filters. Only call site (`App.tsx:275`) already passed `c.id` — no change needed there.
+
+### Files changed:
+- `src/lib/core/coreRepository.ts` — `list(clientId?: string)` → `list(clientId: string)`
+- `src/lib/core/supabaseRepositories.ts` — unconditional `.eq('client_id', clientId)`, no optional fallback
+- `src/lib/core/localStorageRepositories.ts` — unconditional `filter(b => b.client_id === clientId)`
+
+### Build: PASS — 0 TS errors. git diff --check: PASS.
+
+---
+
 ## ✅ Phase 16A Codex Fix 2 — Tenant-Scoped Brand Operations (DONE — 2026-06-09)
 
 ### Issues fixed:

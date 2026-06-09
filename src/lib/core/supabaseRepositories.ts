@@ -94,13 +94,12 @@ export class SupabaseClientRepository implements ClientRepository {
 export class SupabaseBrandRepository implements BrandRepository {
   constructor(private readonly sb: SupabaseClient) {}
 
-  async list(clientId?: string): Promise<Brand[]> {
-    let query = this.sb
+  async list(clientId: string): Promise<Brand[]> {
+    const { data, error } = await this.sb
       .from('brands')
       .select('*')
+      .eq('client_id', clientId)
       .order('created_at', { ascending: false });
-    if (clientId) query = query.eq('client_id', clientId);
-    const { data, error } = await query;
     if (error) throw error;
     return (data ?? []) as Brand[];
   }
