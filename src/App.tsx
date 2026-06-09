@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   LayoutDashboard,
   Users,
@@ -35,7 +35,9 @@ import {
 import { sampleCampaigns, Campaign, CampaignBrief, CalendarItem, ChecklistItem } from './mockData';
 import { useAuth } from './lib/auth/AuthContext';
 import { ROLE_LABELS, ROLE_COLORS } from './lib/auth/permissions';
-import { isSupabaseConfigured } from './lib/supabaseClient';
+import { isSupabaseConfigured, supabase } from './lib/supabaseClient';
+import { createPhase16aRepositories } from './lib/core/repositoryFactory';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import LoginScreen from './components/auth/LoginScreen';
 import ClientsTab from './components/core/ClientsTab';
 import BrandsTab from './components/core/BrandsTab';
@@ -200,6 +202,86 @@ Chiến dịch truyền thông tích hợp cho thương hiệu "Vị Cuốn", h�
   }
 ];
 
+// ---------------------------------------------------------------------------
+// Phase 16A — Supabase fire-and-forget sync helper
+// Diffs old vs new CoreDataStore and writes new/changed clients+brands to Supabase.
+// Called only when isSupabaseConfigured is true; errors are silently swallowed so
+// the UI is never blocked. localStorage is always updated first (in handleCoreUpdate).
+// ---------------------------------------------------------------------------
+
+async function syncClientsBrandsToSupabase(
+  sb: SupabaseClient,
+  prev: import('./lib/core/coreData').CoreDataStore,
+  next: import('./lib/core/coreData').CoreDataStore,
+): Promise<void> {
+  const prevClientIds = new Set(prev.clients.map(c => c.id));
+  for (const client of next.clients) {
+    if (!prevClientIds.has(client.id)) {
+      await sb.from('clients').insert({
+        id: client.id,
+        name: client.name,
+        slug: client.slug,
+        contact_name: client.contact_name,
+        contact_email: client.contact_email,
+        contact_phone: client.contact_phone,
+        status: client.status,
+        notes: client.notes,
+      });
+    } else {
+      const old = prev.clients.find(c => c.id === client.id);
+      if (old && JSON.stringify(old) !== JSON.stringify(client)) {
+        await sb.from('clients').update({
+          name: client.name,
+          slug: client.slug,
+          contact_name: client.contact_name,
+          contact_email: client.contact_email,
+          contact_phone: client.contact_phone,
+          status: client.status,
+          notes: client.notes,
+          updated_at: new Date().toISOString(),
+        }).eq('id', client.id);
+      }
+    }
+  }
+
+  const prevBrandIds = new Set(prev.brands.map(b => b.id));
+  for (const brand of next.brands) {
+    if (!prevBrandIds.has(brand.id)) {
+      await sb.from('brands').insert({
+        id: brand.id,
+        client_id: brand.client_id,
+        name: brand.name,
+        slug: brand.slug,
+        industry: brand.industry,
+        hero_product: brand.hero_product,
+        tone_of_voice: brand.tone_of_voice,
+        target_audience: brand.target_audience,
+        primary_channels: brand.primary_channels,
+        brand_colors: brand.brand_colors,
+        logo_url: brand.logo_url,
+        status: brand.status,
+      });
+    } else {
+      const old = prev.brands.find(b => b.id === brand.id);
+      if (old && JSON.stringify(old) !== JSON.stringify(brand)) {
+        await sb.from('brands').update({
+          name: brand.name,
+          slug: brand.slug,
+          industry: brand.industry,
+          hero_product: brand.hero_product,
+          tone_of_voice: brand.tone_of_voice,
+          target_audience: brand.target_audience,
+          primary_channels: brand.primary_channels,
+          brand_colors: brand.brand_colors,
+          logo_url: brand.logo_url,
+          status: brand.status,
+          updated_at: new Date().toISOString(),
+        }).eq('id', brand.id);
+      }
+    }
+  }
+}
+
 export default function App() {
   const { user, loading: authLoading, isAuthenticated, signOut, mode } = useAuth();
 
@@ -252,9 +334,47 @@ export default function App() {
   const [coreData, setCoreData] = useState<CoreDataStore>(() => loadCoreData());
   const [coreNavFilter, setCoreNavFilter] = useState<{ clientId?: string; brandId?: string }>({});
 
+  // Phase 16A — Repository layer (Supabase when configured, localStorage otherwise)
+  const repos = useMemo(
+    () => createPhase16aRepositories(supabase, isSupabaseConfigured),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  );
+
+  // Phase 16A — Non-blocking error state for Supabase data load failures
+  const [supabaseLoadError, setSupabaseLoadError] = useState<string | null>(null);
+
+  // Phase 16A — On mount: if Supabase is configured, fetch clients+brands and
+  // override the localStorage seed. Errors are non-fatal (localStorage fallback stays active).
+  useEffect(() => {
+    if (!isSupabaseConfigured) return;
+    let cancelled = false;
+    Promise.all([repos.clients.list(), repos.brands.list()])
+      .then(([clients, brands]) => {
+        if (cancelled) return;
+        setCoreData(prev => {
+          const next = { ...prev, clients, brands };
+          saveCoreData(next);
+          return next;
+        });
+      })
+      .catch((err: unknown) => {
+        if (cancelled) return;
+        const msg = err instanceof Error ? err.message : String(err);
+        setSupabaseLoadError(`Supabase load failed (using local data): ${msg}`);
+      });
+    return () => { cancelled = true; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const handleCoreUpdate = (updated: CoreDataStore) => {
+    const prev = coreData;
     setCoreData(updated);
     saveCoreData(updated);
+    // Phase 16A: fire-and-forget Supabase sync for client/brand changes
+    if (isSupabaseConfigured && supabase) {
+      syncClientsBrandsToSupabase(supabase, prev, updated).catch(() => {});
+    }
   };
 
   const handleCoreNavigate = (tab: string, filter?: { clientId?: string; brandId?: string }) => {
@@ -948,6 +1068,14 @@ export default function App() {
                   <div key={idx} style={{ color: log.includes('SYSTEM') ? '#34d399' : '#e2e8f0' }}>{log}</div>
                 ))}
               </div>
+            </div>
+          )}
+
+          {/* Phase 16A — Supabase load error banner (non-blocking, dismissible) */}
+          {supabaseLoadError && (
+            <div style={{ margin: '0 0 12px', padding: '10px 14px', background: 'rgba(251,146,60,0.1)', border: '1px solid rgba(251,146,60,0.4)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
+              <span style={{ fontSize: '0.78rem', color: '#fb923c' }}>⚠ {supabaseLoadError}</span>
+              <button onClick={() => setSupabaseLoadError(null)} style={{ background: 'none', border: 'none', color: '#fb923c', cursor: 'pointer', fontSize: '0.85rem', padding: '0 4px' }}>✕</button>
             </div>
           )}
 

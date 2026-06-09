@@ -6,6 +6,17 @@ Nhật ký ghi lại các hành động mô phỏng của các AI Agent khi vậ
 
 ## 🗓️ Nhật Ký Hoạt Động (Simulated Activity Logs)
 
+### 🗓️ Ngày 09/06/2026 — Phase 16A: Supabase CRUD Wiring — Clients + Brands
+- **[PC1 Claude Code Builder]:** Phase 16A complete. Repository pattern implemented for Clients and Brands. Wired into App.tsx with safe fallback.
+- **[PC1]:** Created `localStorageRepositories.ts` — `LocalStorageClientRepository` + `LocalStorageBrandRepository` wrap existing `coreData.ts` functions. Implement `ClientRepository`/`BrandRepository` interfaces from Phase 15.
+- **[PC1]:** Created `supabaseRepositories.ts` — `SupabaseClientRepository` + `SupabaseBrandRepository`. Anon key only. PGRST116 not-found handling. No service role key. No tenant bypass.
+- **[PC1]:** Created `repositoryFactory.ts` — `createPhase16aRepositories(supabase, isConfigured)`. Returns Supabase repos when env configured, localStorage repos otherwise.
+- **[PC1]:** Modified `App.tsx` — `useMemo` to create repos once, `useEffect` for async Supabase initial load (clients+brands), non-blocking `supabaseLoadError` banner, `handleCoreUpdate` diff-based Supabase fire-and-forget writes.
+- **[PC1]:** Campaign/Brief/Generation/Approval/Assets — still localStorage. Deferred to Phase 16B+.
+- **[PC1]:** Build: tsc + vite PASS — 0 TS errors. git diff --check PASS. Demo Sign In preserved. Supabase env not enabled.
+
+---
+
 ### 🗓️ Ngày 09/06/2026 — Phase 15 Codex Fix 3: Finalize Tenant-Scoped RLS Plan
 - **[PC1 Claude Code Builder]:** Phase 15 Codex Fix 3 — 5 remaining issues addressed. Docs-only changes. Plan updated, not yet production-ready.
 - **[PC1]:** Fixed `content_items_read` — added 3-tier policy: global staff (all statuses, all tenants), scoped manager (all statuses in their tenant via `current_user_has_scoped_role(['manager'], 'client', c.client_id)`), client/viewer (approved only in their tenant). Fixed `content_items_modify` similarly.

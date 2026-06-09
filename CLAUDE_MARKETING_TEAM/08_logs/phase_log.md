@@ -6,6 +6,20 @@ Nhật ký theo dõi các mốc hoàn thành kỹ thuật qua các Phase.
 
 ## 📅 Nhật Ký Sự Kiện (Event Logs)
 
+### 🗓️ Ngày 09/06/2026 — Phase 16A: Supabase CRUD Wiring — Clients + Brands
+- **Sự kiện:** Implement repository pattern cho Clients và Brands. Wiring vào App.tsx với async Supabase load và diff-based write.
+- **Files mới:**
+  - `src/lib/core/localStorageRepositories.ts` — `LocalStorageClientRepository`, `LocalStorageBrandRepository`
+  - `src/lib/core/supabaseRepositories.ts` — `SupabaseClientRepository`, `SupabaseBrandRepository`
+  - `src/lib/core/repositoryFactory.ts` — factory `createPhase16aRepositories`
+- **Files sửa:** `src/App.tsx` — `useMemo` repos, `useEffect` Supabase initial load, `supabaseLoadError` banner, `handleCoreUpdate` diff sync
+- **Vẫn localStorage:** Campaigns, Briefs, Generation, Approval, Assets, Export Packs, Connector Registry, Automation Logs
+- **An toàn:** Không secrets, không service role key, production Supabase env vẫn OFF, Demo Sign In preserved
+- **Build:** tsc + vite PASS — 0 TS errors. git diff --check PASS.
+- **Trạng thái:** ✅ DONE — Clients + Brands repository wiring complete. Phase 16B: Campaigns + Briefs.
+
+---
+
 ### 🗓️ Ngày 09/06/2026 — Phase 15 Codex Fix 3: Finalize Tenant-Scoped RLS Plan
 - **Sự kiện:** Codex review lần 3 — 5 remaining issues addressed in plan. Policies/tests pending real Supabase execution. Codex PASS required before Phase 16.
 - **Fix 1 (Content 3-tier):** `content_items_read` nay có 3 tiers: global staff (all), scoped manager (all statuses in tenant), client/viewer (approved only). Scoped manager giờ review được draft.

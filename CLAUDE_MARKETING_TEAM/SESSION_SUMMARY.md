@@ -22,6 +22,27 @@ Chúng ta đang xây dựng **The Core Agency — Real Operations MVP**. Đây l
 
 ---
 
+## ✅ Phase 16A — Supabase CRUD Wiring: Clients + Brands (DONE — 2026-06-09)
+
+### Deliverables:
+- **NEW** `src/lib/core/localStorageRepositories.ts` — `LocalStorageClientRepository` + `LocalStorageBrandRepository` wrapping existing coreData.ts helpers
+- **NEW** `src/lib/core/supabaseRepositories.ts` — `SupabaseClientRepository` + `SupabaseBrandRepository` using anon key + Supabase RLS
+- **NEW** `src/lib/core/repositoryFactory.ts` — factory picks correct impl based on `isSupabaseConfigured`
+- **MODIFIED** `src/App.tsx` — repos wired via `useMemo`, async initial load from Supabase on mount (when configured), diff-based fire-and-forget Supabase write in `handleCoreUpdate`, non-blocking error banner
+
+### Wired:
+- Clients: list, get, create, update, archive — Supabase when configured, localStorage always as fallback
+- Brands: list (with clientId filter), get, create, update, archive — same pattern
+
+### Still localStorage: Campaigns, Briefs, Generation, Approval, Assets, Export Packs, Connector Registry, Automation Logs
+
+### Safety:
+- No secrets, no service role key, no real Supabase env enabled
+- Demo Sign In + localStorage fallback fully preserved
+- Build PASS — 0 TS errors. git diff --check PASS.
+
+---
+
 ## ✅ Phase 15 Codex Fix 3 — Finalize Tenant-Scoped RLS Plan (DONE — 2026-06-09)
 
 ### Vấn đề Codex phát hiện (lần 3):
