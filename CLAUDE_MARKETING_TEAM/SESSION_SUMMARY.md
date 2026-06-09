@@ -22,6 +22,23 @@ Chúng ta đang xây dựng **The Core Agency — Real Operations MVP**. Đây l
 
 ---
 
+## 🔜 Phase 15 — NEXT: Real Supabase Auth + Database Wiring Plan
+
+**Mục tiêu:** Kết nối Supabase Auth thật + wire các data stores (clients, brands, campaigns, briefs, generation jobs, content items, approval requests, assets, logs) vào Supabase Postgres thay vì localStorage. RLS policies áp dụng. Auth context dùng Supabase session thật.
+
+**Prerequisite:** `.env.local` phải có `VITE_SUPABASE_URL` và `VITE_SUPABASE_ANON_KEY` thật (owner cấp).
+
+**Scope (Phase 15):**
+- Supabase client configured với env vars thật
+- Auth: sign in / sign out / session persistence qua Supabase Auth
+- RLS: enable RLS + policies trên tables core (clients, brands, campaigns, briefs)
+- Data layer: `loadCoreData()` → Supabase select; `saveCoreData()` → Supabase upsert
+- Fallback: nếu Supabase chưa được cấu hình → tiếp tục dùng localStorage (isSupabaseConfigured guard đã có)
+
+**Safety:** Không hardcode key. Không commit .env.local. Không auto-post/ads/message. Generated ≠ Approved ≠ Published vẫn giữ nguyên.
+
+---
+
 ## ✅ Phase 14 — Automation Logs Foundation (DONE — 2026-06-09)
 
 ### Mục tiêu:

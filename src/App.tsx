@@ -314,7 +314,7 @@ export default function App() {
   const handleViewModeSwitch = (mode: 'owner' | 'client') => {
     setViewMode(mode);
     if (mode === 'client') {
-      const ownerOnlyTabs = ['new-campaign', 'team-board', 'manual-export', 'client-demo'];
+      const ownerOnlyTabs = ['new-campaign', 'team-board', 'manual-export', 'client-demo', 'automation-logs'];
       if (ownerOnlyTabs.includes(activeTab)) setActiveTab('dashboard');
     }
   };
@@ -766,7 +766,7 @@ export default function App() {
               <Network size={18} /> Connector Registry
             </button>
 
-            {(user?.role === 'owner' || user?.role === 'manager') && (
+            {viewMode === 'owner' && (user?.role === 'owner' || user?.role === 'manager') && (
               <button
                 className={`btn btn-secondary ${activeTab === 'automation-logs' ? 'active' : ''}`}
                 style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'automation-logs' ? '1px solid rgba(129,140,248,0.5)' : '', background: activeTab === 'automation-logs' ? 'rgba(99,102,241,0.1)' : '', position: 'relative' }}
