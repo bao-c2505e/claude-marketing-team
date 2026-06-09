@@ -1,0 +1,16 @@
+{
+  "log_id": "00a1881b-dfb0-4a87-b912-ae01bc89a001",
+  "request_id": "92f1505c-dfb7-4c40-b615-5e608ebca0b1",
+  "event_type": "creative_asset.requested",
+  "module_id": "creative_asset_comfyui",
+  "phase": "execution",
+  "status": "success",
+  "message": "Module comfyui generated creative asset successfully.",
+  "attempt": 1,
+  "timestamp": "2026-06-09T16:20:00Z",
+  "source": "n8n_n9_error_retry_logging_mock",
+  "metadata": {
+    "run_mode": "mock",
+    "execution_duration_ms": 2341
+  }
+}

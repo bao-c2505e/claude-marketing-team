@@ -1,0 +1,47 @@
+{
+  "request_id": "b1328eb9-2b0e-4361-8aa2-9bdaee7e0f81",
+  "event_type": "creative_asset.requested",
+  "module_id": "creative_asset_comfyui",
+  "error_type": "validation_error",
+  "retry_decision": "no_retry",
+  "attempt": 1,
+  "max_attempts": 3,
+  "execution_log": {
+    "log_id": "aa150e7b-c9a1-432d-8692-0b1a89c20101",
+    "request_id": "b1328eb9-2b0e-4361-8aa2-9bdaee7e0f81",
+    "event_type": "creative_asset.requested",
+    "module_id": "creative_asset_comfyui",
+    "phase": "error_handling",
+    "status": "failed",
+    "message": "Non-retryable validation error validation_error encountered. Attempt 1 terminated.",
+    "attempt": 1,
+    "timestamp": "2026-06-09T16:17:05Z",
+    "source": "n8n_n9_error_retry_logging_mock",
+    "metadata": {
+      "retry_policy_id": "default_policy_n9"
+    }
+  },
+  "dead_letter_preview": {},
+  "error_callback_preview": {
+    "request_id": "b1328eb9-2b0e-4361-8aa2-9bdaee7e0f81",
+    "event_type": "creative_asset.requested",
+    "module_id": "creative_asset_comfyui",
+    "callback_type": "error_preview",
+    "status": "failed",
+    "error": {
+      "error_type": "validation_error",
+      "error_code": "ERR_VALIDATION_FAILED",
+      "error_message": "Required field 'creative_brief' is missing in payload."
+    },
+    "retry_summary": {
+      "attempt": 1,
+      "max_attempts": 3,
+      "strategy": "mock_exponential_backoff"
+    },
+    "source": "n8n_n9_error_retry_logging_mock",
+    "generated_at": "2026-06-09T16:17:05Z",
+    "notes": "Validation failed. Execution stopped."
+  },
+  "source": "n8n_n9_error_retry_logging_mock",
+  "notes": "Non-retryable error type validation_error. Execution halted without retry."
+}

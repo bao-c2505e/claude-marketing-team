@@ -1,0 +1,20 @@
+{
+  "contract_version": "error_retry_logging_v0.1",
+  "request_id": "b1328eb9-2b0e-4361-8aa2-9bdaee7e0f81",
+  "event_type": "creative_asset.requested",
+  "brand_id": "brand_demo_001",
+  "campaign_id": "campaign_demo_001",
+  "module_id": "creative_asset_comfyui",
+  "error_type": "validation_error",
+  "error_code": "ERR_VALIDATION_FAILED",
+  "error_message": "Required field 'creative_brief' is missing in payload.",
+  "retryable": false,
+  "attempt": 1,
+  "max_attempts": 3,
+  "next_action": "stop",
+  "timestamp": "2026-06-09T16:17:00Z",
+  "source": "n8n_n9_error_retry_logging_mock",
+  "metadata": {
+    "missing_fields": ["creative_brief"]
+  }
+}

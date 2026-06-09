@@ -1,0 +1,57 @@
+{
+  "request_id": "c88f110c-9a10-432d-8812-70b1ab23cd98",
+  "event_type": "unknown_event_type.requested",
+  "module_id": "n8n_event_router",
+  "error_type": "unsupported_event_type",
+  "retry_decision": "manual_review_required",
+  "attempt": 1,
+  "max_attempts": 1,
+  "execution_log": {
+    "log_id": "bb150e7b-c9a1-432d-8692-0b1a89c20202",
+    "request_id": "c88f110c-9a10-432d-8812-70b1ab23cd98",
+    "event_type": "unknown_event_type.requested",
+    "module_id": "n8n_event_router",
+    "phase": "error_handling",
+    "status": "failed",
+    "message": "Critical error unsupported_event_type. Router cannot forward unknown events.",
+    "attempt": 1,
+    "timestamp": "2026-06-09T16:18:05Z",
+    "source": "n8n_n9_error_retry_logging_mock",
+    "metadata": {
+      "retry_policy_id": "no_retry_policy_n9"
+    }
+  },
+  "dead_letter_preview": {
+    "dead_letter_id": "dlq_unsupported_001",
+    "request_id": "c88f110c-9a10-432d-8812-70b1ab23cd98",
+    "event_type": "unknown_event_type.requested",
+    "module_id": "n8n_event_router",
+    "attempts": 1,
+    "final_status": "manual_review_required",
+    "source": "n8n_n9_error_retry_logging_mock",
+    "created_at": "2026-06-09T16:18:05Z",
+    "notes": "Unsupported event route. Manual router config updates required."
+  },
+  "error_callback_preview": {
+    "request_id": "c88f110c-9a10-432d-8812-70b1ab23cd98",
+    "event_type": "unknown_event_type.requested",
+    "module_id": "n8n_event_router",
+    "callback_type": "error_preview",
+    "status": "failed",
+    "error": {
+      "error_type": "unsupported_event_type",
+      "error_code": "ERR_ROUTER_UNSUPPORTED_EVENT",
+      "error_message": "Event type 'unknown_event_type.requested' has no matching route configuration."
+    },
+    "retry_summary": {
+      "attempt": 1,
+      "max_attempts": 1,
+      "strategy": "no_backoff"
+    },
+    "source": "n8n_n9_error_retry_logging_mock",
+    "generated_at": "2026-06-09T16:18:05Z",
+    "notes": "Unsupported event. Forwarded to operator queue."
+  },
+  "source": "n8n_n9_error_retry_logging_mock",
+  "notes": "Router encountered unsupported event type. Immediate operator routing required."
+}

@@ -1,0 +1,18 @@
+{
+  "retry_policy_id": "default_policy_n9",
+  "max_attempts": 3,
+  "backoff_strategy": "mock_exponential_backoff",
+  "retryable_error_types": [
+    "http_error",
+    "timeout",
+    "module_unavailable"
+  ],
+  "non_retryable_error_types": [
+    "validation_error",
+    "unsupported_event_type",
+    "schema_mismatch",
+    "unknown_error"
+  ],
+  "on_exhausted": "send_to_mock_dead_letter",
+  "notes": "Standard retry strategy for network/transient failures with 3 max attempts."
+}

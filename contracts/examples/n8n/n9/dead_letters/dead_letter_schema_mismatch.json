@@ -1,0 +1,31 @@
+{
+  "dead_letter_id": "dlq_schema_mismatch_001",
+  "request_id": "df1a88b1-309d-43ee-9a10-8b1a20cde882",
+  "event_type": "creative_asset.requested",
+  "module_id": "creative_asset_comfyui",
+  "error": {
+    "contract_version": "error_retry_logging_v0.1",
+    "request_id": "df1a88b1-309d-43ee-9a10-8b1a20cde882",
+    "event_type": "creative_asset.requested",
+    "brand_id": "brand_demo_001",
+    "campaign_id": "campaign_demo_001",
+    "module_id": "creative_asset_comfyui",
+    "error_type": "schema_mismatch",
+    "error_code": "ERR_SCHEMA_MISMATCH",
+    "error_message": "Module returned status 'mock_completed' but output is missing 'asset_preview' URL.",
+    "retryable": false,
+    "attempt": 1,
+    "max_attempts": 3,
+    "next_action": "stop",
+    "timestamp": "2026-06-09T16:19:00Z",
+    "source": "n8n_n9_error_retry_logging_mock",
+    "metadata": {
+      "missing_fields": ["asset_preview"]
+    }
+  },
+  "attempts": 1,
+  "final_status": "manual_review_required",
+  "source": "n8n_n9_error_retry_logging_mock",
+  "created_at": "2026-06-09T16:19:10Z",
+  "notes": "Non-retryable schema mismatch error. Immediate routing to dead-letter queue for debugging."
+}

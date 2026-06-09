@@ -1,0 +1,59 @@
+{
+  "request_id": "aa150e7b-c9a1-432d-8692-0b1a89c20a9a",
+  "event_type": "creative_asset.requested",
+  "module_id": "creative_asset_comfyui",
+  "error_type": "timeout",
+  "retry_decision": "exhausted_to_dead_letter",
+  "attempt": 3,
+  "max_attempts": 3,
+  "execution_log": {
+    "log_id": "22c3003d-ffd2-4c99-d134-cf23de01c223",
+    "request_id": "aa150e7b-c9a1-432d-8692-0b1a89c20a9a",
+    "event_type": "creative_asset.requested",
+    "module_id": "creative_asset_comfyui",
+    "phase": "error_handling",
+    "status": "dead_lettered",
+    "message": "Retry attempts exhausted (3 of 3). Moving event to mock dead-letter queue.",
+    "attempt": 3,
+    "timestamp": "2026-06-09T16:22:00Z",
+    "source": "n8n_n9_error_retry_logging_mock",
+    "metadata": {
+      "total_attempts": 3,
+      "last_error_type": "timeout",
+      "dead_letter_id": "dlq_timeout_001"
+    }
+  },
+  "dead_letter_preview": {
+    "dead_letter_id": "dlq_timeout_001",
+    "request_id": "aa150e7b-c9a1-432d-8692-0b1a89c20a9a",
+    "event_type": "creative_asset.requested",
+    "module_id": "creative_asset_comfyui",
+    "attempts": 3,
+    "final_status": "exhausted_to_dead_letter",
+    "source": "n8n_n9_error_retry_logging_mock",
+    "created_at": "2026-06-09T16:22:05Z",
+    "notes": "Failed after max retries of 3. Standard timeout. Review module health."
+  },
+  "error_callback_preview": {
+    "request_id": "aa150e7b-c9a1-432d-8692-0b1a89c20a9a",
+    "event_type": "creative_asset.requested",
+    "module_id": "creative_asset_comfyui",
+    "callback_type": "error_preview",
+    "status": "failed",
+    "error": {
+      "error_type": "timeout",
+      "error_code": "ERR_PIPELINE_TIMEOUT",
+      "error_message": "Generation pipeline took longer than 60 seconds to respond."
+    },
+    "retry_summary": {
+      "attempt": 3,
+      "max_attempts": 3,
+      "strategy": "mock_exponential_backoff"
+    },
+    "source": "n8n_n9_error_retry_logging_mock",
+    "generated_at": "2026-06-09T16:22:05Z",
+    "notes": "Attempts exhausted. Action stopped."
+  },
+  "source": "n8n_n9_error_retry_logging_mock",
+  "notes": "Retries exhausted. Moved mock event to DLQ."
+}

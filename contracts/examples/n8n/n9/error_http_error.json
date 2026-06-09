@@ -1,0 +1,21 @@
+{
+  "contract_version": "error_retry_logging_v0.1",
+  "request_id": "92f1505c-dfb7-4c40-b615-5e608ebca0b1",
+  "event_type": "creative_asset.requested",
+  "brand_id": "brand_demo_001",
+  "campaign_id": "campaign_demo_001",
+  "module_id": "creative_asset_comfyui",
+  "error_type": "http_error",
+  "error_code": "ERR_HTTP_502_BAD_GATEWAY",
+  "error_message": "Local module server returned 502 Bad Gateway response.",
+  "retryable": true,
+  "attempt": 1,
+  "max_attempts": 3,
+  "next_action": "retry",
+  "timestamp": "2026-06-09T16:15:00Z",
+  "source": "n8n_n9_error_retry_logging_mock",
+  "metadata": {
+    "target_url": "http://localhost:8188/run",
+    "http_status": 502
+  }
+}

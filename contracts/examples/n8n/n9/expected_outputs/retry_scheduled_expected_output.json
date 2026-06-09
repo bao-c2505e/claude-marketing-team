@@ -1,0 +1,49 @@
+{
+  "request_id": "92f1505c-dfb7-4c40-b615-5e608ebca0b1",
+  "event_type": "creative_asset.requested",
+  "module_id": "creative_asset_comfyui",
+  "error_type": "http_error",
+  "retry_decision": "retry_scheduled",
+  "attempt": 1,
+  "max_attempts": 3,
+  "execution_log": {
+    "log_id": "11b2992c-eec1-4b98-c023-bf12cd90b112",
+    "request_id": "92f1505c-dfb7-4c40-b615-5e608ebca0b1",
+    "event_type": "creative_asset.requested",
+    "module_id": "creative_asset_comfyui",
+    "phase": "error_handling",
+    "status": "retry_scheduled",
+    "message": "Transient error http_error encountered. Attempt 1 of 3 failed. Scheduling retry.",
+    "attempt": 1,
+    "timestamp": "2026-06-09T16:21:00Z",
+    "source": "n8n_n9_error_retry_logging_mock",
+    "metadata": {
+      "retry_policy_id": "default_policy_n9",
+      "next_attempt_in_seconds": 5,
+      "backoff_strategy": "mock_exponential_backoff"
+    }
+  },
+  "dead_letter_preview": {},
+  "error_callback_preview": {
+    "request_id": "92f1505c-dfb7-4c40-b615-5e608ebca0b1",
+    "event_type": "creative_asset.requested",
+    "module_id": "creative_asset_comfyui",
+    "callback_type": "error_preview",
+    "status": "retrying",
+    "error": {
+      "error_type": "http_error",
+      "error_code": "ERR_HTTP_502_BAD_GATEWAY",
+      "error_message": "Local module server returned 502 Bad Gateway response."
+    },
+    "retry_summary": {
+      "attempt": 1,
+      "max_attempts": 3,
+      "strategy": "mock_exponential_backoff"
+    },
+    "source": "n8n_n9_error_retry_logging_mock",
+    "generated_at": "2026-06-09T16:21:05Z",
+    "notes": "Retry scheduled. Current status: retrying."
+  },
+  "source": "n8n_n9_error_retry_logging_mock",
+  "notes": "Error handled. Re-try scheduled successfully in mock mode."
+}

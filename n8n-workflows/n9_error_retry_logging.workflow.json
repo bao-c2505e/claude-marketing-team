@@ -1,0 +1,371 @@
+{
+  "name": "Phase N9 Error Retry Logging Mock",
+  "nodes": [
+    {
+      "parameters": {},
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        100,
+        300
+      ],
+      "id": "manual-trigger"
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "contract_version",
+              "value": "error_retry_logging_v0.1"
+            },
+            {
+              "name": "request_id",
+              "value": "92f1505c-dfb7-4c40-b615-5e608ebca0b1"
+            },
+            {
+              "name": "event_type",
+              "value": "creative_asset.requested"
+            },
+            {
+              "name": "brand_id",
+              "value": "brand_demo_001"
+            },
+            {
+              "name": "campaign_id",
+              "value": "campaign_demo_001"
+            },
+            {
+              "name": "module_id",
+              "value": "creative_asset_comfyui"
+            },
+            {
+              "name": "error_type",
+              "value": "http_error"
+            },
+            {
+              "name": "error_code",
+              "value": "ERR_HTTP_502_BAD_GATEWAY"
+            },
+            {
+              "name": "error_message",
+              "value": "Local module server returned 502 Bad Gateway response."
+            },
+            {
+              "name": "timestamp",
+              "value": "2026-06-09T16:15:00Z"
+            }
+          ],
+          "number": [
+            {
+              "name": "attempt",
+              "value": 1
+            },
+            {
+              "name": "max_attempts",
+              "value": 3
+            }
+          ],
+          "other": [
+            {
+              "name": "metadata",
+              "value": {
+                "target_url": "http://localhost:8188/run",
+                "http_status": 502
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Set: Mock Error Scenario",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        260,
+        300
+      ],
+      "id": "set-mock-error"
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = items[0].json;\n\n// 1. Determine retryable flag dynamically if not provided\nlet retryable = true;\nif ([\"validation_error\", \"unsupported_event_type\", \"schema_mismatch\"].includes(body.error_type)) {\n  retryable = false;\n}\n\n// 2. Decide next action and retry_decision\nlet retry_decision = \"no_retry\";\nlet next_action = \"stop\";\n\nif (body.error_type === \"unsupported_event_type\") {\n  retry_decision = \"manual_review_required\";\n  next_action = \"manual_review\";\n} else if (retryable) {\n  if (body.attempt < body.max_attempts) {\n    retry_decision = \"retry_scheduled\";\n    next_action = \"retry\";\n  } else {\n    retry_decision = \"exhausted_to_dead_letter\";\n    next_action = \"dead_letter\";\n  }\n} else {\n  retry_decision = \"no_retry\";\n  next_action = \"stop\";\n}\n\nreturn [{\n  json: {\n    contract_version: body.contract_version || \"error_retry_logging_v0.1\",\n    request_id: body.request_id || \"92f1505c-dfb7-4c40-b615-5e608ebca0b1\",\n    event_type: body.event_type || \"creative_asset.requested\",\n    brand_id: body.brand_id || \"brand_demo_001\",\n    campaign_id: body.campaign_id || \"campaign_demo_001\",\n    module_id: body.module_id || \"creative_asset_comfyui\",\n    error_type: body.error_type || \"http_error\",\n    error_code: body.error_code || \"ERR_HTTP_502_BAD_GATEWAY\",\n    error_message: body.error_message || \"Unknown error occured\",\n    retryable: retryable,\n    attempt: body.attempt || 1,\n    max_attempts: body.max_attempts || 3,\n    next_action: next_action,\n    retry_decision: retry_decision,\n    timestamp: body.timestamp || new Date().toISOString(),\n    source: \"n8n_n9_error_retry_logging_mock\",\n    metadata: body.metadata || {}\n  }\n}];"
+      },
+      "name": "Code: Normalize Error Object",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        420,
+        300
+      ],
+      "id": "code-normalize"
+    },
+    {
+      "parameters": {
+        "dataType": "string",
+        "value1": "={{ $json.retry_decision }}",
+        "rules": {
+          "rules": [
+            {
+              "value2": "retry_scheduled"
+            },
+            {
+              "value2": "no_retry"
+            },
+            {
+              "value2": "exhausted_to_dead_letter"
+            },
+            {
+              "value2": "manual_review_required"
+            }
+          ]
+        }
+      },
+      "name": "Switch: Route by Retry Decision",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [
+        580,
+        300
+      ],
+      "id": "switch-retry"
+    },
+    {
+      "parameters": {
+        "jsCode": "const err = items[0].json;\nconst log_id = \"log_\" + Math.random().toString(36).substring(2, 9);\nreturn [{\n  json: {\n    request_id: err.request_id,\n    event_type: err.event_type,\n    module_id: err.module_id,\n    error_type: err.error_type,\n    retry_decision: \"retry_scheduled\",\n    attempt: err.attempt,\n    max_attempts: err.max_attempts,\n    execution_log: {\n      log_id: log_id,\n      request_id: err.request_id,\n      event_type: err.event_type,\n      module_id: err.module_id,\n      phase: \"error_handling\",\n      status: \"retry_scheduled\",\n      message: `Transient error ${err.error_type} encountered. Attempt ${err.attempt} of ${err.max_attempts} failed. Scheduling retry.`,\n      attempt: err.attempt,\n      timestamp: new Date().toISOString(),\n      source: \"n8n_n9_error_retry_logging_mock\",\n      metadata: {\n        retry_policy_id: \"default_policy_n9\",\n        next_attempt_in_seconds: 5,\n        backoff_strategy: \"mock_exponential_backoff\"\n      }\n    },\n    dead_letter_preview: {},\n    error_callback_preview: {\n      request_id: err.request_id,\n      event_type: err.event_type,\n      module_id: err.module_id,\n      callback_type: \"error_preview\",\n      status: \"retrying\",\n      error: {\n        error_type: err.error_type,\n        error_code: err.error_code,\n        error_message: err.error_message\n      },\n      retry_summary: {\n        attempt: err.attempt,\n        max_attempts: err.max_attempts,\n        strategy: \"mock_exponential_backoff\"\n      },\n      source: \"n8n_n9_error_retry_logging_mock\",\n      generated_at: new Date().toISOString(),\n      notes: \"Retry scheduled. Current status: retrying.\"\n    },\n    notes: \"Error handled. Re-try scheduled successfully in mock mode.\"\n  }\n}];"
+      },
+      "name": "Code: Apply Retry Policy & Scheduled Output",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        800,
+        120
+      ],
+      "id": "code-apply-retry"
+    },
+    {
+      "parameters": {
+        "jsCode": "const err = items[0].json;\nconst log_id = \"log_\" + Math.random().toString(36).substring(2, 9);\nreturn [{\n  json: {\n    request_id: err.request_id,\n    event_type: err.event_type,\n    module_id: err.module_id,\n    error_type: err.error_type,\n    retry_decision: \"no_retry\",\n    attempt: err.attempt,\n    max_attempts: err.max_attempts,\n    execution_log: {\n      log_id: log_id,\n      request_id: err.request_id,\n      event_type: err.event_type,\n      module_id: err.module_id,\n      phase: \"error_handling\",\n      status: \"failed\",\n      message: `Non-retryable ${err.error_type} encountered. Attempt ${err.attempt} terminated.`,\n      attempt: err.attempt,\n      timestamp: new Date().toISOString(),\n      source: \"n8n_n9_error_retry_logging_mock\",\n      metadata: {\n        retry_policy_id: \"default_policy_n9\"\n      }\n    },\n    dead_letter_preview: {},\n    error_callback_preview: {\n      request_id: err.request_id,\n      event_type: err.event_type,\n      module_id: err.module_id,\n      callback_type: \"error_preview\",\n      status: \"failed\",\n      error: {\n        error_type: err.error_type,\n        error_code: err.error_code,\n        error_message: err.error_message\n      },\n      retry_summary: {\n        attempt: err.attempt,\n        max_attempts: err.max_attempts,\n        strategy: \"mock_exponential_backoff\"\n      },\n      source: \"n8n_n9_error_retry_logging_mock\",\n      generated_at: new Date().toISOString(),\n      notes: \"Validation failed. Execution stopped.\"\n    },\n    notes: `Non-retryable error type ${err.error_type}. Execution halted without retry.`\n  }\n}];"
+      },
+      "name": "Code: Prepare Stop Output",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        800,
+        240
+      ],
+      "id": "code-prep-stop"
+    },
+    {
+      "parameters": {
+        "jsCode": "const err = items[0].json;\nconst log_id = \"log_\" + Math.random().toString(36).substring(2, 9);\nconst dlq_id = \"dlq_\" + Math.random().toString(36).substring(2, 9);\nreturn [{\n  json: {\n    request_id: err.request_id,\n    event_type: err.event_type,\n    module_id: err.module_id,\n    error_type: err.error_type,\n    retry_decision: \"exhausted_to_dead_letter\",\n    attempt: err.attempt,\n    max_attempts: err.max_attempts,\n    execution_log: {\n      log_id: log_id,\n      request_id: err.request_id,\n      event_type: err.event_type,\n      module_id: err.module_id,\n      phase: \"error_handling\",\n      status: \"dead_lettered\",\n      message: `Retry attempts exhausted (${err.attempt} of ${err.max_attempts}). Moving event to mock dead-letter queue.`,\n      attempt: err.attempt,\n      timestamp: new Date().toISOString(),\n      source: \"n8n_n9_error_retry_logging_mock\",\n      metadata: {\n        total_attempts: err.attempt,\n        last_error_type: err.error_type,\n        dead_letter_id: dlq_id\n      }\n    },\n    dead_letter_preview: {\n      dead_letter_id: dlq_id,\n      request_id: err.request_id,\n      event_type: err.event_type,\n      module_id: err.module_id,\n      attempts: err.attempt,\n      final_status: \"exhausted_to_dead_letter\",\n      source: \"n8n_n9_error_retry_logging_mock\",\n      created_at: new Date().toISOString(),\n      notes: \"Failed after max retries. Timeout or unavailable. Review module health.\"\n    },\n    error_callback_preview: {\n      request_id: err.request_id,\n      event_type: err.event_type,\n      module_id: err.module_id,\n      callback_type: \"error_preview\",\n      status: \"failed\",\n      error: {\n        error_type: err.error_type,\n        error_code: err.error_code,\n        error_message: err.error_message\n      },\n      retry_summary: {\n        attempt: err.attempt,\n        max_attempts: err.max_attempts,\n        strategy: \"mock_exponential_backoff\"\n      },\n      source: \"n8n_n9_error_retry_logging_mock\",\n      generated_at: new Date().toISOString(),\n      notes: \"Attempts exhausted. Action stopped.\"\n    },\n    notes: \"Retries exhausted. Moved mock event to DLQ.\"\n  }\n}];"
+      },
+      "name": "Code: Prepare Mock Dead Letter Output",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        800,
+        360
+      ],
+      "id": "code-prep-dead-letter"
+    },
+    {
+      "parameters": {
+        "jsCode": "const err = items[0].json;\nconst log_id = \"log_\" + Math.random().toString(36).substring(2, 9);\nconst dlq_id = \"dlq_\" + Math.random().toString(36).substring(2, 9);\nreturn [{\n  json: {\n    request_id: err.request_id,\n    event_type: err.event_type,\n    module_id: err.module_id,\n    error_type: err.error_type,\n    retry_decision: \"manual_review_required\",\n    attempt: err.attempt,\n    max_attempts: err.max_attempts,\n    execution_log: {\n      log_id: log_id,\n      request_id: err.request_id,\n      event_type: err.event_type,\n      module_id: err.module_id,\n      phase: \"error_handling\",\n      status: \"failed\",\n      message: `Critical error ${err.error_type}. Router cannot forward unknown events.`,\n      attempt: err.attempt,\n      timestamp: new Date().toISOString(),\n      source: \"n8n_n9_error_retry_logging_mock\",\n      metadata: {\n        retry_policy_id: \"no_retry_policy_n9\"\n      }\n    },\n    dead_letter_preview: {\n      dead_letter_id: dlq_id,\n      request_id: err.request_id,\n      event_type: err.event_type,\n      module_id: err.module_id,\n      attempts: err.attempt,\n      final_status: \"manual_review_required\",\n      source: \"n8n_n9_error_retry_logging_mock\",\n      created_at: new Date().toISOString(),\n      notes: \"Unsupported event route. Manual router config updates required.\"\n    },\n    error_callback_preview: {\n      request_id: err.request_id,\n      event_type: err.event_type,\n      module_id: err.module_id,\n      callback_type: \"error_preview\",\n      status: \"failed\",\n      error: {\n        error_type: err.error_type,\n        error_code: err.error_code,\n        error_message: err.error_message\n      },\n      retry_summary: {\n        attempt: err.attempt,\n        max_attempts: err.max_attempts,\n        strategy: \"no_backoff\"\n      },\n      source: \"n8n_n9_error_retry_logging_mock\",\n      generated_at: new Date().toISOString(),\n      notes: \"Unsupported event. Forwarded to operator queue.\"\n    },\n    notes: \"Router encountered unsupported event type. Immediate operator routing required.\"\n  }\n}];"
+      },
+      "name": "Code: Prepare Manual Review Output",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        800,
+        480
+      ],
+      "id": "code-prep-manual-review"
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "request_id",
+              "value": "={{ $json.request_id }}"
+            },
+            {
+              "name": "event_type",
+              "value": "={{ $json.event_type }}"
+            },
+            {
+              "name": "module_id",
+              "value": "={{ $json.module_id }}"
+            },
+            {
+              "name": "error_type",
+              "value": "={{ $json.error_type }}"
+            },
+            {
+              "name": "retry_decision",
+              "value": "={{ $json.retry_decision }}"
+            },
+            {
+              "name": "source",
+              "value": "n8n_n9_error_retry_logging_mock"
+            },
+            {
+              "name": "notes",
+              "value": "={{ $json.notes }}"
+            }
+          ],
+          "number": [
+            {
+              "name": "attempt",
+              "value": "={{ $json.attempt }}"
+            },
+            {
+              "name": "max_attempts",
+              "value": "={{ $json.max_attempts }}"
+            }
+          ],
+          "other": [
+            {
+              "name": "execution_log",
+              "value": "={{ $json.execution_log }}"
+            },
+            {
+              "name": "dead_letter_preview",
+              "value": "={{ $json.dead_letter_preview }}"
+            },
+            {
+              "name": "error_callback_preview",
+              "value": "={{ $json.error_callback_preview }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Respond / Output Error Handling Result",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        1060,
+        300
+      ],
+      "id": "respond-output-result"
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Set: Mock Error Scenario",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set: Mock Error Scenario": {
+      "main": [
+        [
+          {
+            "node": "Code: Normalize Error Object",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Normalize Error Object": {
+      "main": [
+        [
+          {
+            "node": "Switch: Route by Retry Decision",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch: Route by Retry Decision": {
+      "main": [
+        [
+          {
+            "node": "Code: Apply Retry Policy & Scheduled Output",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code: Prepare Stop Output",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code: Prepare Mock Dead Letter Output",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code: Prepare Manual Review Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Apply Retry Policy & Scheduled Output": {
+      "main": [
+        [
+          {
+            "node": "Respond / Output Error Handling Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Prepare Stop Output": {
+      "main": [
+        [
+          {
+            "node": "Respond / Output Error Handling Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Prepare Mock Dead Letter Output": {
+      "main": [
+        [
+          {
+            "node": "Respond / Output Error Handling Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Prepare Manual Review Output": {
+      "main": [
+        [
+          {
+            "node": "Respond / Output Error Handling Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionTimeout": 3600
+  }
+}

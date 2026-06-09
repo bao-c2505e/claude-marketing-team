@@ -1,0 +1,31 @@
+{
+  "dead_letter_id": "dlq_timeout_001",
+  "request_id": "aa150e7b-c9a1-432d-8692-0b1a89c20a9a",
+  "event_type": "creative_asset.requested",
+  "module_id": "creative_asset_comfyui",
+  "error": {
+    "contract_version": "error_retry_logging_v0.1",
+    "request_id": "aa150e7b-c9a1-432d-8692-0b1a89c20a9a",
+    "event_type": "creative_asset.requested",
+    "brand_id": "brand_demo_001",
+    "campaign_id": "campaign_demo_001",
+    "module_id": "creative_asset_comfyui",
+    "error_type": "timeout",
+    "error_code": "ERR_PIPELINE_TIMEOUT",
+    "error_message": "Generation pipeline took longer than 60 seconds to respond.",
+    "retryable": true,
+    "attempt": 3,
+    "max_attempts": 3,
+    "next_action": "dead_letter",
+    "timestamp": "2026-06-09T16:22:00Z",
+    "source": "n8n_n9_error_retry_logging_mock",
+    "metadata": {
+      "execution_time_ms": 60021
+    }
+  },
+  "attempts": 3,
+  "final_status": "exhausted_to_dead_letter",
+  "source": "n8n_n9_error_retry_logging_mock",
+  "created_at": "2026-06-09T16:22:05Z",
+  "notes": "Failed after max retries of 3. Standard timeout. Review module health."
+}

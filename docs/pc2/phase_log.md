@@ -4,8 +4,27 @@ This log tracks the progress, status, and deliverables for the PC2 (n8n & Specia
 
 ---
 
-## Phase N8 — Unified Callback + Approval Gate Contract
+## Phase N9 — Error Handling + Retry + Logging Contract
 - **Status**: IMPLEMENTED / READY FOR REVIEW
+- **Reviewer**: Codex
+- **Date**: 2026-06-09
+- **Deliverables**:
+  - `contracts/error_handling_retry_logging_contract.md` (Standard Error Handling Contract)
+  - `contracts/examples/n8n/n9/*.json` (5 Mock Error JSON payloads)
+  - `contracts/examples/n8n/n9/retry_policies/*.json` (2 Mock Retry Policy JSON payloads)
+  - `contracts/examples/n8n/n9/log_entries/*.json` (3 Mock Log entries JSON payloads)
+  - `contracts/examples/n8n/n9/dead_letters/*.json` (2 Mock Dead letter JSON payloads)
+  - `contracts/examples/n8n/n9/expected_outputs/*.json` (4 Expected final outputs JSON payloads)
+  - `n8n-workflows/n9_error_retry_logging.workflow.json` (Error Handling workflow skeleton)
+  - `docs/pc2/phase_n9_error_retry_logging.md` (manual testing guide)
+- **Validation**: `node contracts/tools/validate_contracts.js` successfully PASS.
+- **Scope check**: No database queries, no secrets/APIs, no Core UI modifications. No production URLs. Mock-only execution.
+- **Known limitations**: All execution states, retry actions, dead-letters, and logs are simulated inside JSON payloads. No real message queues or databases are targeted.
+
+---
+
+## Phase N8 — Unified Callback + Approval Gate Contract
+- **Status**: DONE / PASS
 - **Reviewer**: Codex
 - **Date**: 2026-06-08
 - **Deliverables**:

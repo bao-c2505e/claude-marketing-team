@@ -1,0 +1,17 @@
+{
+  "retry_policy_id": "no_retry_policy_n9",
+  "max_attempts": 1,
+  "backoff_strategy": "no_backoff",
+  "retryable_error_types": [],
+  "non_retryable_error_types": [
+    "http_error",
+    "timeout",
+    "validation_error",
+    "unsupported_event_type",
+    "module_unavailable",
+    "schema_mismatch",
+    "unknown_error"
+  ],
+  "on_exhausted": "send_to_mock_dead_letter",
+  "notes": "Policy that skips retrying completely. Suitable for instant dead-letter or error handling testing."
+}

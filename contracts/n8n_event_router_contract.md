@@ -103,3 +103,4 @@ Final states are mapped as follows:
 4.  **No Auto-Post/Auto-Send:** Modules should never post copy directly to live channels or send emails to real addresses.
 5.  **No Real Ad Spend:** Ad modules must run with `budget_mode: "mock"`.
 6.  **Owner Approval:** Production rollout and real execution credentials require explicit owner authorization.
+7.  **Unsupported Events Routing:** Unsupported `event_type` routes to the N9 error handling path in future integration.
