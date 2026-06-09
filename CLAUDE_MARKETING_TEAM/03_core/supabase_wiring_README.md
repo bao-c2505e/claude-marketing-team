@@ -47,46 +47,80 @@
 | `core_agency_connector_registry_v1` | `ConnectorRegistryStore` (connectors, modules, events) | `connector_registry`, `module_registry`, `module_events` | Phase 17+ |
 | `core_agency_automation_logs_v1` | `AutomationLogStore` (logs) | `automation_logs` | Phase 17+ |
 
-### 1.4 RLS Requirements
+### 1.4 RLS Status — Accurate Audit
 
-All tables that store multi-tenant data need RLS enabled. Key patterns:
+> **Full policy plan (SQL, apply order, helper function):** `database/rls_policy_plan.md`
+
+#### Tables with RLS already enabled (schema_v1.sql)
+`users`, `user_profiles`, `user_roles`, `clients`, `brands`, `campaigns`, `campaign_briefs`, `content_items`, `approval_requests`, `assets`, `reports`
+
+#### Tables that still need `ALTER TABLE ... ENABLE ROW LEVEL SECURITY` before production
+`generation_jobs`, `content_calendar_items`, `creative_briefs`, `ad_briefs`, `approval_events`, `approval_comments`, `asset_collections`, `report_metrics`, `connector_registry`, `module_registry`, `module_events`, `webhook_callbacks`, `automation_logs`, `audit_logs`, `system_settings`
+
+#### ⚠️ Bootstrap problem: user_roles has RLS, no policies yet
+
+`user_roles` is RLS-enabled but has zero policies. The anon Supabase client (used by `AuthContext.tsx:fetchUserRole()`) cannot read it. Effect: every authenticated user falls back to `viewer`. **Bootstrap policies must be applied before enabling production env.**
+
+```sql
+-- MUST apply first — without this, every sign-in gets "viewer" role
+CREATE POLICY "roles_read_authenticated" ON roles FOR SELECT
+  USING (auth.role() = 'authenticated');
+
+CREATE POLICY "user_roles_read_own" ON user_roles FOR SELECT
+  USING (auth.uid() = user_id AND is_active = true);
+```
+
+See `database/rls_policy_plan.md` section 3 for the full bootstrap set.
+
+#### Key policy patterns
 
 **Pattern 1 — Internal staff only (owner/manager)**
 ```sql
--- Example: automation_logs
+-- For tables that must never be visible to client/viewer (e.g., automation_logs, generation_jobs)
 CREATE POLICY "automation_logs_staff_only" ON automation_logs
-  FOR ALL USING (
-    EXISTS (
-      SELECT 1 FROM user_roles ur JOIN roles r ON r.id = ur.role_id
-      WHERE ur.user_id = auth.uid() AND ur.is_active = true
-      AND r.name IN ('owner', 'manager')
-    )
-  );
+  FOR ALL USING (current_user_has_role(ARRAY['owner', 'manager']));
 ```
 
-**Pattern 2 — Client can read own brand's data**
+**Pattern 2 — Client sees only their assigned tenant's data**
+
+Do NOT just check role name. A `client` role user must only see data for the specific `client_id` they are assigned to in `user_roles.resource_id`. Checking role without ownership scope would expose all clients' data to every `client` user.
+
 ```sql
--- Example: clients
-CREATE POLICY "clients_staff_select" ON clients
-  FOR SELECT USING (
-    EXISTS (
+-- Correct tenant-scoped pattern (clients table)
+CREATE POLICY "clients_staff_read" ON clients FOR SELECT
+  USING (
+    current_user_has_role(ARRAY['owner', 'manager'])
+    OR EXISTS (
       SELECT 1 FROM user_roles ur JOIN roles r ON r.id = ur.role_id
       WHERE ur.user_id = auth.uid() AND ur.is_active = true
-      AND r.name IN ('owner', 'manager', 'client', 'viewer')
-    )
-  );
-CREATE POLICY "clients_staff_modify" ON clients
-  FOR ALL USING (
-    EXISTS (
-      SELECT 1 FROM user_roles ur JOIN roles r ON r.id = ur.role_id
-      WHERE ur.user_id = auth.uid() AND ur.is_active = true
-      AND r.name IN ('owner', 'manager')
+        AND r.name IN ('client', 'viewer')
+        AND ur.resource_type = 'client'
+        AND ur.resource_id = clients.id   -- ownership check
     )
   );
 ```
 
-**Pattern 3 — Content visible to approved client only**
-For `content_items`, clients should only see items with status `approved` (not `draft`, `generated`, `failed`).
+**Pattern 3 — Content visible to client only when approved**
+For `content_items`, clients should only see items with `status = 'approved'`. Draft, generated, and failed items must never reach the client.
+
+```sql
+CREATE POLICY "content_items_client_read" ON content_items FOR SELECT
+  USING (
+    current_user_has_role(ARRAY['owner', 'manager'])
+    OR (
+      content_items.status = 'approved'   -- status gate
+      AND EXISTS (
+        SELECT 1 FROM campaigns c
+        JOIN user_roles ur ON ur.resource_id = c.client_id
+        JOIN roles r ON r.id = ur.role_id
+        WHERE c.id = content_items.campaign_id
+          AND ur.user_id = auth.uid() AND ur.is_active = true
+          AND r.name IN ('client', 'viewer')
+          AND ur.resource_type = 'client'
+      )
+    )
+  );
+```
 
 ### 1.5 Missing / Deferred Items
 
@@ -154,9 +188,11 @@ export const supabase: SupabaseClient | null = isSupabaseConfigured
 
 ## 4. Auth Wiring — Current Flow
 
+**File:** `src/lib/auth/AuthContext.tsx` — exports `AuthProvider` (React context) + `useAuth` hook.
+
 ```
 App starts
-  └── AuthProvider.useEffect()
+  └── AuthProvider (src/lib/auth/AuthContext.tsx) useEffect
         ├── isSupabaseConfigured? YES
         │     └── supabase.auth.getSession()
         │           ├── session exists → fetchUserRole() → setState(supabase mode)
@@ -168,14 +204,16 @@ signIn()
   ├── isSupabaseConfigured? NO → demo mode check (owner@thecore.agency / demo1234)
   └── isSupabaseConfigured? YES → supabase.auth.signInWithPassword()
 
-fetchUserRole(userId)
+fetchUserRole(userId)                           ← depends on bootstrap RLS policies
   └── SELECT role_id FROM user_roles WHERE user_id = $userId
         └── SELECT name FROM roles WHERE id = $role_id
               └── returns RoleName ('owner'|'manager'|'client'|'viewer')
-              └── fallback → 'viewer' on any error
+              └── fallback → 'viewer' on any error (including RLS block)
 ```
 
-**To make auth live:** Apply schema V1, create a Supabase user, insert a row into `user_roles`, then set env vars. No frontend code changes needed.
+**⚠️ Bootstrap required:** If `user_roles` has no RLS policy (current schema state), `fetchUserRole()` will always return empty → fallback 'viewer'. Apply bootstrap policies from `database/rls_policy_plan.md` section 3 first.
+
+**To make auth live:** Apply schema V1, apply bootstrap RLS policies, create a Supabase user, insert a row into `user_roles`, then set env vars. No frontend code changes needed.
 
 ---
 
@@ -304,32 +342,50 @@ git push origin main  # Vercel auto-deploys
 
 ## 7. Phase 16 CRUD Wiring Checklist
 
-The following must be done in Phase 16 to fully wire Supabase data:
+The following must be done in Phase 16. **Do RLS step first** — without it, CRUD will fail silently for non-owner users.
+
+### Step 0 — RLS Foundation (required before any CRUD)
+- [ ] Run `database/rls_policy_plan.md` Step 0: enable RLS on all missing tables
+- [ ] Apply `current_user_has_role()` helper function
+- [ ] Apply bootstrap policies (roles, user_roles, user_profiles, users)
+- [ ] Verify: sign in as owner, confirm role badge = "Owner"
+- [ ] Apply Group B–G policies
+
+### Identity / Access
+- [ ] `users`, `user_profiles`, `user_roles`, `roles` — read-only from frontend (no CRUD needed, managed via Supabase Auth + SQL)
 
 ### Core Objects (Priority 1)
 - [ ] `loadCoreData()` → `supabase.from('clients').select('*')` + brands + campaigns + briefs
 - [ ] `saveCoreData()` → `supabase.from('clients').upsert()` etc.
-- [ ] Apply RLS policies for clients, brands, campaigns, campaign_briefs
+- [ ] RLS policies: clients, brands, campaigns, campaign_briefs (with tenant scope)
 
 ### Content (Priority 2)
 - [ ] `loadGenerationData()` → generation_jobs + content_items
 - [ ] `saveGenerationData()` → upsert jobs + items
-- [ ] Apply RLS for generation_jobs, content_items
+- [ ] RLS: generation_jobs (staff only), content_items (staff + approved-only for client)
+- [ ] content_calendar_items — enable RLS + wire CRUD
 
-### Approval (Priority 3)
-- [ ] `loadApprovalData()` → approval_requests + events + comments
-- [ ] `saveApprovalData()` → upsert all three tables
-- [ ] Apply RLS for approval tables
+### Approval Workflow (Priority 3)
+- [ ] `loadApprovalData()` → approval_requests + approval_events + approval_comments
+- [ ] `saveApprovalData()` → upsert requests; insert-only events; upsert comments
+- [ ] RLS: approval_requests (tenant-scoped), approval_events (staff insert, read with scope), approval_comments (internal flag)
 
-### Assets (Priority 4)
+### Assets / Asset Collections (Priority 4)
 - [ ] `loadAssetData()` → assets + asset_collections
 - [ ] `saveAssetData()` → upsert assets + collections
-- [ ] Apply RLS for assets, asset_collections
+- [ ] RLS: assets (brand-scoped + approved-gate for client), asset_collections (brand-scoped)
 
-### Later Phases
-- [ ] Connector registry → Supabase (Phase 17+)
-- [ ] Automation logs → Supabase (Phase 17+)
-- [ ] Export packs → add schema table or keep local (decide in Phase 17)
+### Reports / Report Metrics (Priority 5)
+- [ ] `loadReportData()` → reports (from `src/lib/core/reportModule.ts` or similar)
+- [ ] Wire `reports` + `report_metrics` tables
+- [ ] RLS: reports (campaign-scoped + approved-gate for client), report_metrics (staff read)
+
+### Phase 17+ (deferred)
+- [ ] Export packs — add `export_packs` table in schema V2 or keep localStorage
+- [ ] Connector registry (`connector_registry`, `module_registry`) → Supabase
+- [ ] Module events (`module_events`, `webhook_callbacks`) → Supabase
+- [ ] Automation logs (`automation_logs`) → Supabase
+- [ ] Audit logs → Supabase (insert-only from server actions)
 - [ ] Supabase Storage for file uploads (Phase 18+)
 
 ---
@@ -349,12 +405,15 @@ The following must be done in Phase 16 to fully wire Supabase data:
 
 | Rule | Enforced by |
 |---|---|
-| No service role key in frontend | `supabaseClient.ts` reads only `VITE_` vars |
+| No service role key in frontend | `supabaseClient.ts` reads only `VITE_` vars; never add to Vercel |
 | App does not crash without env | `isSupabaseConfigured` guard, null-safe client |
-| Demo Sign In fallback preserved | `AuthContext.signIn()` demo branch |
-| Generated ≠ Approved ≠ Published | State machine in `coreData.ts` + RLS |
-| No auto-post / no auto-ads | `system_settings` seeded with `false` |
-| RLS blocks unauthorized access | Enforced at Postgres level (Phase 16) |
+| Demo Sign In fallback preserved | `AuthContext.signIn()` demo branch — never remove |
+| Generated ≠ Approved ≠ Published | State machine in `coreData.ts` + RLS `status` gate |
+| No auto-post / no auto-ads | `system_settings` seeded with `false`; no frontend bypass |
+| RLS blocks unauthorized access | Enforced at Postgres level (Phase 16 — see `database/rls_policy_plan.md`) |
+| Client sees only own tenant data | Tenant-scoped policies check `resource_id` — role check alone is insufficient |
+| Do NOT enable prod env before bootstrap | `user_roles` RLS + no policies = every user gets viewer; apply bootstrap first |
+| If RLS is on with no policy → zero rows | Default Supabase behavior; test each table after applying policies |
 
 ---
 

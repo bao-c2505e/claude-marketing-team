@@ -6,6 +6,22 @@ Nhật ký ghi lại các hành động mô phỏng của các AI Agent khi vậ
 
 ## 🗓️ Nhật Ký Hoạt Động (Simulated Activity Logs)
 
+### 🗓️ Ngày 09/06/2026 — Phase 15 Codex Fix: Harden RLS + CRUD Plan
+- **[PC1 Claude Code Builder]:** Phase 15 Codex Fix — 6 issues found, all fixed.
+- **[PC1]:** Audited schema_v1.sql — confirmed RLS enabled on 11 tables, NOT enabled on 15 tables. Corrected false "all tables" claim in database/README.md.
+- **[PC1]:** Identified bootstrap problem: `user_roles` RLS enabled with no policy → fetchUserRole() returns empty → every user falls back to viewer. Added bootstrap policy callout + warning in supabase_wiring_README.md and database/README.md.
+- **[PC1]:** Created `CLAUDE_MARKETING_TEAM/03_core/database/rls_policy_plan.md` (NEW): 13 sections — current RLS status table, Step 0 enable RLS on 15 missing tables (SQL), current_user_has_role() helper function (SECURITY DEFINER), bootstrap policies (roles/user_roles/user_profiles/users), Group A–G full policy set with tenant-scoped patterns using resource_id, ordered apply guide, safety checklist before enabling production env.
+- **[PC1]:** Fixed supabase_wiring_README.md section 1.4: accurate RLS table list (11 enabled / 15 missing), bootstrap problem callout, corrected Pattern 2 to include tenant ownership check via resource_id (not just role check), added Pattern 3 content status gate.
+- **[PC1]:** Fixed supabase_wiring_README.md section 4: replaced ambiguous `AuthProvider.useEffect()` with explicit `src/lib/auth/AuthContext.tsx` file reference.
+- **[PC1]:** Expanded supabase_wiring_README.md section 7 Phase 16 checklist: added Step 0 RLS foundation, added reports/report_metrics (P5), expanded Phase 17+ list (export_packs, connector_registry, module_registry, module_events, automation_logs, audit_logs).
+- **[PC1]:** Hardened supabase_wiring_README.md section 9 safety invariants: added prod-env warning, client tenant isolation rule, RLS-on-no-policy behavior note.
+- **[PC1]:** Updated `src/lib/core/coreRepository.ts`: added `Report` + `ReportMetric` imports, added `ReportRepository` interface (list/get/create/update), added `ReportMetricRepository` interface (listForReport/create/createBatch), updated `CoreRepositories` bundle from 16 → 18 repos.
+- **[PC1]:** Updated SESSION_SUMMARY.md, phase_log.md, agent_activity_log.md.
+- **[PC1]:** `npm run build` → PASS (tsc + vite, 0 errors). No runtime code changes. Interfaces-only addition tree-shaken. Bundle unchanged.
+- **[Safety confirmed]:** No secrets. No real API. Auth logic unchanged. Demo Sign In + localStorage fallbacks preserved. No auto-post/ads/messaging. Build pass.
+
+---
+
 ### 🗓️ Ngày 09/06/2026 — Phase 15: Supabase Auth + Database Wiring Plan
 - **[PC1 Claude Code Builder]:** Phase 15 initiated. Full audit + wiring plan. No CRUD wiring (deferred Phase 16).
 - **[PC1]:** Audited `src/lib/supabaseClient.ts` — isSupabaseConfigured guard, anon key only, null-safe. ✅ No changes needed.

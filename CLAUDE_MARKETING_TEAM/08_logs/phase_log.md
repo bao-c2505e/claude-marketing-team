@@ -6,6 +6,20 @@ Nhật ký theo dõi các mốc hoàn thành kỹ thuật qua các Phase.
 
 ## 📅 Nhật Ký Sự Kiện (Event Logs)
 
+### 🗓️ Ngày 09/06/2026 — Phase 15 Codex Fix: Harden RLS + CRUD Plan
+- **Sự kiện:** Codex review Phase 15 phát hiện 6 vấn đề — đã fix tất cả.
+- **Vấn đề 1:** README khẳng định "RLS enabled on all tables" — sai. schema_v1.sql chỉ bật RLS trên 11/27 bảng. Fix: database/README.md cập nhật danh sách chính xác.
+- **Vấn đề 2:** `user_roles` có RLS nhưng 0 policies → `fetchUserRole()` trả về 'viewer' cho mọi user. Fix: thêm bootstrap policies vào rls_policy_plan.md + warning trong docs.
+- **Vấn đề 3:** Policy mẫu chỉ check role, không check tenant ownership → nguy cơ lộ dữ liệu đa tenant. Fix: supabase_wiring_README.md section 1.4 — thêm pattern tenant-scoped với `resource_id` check.
+- **Vấn đề 4:** `coreRepository.ts` thiếu `ReportRepository` + `ReportMetricRepository`. Fix: thêm 2 interfaces + cập nhật CoreRepositories bundle (16→18 repos).
+- **Vấn đề 5:** Phase 16 checklist thiếu reports, report_metrics, export_packs, connectors, modules, module_events, automation_logs. Fix: expand checklist đủ 10 domains + thêm Step 0 RLS trước CRUD.
+- **Vấn đề 6:** Flow diagram dùng `AuthProvider.useEffect()` — không rõ file path. Fix: thêm `src/lib/auth/AuthContext.tsx` reference.
+- **File mới:** `CLAUDE_MARKETING_TEAM/03_core/database/rls_policy_plan.md` — 13 sections: current RLS status, Step 0 enable RLS 15 bảng thiếu, helper function, bootstrap policies, Group A–G policies, apply order, safety checklist.
+- **Build:** tsc + vite PASS — 0 errors. Không thay đổi code runtime.
+- **Trạng thái:** ✅ DONE.
+
+---
+
 ### 🗓️ Ngày 09/06/2026 — Phase 15: Supabase Auth + Database Wiring Plan
 - **Sự kiện:** Hoàn thành Phase 15 — Supabase Auth + Database Wiring Plan.
 - **Người thực hiện:** Claude Code Builder (PC1).

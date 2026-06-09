@@ -129,9 +129,17 @@ These can only be changed by an `owner` role user via the Settings page (Phase 1
 
 ## RLS (Row Level Security)
 
-RLS is **enabled** on all tables in `schema_v1.sql`. Policies are applied in **Phase 16**.
+RLS is enabled on a **subset** of tables in `schema_v1.sql` (applied in Phase 2). The remaining tables need `ALTER TABLE ... ENABLE ROW LEVEL SECURITY` before any production CRUD.
 
-Full policy plan: see `../supabase_wiring_README.md` → Section 1.4.
+**RLS enabled in schema_v1.sql:**
+`users`, `user_profiles`, `user_roles`, `clients`, `brands`, `campaigns`, `campaign_briefs`, `content_items`, `approval_requests`, `assets`, `reports`
+
+**RLS NOT yet enabled (must enable before production):**
+`generation_jobs`, `content_calendar_items`, `creative_briefs`, `ad_briefs`, `approval_events`, `approval_comments`, `asset_collections`, `report_metrics`, `connector_registry`, `module_registry`, `module_events`, `webhook_callbacks`, `automation_logs`, `audit_logs`, `system_settings`
+
+**⚠️ Important:** `user_roles` has RLS enabled but has no policies yet. Until bootstrap policies are applied (Phase 16), the anon client cannot read role assignments and every authenticated user will fall back to `viewer`. Do NOT enable production Supabase env until the bootstrap policies in `rls_policy_plan.md` are applied.
+
+Full policy plan: see `rls_policy_plan.md` and `../supabase_wiring_README.md` → Section 1.4.
 
 ---
 

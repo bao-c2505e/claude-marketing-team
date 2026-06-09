@@ -22,6 +22,27 @@ Chúng ta đang xây dựng **The Core Agency — Real Operations MVP**. Đây l
 
 ---
 
+## ✅ Phase 15 Codex Fix — Harden RLS + CRUD Plan (DONE — 2026-06-09)
+
+### Vấn đề Codex phát hiện:
+1. README khẳng định "RLS enabled on all tables" — sai (schema_v1.sql chỉ bật 11/27 bảng)
+2. `user_roles` có RLS nhưng chưa có bootstrap policy → `fetchUserRole()` luôn trả về 'viewer'
+3. Policy mẫu chỉ check role, chưa check tenant/ownership scope → nguy cơ lộ dữ liệu đa tenant
+4. `coreRepository.ts` thiếu `ReportRepository` + `ReportMetricRepository`
+5. Phase 16 checklist thiếu 7 domains: reports, report_metrics, export_packs, connector_registry, module_registry, module_events, automation_logs
+6. Flow diagram dùng `AuthProvider.useEffect()` không rõ file path
+
+### Đã fix:
+1. **`CLAUDE_MARKETING_TEAM/03_core/database/README.md`**: Fix "RLS enabled on all tables" → danh sách chính xác 11 bảng enabled / 15 bảng chưa. Thêm bootstrap warning. Link tới rls_policy_plan.md.
+2. **`CLAUDE_MARKETING_TEAM/03_core/database/rls_policy_plan.md`** (NEW): Full 13-section RLS plan — current status, Step 0 enable RLS on 15 missing tables, `current_user_has_role()` helper function, bootstrap policies, Group A–G policies với tenant-scoped patterns, apply order, safety checklist trước khi enable production env.
+3. **`CLAUDE_MARKETING_TEAM/03_core/supabase_wiring_README.md`**: Fix section 1.4 (accurate RLS table list, bootstrap problem callout, tenant-scoped policy patterns), fix section 4 (AuthProvider reference → `src/lib/auth/AuthContext.tsx`), expand section 7 Phase 16 checklist to cover all 10 domains + RLS step first, harden section 9 safety invariants (prod env warning, client tenant isolation rule).
+4. **`src/lib/core/coreRepository.ts`**: Added `ReportRepository`, `ReportMetricRepository` interfaces + `Report`/`ReportMetric` type imports. Updated `CoreRepositories` bundle (18 repos now).
+
+### Safety:
+- Không thay đổi code runtime. Không sửa auth logic. Demo Sign In + localStorage fallbacks preserved. Build PASS.
+
+---
+
 ## ✅ Phase 15 — Supabase Auth + Database Wiring Plan (DONE — 2026-06-09)
 
 ### Mục tiêu:

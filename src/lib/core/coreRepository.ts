@@ -21,6 +21,8 @@ import type {
   AssetItem,
   LocalAssetCollection,
   LocalExportPack,
+  Report,
+  ReportMetric,
   LocalConnectorRegistryItem,
   LocalModuleRegistryItem,
   LocalModuleEvent,
@@ -136,6 +138,23 @@ export interface AssetCollectionRepository {
 }
 
 // ---------------------------------------------------------------------------
+// G2. Reports + Report Metrics (schema: reports, report_metrics)
+// ---------------------------------------------------------------------------
+
+export interface ReportRepository {
+  list(campaignId?: string): Promise<Report[]>;
+  get(id: string): Promise<Report | null>;
+  create(data: Omit<Report, 'id' | 'created_at' | 'updated_at'>): Promise<Report>;
+  update(id: string, patch: Partial<Report>): Promise<Report>;
+}
+
+export interface ReportMetricRepository {
+  listForReport(reportId: string): Promise<ReportMetric[]>;
+  create(metric: Omit<ReportMetric, 'id' | 'created_at'>): Promise<ReportMetric>;
+  createBatch(metrics: Array<Omit<ReportMetric, 'id' | 'created_at'>>): Promise<ReportMetric[]>;
+}
+
+// ---------------------------------------------------------------------------
 // H. Export Packs (local only — no Supabase table in schema V1)
 // ---------------------------------------------------------------------------
 
@@ -192,6 +211,8 @@ export interface CoreRepositories {
   approvalComments: ApprovalCommentRepository;
   assets:           AssetRepository;
   assetCollections: AssetCollectionRepository;
+  reports:          ReportRepository;
+  reportMetrics:    ReportMetricRepository;
   exportPacks:      ExportPackRepository;
   connectors:       ConnectorRepository;
   modules:          ModuleRepository;
