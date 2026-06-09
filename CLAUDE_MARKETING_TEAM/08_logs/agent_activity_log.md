@@ -6,6 +6,22 @@ Nhật ký ghi lại các hành động mô phỏng của các AI Agent khi vậ
 
 ## 🗓️ Nhật Ký Hoạt Động (Simulated Activity Logs)
 
+### 🗓️ Ngày 09/06/2026 — Phase 15: Supabase Auth + Database Wiring Plan
+- **[PC1 Claude Code Builder]:** Phase 15 initiated. Full audit + wiring plan. No CRUD wiring (deferred Phase 16).
+- **[PC1]:** Audited `src/lib/supabaseClient.ts` — isSupabaseConfigured guard, anon key only, null-safe. ✅ No changes needed.
+- **[PC1]:** Audited `src/lib/auth/AuthContext.tsx` — supabase/demo/unconfigured modes, role fetch from `user_roles → roles` tables, demo fallback at `owner@thecore.agency/demo1234`. ✅ No changes needed.
+- **[PC1]:** Audited `src/components/auth/LoginScreen.tsx` — "⚠️ Supabase not configured" banner, "Demo Sign In" title, demo credentials prefill when unconfigured. ✅ No changes needed.
+- **[PC1]:** Audited `.env.example` — VITE_ prefix for frontend, SERVICE_ROLE_KEY documented as server-only, WEBHOOK_SHARED_SECRET placeholder. ✅ No changes needed.
+- **[PC1]:** Audited `schema_v1.sql` — 7 table groups, all TypeScript types mapped, RLS enabled on all tables. ✅ Ready to apply.
+- **[PC1]:** Created `CLAUDE_MARKETING_TEAM/03_core/supabase_wiring_README.md` — 10-section wiring plan: auth audit, schema audit, localStorage→Supabase mapping (7 stores), RLS requirements (2 patterns), missing/deferred items, env vars guide, client safety rules, auth flow, repository interface plan, SQL apply guide, Phase 16 CRUD checklist, safety invariants.
+- **[PC1]:** Created `src/lib/core/coreRepository.ts` — TypeScript interfaces for 16 repositories (ClientRepository, BrandRepository, CampaignRepository, BriefRepository, GenerationJobRepository, ContentItemRepository, ApprovalRequestRepository, ApprovalEventRepository, ApprovalCommentRepository, AssetRepository, AssetCollectionRepository, ExportPackRepository, ConnectorRepository, ModuleRepository, ModuleEventRepository, AutomationLogRepository) + CoreRepositories bundle. Interfaces only, no Supabase calls, no runtime impact.
+- **[PC1]:** Updated `CLAUDE_MARKETING_TEAM/03_core/database/README.md` — full 7-step SQL apply guide, service role key warning, related docs links.
+- **[PC1]:** Updated CURRENT_PHASE.md, SESSION_SUMMARY.md, phase_log.md, agent_activity_log.md.
+- **[PC1]:** `npm run build` → PASS (tsc + vite, 0 errors). coreRepository.ts is interfaces only — tree-shaken, zero bundle impact. Git add/commit/push.
+- **[Safety confirmed]:** No secrets committed. SERVICE_ROLE_KEY documented as "never in frontend." No real API calls. Demo Sign In + localStorage fallbacks preserved. No auto-post/ads/messaging. Build pass.
+
+---
+
 ### 🗓️ Ngày 09/06/2026 — Phase 14: Automation Logs Foundation
 - **[PC1 Claude Code Builder]:** Phase 14 resumed from interrupted session. Files partially written from previous session — read state, verified usability, continued from existing content.
 - **[PC1]:** Phase 14 types verified in `src/types/core.ts` (`AutomationLogType`, `AutomationLogSource`, `AutomationLogSeverity`, `AutomationLogStatus`, `LocalAutomationLog`) — already complete.

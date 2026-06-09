@@ -22,7 +22,32 @@ Chúng ta đang xây dựng **The Core Agency — Real Operations MVP**. Đây l
 
 ---
 
-## 🔜 Phase 15 — NEXT: Real Supabase Auth + Database Wiring Plan
+## ✅ Phase 15 — Supabase Auth + Database Wiring Plan (DONE — 2026-06-09)
+
+### Mục tiêu:
+Kiểm tra schema/database readiness, chuẩn hóa Supabase client/env, tạo wiring plan + repository interface + SQL apply guide. Không migrate full CRUD ở Phase 15.
+
+### Audit kết quả:
+- **Auth:** AuthContext.tsx + supabaseClient.ts + LoginScreen.tsx đã sẵn sàng cho Supabase thật. Không cần sửa code.
+- **Schema:** schema_v1.sql đầy đủ 7 groups, match TypeScript types. Sẵn sàng apply.
+- **.env.example:** Đã đúng (VITE_ prefix, SERVICE_ROLE_KEY warning). Không cần sửa.
+- **UI Indicator:** Login screen banner + demo credentials prefill khi unconfigured. Không cần sửa.
+
+### Đã build:
+1. **`CLAUDE_MARKETING_TEAM/03_core/supabase_wiring_README.md`** (NEW): Full audit — auth status, schema status, localStorage→Supabase mapping (7 stores), RLS requirements (2 patterns), missing/deferred items, environment variables guide, auth flow diagram, repository interface plan, SQL apply guide (7 steps), Phase 16 CRUD checklist, safety invariants.
+2. **`src/lib/core/coreRepository.ts`** (NEW): TypeScript interfaces for 16 repositories (Client, Brand, Campaign, Brief, GenerationJob, ContentItem, ApprovalRequest, ApprovalEvent, ApprovalComment, Asset, AssetCollection, ExportPack, Connector, Module, ModuleEvent, AutomationLog) + CoreRepositories bundle. Phase 16 wiring strategy in comments.
+3. **`CLAUDE_MARKETING_TEAM/03_core/database/README.md`** (UPDATED): Full 7-step SQL apply guide (create project → apply SQL → configure auth → assign owner role SQL snippet → set env vars local+Vercel → redeploy → verify). Service role key warning. Related docs links.
+
+### localStorage → Supabase Priority:
+- Phase 16 (Core + Content): `core_agency_core_data_v1` + `core_agency_gen_data_v1` + approval + assets
+- Phase 17+ (Automation): connectors, logs, export packs
+
+### Safety:
+- No secrets committed. No real API called. Demo Sign In + localStorage fallbacks preserved. Build PASS.
+
+---
+
+## 🔜 Phase 16 — NEXT: Supabase CRUD Wiring Core Objects
 
 **Mục tiêu:** Kết nối Supabase Auth thật + wire các data stores (clients, brands, campaigns, briefs, generation jobs, content items, approval requests, assets, logs) vào Supabase Postgres thay vì localStorage. RLS policies áp dụng. Auth context dùng Supabase session thật.
 

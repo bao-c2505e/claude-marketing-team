@@ -6,6 +6,28 @@ Nhật ký theo dõi các mốc hoàn thành kỹ thuật qua các Phase.
 
 ## 📅 Nhật Ký Sự Kiện (Event Logs)
 
+### 🗓️ Ngày 09/06/2026 — Phase 15: Supabase Auth + Database Wiring Plan
+- **Sự kiện:** Hoàn thành Phase 15 — Supabase Auth + Database Wiring Plan.
+- **Người thực hiện:** Claude Code Builder (PC1).
+- **Hành động đã hoàn tất:**
+  1. **Audit toàn bộ trạng thái sẵn sàng Supabase:**
+     - Auth: `AuthContext.tsx` + `supabaseClient.ts` + `LoginScreen.tsx` đã đầy đủ (supabase/demo/unconfigured modes, role fetch from DB, demo fallback). Không cần sửa.
+     - Schema: `schema_v1.sql` đầy đủ 7 groups, match TypeScript types. Sẵn sàng apply.
+     - `.env.example`: đúng (VITE_ prefix, SERVICE_ROLE_KEY warning). Không cần sửa.
+     - UI indicator: Login screen banner + demo credentials prefill khi unconfigured. Không cần sửa.
+  2. **Tạo `CLAUDE_MARKETING_TEAM/03_core/supabase_wiring_README.md`** (NEW): Full audit (auth status, schema status, localStorage→Supabase mapping 7 stores, RLS requirements patterns, missing/deferred items), env vars guide, auth flow diagram, repository interface plan, SQL apply guide 7 bước, Phase 16 CRUD checklist, safety invariants.
+  3. **Tạo `src/lib/core/coreRepository.ts`** (NEW): TypeScript interfaces cho 16 repositories (Client, Brand, Campaign, Brief, GenerationJob, ContentItem, ApprovalRequest, ApprovalEvent, ApprovalComment, Asset, AssetCollection, ExportPack, Connector, Module, ModuleEvent, AutomationLog) + `CoreRepositories` bundle. Phase 16 wiring strategy trong comments.
+  4. **Cập nhật `CLAUDE_MARKETING_TEAM/03_core/database/README.md`**: Full 7-step SQL apply guide, service role key warning, related docs links.
+  5. Cập nhật CURRENT_PHASE.md, SESSION_SUMMARY.md, phase_log.md, agent_activity_log.md.
+- **Audit kết quả:** Auth + supabaseClient + LoginScreen + .env.example đều đã ready. Không cần sửa code auth. Chỉ cần: apply schema_v1.sql + set env vars + assign owner role.
+- **Không thực hiện:** Full CRUD wiring (defer Phase 16). RLS policies (defer Phase 16). Supabase project creation (chờ owner cấp env vars).
+- **Safety:** No secrets. No real API. Demo Sign In + localStorage fallbacks preserved. Build PASS (0 errors).
+- **Build:** tsc + vite PASS — 0 errors. Bundle unchanged (~879KB, coreRepository.ts is interfaces only, tree-shaken).
+- **Trạng thái Phase 15:** ✅ DONE.
+- **Next:** Phase 16 — Supabase CRUD Wiring Core Objects.
+
+---
+
 ### 🗓️ Ngày 09/06/2026 — Phase 14: Automation Logs Foundation
 - **Sự kiện:** Hoàn thành Automation Logs Foundation cho The Core Agency.
 - **Người thực hiện:** Claude Code Builder (PC1). Session trước bị limit — tiếp tục từ files dở.

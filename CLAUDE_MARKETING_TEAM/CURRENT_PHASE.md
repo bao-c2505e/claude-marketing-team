@@ -1,94 +1,111 @@
-# CURRENT PHASE — Phase 14: Automation Logs Foundation ✅ DONE
+# CURRENT PHASE — Phase 15: Supabase Auth + Database Wiring Plan ✅ DONE
 
 ## 📌 Thông tin chung
-- **Phase hiện tại:** Phase 14 — Automation Logs Foundation
-- **Mục tiêu:** Tạo Automation Logs tab để Core ghi nhận, xem, lọc và quản lý log automation nội bộ/local.
-- **Trạng thái:** ✅ DONE — Types, lib, component, App wired, permission gated, build pass.
+- **Phase hiện tại:** Phase 15 — Supabase Auth + Database Wiring Plan
+- **Mục tiêu:** Kiểm tra schema/database readiness, chuẩn hóa Supabase client/env, tạo wiring plan, chuẩn bị repository interface, tạo SQL apply guide. CRUD wiring full được defer sang Phase 16.
+- **Trạng thái:** ✅ DONE — Audit done, plan docs written, repository interface created, build pass.
 
 ---
 
-## 📋 Checklist Phase 14
+## 📋 Checklist Phase 15
 
-### Data Layer
-- [x] `src/types/core.ts` — thêm `AutomationLogType` (10), `AutomationLogSource` (7), `AutomationLogSeverity` (4), `AutomationLogStatus` (5), `LocalAutomationLog` interface.
+### A. Supabase Readiness Audit
+- [x] Auth status audit — AuthContext, supabaseClient, LoginScreen: ✅ all ready
+- [x] Schema audit — all 7 groups + tables mapped in schema_v1.sql ✅
+- [x] localStorage → Supabase tables mapping (all 7 stores)
+- [x] RLS requirements documented (2 patterns + content visibility rules)
+- [x] Missing/deferred items listed (export_packs table, RLS policies, calendar_items CRUD)
+- [x] Created `CLAUDE_MARKETING_TEAM/03_core/supabase_wiring_README.md`
 
-### Logic Layer
-- [x] `src/lib/core/automationLogs.ts` — NEW
-  - [x] Display maps: `LOG_TYPE_LABEL`, `LOG_SOURCE_LABEL`, `LOG_SEVERITY_LABEL/COLOR`, `LOG_STATUS_LABEL/COLOR`
-  - [x] Enum arrays: `LOG_TYPES`, `LOG_SOURCES`, `LOG_SEVERITIES`, `LOG_STATUSES`
-  - [x] Seed data: 9 mock logs (system/module/approval/connector/report/export/error/safety/webhook)
-  - [x] `AutomationLogStore` interface
-  - [x] `loadAutomationLogData()` / `saveAutomationLogData()` (max 200 logs, localStorage key: `core_agency_automation_logs_v1`)
-  - [x] `createAutomationLog()` — add new log to front of list
-  - [x] `updateLogStatus()` — mark reviewed/resolved/ignored (with timestamp)
-  - [x] `AutomationLogStats` interface + `computeLogStats()` — total/warnings/errors/unresolved/success
+### B. Environment Standardization
+- [x] `.env.example` verified: VITE_ prefix for frontend, SERVICE_ROLE_KEY with warning, WEBHOOK_SHARED_SECRET placeholder — ✅ already correct, no changes needed
+- [x] Safety rules documented: service role key never in frontend/Vercel public env
 
-### Component
-- [x] `src/components/core/AutomationLogsTab.tsx` — NEW
-  - [x] Permission gate: `canViewAutomationLogs` required
-  - [x] Header: title + Phase 14 badge + localStorage mode badge + Create Mock Log button
-  - [x] Safety disclaimer bar (always visible)
-  - [x] Create Mock Log form (5 templates, owner/manager only)
-  - [x] Stats row (5 cards: Total/Warnings/Errors/Unresolved/Success)
-  - [x] Filter bar: search text + type/source/severity/status dropdowns + clear
-  - [x] Log list: expand/collapse per row, severity icon+badge, type/source chips, status badge, timestamp
-  - [x] Expanded detail: full message, payload preview (JSON), related refs chips, timestamps, action buttons
-  - [x] Actions: Mark Reviewed / Mark Resolved / Ignore (owner/manager only, status-aware)
-  - [x] Footer: Phase 14 local mode notice
+### C. Supabase Client Safety
+- [x] `src/lib/supabaseClient.ts` verified: anon key only, null-safe, isSupabaseConfigured, HTTPS check — ✅ already correct, no changes needed
 
-### App Shell
-- [x] `src/App.tsx` — updated
-  - [x] Import `Activity` icon from lucide-react
-  - [x] Import `AutomationLogsTab`
-  - [x] Import `loadAutomationLogData`, `saveAutomationLogData`, `AutomationLogStore`
-  - [x] `logData` state + `handleLogUpdate` handler
-  - [x] Sidebar "Automation Logs" button (owner/manager only, with error count badge)
-  - [x] Tab routing `automation-logs`
-  - [x] Phase badge → "Real Operations MVP — Phase 14"
+### D. Auth Wiring Foundation
+- [x] `src/lib/auth/AuthContext.tsx` verified: supabase/demo/unconfigured modes all work, role fetch from DB, demo fallback intact — ✅ already correct, no changes needed
+- [x] Auth flow documented in supabase_wiring_README.md section 4
+- [x] Demo Sign In fallback confirmed working
 
-### Docs
-- [x] `CLAUDE_MARKETING_TEAM/03_core/automation_logs_README.md`
+### E. Repository Interface Plan
+- [x] Created `src/lib/core/coreRepository.ts` — TypeScript interfaces for all 10 data domains:
+  - ClientRepository, BrandRepository, CampaignRepository, BriefRepository
+  - GenerationJobRepository, ContentItemRepository
+  - ApprovalRequestRepository, ApprovalEventRepository, ApprovalCommentRepository
+  - AssetRepository, AssetCollectionRepository
+  - ExportPackRepository
+  - ConnectorRepository, ModuleRepository, ModuleEventRepository
+  - AutomationLogRepository
+  - CoreRepositories bundle interface
+- [x] Phase 16 wiring strategy documented in file comments + supabase_wiring_README.md section 5
+
+### F. SQL Apply Guide
+- [x] Updated `CLAUDE_MARKETING_TEAM/03_core/database/README.md` with:
+  - Step-by-step guide (create project → apply SQL → configure auth → assign owner role → set env vars → redeploy → verify)
+  - SQL snippet for assigning owner role
+  - Service role key warning
+  - Related docs links
+
+### G. UI Indicator
+- [x] Verified existing indicators — ✅ no changes needed:
+  - Login screen: "⚠️ Supabase not configured" banner when unconfigured
+  - "Demo Sign In" title when unconfigured (vs "Sign in" when configured)
+  - Demo credentials pre-filled when unconfigured
+  - `isSupabaseConfigured` badge used in ConnectorRegistry, AutomationLogs, ExportPack tabs
+
+### H. Docs / Logs
+- [x] CURRENT_PHASE.md updated
+- [x] SESSION_SUMMARY.md updated
+- [x] 08_logs/phase_log.md updated
+- [x] 08_logs/agent_activity_log.md updated
 
 ### Safety
-- [x] No real workflow execution
-- [x] No real webhook sent/retried
-- [x] No external API calls
-- [x] No auto-post / real ads / customer messaging
-- [x] No secrets in source
-- [x] Safety disclaimer always visible in UI
-- [x] Logs hidden from client/viewer roles (permission gate)
+- [x] No secrets in any file
+- [x] No real API calls
+- [x] Service role key documented as "never in frontend"
+- [x] Demo Sign In fallback preserved
+- [x] localStorage fallback preserved
 - [x] Build pass (tsc + vite, 0 errors)
 
 ---
 
-## 🗂️ Automation Logs Quick Reference
+## 🗂️ Phase 15 Deliverables
 
-```
-AutomationLogsTab
-  ├── Stats: total | warnings | errors | unresolved | success
-  ├── Filters: search | type | source | severity | status
-  ├── Log List: expand → message + payload + related refs + timestamps + actions
-  └── Create Mock Log: 5 templates (connector/module/safety/approval/system-error)
-```
-
-**Storage:** localStorage `core_agency_automation_logs_v1` (max 200 logs)  
-**Permission:** `canViewAutomationLogs` = owner/manager only  
-**Create/Manage:** `canManageConnectors` (owner) OR owner/manager role  
-**Next phase (15):** Real Supabase Auth + Database Wiring Plan
+| File | Type | Action |
+|---|---|---|
+| `CLAUDE_MARKETING_TEAM/03_core/supabase_wiring_README.md` | Docs | NEW — full audit + wiring plan |
+| `src/lib/core/coreRepository.ts` | Code | NEW — TypeScript repository interfaces |
+| `CLAUDE_MARKETING_TEAM/03_core/database/README.md` | Docs | UPDATED — full SQL apply guide |
+| `src/lib/supabaseClient.ts` | Code | No changes needed |
+| `src/lib/auth/AuthContext.tsx` | Code | No changes needed |
+| `.env.example` | Config | No changes needed |
 
 ---
 
-## 🛡️ Safety Guard (Phase 14)
-- Auto-post: NO
-- Real Ads: NO
-- Real Messaging: NO
-- Real Connectors: NO
-- Secrets Added: NO
-- Service Role Key in Frontend: NO
-- Real Webhook: NO
-- Real Workflow Execution: NO
-- External API Calls: NO
-- Build Pass: YES (0 errors)
+## 🔌 localStorage → Supabase Mapping (Quick Reference)
+
+| Store Key | Tables | Phase 16? |
+|---|---|---|
+| `core_agency_core_data_v1` | clients, brands, campaigns, campaign_briefs | ✅ P16 |
+| `core_agency_gen_data_v1` | generation_jobs, content_items | ✅ P16 |
+| `core_agency_approval_data_v1` | approval_requests, approval_events, approval_comments | ✅ P16 |
+| `core_agency_asset_data_v1` | assets, asset_collections | ✅ P16 |
+| `core_agency_export_pack_data_v1` | (no table yet — local only) | P17+ |
+| `core_agency_connector_registry_v1` | connector_registry, module_registry, module_events | P17+ |
+| `core_agency_automation_logs_v1` | automation_logs | P17+ |
+
+---
+
+## 🛡️ Safety Guard (Phase 15)
+- Secrets committed: NO
+- Service role key in frontend: NO
+- Real API called: NO
+- Demo Sign In fallback: PRESERVED
+- localStorage fallback: PRESERVED
+- Auto-post/ads/messaging: NO
+- Build: PASS (0 errors)
 
 ---
 
@@ -109,4 +126,6 @@ AutomationLogsTab
 | Phase 11 | Report Module Foundation | 6e15e25 |
 | Phase 12 | Export Pack Foundation | 860d06e |
 | Phase 13 | Connector Registry + Module Event Inbox | f21dbf7 |
-| Phase 14 | Automation Logs Foundation | (this phase) |
+| Phase 14 | Automation Logs Foundation | 2d3c009 |
+| Phase 14 Codex Fix | Restrict Automation Logs to Internal View | 894b751 |
+| Phase 15 | Supabase Auth + Database Wiring Plan | (this phase) |
