@@ -1,0 +1,91 @@
+{
+  "contract_version": "module_health_check_v0.1",
+  "overall_status": "healthy",
+  "readiness_status": "ready_for_mock_run",
+  "modules": [
+    {
+      "module_id": "creative_asset_comfyui",
+      "status": "healthy",
+      "endpoint": "http://localhost:8188/health"
+    },
+    {
+      "module_id": "content_pack_generator",
+      "status": "healthy",
+      "endpoint": "http://localhost:8191/health"
+    },
+    {
+      "module_id": "ads_pack_generator",
+      "status": "healthy",
+      "endpoint": "http://localhost:8192/health"
+    },
+    {
+      "module_id": "crm_followup_generator",
+      "status": "healthy",
+      "endpoint": "http://localhost:8193/health"
+    },
+    {
+      "module_id": "analytics_report_generator",
+      "status": "healthy",
+      "endpoint": "http://localhost:8194/health"
+    }
+  ],
+  "blocking_modules": [],
+  "dashboard_data": {
+    "dashboard_id": "dash_healthy_001",
+    "generated_at": "2026-06-09T17:30:00Z",
+    "overall_status": "healthy",
+    "cards": {
+      "total_modules": 5,
+      "healthy_count": 5,
+      "degraded_count": 0,
+      "unavailable_count": 0,
+      "unknown_count": 0,
+      "readiness_summary": "System fully ready for mock campaign processing."
+    },
+    "module_table": [
+      {
+        "module_id": "creative_asset_comfyui",
+        "module_name": "ComfyUI Image Generation Pipeline",
+        "status": "healthy",
+        "uptime": "86400s",
+        "endpoint": "http://localhost:8188/health"
+      },
+      {
+        "module_id": "content_pack_generator",
+        "module_name": "Social Content Pack Generator Stub",
+        "status": "healthy",
+        "uptime": "43200s",
+        "endpoint": "http://localhost:8191/health"
+      },
+      {
+        "module_id": "ads_pack_generator",
+        "module_name": "Advertising Creative Pack Generator Stub",
+        "status": "healthy",
+        "uptime": "43200s",
+        "endpoint": "http://localhost:8192/health"
+      },
+      {
+        "module_id": "crm_followup_generator",
+        "module_name": "CRM Sequence Draft Generator Stub",
+        "status": "healthy",
+        "uptime": "43200s",
+        "endpoint": "http://localhost:8193/health"
+      },
+      {
+        "module_id": "analytics_report_generator",
+        "module_name": "Performance Analytics Report Stub",
+        "status": "healthy",
+        "uptime": "43200s",
+        "endpoint": "http://localhost:8194/health"
+      }
+    ],
+    "warnings": [],
+    "next_actions": [
+      "No action needed. Ready to run."
+    ],
+    "source": "n8n_n10_module_health_check_mock",
+    "notes": "Healthy dashboard render."
+  },
+  "source": "n8n_n10_module_health_check_mock",
+  "notes": "All modules online. System fully ready."
+}

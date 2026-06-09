@@ -1474,6 +1474,264 @@ try {
   failed = true;
 }
 
+// Validate Phase N10 files
+console.log('--- STARTING PHASE N10 VALIDATION CHECKS ---');
+const n10Dir = path.join(baseDir, 'examples/n8n/n10');
+const n10DashboardDir = path.join(n10Dir, 'dashboard');
+const n10ExpectedOutputsDir = path.join(n10Dir, 'expected_outputs');
+
+const n10ModuleHealthFiles = [
+  'module_health_creative_asset_comfyui.json',
+  'module_health_content_pack_generator.json',
+  'module_health_ads_pack_generator.json',
+  'module_health_crm_followup_generator.json',
+  'module_health_analytics_report_generator.json'
+];
+
+const n10AggregateFiles = [
+  'health_aggregate_all_healthy.json',
+  'health_aggregate_partial_ready.json',
+  'health_aggregate_blocked.json'
+];
+
+const n10DashboardFiles = [
+  'dashboard_all_healthy.json',
+  'dashboard_partial_ready.json',
+  'dashboard_blocked.json'
+];
+
+const n10ExpectedOutputFiles = [
+  'health_check_all_healthy_expected_output.json',
+  'health_check_partial_ready_expected_output.json',
+  'health_check_blocked_expected_output.json'
+];
+
+const allowedHealthStatuses = ['healthy', 'degraded', 'unavailable', 'unknown'];
+const allowedReadinessStatuses = ['ready_for_mock_run', 'partially_ready', 'blocked'];
+
+// Secrets & Forbidden Text Scan for N10 Files
+const n10WorkflowPath = path.join(baseDir, '../n8n-workflows/n10_module_health_check.workflow.json');
+const n10FilesToScan = [
+  path.join(baseDir, 'module_health_check_contract.md'),
+  path.join(baseDir, '../docs/pc2/phase_n10_module_health_check.md'),
+  n10WorkflowPath
+];
+n10ModuleHealthFiles.forEach(f => n10FilesToScan.push(path.join(n10Dir, f)));
+n10AggregateFiles.forEach(f => n10FilesToScan.push(path.join(n10Dir, f)));
+n10DashboardFiles.forEach(f => n10FilesToScan.push(path.join(n10DashboardDir, f)));
+n10ExpectedOutputFiles.forEach(f => n10FilesToScan.push(path.join(n10ExpectedOutputsDir, f)));
+
+n10FilesToScan.forEach(filePath => {
+  if (fs.existsSync(filePath)) {
+    const content = fs.readFileSync(filePath, 'utf8');
+    const lowerContent = content.toLowerCase();
+    const baseName = path.basename(filePath);
+    
+    // Brand checks
+    if (lowerContent.includes('vicuon') || content.includes('Vị Cuốn')) {
+      console.error(`[FAIL] N10 File '${baseName}' contains forbidden brand Vị Cuốn / vicuon`);
+      failed = true;
+    }
+    // Production domain checks
+    if (lowerContent.includes('thecoreagency.com')) {
+      console.error(`[FAIL] N10 File '${baseName}' contains production domain target thecoreagency.com`);
+      failed = true;
+    }
+    // Api key checks
+    if (lowerContent.includes('api_key')) {
+      console.error(`[FAIL] N10 File '${baseName}' contains forbidden term 'api_key'`);
+      failed = true;
+    }
+    // Secret checks
+    if ((filePath.endsWith('.json') || filePath.endsWith('.workflow.json')) && lowerContent.includes('secret')) {
+      console.error(`[FAIL] N10 JSON/Workflow File '${baseName}' contains forbidden term 'secret'`);
+      failed = true;
+    }
+    // Suspicious token check
+    if (lowerContent.includes('token') && (filePath.endsWith('.json') || filePath.endsWith('.workflow.json'))) {
+      if (!lowerContent.includes('mock_token') && !lowerContent.includes('workflow_engine')) {
+        console.error(`[FAIL] N10 JSON/Workflow File '${baseName}' contains suspicious token term`);
+        failed = true;
+      }
+    }
+  }
+});
+
+// A. Validate Individual Module Health JSON
+n10ModuleHealthFiles.forEach(file => {
+  const filePath = path.join(n10Dir, file);
+  try {
+    const content = fs.readFileSync(filePath, 'utf8');
+    const parsed = JSON.parse(content);
+    console.log(`[PASS] N10 health file parses as JSON: n10/${file}`);
+
+    const required = [
+      'contract_version', 'module_id', 'module_name', 'status', 'mode',
+      'version', 'uptime_mock', 'local_base_url', 'endpoints',
+      'last_checked_at', 'source', 'notes'
+    ];
+    required.forEach(f => {
+      if (parsed[f] === undefined) {
+        console.error(`[FAIL] N10 health file ${file} is missing field '${f}'`);
+        failed = true;
+      }
+    });
+
+    if (!allowedHealthStatuses.includes(parsed.status)) {
+      console.error(`[FAIL] N10 health file ${file} has invalid status '${parsed.status}'`);
+      failed = true;
+    }
+
+    if (parsed.local_base_url.includes('thecoreagency.com')) {
+      console.error(`[FAIL] N10 health file ${file} local_base_url points to production: ${parsed.local_base_url}`);
+      failed = true;
+    }
+  } catch (err) {
+    console.error(`[FAIL] Error validating N10 health file ${file}: ${err.message}`);
+    failed = true;
+  }
+});
+
+// B. Validate Aggregates
+n10AggregateFiles.forEach(file => {
+  const filePath = path.join(n10Dir, file);
+  try {
+    const content = fs.readFileSync(filePath, 'utf8');
+    const parsed = JSON.parse(content);
+    console.log(`[PASS] N10 aggregate parses as JSON: n10/${file}`);
+
+    const required = [
+      'contract_version', 'overall_status', 'checked_at', 'modules',
+      'healthy_count', 'degraded_count', 'unavailable_count', 'unknown_count',
+      'readiness_status', 'blocking_modules', 'source', 'notes'
+    ];
+    required.forEach(f => {
+      if (parsed[f] === undefined) {
+        console.error(`[FAIL] N10 aggregate file ${file} is missing field '${f}'`);
+        failed = true;
+      }
+    });
+
+    if (!allowedReadinessStatuses.includes(parsed.readiness_status)) {
+      console.error(`[FAIL] N10 aggregate file ${file} has invalid readiness_status '${parsed.readiness_status}'`);
+      failed = true;
+    }
+  } catch (err) {
+    console.error(`[FAIL] Error validating N10 aggregate file ${file}: ${err.message}`);
+    failed = true;
+  }
+});
+
+// C. Validate Dashboards
+n10DashboardFiles.forEach(file => {
+  const filePath = path.join(n10DashboardDir, file);
+  try {
+    const content = fs.readFileSync(filePath, 'utf8');
+    const parsed = JSON.parse(content);
+    console.log(`[PASS] N10 dashboard parses as JSON: n10/dashboard/${file}`);
+
+    const required = [
+      'dashboard_id', 'generated_at', 'overall_status', 'cards',
+      'module_table', 'warnings', 'next_actions', 'source', 'notes'
+    ];
+    required.forEach(f => {
+      if (parsed[f] === undefined) {
+        console.error(`[FAIL] N10 dashboard file ${file} is missing field '${f}'`);
+        failed = true;
+      }
+    });
+  } catch (err) {
+    console.error(`[FAIL] Error validating N10 dashboard file ${file}: ${err.message}`);
+    failed = true;
+  }
+});
+
+// D. Validate Expected Outputs
+n10ExpectedOutputFiles.forEach(file => {
+  const filePath = path.join(n10ExpectedOutputsDir, file);
+  try {
+    const content = fs.readFileSync(filePath, 'utf8');
+    const parsed = JSON.parse(content);
+    console.log(`[PASS] N10 expected output parses as JSON: n10/expected_outputs/${file}`);
+
+    const required = [
+      'contract_version', 'overall_status', 'readiness_status', 'modules',
+      'blocking_modules', 'dashboard_data', 'source', 'notes'
+    ];
+    required.forEach(f => {
+      if (parsed[f] === undefined) {
+        console.error(`[FAIL] N10 expected output file ${file} is missing field '${f}'`);
+        failed = true;
+      }
+    });
+
+    if (parsed.source !== 'n8n_n10_module_health_check_mock') {
+      console.error(`[FAIL] N10 expected output file ${file} source must be 'n8n_n10_module_health_check_mock', found '${parsed.source}'`);
+      failed = true;
+    }
+  } catch (err) {
+    console.error(`[FAIL] Error validating N10 expected output file ${file}: ${err.message}`);
+    failed = true;
+  }
+});
+
+// E. Validate Workflow
+try {
+  const content = fs.readFileSync(n10WorkflowPath, 'utf8');
+  if (content.includes('"type": "n8n-nodes-base.httpRequest"') && !content.includes('"url"')) {
+    console.warn(`[WARN] n10 workflow contains HTTP node but no URL parameter`);
+  }
+  if (/credentials/i.test(content) && !content.includes('workflow_engine')) {
+    console.error(`[FAIL] n10_module_health_check.workflow.json contains credentials reference`);
+    failed = true;
+  }
+
+  const parsed = JSON.parse(content);
+  console.log(`[PASS] n10_module_health_check.workflow.json parses as JSON`);
+
+  // Verify all 5 localhost endpoints are present in the workflow
+  const expectedEndpoints = [
+    'http://localhost:8188/health',
+    'http://localhost:8191/health',
+    'http://localhost:8192/health',
+    'http://localhost:8193/health',
+    'http://localhost:8194/health'
+  ];
+  expectedEndpoints.forEach(ep => {
+    if (!content.includes(ep)) {
+      console.error(`[FAIL] n10 workflow is missing localhost endpoint: ${ep}`);
+      failed = true;
+    } else {
+      console.log(`[PASS] n10 workflow contains health endpoint: ${ep}`);
+    }
+  });
+
+  const nodesText = JSON.stringify(parsed.nodes);
+
+  // Verify workflow contains required output fields
+  const requiredOutputFields = [
+    'contract_version', 'overall_status', 'readiness_status',
+    'modules', 'blocking_modules', 'dashboard_data', 'source', 'notes'
+  ];
+  requiredOutputFields.forEach(field => {
+    if (!nodesText.includes(`"${field}"`)) {
+      console.error(`[FAIL] n10 workflow does not contain required output field '${field}' inside nodes`);
+      failed = true;
+    }
+  });
+
+  // Verify source identifier exists in nodes
+  if (!nodesText.includes('n8n_n10_module_health_check_mock')) {
+    console.error(`[FAIL] n10 workflow is missing source identifier 'n8n_n10_module_health_check_mock'`);
+    failed = true;
+  } else {
+    console.log(`[PASS] n10 workflow contains source identifier`);
+  }
+} catch (err) {
+  console.error(`[FAIL] Error parsing n10 workflow: ${err.message}`);
+  failed = true;
+}
+
 if (failed) {
   console.error('--- CONTRACT VALIDATION CHECKS FAILED ---');
   process.exit(1);

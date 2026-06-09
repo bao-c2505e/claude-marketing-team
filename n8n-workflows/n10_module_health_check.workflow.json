@@ -1,0 +1,306 @@
+{
+  "name": "Phase N10 Module Health Check Mock",
+  "nodes": [
+    {
+      "parameters": {},
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        100,
+        300
+      ],
+      "id": "manual-trigger"
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:8188/health",
+        "options": {}
+      },
+      "name": "HTTP: ComfyUI Health",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [
+        260,
+        100
+      ],
+      "id": "http-comfyui",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:8191/health",
+        "options": {}
+      },
+      "name": "HTTP: Content Health",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [
+        260,
+        200
+      ],
+      "id": "http-content",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:8192/health",
+        "options": {}
+      },
+      "name": "HTTP: Ads Health",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [
+        260,
+        300
+      ],
+      "id": "http-ads",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:8193/health",
+        "options": {}
+      },
+      "name": "HTTP: CRM Health",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [
+        260,
+        400
+      ],
+      "id": "http-crm",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:8194/health",
+        "options": {}
+      },
+      "name": "HTTP: Analytics Health",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [
+        260,
+        500
+      ],
+      "id": "http-analytics",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Helper to parse response or fallback to mock offline status if node failed\nfunction getHealth(nodeName, module_id, module_name, local_base_url, default_endpoints) {\n  let res = null;\n  try {\n    res = $node[nodeName].json;\n  } catch (e) {}\n\n  if (res && res.status && !res.error) {\n    return {\n      module_id: res.module_id || module_id,\n      module_name: res.module_name || module_name,\n      status: res.status,\n      mode: res.mode || \"local_stub\",\n      version: res.version || \"1.0.0\",\n      uptime_mock: res.uptime_mock || 3600,\n      local_base_url: res.local_base_url || local_base_url,\n      endpoints: res.endpoints || default_endpoints,\n      last_checked_at: new Date().toISOString(),\n      source: res.source || (module_id + \"_stub\"),\n      notes: res.notes || \"Healthy\"\n    };\n  } else {\n    // Fallback: unavailable if connection refused / node failed\n    return {\n      module_id: module_id,\n      module_name: module_name,\n      status: \"unavailable\",\n      mode: \"local_stub\",\n      version: \"1.0.0\",\n      uptime_mock: 0,\n      local_base_url: local_base_url,\n      endpoints: default_endpoints,\n      last_checked_at: new Date().toISOString(),\n      source: module_id + \"_stub\",\n      notes: \"Local stub unavailable (connection refused).\"\n    };\n  }\n}\n\nconst modulesHealth = [\n  getHealth(\"HTTP: ComfyUI Health\", \"creative_asset_comfyui\", \"ComfyUI Image Generation Pipeline\", \"http://localhost:8188\", [\"GET /health\", \"POST /run\"]),\n  getHealth(\"HTTP: Content Health\", \"content_pack_generator\", \"Social Content Pack Generator Stub\", \"http://localhost:8191\", [\"GET /health\", \"POST /run\"]),\n  getHealth(\"HTTP: Ads Health\", \"ads_pack_generator\", \"Advertising Creative Pack Generator Stub\", \"http://localhost:8192\", [\"GET /health\", \"POST /run\"]),\n  getHealth(\"HTTP: CRM Health\", \"crm_followup_generator\", \"CRM Sequence Draft Generator Stub\", \"http://localhost:8193\", [\"GET /health\", \"POST /run\"]),\n  getHealth(\"HTTP: Analytics Health\", \"analytics_report_generator\", \"Performance Analytics Report Stub\", \"http://localhost:8194\", [\"GET /health\", \"POST /run\"])\n];\n\nreturn [{\n  json: {\n    modules: modulesHealth\n  }\n}];"
+      },
+      "name": "Code: Normalize Health Results",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        480,
+        300
+      ],
+      "id": "code-normalize"
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = items[0].json;\nconst modules = input.modules;\n\nlet healthy_count = 0;\nlet degraded_count = 0;\nlet unavailable_count = 0;\nlet unknown_count = 0;\nconst blocking_modules = [];\n\nmodules.forEach(m => {\n  if (m.status === \"healthy\") {\n    healthy_count++;\n  } else if (m.status === \"degraded\") {\n    degraded_count++;\n  } else if (m.status === \"unavailable\") {\n    unavailable_count++;\n    // In this business logic, creative_asset_comfyui and analytics_report_generator are blocking modules\n    if ([\"creative_asset_comfyui\", \"analytics_report_generator\"].includes(m.module_id)) {\n      blocking_modules.push(m.module_id);\n    }\n  } else {\n    unknown_count++;\n  }\n});\n\nlet overall_status = \"healthy\";\nlet readiness_status = \"ready_for_mock_run\";\nlet notes = \"All modules online. System fully ready.\";\n\nif (blocking_modules.length > 0) {\n  overall_status = \"unavailable\";\n  readiness_status = \"blocked\";\n  notes = `Critical modules unavailable (${blocking_modules.join(\", \")}). Router execution blocked.`;\n} else if (degraded_count > 0 || unavailable_count > 0) {\n  overall_status = \"degraded\";\n  readiness_status = \"partially_ready\";\n  notes = \"Non-blocking module degraded or unavailable. System remains partially ready.\";\n}\n\nreturn [{\n  json: {\n    contract_version: \"module_health_check_v0.1\",\n    overall_status: overall_status,\n    checked_at: new Date().toISOString(),\n    modules: modules.map(m => ({\n      module_id: m.module_id,\n      status: m.status,\n      endpoint: m.local_base_url + \"/health\"\n    })),\n    healthy_count: healthy_count,\n    degraded_count: degraded_count,\n    unavailable_count: unavailable_count,\n    unknown_count: unknown_count,\n    readiness_status: readiness_status,\n    blocking_modules: blocking_modules,\n    source: \"n8n_n10_module_health_check_mock\",\n    notes: notes,\n    full_modules_details: modules\n  }\n}];"
+      },
+      "name": "Code: Build Aggregate Readiness Report",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        680,
+        300
+      ],
+      "id": "code-aggregate"
+    },
+    {
+      "parameters": {
+        "jsCode": "const agg = items[0].json;\nconst details = agg.full_modules_details;\n\nconst warnings = [];\nconst next_actions = [];\n\ndetails.forEach(d => {\n  if (d.status === \"degraded\") {\n    warnings.push(`${d.module_id} has degraded performance.`);\n    next_actions.push(`Verify ${d.module_id} local stub network lag.`);\n  } else if (d.status === \"unavailable\") {\n    warnings.push(`${d.module_id} is unreachable.`);\n    next_actions.push(`Start ${d.module_id} stub server (node modules/${d.module_id === \"creative_asset_comfyui\" ? \"comfyui-pipeline\" : d.module_id.replace(/_/g, \"-\")}/server.js).`);\n  }\n});\n\nif (warnings.length === 0) {\n  next_actions.push(\"No action needed. Ready to run.\");\n}\n\nconst dashboard_data = {\n  dashboard_id: \"dash_\" + Math.random().toString(36).substring(2, 9),\n  generated_at: new Date().toISOString(),\n  overall_status: agg.overall_status,\n  cards: {\n    total_modules: details.length,\n    healthy_count: agg.healthy_count,\n    degraded_count: agg.degraded_count,\n    unavailable_count: agg.unavailable_count,\n    unknown_count: agg.unknown_count,\n    readiness_summary: agg.readiness_status === \"blocked\"\n      ? \"System blocked. Critical modules are offline.\"\n      : (agg.readiness_status === \"partially_ready\" ? \"System partially ready. Non-critical stubs degraded.\" : \"System fully ready for mock campaign processing.\")\n  },\n  module_table: details.map(d => ({\n    module_id: d.module_id,\n    module_name: d.module_name,\n    status: d.status,\n    uptime: d.uptime_mock + \"s\",\n    endpoint: d.local_base_url + \"/health\"\n  })),\n  warnings: warnings,\n  next_actions: next_actions,\n  source: \"n8n_n10_module_health_check_mock\",\n  notes: agg.overall_status + \" dashboard render.\"\n};\n\nreturn [{\n  json: {\n    contract_version: agg.contract_version,\n    overall_status: agg.overall_status,\n    readiness_status: agg.readiness_status,\n    modules: agg.modules,\n    blocking_modules: agg.blocking_modules,\n    dashboard_data: dashboard_data,\n    source: \"n8n_n10_module_health_check_mock\",\n    notes: agg.notes\n  }\n}];"
+      },
+      "name": "Code: Build Dashboard Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        880,
+        300
+      ],
+      "id": "code-dashboard"
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "contract_version",
+              "value": "={{ $json.contract_version }}"
+            },
+            {
+              "name": "overall_status",
+              "value": "={{ $json.overall_status }}"
+            },
+            {
+              "name": "readiness_status",
+              "value": "={{ $json.readiness_status }}"
+            },
+            {
+              "name": "source",
+              "value": "n8n_n10_module_health_check_mock"
+            },
+            {
+              "name": "notes",
+              "value": "={{ $json.notes }}"
+            }
+          ],
+          "other": [
+            {
+              "name": "modules",
+              "value": "={{ $json.modules }}"
+            },
+            {
+              "name": "blocking_modules",
+              "value": "={{ $json.blocking_modules }}"
+            },
+            {
+              "name": "dashboard_data",
+              "value": "={{ $json.dashboard_data }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Respond / Output Health Check Result",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        1080,
+        300
+      ],
+      "id": "respond-output-result"
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP: ComfyUI Health",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP: Content Health",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP: Ads Health",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP: CRM Health",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP: Analytics Health",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: ComfyUI Health": {
+      "main": [
+        [
+          {
+            "node": "Code: Normalize Health Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Content Health": {
+      "main": [
+        [
+          {
+            "node": "Code: Normalize Health Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Ads Health": {
+      "main": [
+        [
+          {
+            "node": "Code: Normalize Health Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: CRM Health": {
+      "main": [
+        [
+          {
+            "node": "Code: Normalize Health Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Analytics Health": {
+      "main": [
+        [
+          {
+            "node": "Code: Normalize Health Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Normalize Health Results": {
+      "main": [
+        [
+          {
+            "node": "Code: Build Aggregate Readiness Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Build Aggregate Readiness Report": {
+      "main": [
+        [
+          {
+            "node": "Code: Build Dashboard Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Build Dashboard Data": {
+      "main": [
+        [
+          {
+            "node": "Respond / Output Health Check Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionTimeout": 3600
+  }
+}

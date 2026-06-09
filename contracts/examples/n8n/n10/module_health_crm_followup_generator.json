@@ -1,0 +1,18 @@
+{
+  "contract_version": "module_health_check_v0.1",
+  "module_id": "crm_followup_generator",
+  "module_name": "CRM Sequence Draft Generator Stub",
+  "status": "degraded",
+  "mode": "local_stub",
+  "version": "1.0.0",
+  "uptime_mock": 12000,
+  "local_base_url": "http://localhost:8193",
+  "endpoints": [
+    "GET /health",
+    "POST /run",
+    "POST /simulate-callback"
+  ],
+  "last_checked_at": "2026-06-09T17:22:00Z",
+  "source": "crm_followup_generator_stub",
+  "notes": "CRM follow-up generator running degraded (mock)."
+}

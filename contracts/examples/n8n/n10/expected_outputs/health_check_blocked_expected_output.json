@@ -1,0 +1,96 @@
+{
+  "contract_version": "module_health_check_v0.1",
+  "overall_status": "unavailable",
+  "readiness_status": "blocked",
+  "modules": [
+    {
+      "module_id": "creative_asset_comfyui",
+      "status": "healthy",
+      "endpoint": "http://localhost:8188/health"
+    },
+    {
+      "module_id": "content_pack_generator",
+      "status": "healthy",
+      "endpoint": "http://localhost:8191/health"
+    },
+    {
+      "module_id": "ads_pack_generator",
+      "status": "healthy",
+      "endpoint": "http://localhost:8192/health"
+    },
+    {
+      "module_id": "crm_followup_generator",
+      "status": "healthy",
+      "endpoint": "http://localhost:8193/health"
+    },
+    {
+      "module_id": "analytics_report_generator",
+      "status": "unavailable",
+      "endpoint": "http://localhost:8194/health"
+    }
+  ],
+  "blocking_modules": [
+    "analytics_report_generator"
+  ],
+  "dashboard_data": {
+    "dashboard_id": "dash_blocked_001",
+    "generated_at": "2026-06-09T17:32:00Z",
+    "overall_status": "unavailable",
+    "cards": {
+      "total_modules": 5,
+      "healthy_count": 4,
+      "degraded_count": 0,
+      "unavailable_count": 1,
+      "unknown_count": 0,
+      "readiness_summary": "System blocked. Critical module analytics_report_generator is offline."
+    },
+    "module_table": [
+      {
+        "module_id": "creative_asset_comfyui",
+        "module_name": "ComfyUI Image Generation Pipeline",
+        "status": "healthy",
+        "uptime": "86400s",
+        "endpoint": "http://localhost:8188/health"
+      },
+      {
+        "module_id": "content_pack_generator",
+        "module_name": "Social Content Pack Generator Stub",
+        "status": "healthy",
+        "uptime": "43200s",
+        "endpoint": "http://localhost:8191/health"
+      },
+      {
+        "module_id": "ads_pack_generator",
+        "module_name": "Advertising Creative Pack Generator Stub",
+        "status": "healthy",
+        "uptime": "43200s",
+        "endpoint": "http://localhost:8192/health"
+      },
+      {
+        "module_id": "crm_followup_generator",
+        "module_name": "CRM Sequence Draft Generator Stub",
+        "status": "healthy",
+        "uptime": "43200s",
+        "endpoint": "http://localhost:8193/health"
+      },
+      {
+        "module_id": "analytics_report_generator",
+        "module_name": "Performance Analytics Report Stub",
+        "status": "unavailable",
+        "uptime": "0s",
+        "endpoint": "http://localhost:8194/health"
+      }
+    ],
+    "warnings": [
+      "analytics_report_generator is unreachable."
+    ],
+    "next_actions": [
+      "Start analytics stub server (node modules/analytics-report-generator/server.js).",
+      "Check port 8194 availability."
+    ],
+    "source": "n8n_n10_module_health_check_mock",
+    "notes": "Blocked dashboard render."
+  },
+  "source": "n8n_n10_module_health_check_mock",
+  "notes": "Critical module analytics_report_generator is unavailable (connection refused). Router execution blocked."
+}

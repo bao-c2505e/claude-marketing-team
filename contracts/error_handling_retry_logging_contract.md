@@ -118,3 +118,4 @@ The mock callback dispatched back to the Core representing a processing failure:
 5.  **No Secrets:** Workflows must operate without passwords, tokens, or credential references.
 6.  **No Auto-Post/Ads/Messaging:** Error states must not trigger notification emails or SMS alerts to actual users.
 7.  **Owner Approval:** Moving from mock error handling to live queue routing requires explicit owner confirmation.
+8.  **Health Check Error Mapping:** A `module_unavailable` status detected in Phase N10 health checks must map directly to the N9 `module_unavailable` error type.

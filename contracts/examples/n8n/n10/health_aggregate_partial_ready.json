@@ -1,0 +1,80 @@
+{
+  "contract_version": "module_health_check_v0.1",
+  "overall_status": "degraded",
+  "checked_at": "2026-06-09T17:26:00Z",
+  "modules": [
+    {
+      "module_id": "creative_asset_comfyui",
+      "module_name": "ComfyUI Image Generation Pipeline",
+      "status": "healthy",
+      "mode": "local_stub",
+      "version": "1.0.0",
+      "uptime_mock": 86400,
+      "local_base_url": "http://localhost:8188",
+      "endpoints": ["GET /health", "POST /run"],
+      "last_checked_at": "2026-06-09T17:26:00Z",
+      "source": "creative_asset_comfyui_stub",
+      "notes": "Healthy"
+    },
+    {
+      "module_id": "content_pack_generator",
+      "module_name": "Social Content Pack Generator Stub",
+      "status": "healthy",
+      "mode": "local_stub",
+      "version": "1.0.0",
+      "uptime_mock": 43200,
+      "local_base_url": "http://localhost:8191",
+      "endpoints": ["GET /health", "POST /run"],
+      "last_checked_at": "2026-06-09T17:26:00Z",
+      "source": "content_pack_generator_stub",
+      "notes": "Healthy"
+    },
+    {
+      "module_id": "ads_pack_generator",
+      "module_name": "Advertising Creative Pack Generator Stub",
+      "status": "healthy",
+      "mode": "local_stub",
+      "version": "1.0.0",
+      "uptime_mock": 43200,
+      "local_base_url": "http://localhost:8192",
+      "endpoints": ["GET /health", "POST /run"],
+      "last_checked_at": "2026-06-09T17:26:00Z",
+      "source": "ads_pack_generator_stub",
+      "notes": "Healthy"
+    },
+    {
+      "module_id": "crm_followup_generator",
+      "module_name": "CRM Sequence Draft Generator Stub",
+      "status": "degraded",
+      "mode": "local_stub",
+      "version": "1.0.0",
+      "uptime_mock": 12000,
+      "local_base_url": "http://localhost:8193",
+      "endpoints": ["GET /health", "POST /run"],
+      "last_checked_at": "2026-06-09T17:26:00Z",
+      "source": "crm_followup_generator_stub",
+      "notes": "Uptime latency high."
+    },
+    {
+      "module_id": "analytics_report_generator",
+      "module_name": "Performance Analytics Report Stub",
+      "status": "healthy",
+      "mode": "local_stub",
+      "version": "1.0.0",
+      "uptime_mock": 43200,
+      "local_base_url": "http://localhost:8194",
+      "endpoints": ["GET /health", "POST /run"],
+      "last_checked_at": "2026-06-09T17:26:00Z",
+      "source": "analytics_report_generator_stub",
+      "notes": "Healthy"
+    }
+  ],
+  "healthy_count": 4,
+  "degraded_count": 1,
+  "unavailable_count": 0,
+  "unknown_count": 0,
+  "readiness_status": "partially_ready",
+  "blocking_modules": [],
+  "source": "n8n_n10_module_health_check_mock",
+  "notes": "CRM module degraded, system remains partially ready."
+}

@@ -1,0 +1,59 @@
+{
+  "dashboard_id": "dash_partial_001",
+  "generated_at": "2026-06-09T17:31:00Z",
+  "overall_status": "degraded",
+  "cards": {
+    "total_modules": 5,
+    "healthy_count": 4,
+    "degraded_count": 1,
+    "unavailable_count": 0,
+    "unknown_count": 0,
+    "readiness_summary": "System partially ready. Non-critical module crm_followup_generator is degraded."
+  },
+  "module_table": [
+    {
+      "module_id": "creative_asset_comfyui",
+      "module_name": "ComfyUI Image Generation Pipeline",
+      "status": "healthy",
+      "uptime": "86400s",
+      "endpoint": "http://localhost:8188/health"
+    },
+    {
+      "module_id": "content_pack_generator",
+      "module_name": "Social Content Pack Generator Stub",
+      "status": "healthy",
+      "uptime": "43200s",
+      "endpoint": "http://localhost:8191/health"
+    },
+    {
+      "module_id": "ads_pack_generator",
+      "module_name": "Advertising Creative Pack Generator Stub",
+      "status": "healthy",
+      "uptime": "43200s",
+      "endpoint": "http://localhost:8192/health"
+    },
+    {
+      "module_id": "crm_followup_generator",
+      "module_name": "CRM Sequence Draft Generator Stub",
+      "status": "degraded",
+      "uptime": "12000s",
+      "endpoint": "http://localhost:8193/health"
+    },
+    {
+      "module_id": "analytics_report_generator",
+      "module_name": "Performance Analytics Report Stub",
+      "status": "healthy",
+      "uptime": "43200s",
+      "endpoint": "http://localhost:8194/health"
+    }
+  ],
+  "warnings": [
+    "crm_followup_generator has degraded performance."
+  ],
+  "next_actions": [
+    "Verify CRM local stub network lag.",
+    "Restart CRM local stub if degradation persists."
+  ],
+  "source": "n8n_n10_module_health_check_mock",
+  "notes": "Degraded dashboard render."
+}

@@ -4,8 +4,28 @@ This log tracks the progress, status, and deliverables for the PC2 (n8n & Specia
 
 ---
 
-## Phase N9 — Error Handling + Retry + Logging Contract
+## Phase N10 — Module Registry + Health Check Dashboard Contract
 - **Status**: IMPLEMENTED / READY FOR REVIEW
+- **Reviewer**: Codex
+- **Date**: 2026-06-09
+- **Deliverables**:
+  - `contracts/module_health_check_contract.md` (Module Health Check Contract)
+  - `contracts/module_registry.md` (Updated Module Registry)
+  - `contracts/n8n_event_router_contract.md` (Updated Router Contract)
+  - `contracts/error_handling_retry_logging_contract.md` (Updated Error Handling Contract)
+  - `contracts/examples/n8n/n10/*.json` (5 Mock Health JSON payloads)
+  - `contracts/examples/n8n/n10/dashboard/*.json` (3 Mock Dashboard JSON payloads)
+  - `contracts/examples/n8n/n10/expected_outputs/*.json` (3 Expected final outputs)
+  - `n8n-workflows/n10_module_health_check.workflow.json` (Health Check workflow)
+  - `docs/pc2/phase_n10_module_health_check.md` (manual testing guide)
+- **Validation**: `node contracts/tools/validate_contracts.js` successfully PASS.
+- **Scope check**: No database queries, no secrets/APIs, no Core UI modifications. No production URLs. Mock-only execution.
+- **Known limitations**: Health scans and dashboard generation are simulated/mocked for local development stubs on `localhost`.
+
+---
+
+## Phase N9 — Error Handling + Retry + Logging Contract
+- **Status**: DONE / PASS
 - **Reviewer**: Codex
 - **Date**: 2026-06-09
 - **Deliverables**:

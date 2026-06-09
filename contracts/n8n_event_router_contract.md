@@ -104,3 +104,5 @@ Final states are mapped as follows:
 5.  **No Real Ad Spend:** Ad modules must run with `budget_mode: "mock"`.
 6.  **Owner Approval:** Production rollout and real execution credentials require explicit owner authorization.
 7.  **Unsupported Events Routing:** Unsupported `event_type` routes to the N9 error handling path in future integration.
+8.  **Pre-routing Health Checks:** Future router execution should optionally run module health checks before routing.
+9.  **Unavailable Route Handling:** If a required module is unavailable, route the execution to the N9 error handling path.
