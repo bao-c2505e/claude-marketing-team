@@ -22,7 +22,25 @@ Chúng ta đang xây dựng **The Core Agency — Real Operations MVP**. Đây l
 
 ---
 
-## ✅ Phase 16A Codex Fix — Route mutations through repos, surface errors (DONE — 2026-06-09)
+## ✅ Phase 16A Codex Fix 2 — Tenant-Scoped Brand Operations (DONE — 2026-06-09)
+
+### Issues fixed:
+1. **Unscoped brand list:** `App.tsx` called `repos.brands.list()` without `clientId`. Fixed: load clients first, then `repos.brands.list(c.id)` per-client.
+2. **Brand get/update/archive unscoped:** All three only filtered by brand `id`. Fixed: now require `clientId`, queries add `.eq('client_id', clientId)`.
+3. **Interface not enforcing clientId:** `BrandRepository` interface allowed unscoped calls. Fixed: TypeScript now requires `clientId` in `get/update/archive`.
+4. **LocalStorage not validating clientId:** Fixed: `LocalStorageBrandRepository` filters and throws on clientId mismatch.
+
+### Files changed:
+- `src/lib/core/coreRepository.ts` — `BrandRepository.get/update/archive` require `clientId: string`
+- `src/lib/core/supabaseRepositories.ts` — all brand ops scoped by both `id` and `client_id`
+- `src/lib/core/localStorageRepositories.ts` — same scoping in fallback path
+- `src/App.tsx` — initial load now loads brands per-client (not all-at-once)
+
+### Build: PASS — 0 TS errors. git diff --check: PASS.
+
+---
+
+## ✅ Phase 16A Codex Fix 1 — Route mutations through repos, surface errors (DONE — 2026-06-09)
 
 ### Issues fixed:
 1. **UUID bypass:** `syncClientsBrandsToSupabase` was inserting `client-*/brand-*` local string IDs into UUID Postgres columns. Removed entirely.

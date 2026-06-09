@@ -6,7 +6,21 @@ Nhật ký theo dõi các mốc hoàn thành kỹ thuật qua các Phase.
 
 ## 📅 Nhật Ký Sự Kiện (Event Logs)
 
-### 🗓️ Ngày 09/06/2026 — Phase 16A Codex Fix: Route mutations through repos, surface errors
+### 🗓️ Ngày 09/06/2026 — Phase 16A Codex Fix 2: Scope brand operations by client_id
+- **Sự kiện:** Codex phát hiện brand operations chưa được scoped theo `client_id` — đã fix toàn bộ.
+- **Fix 1 (Unscoped list):** `App.tsx` gọi `repos.brands.list()` không có `clientId`. Fix: load clients trước, rồi `Promise.all(clients.map(c => repos.brands.list(c.id)))`.
+- **Fix 2 (Unscoped get):** `SupabaseBrandRepository.get(id)` chỉ filter theo `id`. Fix: thêm `clientId` bắt buộc + `.eq('client_id', clientId)`.
+- **Fix 3 (Unscoped update):** `SupabaseBrandRepository.update(id, patch)` chỉ filter theo `id`. Fix: thêm `clientId` + `.eq('client_id', clientId)` + lỗi PGRST116 typed.
+- **Fix 4 (Unscoped archive):** `SupabaseBrandRepository.archive(id)` chỉ filter theo `id`. Fix: thêm `clientId` + `.eq('client_id', clientId)` + throw nếu không có row nào bị affected.
+- **Fix 5 (Interface):** `BrandRepository` interface không enforce `clientId`. Fix: `get/update/archive` giờ require `clientId: string` — TypeScript bắt lỗi tại compile time.
+- **Fix 6 (LocalStorage):** `LocalStorageBrandRepository.get/update/archive` chỉ filter theo `id`. Fix: filter/verify theo cả `id` và `client_id`, throw nếu không tìm thấy.
+- **Files sửa:** `coreRepository.ts`, `supabaseRepositories.ts`, `localStorageRepositories.ts`, `App.tsx`
+- **Build:** tsc + vite PASS — 0 TS errors. git diff --check PASS.
+- **Trạng thái:** ✅ DONE — Brand operations fully scoped by client_id. Cross-client access prevented at repo layer.
+
+---
+
+### 🗓️ Ngày 09/06/2026 — Phase 16A Codex Fix 1: Route mutations through repos, surface errors
 - **Sự kiện:** Codex phát hiện 3 vấn đề nghiêm trọng trong Phase 16A — đã fix toàn bộ.
 - **Fix 1 (UUID bypass):** Xóa `syncClientsBrandsToSupabase` — function này insert local ID `client-*/brand-*` vào UUID column trong Supabase DB. Không dùng nữa.
 - **Fix 2 (Silent errors):** Xóa `.catch(() => {})` — lỗi Supabase write không còn bị nuốt. Lỗi create → hiện trong `formError` của tab. Lỗi archive/activate → hiện trong `actionError` của tab.

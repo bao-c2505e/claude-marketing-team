@@ -54,10 +54,10 @@ export interface ClientRepository {
 
 export interface BrandRepository {
   list(clientId?: string): Promise<Brand[]>;
-  get(id: string): Promise<Brand | null>;
+  get(id: string, clientId: string): Promise<Brand | null>;
   create(data: BrandFormData): Promise<Brand>;
-  update(id: string, patch: Partial<Brand>): Promise<Brand>;
-  archive(id: string): Promise<void>;
+  update(id: string, clientId: string, patch: Partial<Brand>): Promise<Brand>;
+  archive(id: string, clientId: string): Promise<void>;
 }
 
 // ---------------------------------------------------------------------------

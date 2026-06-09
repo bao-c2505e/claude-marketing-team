@@ -105,11 +105,12 @@ export class SupabaseBrandRepository implements BrandRepository {
     return (data ?? []) as Brand[];
   }
 
-  async get(id: string): Promise<Brand | null> {
+  async get(id: string, clientId: string): Promise<Brand | null> {
     const { data, error } = await this.sb
       .from('brands')
       .select('*')
       .eq('id', id)
+      .eq('client_id', clientId)
       .single();
     if (error) {
       if (error.code === PGRST_NOT_FOUND) return null;
@@ -141,24 +142,35 @@ export class SupabaseBrandRepository implements BrandRepository {
     return created as Brand;
   }
 
-  async update(id: string, patch: Partial<Brand>): Promise<Brand> {
+  async update(id: string, clientId: string, patch: Partial<Brand>): Promise<Brand> {
     // Strip read-only fields before sending to DB
     const { id: _id, created_at: _ca, created_by: _cb, client_id: _cid, ...safe } = patch as Record<string, unknown>;
     const { data, error } = await this.sb
       .from('brands')
       .update({ ...safe, updated_at: new Date().toISOString() })
       .eq('id', id)
+      .eq('client_id', clientId)
       .select()
       .single();
-    if (error) throw error;
+    if (error) {
+      if (error.code === PGRST_NOT_FOUND) throw new Error(`Brand ${id} not found for client ${clientId}`);
+      throw error;
+    }
     return data as Brand;
   }
 
-  async archive(id: string): Promise<void> {
-    const { error } = await this.sb
+  async archive(id: string, clientId: string): Promise<void> {
+    const { data, error } = await this.sb
       .from('brands')
       .update({ status: 'archived', updated_at: new Date().toISOString() })
-      .eq('id', id);
-    if (error) throw error;
+      .eq('id', id)
+      .eq('client_id', clientId)
+      .select('id')
+      .single();
+    if (error) {
+      if (error.code === PGRST_NOT_FOUND) throw new Error(`Brand ${id} not found for client ${clientId}`);
+      throw error;
+    }
+    void data;
   }
 }

@@ -269,20 +269,23 @@ export default function App() {
   useEffect(() => {
     if (!isSupabaseConfigured) return;
     let cancelled = false;
-    Promise.all([repos.clients.list(), repos.brands.list()])
-      .then(([clients, brands]) => {
-        if (cancelled) return;
-        setCoreData(prev => {
-          const next = { ...prev, clients, brands };
-          saveCoreData(next);
-          return next;
-        });
-      })
-      .catch((err: unknown) => {
-        if (cancelled) return;
-        const msg = err instanceof Error ? err.message : String(err);
-        setSupabaseLoadError(`Supabase load failed (using local data): ${msg}`);
+    const load = async () => {
+      const clients = await repos.clients.list();
+      // Load brands scoped per client to prevent cross-client data leakage
+      const brandArrays = await Promise.all(clients.map(c => repos.brands.list(c.id)));
+      const brands = brandArrays.flat();
+      if (cancelled) return;
+      setCoreData(prev => {
+        const next = { ...prev, clients, brands };
+        saveCoreData(next);
+        return next;
       });
+    };
+    load().catch((err: unknown) => {
+      if (cancelled) return;
+      const msg = err instanceof Error ? err.message : String(err);
+      setSupabaseLoadError(`Supabase load failed (using local data): ${msg}`);
+    });
     return () => { cancelled = true; };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

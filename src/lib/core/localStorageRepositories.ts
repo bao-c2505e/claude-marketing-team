@@ -72,8 +72,8 @@ export class LocalStorageBrandRepository implements BrandRepository {
     return clientId ? brands.filter(b => b.client_id === clientId) : brands;
   }
 
-  async get(id: string): Promise<Brand | null> {
-    return loadCoreData().brands.find(b => b.id === id) ?? null;
+  async get(id: string, clientId: string): Promise<Brand | null> {
+    return loadCoreData().brands.find(b => b.id === id && b.client_id === clientId) ?? null;
   }
 
   async create(data: BrandFormData): Promise<Brand> {
@@ -100,17 +100,23 @@ export class LocalStorageBrandRepository implements BrandRepository {
     return brand;
   }
 
-  async update(id: string, patch: Partial<Brand>): Promise<Brand> {
+  async update(id: string, clientId: string, patch: Partial<Brand>): Promise<Brand> {
     const store = loadCoreData();
     const now = new Date().toISOString();
-    const brands = store.brands.map(b =>
-      b.id === id ? { ...b, ...patch, updated_at: now } : b,
-    );
+    let found: Brand | undefined;
+    const brands = store.brands.map(b => {
+      if (b.id === id && b.client_id === clientId) {
+        found = { ...b, ...patch, updated_at: now };
+        return found;
+      }
+      return b;
+    });
+    if (!found) throw new Error(`Brand ${id} not found for client ${clientId}`);
     saveCoreData({ ...store, brands });
-    return brands.find(b => b.id === id)!;
+    return found;
   }
 
-  async archive(id: string): Promise<void> {
-    await this.update(id, { status: 'archived' });
+  async archive(id: string, clientId: string): Promise<void> {
+    await this.update(id, clientId, { status: 'archived' });
   }
 }
