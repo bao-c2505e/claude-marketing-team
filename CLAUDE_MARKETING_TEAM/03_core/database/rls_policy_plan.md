@@ -300,25 +300,50 @@ CREATE POLICY "campaign_briefs_modify"
 
 ## 7. Group C — Content (Tenant + Status Scoped)
 
-Clients must only see `approved` content. Draft, generated, and failed states are internal.
+> **Three-tier access for content_items:**
+> - Global staff (owner/manager global): sees all statuses, all tenants
+> - Scoped manager (manager scoped to a client): sees all statuses in their tenant — including draft/generated/failed needed for review workflow
+> - Client/viewer: only `approved` content in their tenant
+>
+> Without the scoped-manager tier, a manager assigned only to Client A cannot review or edit drafts in their tenant, breaking the review workflow.
 
 ```sql
--- content_items: global staff sees all; client/viewer only sees approved in their tenant
+-- content_items: three-tier access
 CREATE POLICY "content_items_read"
   ON content_items FOR SELECT
   USING (
+    -- Tier 1: Global staff — sees everything (all statuses, all tenants)
     current_user_has_global_role(ARRAY['owner', 'manager'])
+    -- Tier 2: Scoped manager — sees all statuses within their tenant
+    OR EXISTS (
+      SELECT 1 FROM campaigns c
+      WHERE c.id = content_items.campaign_id
+        AND current_user_has_scoped_role(ARRAY['manager'], 'client', c.client_id)
+    )
+    -- Tier 3: Client/viewer — approved only within their tenant
     OR (
       content_items.status = 'approved'
-      AND current_user_can_access_campaign(content_items.campaign_id)
+      AND EXISTS (
+        SELECT 1 FROM campaigns c
+        WHERE c.id = content_items.campaign_id
+          AND current_user_has_scoped_role(ARRAY['client', 'viewer'], 'client', c.client_id)
+      )
     )
   );
 
+-- content_items modify: global staff or scoped manager can create/update
 CREATE POLICY "content_items_modify"
   ON content_items FOR ALL
-  USING (current_user_has_global_role(ARRAY['owner', 'manager']));
+  USING (
+    current_user_has_global_role(ARRAY['owner', 'manager'])
+    OR EXISTS (
+      SELECT 1 FROM campaigns c
+      WHERE c.id = content_items.campaign_id
+        AND current_user_has_scoped_role(ARRAY['manager'], 'client', c.client_id)
+    )
+  );
 
--- generation_jobs: internal only — client never sees generation runs
+-- generation_jobs: internal only — client/viewer never sees generation runs
 CREATE POLICY "generation_jobs_staff_only"
   ON generation_jobs FOR ALL
   USING (current_user_has_global_role(ARRAY['owner', 'manager']));
@@ -381,16 +406,39 @@ CREATE POLICY "approval_events_insert"
   WITH CHECK (current_user_has_global_role(ARRAY['owner', 'manager']));
 
 -- -------------------------------------------------------------------------
--- approval_comments — tenant-scoped + is_internal gate
--- Path: same as approval_events above
--- client/viewer: only non-internal comments in their own tenant's requests
--- staff: all comments in all requests
+-- approval_comments — three-tier access
+--
+-- Tier 1: Global owner/manager — full access to all comments in all tenants
+-- Tier 2: Scoped manager of the correct tenant — reads ALL comments
+--         (internal + non-internal) for approval requests in their tenant.
+--         Scoped managers need internal comments for the review workflow.
+--         Cross-tenant scoped managers are denied.
+-- Tier 3: Client/viewer — non-internal only, within their tenant only
+--
+-- ⚠️ Tier 2 MUST use current_user_has_scoped_role(['manager']) not
+--    current_user_can_access_campaign() — the latter also returns true for
+--    client/viewer and would expose internal comments to them.
 -- -------------------------------------------------------------------------
-CREATE POLICY "approval_comments_staff_all"
+
+-- Tier 1: Global staff full access
+CREATE POLICY "approval_comments_global_staff_all"
   ON approval_comments FOR ALL
   USING (current_user_has_global_role(ARRAY['owner', 'manager']));
 
--- Client/viewer: non-internal only, scoped to their tenant
+-- Tier 2: Scoped manager reads all comments (internal + non-internal) in their tenant
+CREATE POLICY "approval_comments_scoped_staff_read"
+  ON approval_comments FOR SELECT
+  USING (
+    EXISTS (
+      SELECT 1
+      FROM approval_requests ar
+      JOIN campaigns c ON c.id = ar.campaign_id
+      WHERE ar.id = approval_comments.approval_request_id
+        AND current_user_has_scoped_role(ARRAY['manager'], 'client', c.client_id)
+    )
+  );
+
+-- Tier 3: Client/viewer reads non-internal only, within their tenant
 CREATE POLICY "approval_comments_client_read"
   ON approval_comments FOR SELECT
   USING (
@@ -401,7 +449,7 @@ CREATE POLICY "approval_comments_client_read"
         AND current_user_can_access_campaign(ar.campaign_id)
     )
   );
-```
+
 
 ---
 
@@ -577,47 +625,90 @@ All boxes checked → enable `VITE_SUPABASE_URL` + `VITE_SUPABASE_ANON_KEY` in V
 
 ## 14. Recommended Cross-Tenant Tests (Run Before Production Env)
 
+> **⚠️ These are EXPECTED policy outcomes, not executed results.**
+> All tests below are PLANNED. Mark each as PASS only after running against a real Supabase project with the policies applied. Do not enable production Supabase env until all tests pass on a real DB.
+
 ### Test Setup
-Create the following users and role assignments in Supabase Auth + `user_roles` table:
+
+Create in Supabase Auth + `user_roles` table:
 
 | User | Email | Role | Scope |
 |---|---|---|---|
-| U1 | owner@test.com | owner | global (resource_type NULL) |
+| U1 | owner@test.com | owner | global (`resource_type` NULL) |
 | U2 | manager-a@test.com | manager | scoped to Client A (`resource_type='client', resource_id=client_A_id`) |
 | U3 | client-a@test.com | client | scoped to Client A |
 | U4 | client-b@test.com | client | scoped to Client B |
+| U5 | viewer-a@test.com | viewer | scoped to Client A |
+| U6 | viewer-b@test.com | viewer | scoped to Client B |
 
-Create: Client A, Client B (separate rows in `clients`). Create campaigns and content_items (one approved, one draft) for each client.
+Create: Client A, Client B. For each client: one campaign, one `content_item` with `status='approved'`, one with `status='draft'`. One `approval_request` with one `approval_event`, one `approval_comment` with `is_internal=false`, one with `is_internal=true`.
 
 ### Test Cases
 
 ```
-T01  U1 (owner global) reads clients            → sees Client A AND Client B       ✅ PASS
-T02  U2 (manager A)    reads clients            → sees only Client A               ✅ PASS
-T03  U3 (client A)     reads clients            → sees only Client A               ✅ PASS
-T04  U4 (client B)     reads clients            → sees only Client B               ✅ PASS
-T05  U4 (client B)     reads Client A row       → denied (zero rows)               ✅ PASS
+──────────────────────────────────────────────────────────────
+ Basic tenant access (clients table)
+──────────────────────────────────────────────────────────────
+T01  U1 (owner global)  reads clients       → sees Client A + B          ☐ EXPECTED
+T02  U2 (manager A)     reads clients       → sees only Client A          ☐ EXPECTED
+T03  U3 (client A)      reads clients       → sees only Client A          ☐ EXPECTED
+T04  U4 (client B)      reads clients       → sees only Client B          ☐ EXPECTED
+T05  U5 (viewer A)      reads clients       → sees only Client A          ☐ EXPECTED
+T06  U6 (viewer B)      reads Client A row  → denied (zero rows)          ☐ EXPECTED
 
-T06  U3 (client A)     reads content_items      → sees only approved items for A   ✅ PASS
-T07  U3 (client A)     reads draft content_item → denied                           ✅ PASS
-T08  U4 (client B)     reads Client A content   → denied                           ✅ PASS
+──────────────────────────────────────────────────────────────
+ Content access (content_items — status gate)
+──────────────────────────────────────────────────────────────
+T07  U1 (owner global)  reads draft content_A   → sees it                 ☐ EXPECTED
+T08  U2 (manager A)     reads draft content_A   → sees it (scoped staff)  ☐ EXPECTED
+T09  U2 (manager A)     reads draft content_B   → denied                  ☐ EXPECTED
+T10  U3 (client A)      reads approved content_A → sees it                ☐ EXPECTED
+T11  U3 (client A)      reads draft content_A   → denied (status gate)   ☐ EXPECTED
+T12  U5 (viewer A)      reads approved content_A → sees it                ☐ EXPECTED
+T13  U5 (viewer A)      reads draft content_A   → denied (status gate)   ☐ EXPECTED
+T14  U4 (client B)      reads Client A content  → denied (cross-tenant)  ☐ EXPECTED
 
-T09  U2 (manager A)    reads approval_events for Client A  → sees them             ✅ PASS
-T10  U2 (manager A)    reads approval_events for Client B  → denied                ✅ PASS
-T11  U3 (client A)     reads approval_events for Client A  → sees them             ✅ PASS
-T12  U4 (client B)     reads approval_events for Client A  → denied                ✅ PASS
+──────────────────────────────────────────────────────────────
+ Approval events
+──────────────────────────────────────────────────────────────
+T15  U2 (manager A)     reads approval_events for Client A → sees them    ☐ EXPECTED
+T16  U2 (manager A)     reads approval_events for Client B → denied       ☐ EXPECTED
+T17  U3 (client A)      reads approval_events for Client A → sees them    ☐ EXPECTED
+T18  U4 (client B)      reads approval_events for Client A → denied       ☐ EXPECTED
+T19  U5 (viewer A)      reads approval_events for Client A → sees them    ☐ EXPECTED
+T20  U6 (viewer B)      reads approval_events for Client A → denied       ☐ EXPECTED
 
-T13  U3 (client A)     reads is_internal=false comments for Client A request → sees ✅ PASS
-T14  U3 (client A)     reads is_internal=true comments for Client A request  → denied ✅ PASS
-T15  U4 (client B)     reads is_internal=false comments for Client A request → denied ✅ PASS
+──────────────────────────────────────────────────────────────
+ Approval comments (is_internal gate + tenant scope)
+──────────────────────────────────────────────────────────────
+T21  U1 (owner global)  reads is_internal=true  comment for A request → sees it   ☐ EXPECTED
+T22  U2 (manager A)     reads is_internal=true  comment for A request → sees it   ☐ EXPECTED
+T23  U2 (manager A)     reads is_internal=true  comment for B request → denied    ☐ EXPECTED
+T24  U3 (client A)      reads is_internal=false comment for A request → sees it   ☐ EXPECTED
+T25  U3 (client A)      reads is_internal=true  comment for A request → denied    ☐ EXPECTED
+T26  U4 (client B)      reads is_internal=false comment for A request → denied    ☐ EXPECTED
+T27  U5 (viewer A)      reads is_internal=false comment for A request → sees it   ☐ EXPECTED
+T28  U5 (viewer A)      reads is_internal=true  comment for A request → denied    ☐ EXPECTED
+T29  U6 (viewer B)      reads is_internal=false comment for A request → denied    ☐ EXPECTED
 
-T16  U3 (client A)     reads automation_logs    → denied                           ✅ PASS
-T17  U4 (client B)     reads connector_registry → denied                           ✅ PASS
+──────────────────────────────────────────────────────────────
+ Internal infrastructure (automation tables)
+──────────────────────────────────────────────────────────────
+T30  U3 (client A)      reads automation_logs    → denied                  ☐ EXPECTED
+T31  U5 (viewer A)      reads connector_registry → denied                  ☐ EXPECTED
 
-T18  Sign out, remove env vars, open app        → Demo Sign In still works         ✅ PASS
+──────────────────────────────────────────────────────────────
+ Demo fallback
+──────────────────────────────────────────────────────────────
+T32  Remove env vars, open app                  → Demo Sign In works        ☐ EXPECTED
 ```
 
-**All 18 tests must pass before enabling production Supabase env in Vercel.**
+**All 32 tests must show PASS on a real Supabase DB before enabling production env in Vercel.**
 
-If T02 fails (manager A sees Client B): verify `current_user_has_global_role` uses `resource_type IS NULL OR 'global'` filter.
-If T10 fails (manager A sees Client B approval events): verify `approval_events_read` joins through `approval_requests → campaigns → client_id`.
+### Diagnostics
+
+If T02 fails (manager A sees Client B): verify `current_user_has_global_role` filters `resource_type IS NULL OR 'global'`.
+If T08 fails (manager A cannot see draft in A): verify `content_items_read` Tier 2 uses `current_user_has_scoped_role(['manager'], 'client', c.client_id)`.
+If T16 fails (manager A sees Client B events): verify `approval_events_read` joins `approval_requests → campaigns → client_id`.
+If T22 fails (manager A cannot see internal comments in A): verify `approval_comments_scoped_staff_read` joins `approval_requests → campaigns` and checks `current_user_has_scoped_role(['manager'], ...)`.
+If T25 fails (client A sees internal comments): verify `approval_comments_client_read` only applies to `is_internal = false` rows.

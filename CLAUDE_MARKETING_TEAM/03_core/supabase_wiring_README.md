@@ -366,11 +366,12 @@ git push origin main  # Vercel auto-deploys
 The following must be done in Phase 16. **Do RLS step first** — without it, CRUD will fail silently for non-owner users.
 
 ### Step 0 — RLS Foundation (required before any CRUD)
-- [ ] Run `database/rls_policy_plan.md` Step 0: enable RLS on all missing tables
-- [ ] Apply `current_user_has_role()` helper function
-- [ ] Apply bootstrap policies (roles, user_roles, user_profiles, users)
-- [ ] Verify: sign in as owner, confirm role badge = "Owner"
-- [ ] Apply Group B–G policies
+- [ ] Run `database/rls_policy_plan.md` Step 0: enable RLS on 16 missing tables (including `roles`)
+- [ ] Apply 4 tenant-aware helper functions: `current_user_has_global_role`, `current_user_has_scoped_role`, `current_user_can_access_client`, `current_user_can_access_campaign` (see `rls_policy_plan.md` section 4)
+- [ ] Apply bootstrap policies (roles, user_roles, user_profiles, users — `rls_policy_plan.md` section 3)
+- [ ] Verify: sign in as owner, confirm role badge = "Owner" (not "Viewer")
+- [ ] Apply Group A–G policies in order per `rls_policy_plan.md` section 12
+- [ ] Run cross-tenant tests T01–T32 (`rls_policy_plan.md` section 14) — all must pass before enabling production env
 
 ### Identity / Access
 - [ ] `users`, `user_profiles`, `user_roles`, `roles` — read-only from frontend (no CRUD needed, managed via Supabase Auth + SQL)

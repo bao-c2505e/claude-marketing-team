@@ -22,6 +22,38 @@ Chúng ta đang xây dựng **The Core Agency — Real Operations MVP**. Đây l
 
 ---
 
+## ✅ Phase 15 Codex Fix 3 — Finalize Tenant-Scoped RLS Plan (DONE — 2026-06-09)
+
+### Vấn đề Codex phát hiện (lần 3):
+1. `approval_comments_staff_all` chỉ global owner/manager — scoped manager của đúng tenant bị chặn không đọc được internal comments.
+2. Test matrix thiếu viewer users (U5, U6). Tests T01–T18 ghi `✅ PASS` dù chưa chạy DB thật.
+3. `supabase_wiring_README.md` section 7 Phase 16 checklist vẫn ghi `Apply current_user_has_role() helper` (helper cũ đã bị thay).
+4. `content_items_read` chỉ cho global staff đọc draft — scoped manager không review được draft trong tenant của họ.
+5. Docs vẫn dùng "all fixed" language khi policies/tests chưa apply thật.
+
+### Đã fix:
+1. **`rls_policy_plan.md` section 7 (Content)**: `content_items_read` nay có 3 tiers: global staff (all), scoped manager (all statuses in tenant), client/viewer (approved only). `content_items_modify` cũng cho scoped manager modify trong tenant.
+2. **`rls_policy_plan.md` section 8 (Approval comments)**: Split thành 3 policies:
+   - `approval_comments_global_staff_all` — global owner/manager all access
+   - `approval_comments_scoped_staff_read` — scoped manager đọc ALL comments (internal+non-internal) trong tenant, qua join `approval_requests→campaigns→current_user_has_scoped_role(['manager'], 'client', c.client_id)`
+   - `approval_comments_client_read` — client/viewer non-internal only, tenant-scoped
+   - Ghi rõ warning: Tier 2 phải dùng `current_user_has_scoped_role(['manager'])`, không dùng `current_user_can_access_campaign()` (cái sau cũng match client/viewer)
+3. **`rls_policy_plan.md` section 14 (Test matrix)**:
+   - Thêm U5 (viewer-a scoped Client A), U6 (viewer-b scoped Client B) vào setup
+   - T01–T18 → T01–T32: thêm tests cho viewer access, scoped manager draft access, approval comments 3-tier
+   - Đổi tất cả `✅ PASS` → `☐ EXPECTED`
+   - Thêm note: "These are EXPECTED policy outcomes, not executed results."
+   - Thêm diagnostics cho T08, T22, T25 (failure scenarios mới)
+4. **`supabase_wiring_README.md` section 7 Phase 16 checklist**: Xóa `Apply current_user_has_role() helper` → thay bằng 4 helper tenant-aware đầy đủ tên.
+
+### Phase 15 status:
+- RLS plan: UPDATED (plan only, không phải production-ready)
+- Actual policies: chưa apply lên Supabase thật — Phase 16 phải apply + test
+- Cross-tenant tests T01–T32: EXPECTED, chưa chạy DB thật
+- Production Supabase env: PHẢI TẮT cho đến khi Phase 16 PASS
+
+---
+
 ## ✅ Phase 15 Codex Fix 2 — Tighten RLS Tenant Isolation (DONE — 2026-06-09)
 
 ### Vấn đề Codex phát hiện (lần 2):

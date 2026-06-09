@@ -6,6 +6,18 @@ Nhật ký theo dõi các mốc hoàn thành kỹ thuật qua các Phase.
 
 ## 📅 Nhật Ký Sự Kiện (Event Logs)
 
+### 🗓️ Ngày 09/06/2026 — Phase 15 Codex Fix 3: Finalize Tenant-Scoped RLS Plan
+- **Sự kiện:** Codex review lần 3 — 5 vấn đề còn lại đã fix tất cả.
+- **Fix 1 (Content 3-tier):** `content_items_read` nay có 3 tiers: global staff (all), scoped manager (all statuses in tenant), client/viewer (approved only). Scoped manager giờ review được draft.
+- **Fix 2 (Approval comments 3-tier):** Split `approval_comments_staff_all` → 3 policies: global staff all, scoped staff read all-in-tenant, client/viewer non-internal-in-tenant. Warning ghi rõ Tier 2 phải dùng `has_scoped_role` không phải `can_access_campaign`.
+- **Fix 3 (Test matrix):** Thêm U5 (viewer-a), U6 (viewer-b). 18 tests → 32 tests. Tất cả `✅ PASS` → `☐ EXPECTED`. Thêm disclaimer note.
+- **Fix 4 (Helper reference):** supabase_wiring_README.md Phase 16 checklist — xóa stale `current_user_has_role()` → 4 helper tên đầy đủ.
+- **Fix 5 (Language):** SESSION_SUMMARY.md, phase_log.md, agent_activity_log.md không dùng "all fixed" — ghi rõ plan updated, policies chưa apply thật.
+- **Build:** tsc + vite PASS — 0 errors. Không thay đổi code runtime.
+- **Trạng thái:** ✅ DONE — plan finalized. Vẫn là plan-only. Phase 16 apply + test.
+
+---
+
 ### 🗓️ Ngày 09/06/2026 — Phase 15 Codex Fix 2: Tighten RLS Tenant Isolation
 - **Sự kiện:** Codex review lần 2 phát hiện 5 vấn đề tiếp theo — đã fix tất cả.
 - **Vấn đề 1:** `roles` bị bỏ sót — 27 bảng trong schema nhưng audit chỉ có 26. Fix: thêm roles vào danh sách enable RLS (16 bảng thiếu), cập nhật Step 0, cập nhật bootstrap note.

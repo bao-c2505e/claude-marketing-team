@@ -6,6 +6,18 @@ Nhật ký ghi lại các hành động mô phỏng của các AI Agent khi vậ
 
 ## 🗓️ Nhật Ký Hoạt Động (Simulated Activity Logs)
 
+### 🗓️ Ngày 09/06/2026 — Phase 15 Codex Fix 3: Finalize Tenant-Scoped RLS Plan
+- **[PC1 Claude Code Builder]:** Phase 15 Codex Fix 3 — 5 remaining issues addressed. Docs-only changes. Plan updated, not yet production-ready.
+- **[PC1]:** Fixed `content_items_read` — added 3-tier policy: global staff (all statuses, all tenants), scoped manager (all statuses in their tenant via `current_user_has_scoped_role(['manager'], 'client', c.client_id)`), client/viewer (approved only in their tenant). Fixed `content_items_modify` similarly.
+- **[PC1]:** Split `approval_comments_staff_all` (global only) into 3 policies: `approval_comments_global_staff_all` (global, all access), `approval_comments_scoped_staff_read` (scoped manager reads all comments including internal in their tenant, via join `approval_requests→campaigns→has_scoped_role`), `approval_comments_client_read` (non-internal only, tenant-scoped). Added warning: Tier 2 must use `has_scoped_role(['manager'])`, not `can_access_campaign()` (which also matches client/viewer, would expose internal comments).
+- **[PC1]:** Extended test matrix — added U5 (viewer-a scoped Client A), U6 (viewer-b scoped Client B). Expanded T01-T18 → T01-T32 with viewer access tests, scoped manager draft/internal tests, 3-tier comment tests. Changed all `✅ PASS` → `☐ EXPECTED`. Added disclaimer: "These are EXPECTED policy outcomes, not executed results."
+- **[PC1]:** Fixed stale helper reference in `supabase_wiring_README.md` Phase 16 checklist — removed `Apply current_user_has_role() helper function` → replaced with full 4-helper list.
+- **[PC1]:** Updated SESSION_SUMMARY.md, phase_log.md, agent_activity_log.md — removed "all fixed" language, added plan-only status with clear note that actual policies/tests pending Phase 16/17.
+- **[PC1]:** `npm run build` → PASS (tsc + vite, 0 errors). No runtime changes. Docs-only.
+- **[Safety confirmed]:** No secrets. No runtime code changes. Demo Sign In + localStorage fallbacks preserved. Production Supabase env MUST remain disabled until Phase 16 passes T01-T32 on real DB.
+
+---
+
 ### 🗓️ Ngày 09/06/2026 — Phase 15 Codex Fix 2: Tighten RLS Tenant Isolation
 - **[PC1 Claude Code Builder]:** Phase 15 Codex Fix 2 — 5 issues found, all fixed.
 - **[PC1]:** Identified `roles` table missing from audit — 11+15=26, schema has 27 tables. `roles` not in either list. Decision: enable RLS + roles_read_authenticated (no sensitive data, required for fetchUserRole).
