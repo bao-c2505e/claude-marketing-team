@@ -1,9 +1,47 @@
-# CURRENT PHASE — Phase 16A: Supabase CRUD Wiring — Clients + Brands (Codex Fix) ✅ DONE
+# CURRENT PHASE — Phase 16B (Next) | Phase 16A ✅ CLOSED (Codex PASS — 2026-06-09)
 
 ## 📌 Thông tin chung
-- **Phase hiện tại:** Phase 16A — Supabase CRUD Wiring Core Objects: Repository Base + Clients/Brands
-- **Mục tiêu:** Implement safe first slice of Supabase CRUD wiring — add repository pattern and CRUD support for Clients and Brands while preserving localStorage fallback and demo behavior.
-- **Trạng thái:** ✅ DONE — Repositories implemented, wired into App.tsx, build pass, 0 TS errors.
+- **Phase trước:** Phase 16A — Supabase CRUD Wiring Core Objects: Repository Base + Clients/Brands
+- **Trạng thái Phase 16A:** ✅ CLOSED — Codex PASS. Repositories implemented, all tenant-scope fixes applied, build pass, 0 TS errors.
+- **Phase tiếp theo:** Phase 16B — Campaigns + Briefs CRUD wiring (see scope below)
+
+---
+
+## 🏁 Phase 16A — CLOSED (Codex PASS — 2026-06-09)
+
+### Scope completed:
+- Supabase CRUD repository wiring for **Clients** and **Brands** only
+- `ClientRepository` + `BrandRepository` interfaces defined and implemented
+- Supabase implementations: `SupabaseClientRepository`, `SupabaseBrandRepository`
+- localStorage fallback implementations: `LocalStorageClientRepository`, `LocalStorageBrandRepository`
+- Repository factory: `createPhase16aRepositories` — picks impl based on `isSupabaseConfigured`
+- App.tsx wired: repos on mount, client-scoped brand load, `handleClientCreate/Update`, `handleBrandCreate`
+
+### Tenant-scope contract (final):
+- `BrandRepository.list(clientId: string)` — **required**, no optional fallback
+- `BrandRepository.get(id, clientId)` — scoped by both id + client_id
+- `BrandRepository.update(id, clientId, patch)` — scoped by both id + client_id
+- `BrandRepository.archive(id, clientId)` — scoped by both id + client_id; throws if 0 rows affected
+- Supabase brand queries always include `.eq('client_id', clientId)` — no unscoped path exists
+- TypeScript enforces: calling any brand op without `clientId` is a compile error
+
+### Safety record:
+- Production Supabase env: **OFF** (env vars unset)
+- Secrets / service role key in frontend: **NO**
+- Demo Sign In: **PRESERVED**
+- localStorage fallback: **PRESERVED**
+- Campaign / Brief / Generation / Calendar / Approval / Reports wiring: **NOT DONE** (deferred to 16B+)
+- Codex result: **PASS**
+
+### Commits:
+| Commit | Description |
+|---|---|
+| `54c8281` | feat: add phase 16a supabase clients brands wiring |
+| `bccd1d1` | fix: route phase 16a client brand mutations through repositories |
+| `53e8450` | fix: scope phase 16a brand repository operations by client |
+| `df7e6aa` | fix: require client scope for brand repository list |
+
+---
 
 ---
 
@@ -183,4 +221,4 @@ With Supabase env (future):
 | Phase 13 | Connector Registry + Module Event Inbox | f21dbf7 |
 | Phase 14 | Automation Logs Foundation | 2d3c009 |
 | Phase 15 | Supabase Auth + Database Wiring Plan | 68e8982 |
-| Phase 16A | Supabase CRUD Wiring — Clients + Brands | (this phase) |
+| Phase 16A | Supabase CRUD Wiring — Clients + Brands (Codex PASS) | df7e6aa |

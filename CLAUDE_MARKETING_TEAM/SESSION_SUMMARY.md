@@ -22,6 +22,21 @@ Chúng ta đang xây dựng **The Core Agency — Real Operations MVP**. Đây l
 
 ---
 
+## 🏁 Phase 16A CLOSED — Codex PASS (2026-06-09)
+
+**Scope completed:** Supabase CRUD repository wiring for Clients and Brands. Repository pattern implemented (interface → factory → Supabase/localStorage impls). All three Codex fix rounds applied and passed.
+
+**Final tenant-scope contract:**
+- `BrandRepository.list(clientId: string)` — required, no optional fallback
+- All brand ops (`get`, `update`, `archive`) require `clientId`; Supabase always adds `.eq('client_id', clientId)`
+- TypeScript enforces: unscoped brand calls are compile errors
+
+**Safety:** Supabase env OFF · no secrets · Demo Sign In preserved · localStorage fallback preserved · Campaign/Brief/Generation/Approval wiring deferred to 16B+
+
+**Commits:** `54c8281` → `bccd1d1` → `53e8450` → `df7e6aa`
+
+---
+
 ## ✅ Phase 16A Codex Fix 3 — Mandatory clientId on BrandRepository.list (DONE — 2026-06-09)
 
 ### Issue fixed:

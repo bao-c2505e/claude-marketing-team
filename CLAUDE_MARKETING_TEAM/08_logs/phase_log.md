@@ -6,6 +6,18 @@ Nhật ký theo dõi các mốc hoàn thành kỹ thuật qua các Phase.
 
 ## 📅 Nhật Ký Sự Kiện (Event Logs)
 
+### 🗓️ Ngày 09/06/2026 — Phase 16A CLOSED: Codex PASS
+- **Sự kiện:** Phase 16A chính thức đóng sau Codex PASS.
+- **Scope hoàn thành:** Supabase CRUD repository wiring cho Clients và Brands. Repository pattern: interface → factory → Supabase/localStorage impls. Wired vào App.tsx.
+- **Tenant-scope contract cuối:** `BrandRepository.list(clientId: string)` — bắt buộc. Tất cả brand ops (`get`, `update`, `archive`) require `clientId`. Supabase luôn apply `.eq('client_id', clientId)`. TypeScript enforce tại compile time.
+- **An toàn:** Supabase env OFF · không secrets · không service role key · Demo Sign In preserved · localStorage fallback preserved.
+- **Không wired:** Campaign / Brief / Generation / Calendar / Approval / Reports — deferred to Phase 16B+.
+- **Codex result:** PASS.
+- **Commits:** `54c8281` → `bccd1d1` → `53e8450` → `df7e6aa`
+- **Trạng thái:** ✅ CLOSED.
+
+---
+
 ### 🗓️ Ngày 09/06/2026 — Phase 16A Codex Fix 3: Mandatory clientId on BrandRepository.list
 - **Sự kiện:** `BrandRepository.list(clientId?: string)` vẫn cho phép gọi không có `clientId` — TypeScript không bắt lỗi.
 - **Fix:** Đổi `clientId?: string` → `clientId: string` trong interface và cả 2 implementations.

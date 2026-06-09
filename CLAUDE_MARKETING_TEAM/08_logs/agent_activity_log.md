@@ -6,6 +6,16 @@ Nhật ký ghi lại các hành động mô phỏng của các AI Agent khi vậ
 
 ## 🗓️ Nhật Ký Hoạt Động (Simulated Activity Logs)
 
+### 🗓️ Ngày 09/06/2026 — Phase 16A CLOSED: Codex PASS
+- **[PC1 Claude Code Builder]:** Phase 16A officially closed after Codex PASS.
+- **[PC1]:** Confirmed final state: `BrandRepository.list(clientId: string)` required in interface and both implementations. `SupabaseBrandRepository.list` unconditionally applies `.eq('client_id', clientId)`. `LocalStorageBrandRepository.list` unconditionally filters by `clientId`. No unscoped brand read path exists anywhere in the codebase.
+- **[PC1]:** Confirmed all brand ops (`get`, `update`, `archive`) also scope by both `id` and `client_id` — cross-client access prevented at the repository layer.
+- **[PC1]:** Production Supabase env OFF. No secrets. No service role key. Demo Sign In preserved. localStorage fallback preserved. Campaign/Brief/Generation/Approval wiring deferred.
+- **[PC1]:** Git status clean. Commits: `54c8281` → `bccd1d1` → `53e8450` → `df7e6aa`.
+- **[PC1]:** Codex result: PASS. Phase 16A CLOSED.
+
+---
+
 ### 🗓️ Ngày 09/06/2026 — Phase 16A Codex Fix: UUID + error handling
 - **[PC1 Claude Code Builder]:** Applied Codex required fixes for Phase 16A.
 - **[PC1]:** Removed `syncClientsBrandsToSupabase` — was inserting `client-*` / `brand-*` string IDs into UUID Postgres columns via `sb.from('clients').insert({ id: client.id, ... })`. UUID columns require proper UUIDs or Supabase-generated values.
