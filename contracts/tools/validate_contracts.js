@@ -924,10 +924,33 @@ n8ExpectedOutputFiles.forEach(file => {
       failed = true;
     }
 
-    const allowedFinalStatuses = ['ready_for_mock_callback', 'stopped_rejected', 'revision_required', 'waiting_for_owner_approval'];
+    const allowedFinalStatuses = ['ready_for_mock_callback_preview', 'ready_for_mock_callback', 'stopped_rejected', 'revision_required', 'waiting_for_owner_approval'];
     if (!allowedFinalStatuses.includes(parsed.final_status)) {
       console.error(`[FAIL] N8 expected output ${file} has invalid final_status '${parsed.final_status}'`);
       failed = true;
+    }
+
+    // Verify final status mapping matches decision/approval status
+    if (parsed.approval_status === 'approved') {
+      if (parsed.final_status !== 'ready_for_mock_callback_preview' && parsed.final_status !== 'ready_for_mock_callback') {
+        console.error(`[FAIL] Expected output for 'approved' has invalid final_status '${parsed.final_status}'`);
+        failed = true;
+      }
+    } else if (parsed.approval_status === 'rejected') {
+      if (parsed.final_status !== 'stopped_rejected') {
+        console.error(`[FAIL] Expected output for 'rejected' has invalid final_status '${parsed.final_status}'`);
+        failed = true;
+      }
+    } else if (parsed.approval_status === 'needs_revision') {
+      if (parsed.final_status !== 'revision_required') {
+        console.error(`[FAIL] Expected output for 'needs_revision' has invalid final_status '${parsed.final_status}'`);
+        failed = true;
+      }
+    } else if (parsed.approval_status === 'pending_approval') {
+      if (parsed.final_status !== 'waiting_for_owner_approval') {
+        console.error(`[FAIL] Expected output for 'pending_approval' has invalid final_status '${parsed.final_status}'`);
+        failed = true;
+      }
     }
 
   } catch (err) {
@@ -960,6 +983,29 @@ try {
   }
 
   const parsed = JSON.parse(content);
+  
+  // Verify that the workflow includes/represents the 4 approval branches in some form
+  const nodesText = JSON.stringify(parsed.nodes);
+  const containsApprovedBranch = nodesText.includes('"approved"');
+  const containsRejectedBranch = nodesText.includes('"rejected"');
+  const containsRevisionBranch = nodesText.includes('"needs_revision"');
+  const containsPendingBranch = nodesText.includes('"pending"') || nodesText.includes('"pending_approval"');
+  
+  if (!containsApprovedBranch || !containsRejectedBranch || !containsRevisionBranch || !containsPendingBranch) {
+    console.error(`[FAIL] n8_unified_callback_approval_gate.workflow.json is missing one of the 4 approval branches in routing logic`);
+    failed = true;
+  } else {
+    console.log(`[PASS] n8 workflow represents the 4 approval branches (approved, rejected, needs_revision, pending)`);
+  }
+
+  // Verify brand_demo_001 is used where brand_id exists in the workflow
+  if (nodesText.includes('"brand_id"') && !nodesText.includes('brand_demo_001')) {
+    console.error(`[FAIL] n8_unified_callback_approval_gate.workflow.json defines brand_id but brand_demo_001 is missing`);
+    failed = true;
+  } else {
+    console.log(`[PASS] n8 workflow specifies brand_demo_001 where brand_id exists`);
+  }
+
   console.log(`[PASS] n8_unified_callback_approval_gate.workflow.json parses as valid JSON and matches safety rules`);
 
 } catch (err) {

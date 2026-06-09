@@ -8,7 +8,7 @@ This guide details how to import and manually test the Phase N8 Unified Callback
 - Standardize callback payloads sent back to Core.
 - Implement a mock approval gate inside n8n to handle reviewer decisions: `approved`, `rejected`, `needs_revision`, and `pending`.
 - Map those decisions to standard final statuses:
-  - `approved` → `ready_for_mock_callback`
+  - `approved` → `ready_for_mock_callback_preview`
   - `rejected` → `stopped_rejected`
   - `needs_revision` → `revision_required`
   - `pending` / `pending_approval` → `waiting_for_owner_approval`
@@ -41,7 +41,7 @@ The workflow routes decisions through four branches and maps them to final statu
 
 | Decision | approval_status | final_status | next_action |
 | :--- | :--- | :--- | :--- |
-| `"approved"` | `approved` | `ready_for_mock_callback` | `ready_for_mock_callback` |
+| `"approved"` | `approved` | `ready_for_mock_callback_preview` | `ready_for_mock_callback_preview` |
 | `"rejected"` | `rejected` | `stopped_rejected` | `stop_no_callback` |
 | `"needs_revision"` | `needs_revision` | `revision_required` | `return_to_module_or_human_revision` |
 | `"pending"` | `pending_approval` | `waiting_for_owner_approval` | `wait_for_owner` |
@@ -64,7 +64,7 @@ You can simulate decisions by configuring the mock input nodes inside the workfl
 1. Double-click the **Set: Mock Approval Decision** node.
 2. Replace its parameters with the JSON from `contracts/examples/n8n/n8/approval_decisions/approval_decision_approved.json`:
    - `decision`: `"approved"`
-   - `next_action`: `"ready_for_mock_callback"`
+   - `next_action`: `"ready_for_mock_callback_preview"`
 3. Execute the workflow.
 4. Verify that:
    - The workflow routes to **Code: Prepare Approved Callback Preview**.
@@ -102,8 +102,37 @@ You can simulate decisions by configuring the mock input nodes inside the workfl
 
 ---
 
-## 6. Safety & Security Policy
-- **No real callback dispatch:** No HTTP request callback node is allowed in this workflow. Testing is entirely self-contained.
-- **No credentials:** Zero tokens or secrets are stored in the n8n JSON file.
-- **Mock brand only:** Brand is strictly set to `brand_demo_001`.
-- **No production URLs:** The workflow does not reference `thecoreagency.com` anywhere.
+## 6. Troubleshooting
+
+### Invalid JSON
+*   **Cause:** Input to **Set: Mock Module Response** or **Set: Mock Approval Decision** is malformed JSON.
+*   **Resolution:** Verify all JSON braces, quotes, and commas are properly closed. Use a JSON validator if editing manually.
+
+### Unsupported `approval_status` / `decision`
+*   **Cause:** A decision is set to an unsupported value (e.g. `"unapproved"`, `"needs_rework"`).
+*   **Resolution:** Ensure that the `decision` field in the decision payload is exactly one of: `"approved"`, `"rejected"`, `"needs_revision"`, `"pending"`. Ensure that `approval_status` in the callback payload is exactly one of: `"pending_approval"`, `"approved"`, `"rejected"`, `"needs_revision"`.
+
+### Missing Required Fields
+*   **Cause:** Expected fields (e.g. `request_id`, `event_type`, `module_id`) are missing from the inputs.
+*   **Resolution:** Verify that the incoming mock callback contains all 14 required fields defined in `contracts/unified_callback_contract.md`. If fields are missing, the normalization node will default them or fail validation.
+
+### Wrong or Missing `brand_id`
+*   **Cause:** The brand ID is missing or set to a live brand name instead of `brand_demo_001`.
+*   **Resolution:** Always verify the `brand_id` is strictly set to `brand_demo_001` in all testing payloads.
+
+### Workflow Not Routing to Expected Branch
+*   **Cause:** The **Switch: Route by decision** node evaluates `{{ $json.decision }}`. If the decision node did not execute or its output schema is different, the routing will fail or take the wrong path.
+*   **Resolution:** Ensure that the **Set: Mock Approval Decision** node output contains a string property `decision` with a supported value. Verify that the Switch node routes match the decision value exactly.
+
+---
+
+## 7. Safety & Security Policy
+
+> [!IMPORTANT]
+> - **No real callback sent:** Under no circumstances does this workflow dispatch a real HTTP POST request callback to the Core callback URL. It is purely designed to generate a mock callback preview. Future real callback dispatch requires a separate explicit integration phase and owner approval.
+> - **No auto-post:** Generation results or copy must never be published automatically to public/live channels.
+> - **No real ads:** Ad pack stubs use mock budgets only. No real advertising campaigns can be funded or launched.
+> - **No real messaging:** CRM stubs generate draft templates only. No real messages (email, SMS, etc.) can be sent to real customer contact details.
+> - **No production URLs:** The workflow and mock examples are prohibited from referencing the production site `thecoreagency.com`.
+> - **No secrets:** No real API credentials, keys, or tokens may be embedded in the workflow JSON or files.
+> - **Owner Approval:** Live rollout and real execution integration require explicit owner sign-off.

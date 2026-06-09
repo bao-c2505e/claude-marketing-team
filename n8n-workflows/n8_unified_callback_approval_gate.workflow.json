@@ -136,7 +136,7 @@
             },
             {
               "name": "next_action",
-              "value": "ready_for_mock_callback"
+              "value": "ready_for_mock_callback_preview"
             }
           ],
           "other": [
@@ -193,7 +193,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const decision = items[0].json;\nconst callback = $node[\"Code: Normalize Unified Callback\"].json;\nreturn [{\n  json: {\n    request_id: callback.request_id,\n    event_type: callback.event_type,\n    module_id: callback.module_id,\n    approval_status: \"approved\",\n    final_status: \"ready_for_mock_callback\",\n    callback_preview: {\n      contract_version: \"unified_callback_v0.1\",\n      request_id: callback.request_id,\n      event_type: callback.event_type,\n      brand_id: callback.brand_id,\n      campaign_id: callback.campaign_id,\n      module_id: callback.module_id,\n      module_status: callback.module_status,\n      approval_status: \"approved\",\n      output: callback.output,\n      errors: callback.errors,\n      metadata: callback.metadata,\n      source: \"n8n_n8_approval_gate_mock\",\n      generated_at: new Date().toISOString(),\n      notes: \"Approved output ready for callback dispatch.\"\n    },\n    next_action: \"ready_for_mock_callback\",\n    source: \"n8n_n8_approval_gate_mock\",\n    notes: \"Approval review passed. Output is finalized.\"\n  }\n}];"
+        "jsCode": "const decision = items[0].json;\nconst callback = $node[\"Code: Normalize Unified Callback\"].json;\nreturn [{\n  json: {\n    request_id: callback.request_id,\n    event_type: callback.event_type,\n    module_id: callback.module_id,\n    approval_status: \"approved\",\n    final_status: \"ready_for_mock_callback_preview\",\n    callback_preview: {\n      contract_version: \"unified_callback_v0.1\",\n      request_id: callback.request_id,\n      event_type: callback.event_type,\n      brand_id: callback.brand_id,\n      campaign_id: callback.campaign_id,\n      module_id: callback.module_id,\n      module_status: callback.module_status,\n      approval_status: \"approved\",\n      output: callback.output,\n      errors: callback.errors,\n      metadata: callback.metadata,\n      source: \"n8n_n8_approval_gate_mock\",\n      generated_at: new Date().toISOString(),\n      notes: \"Approved output ready for callback dispatch.\"\n    },\n    next_action: \"ready_for_mock_callback_preview\",\n    source: \"n8n_n8_approval_gate_mock\",\n    notes: \"Approval review passed. Output is finalized.\"\n  }\n}];"
       },
       "name": "Code: Prepare Approved Callback Preview",
       "type": "n8n-nodes-base.code",

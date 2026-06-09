@@ -3,7 +3,7 @@
   "event_type": "creative_asset.requested",
   "module_id": "creative_asset_comfyui",
   "approval_status": "approved",
-  "final_status": "ready_for_mock_callback",
+  "final_status": "ready_for_mock_callback_preview",
   "callback_preview": {
     "contract_version": "unified_callback_v0.1",
     "request_id": "782f9d5e-ca87-439f-a89c-8eb139f4a088",
@@ -26,7 +26,7 @@
     "generated_at": "2026-06-08T15:25:00Z",
     "notes": "Approved output ready for callback dispatch."
   },
-  "next_action": "ready_for_mock_callback",
+  "next_action": "ready_for_mock_callback_preview",
   "source": "n8n_n8_approval_gate_mock",
   "notes": "Approval review passed. Output is finalized."
 }

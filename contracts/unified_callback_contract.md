@@ -79,7 +79,7 @@ The decision mapping determines the `final_status` and next steps for the callba
 
 | decision | approval_status | final_status | next_action |
 | :--- | :--- | :--- | :--- |
-| `"approved"` | `approved` | `ready_for_mock_callback` | Dispatch final callback to Core callback URL |
+| `"approved"` | `approved` | `ready_for_mock_callback_preview` | Prepare mock callback preview (no real callback is sent; future integration requires separate explicit integration phase and owner approval) |
 | `"rejected"` | `rejected` | `stopped_rejected` | Stop flow, log rejection, do not trigger callback |
 | `"needs_revision"`| `needs_revision`| `revision_required` | Return draft to module or queue for human edit |
 | `"pending"` | `pending_approval` | `waiting_for_owner_approval` | Hold queue, wait for owner action |

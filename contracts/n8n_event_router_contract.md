@@ -88,7 +88,7 @@ Triggers marketing performance report compile task.
 For Phase N8, all module callback payloads are normalized into the standard format defined in [unified_callback_contract.md](file:///c:/Users/DELL/claude-marketing-team/contracts/unified_callback_contract.md). 
 All normalized callback payloads must route through the Unified Callback Approval Gate workflow (`n8_unified_callback_approval_gate.workflow.json`). 
 Final states are mapped as follows:
-- `approved` → `ready_for_mock_callback` (dispatched to mock callback queue)
+- `approved` → `ready_for_mock_callback_preview` (prepares mock callback preview, no real callback sent)
 - `rejected` → `stopped_rejected`
 - `needs_revision` → `revision_required`
 - `pending_approval` → `waiting_for_owner_approval`

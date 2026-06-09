@@ -11,5 +11,5 @@
     "copyright_clear": true,
     "no_secrets": true
   },
-  "next_action": "ready_for_mock_callback"
+  "next_action": "ready_for_mock_callback_preview"
 }
