@@ -6,6 +6,18 @@ Nhật ký theo dõi các mốc hoàn thành kỹ thuật qua các Phase.
 
 ## 📅 Nhật Ký Sự Kiện (Event Logs)
 
+### 🗓️ Ngày 09/06/2026 — Phase 15 Codex Fix 2: Tighten RLS Tenant Isolation
+- **Sự kiện:** Codex review lần 2 phát hiện 5 vấn đề tiếp theo — đã fix tất cả.
+- **Vấn đề 1:** `roles` bị bỏ sót — 27 bảng trong schema nhưng audit chỉ có 26. Fix: thêm roles vào danh sách enable RLS (16 bảng thiếu), cập nhật Step 0, cập nhật bootstrap note.
+- **Vấn đề 2:** `current_user_has_role()` không phân biệt global vs scoped. Fix: thay bằng 4 helpers tenant-aware với SECURITY DEFINER + SET search_path.
+- **Vấn đề 3+4:** `approval_events_staff_read` + `approval_comments_client_public` expose cross-tenant data. Fix: policies giờ scope qua join chain approval_request→campaign→client.
+- **Vấn đề 5:** Docs ghi "all fixed" không đúng. Fix: section 9 safety invariants dùng ✅/⏳/⚠️ status.
+- **Thêm mới:** Section 14 trong rls_policy_plan.md — 18 cross-tenant tests (T01–T18) với 4 test users.
+- **Build:** tsc + vite PASS — 0 errors. Không thay đổi code runtime.
+- **Trạng thái:** ✅ DONE — plan tighter. Vẫn là plan-only. Phase 16 sẽ apply + test.
+
+---
+
 ### 🗓️ Ngày 09/06/2026 — Phase 15 Codex Fix: Harden RLS + CRUD Plan
 - **Sự kiện:** Codex review Phase 15 phát hiện 6 vấn đề — đã fix tất cả.
 - **Vấn đề 1:** README khẳng định "RLS enabled on all tables" — sai. schema_v1.sql chỉ bật RLS trên 11/27 bảng. Fix: database/README.md cập nhật danh sách chính xác.

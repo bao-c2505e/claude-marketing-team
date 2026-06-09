@@ -51,11 +51,13 @@
 
 > **Full policy plan (SQL, apply order, helper function):** `database/rls_policy_plan.md`
 
-#### Tables with RLS already enabled (schema_v1.sql)
+#### Tables with RLS already enabled in schema_v1.sql (11/27)
 `users`, `user_profiles`, `user_roles`, `clients`, `brands`, `campaigns`, `campaign_briefs`, `content_items`, `approval_requests`, `assets`, `reports`
 
-#### Tables that still need `ALTER TABLE ... ENABLE ROW LEVEL SECURITY` before production
-`generation_jobs`, `content_calendar_items`, `creative_briefs`, `ad_briefs`, `approval_events`, `approval_comments`, `asset_collections`, `report_metrics`, `connector_registry`, `module_registry`, `module_events`, `webhook_callbacks`, `automation_logs`, `audit_logs`, `system_settings`
+#### Tables that still need `ALTER TABLE ... ENABLE ROW LEVEL SECURITY` before production (16/27)
+`roles` (Phase 16 — enable + authenticated read), `generation_jobs`, `content_calendar_items`, `approval_events`, `approval_comments`, `asset_collections`, `report_metrics` (all Phase 16); `creative_briefs`, `ad_briefs`, `connector_registry`, `module_registry`, `module_events`, `webhook_callbacks`, `automation_logs`, `audit_logs`, `system_settings` (Phase 17+)
+
+> **`roles` table**: Not sensitive (only id/name/description/created_at). Enable RLS + `roles_read_authenticated` policy so `fetchUserRole()` can resolve role names. See `database/rls_policy_plan.md` section 3.
 
 #### ⚠️ Bootstrap problem: user_roles has RLS, no policies yet
 
@@ -74,50 +76,69 @@ See `database/rls_policy_plan.md` section 3 for the full bootstrap set.
 
 #### Key policy patterns
 
-**Pattern 1 — Internal staff only (owner/manager)**
+> **Four helper functions** replace the old single `current_user_has_role()`. See `database/rls_policy_plan.md` section 4 for full SQL.
+>
+> - `current_user_has_global_role(role_names[])` — global only (`resource_type IS NULL` or `'global'`)
+> - `current_user_has_scoped_role(role_names[], resource_type, resource_id)` — specific tenant
+> - `current_user_can_access_client(client_id)` — global staff OR scoped to this client
+> - `current_user_can_access_campaign(campaign_id)` — joins via `campaign.client_id`
+>
+> All four use `SECURITY DEFINER` + `SET search_path = public, pg_temp`. No dynamic SQL. Boolean-only return.
+
+**Pattern 1 — Internal staff only (global role required)**
 ```sql
--- For tables that must never be visible to client/viewer (e.g., automation_logs, generation_jobs)
+-- Tables that must never be visible to client/viewer (automation_logs, generation_jobs, etc.)
 CREATE POLICY "automation_logs_staff_only" ON automation_logs
-  FOR ALL USING (current_user_has_role(ARRAY['owner', 'manager']));
+  FOR ALL USING (current_user_has_global_role(ARRAY['owner', 'manager']));
 ```
 
-**Pattern 2 — Client sees only their assigned tenant's data**
+**Pattern 2 — Tenant-scoped access (global OR scoped to specific client)**
 
-Do NOT just check role name. A `client` role user must only see data for the specific `client_id` they are assigned to in `user_roles.resource_id`. Checking role without ownership scope would expose all clients' data to every `client` user.
+Do NOT check role name alone. A `manager` scoped to Client A must not see Client B data. Use `current_user_can_access_client()` which enforces both global and scoped paths.
 
 ```sql
--- Correct tenant-scoped pattern (clients table)
-CREATE POLICY "clients_staff_read" ON clients FOR SELECT
+-- clients table: global staff OR user scoped to this specific client
+CREATE POLICY "clients_read" ON clients FOR SELECT
+  USING (current_user_can_access_client(clients.id));
+```
+
+**Pattern 3 — Status gate + tenant scope (content and reports)**
+```sql
+-- content_items: global staff sees all; client/viewer only sees approved in their tenant
+CREATE POLICY "content_items_read" ON content_items FOR SELECT
   USING (
-    current_user_has_role(ARRAY['owner', 'manager'])
-    OR EXISTS (
-      SELECT 1 FROM user_roles ur JOIN roles r ON r.id = ur.role_id
-      WHERE ur.user_id = auth.uid() AND ur.is_active = true
-        AND r.name IN ('client', 'viewer')
-        AND ur.resource_type = 'client'
-        AND ur.resource_id = clients.id   -- ownership check
+    current_user_has_global_role(ARRAY['owner', 'manager'])
+    OR (
+      content_items.status = 'approved'
+      AND current_user_can_access_campaign(content_items.campaign_id)
     )
   );
 ```
 
-**Pattern 3 — Content visible to client only when approved**
-For `content_items`, clients should only see items with `status = 'approved'`. Draft, generated, and failed items must never reach the client.
+**Pattern 4 — Approval events/comments (tenant scope via join chain, NOT global role read)**
+
+Approval events and comments must be scoped through `approval_request → campaign → client`. Checking only role name would expose cross-tenant data.
 
 ```sql
-CREATE POLICY "content_items_client_read" ON content_items FOR SELECT
+-- approval_events: scoped via approval_request → campaign → client
+CREATE POLICY "approval_events_read" ON approval_events FOR SELECT
   USING (
-    current_user_has_role(ARRAY['owner', 'manager'])
-    OR (
-      content_items.status = 'approved'   -- status gate
-      AND EXISTS (
-        SELECT 1 FROM campaigns c
-        JOIN user_roles ur ON ur.resource_id = c.client_id
-        JOIN roles r ON r.id = ur.role_id
-        WHERE c.id = content_items.campaign_id
-          AND ur.user_id = auth.uid() AND ur.is_active = true
-          AND r.name IN ('client', 'viewer')
-          AND ur.resource_type = 'client'
-      )
+    current_user_has_global_role(ARRAY['owner', 'manager'])
+    OR EXISTS (
+      SELECT 1 FROM approval_requests ar
+      WHERE ar.id = approval_events.approval_request_id
+        AND current_user_can_access_campaign(ar.campaign_id)
+    )
+  );
+
+-- approval_comments: non-internal, same tenant scope
+CREATE POLICY "approval_comments_client_read" ON approval_comments FOR SELECT
+  USING (
+    is_internal = false
+    AND EXISTS (
+      SELECT 1 FROM approval_requests ar
+      WHERE ar.id = approval_comments.approval_request_id
+        AND current_user_can_access_campaign(ar.campaign_id)
     )
   );
 ```
@@ -403,17 +424,21 @@ The following must be done in Phase 16. **Do RLS step first** — without it, CR
 
 ## 9. Safety Invariants (Non-Negotiable)
 
-| Rule | Enforced by |
-|---|---|
-| No service role key in frontend | `supabaseClient.ts` reads only `VITE_` vars; never add to Vercel |
-| App does not crash without env | `isSupabaseConfigured` guard, null-safe client |
-| Demo Sign In fallback preserved | `AuthContext.signIn()` demo branch — never remove |
-| Generated ≠ Approved ≠ Published | State machine in `coreData.ts` + RLS `status` gate |
-| No auto-post / no auto-ads | `system_settings` seeded with `false`; no frontend bypass |
-| RLS blocks unauthorized access | Enforced at Postgres level (Phase 16 — see `database/rls_policy_plan.md`) |
-| Client sees only own tenant data | Tenant-scoped policies check `resource_id` — role check alone is insufficient |
-| Do NOT enable prod env before bootstrap | `user_roles` RLS + no policies = every user gets viewer; apply bootstrap first |
-| If RLS is on with no policy → zero rows | Default Supabase behavior; test each table after applying policies |
+> **Phase 15 creates the plan. Phase 16 applies and tests it. Production Supabase env must NOT be enabled until cross-tenant tests in `database/rls_policy_plan.md` section 14 pass.**
+
+| Rule | Status | Enforced by |
+|---|---|---|
+| No service role key in frontend | ✅ Code enforced | `supabaseClient.ts` reads only `VITE_` vars; never add to Vercel |
+| App does not crash without env | ✅ Code enforced | `isSupabaseConfigured` guard, null-safe client |
+| Demo Sign In fallback preserved | ✅ Code enforced | `AuthContext.signIn()` demo branch — never remove |
+| Generated ≠ Approved ≠ Published | ✅ Code + plan | State machine in `coreData.ts` + RLS `status` gate (Phase 16) |
+| No auto-post / no auto-ads | ✅ Code enforced | `system_settings` seeded `false`; no frontend bypass |
+| Client sees only own tenant data | ⏳ Plan only | `current_user_can_access_client()` helper — must apply + test in Phase 16 |
+| Approval events/comments tenant-scoped | ⏳ Plan only | Join chain policies (section 8 of rls_policy_plan.md) — apply Phase 16 |
+| `roles` table: RLS + authenticated read | ⏳ Plan only | Step 0 + bootstrap — apply Phase 16 before auth works |
+| Bootstrap before prod env | ⏳ Plan only | Apply `database/rls_policy_plan.md` steps 0–3, verify role badge |
+| Manager scoped ≠ manager global | ⏳ Plan only | `current_user_has_global_role()` checks `resource_type IS NULL/'global'` |
+| If RLS on with no policy → zero rows | ⚠️ Risk until Phase 16 | Default Supabase behavior; do not enable env before bootstrap |
 
 ---
 

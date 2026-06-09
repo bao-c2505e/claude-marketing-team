@@ -6,6 +6,22 @@ Nhật ký ghi lại các hành động mô phỏng của các AI Agent khi vậ
 
 ## 🗓️ Nhật Ký Hoạt Động (Simulated Activity Logs)
 
+### 🗓️ Ngày 09/06/2026 — Phase 15 Codex Fix 2: Tighten RLS Tenant Isolation
+- **[PC1 Claude Code Builder]:** Phase 15 Codex Fix 2 — 5 issues found, all fixed.
+- **[PC1]:** Identified `roles` table missing from audit — 11+15=26, schema has 27 tables. `roles` not in either list. Decision: enable RLS + roles_read_authenticated (no sensitive data, required for fetchUserRole).
+- **[PC1]:** Rewrote `database/rls_policy_plan.md` section 1: `roles` added to the 16-table missing list. Section 2 Step 0: `ALTER TABLE roles ENABLE ROW LEVEL SECURITY` added.
+- **[PC1]:** Replaced `current_user_has_role()` (global-only, unsafe for scoped roles) with 4 tenant-aware helpers: `current_user_has_global_role()` (resource_type IS NULL/'global' only), `current_user_has_scoped_role()` (specific type+id), `current_user_can_access_client()` (global OR scoped), `current_user_can_access_campaign()` (joins via campaign.client_id). All: SECURITY DEFINER + SET search_path = public, pg_temp, no dynamic SQL, boolean-only return.
+- **[PC1]:** Fixed `approval_events_read` policy — was `current_user_has_role(all roles)` (cross-tenant leak). Now: `current_user_has_global_role(owner/manager) OR EXISTS(ar JOIN campaign WHERE current_user_can_access_campaign)`.
+- **[PC1]:** Fixed `approval_comments_client_read` policy — was `is_internal=false AND role check` (cross-tenant leak). Now: `is_internal=false AND EXISTS(ar JOIN campaign WHERE current_user_can_access_campaign)`.
+- **[PC1]:** Updated all Group A–G policies to use `current_user_has_global_role()` instead of old helper. Updated Group B–E to use `current_user_can_access_client()` / `current_user_can_access_campaign()`.
+- **[PC1]:** Added section 14: 18 recommended cross-tenant tests (T01–T18) — 4 test users (owner global, manager scoped A, client A, client B), covers: basic access, cross-tenant denial, approval events/comments, internal comment denial, automation_logs denial, Demo Sign In fallback.
+- **[PC1]:** Updated `supabase_wiring_README.md` section 1.4: roles added, 4-helper architecture documented, Patterns 1–4 updated. Section 9 safety invariants: plan-only status with ✅/⏳/⚠️, production-env warning.
+- **[PC1]:** Updated `database/README.md`: 11+16=27 correct, roles in list, 4-helper mention, production-env warning with T18 test requirement.
+- **[PC1]:** `npm run build` → PASS (tsc + vite, 0 errors). Docs-only changes. Bundle unchanged.
+- **[Safety confirmed]:** No secrets. No runtime code changes. Auth logic unchanged. Demo Sign In + localStorage fallbacks preserved. Build pass.
+
+---
+
 ### 🗓️ Ngày 09/06/2026 — Phase 15 Codex Fix: Harden RLS + CRUD Plan
 - **[PC1 Claude Code Builder]:** Phase 15 Codex Fix — 6 issues found, all fixed.
 - **[PC1]:** Audited schema_v1.sql — confirmed RLS enabled on 11 tables, NOT enabled on 15 tables. Corrected false "all tables" claim in database/README.md.

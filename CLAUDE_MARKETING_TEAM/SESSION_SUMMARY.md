@@ -22,6 +22,41 @@ Chúng ta đang xây dựng **The Core Agency — Real Operations MVP**. Đây l
 
 ---
 
+## ✅ Phase 15 Codex Fix 2 — Tighten RLS Tenant Isolation (DONE — 2026-06-09)
+
+### Vấn đề Codex phát hiện (lần 2):
+1. `roles` bị bỏ sót khỏi audit — 11+15=26 không khớp với 27 bảng trong schema. `roles` chưa bật RLS, nên `roles_read_authenticated` policy không có hiệu lực.
+2. `current_user_has_role()` không phân biệt global vs scoped — manager scoped Client A bị treat như global manager, có thể đọc Client B data.
+3. `approval_events_staff_read` dùng `current_user_has_role(ARRAY['owner','manager','client','viewer'])` → mọi authenticated user đọc toàn bộ approval events cross-tenant.
+4. `approval_comments_client_public` chỉ check `is_internal=false` + role → mọi client/viewer đọc toàn bộ non-internal comments cross-tenant.
+5. Docs ghi "all fixed" → cần tone down — đây là plan, chưa production-ready.
+
+### Đã fix:
+1. **`rls_policy_plan.md` — Toàn bộ rewrite:**
+   - Section 1: Thêm `roles` vào danh sách 16 bảng cần enable RLS (total: 11+16=27 đúng). Ghi rõ quyết định: roles là public-read (không có dữ liệu nhạy cảm).
+   - Section 2: Thêm `ALTER TABLE roles ENABLE ROW LEVEL SECURITY` vào Step 0.
+   - Section 3: Bootstrap — note rõ roles phải enable RLS trước khi `roles_read_authenticated` có hiệu lực.
+   - Section 4: Thay 1 helper → 4 helpers tenant-aware, tất cả có `SECURITY DEFINER` + `SET search_path = public, pg_temp`, không dùng dynamic SQL, chỉ trả boolean:
+     - `current_user_has_global_role(role_names[])` — chỉ check `resource_type IS NULL/'global'`
+     - `current_user_has_scoped_role(role_names[], type, id)` — check scope cụ thể
+     - `current_user_can_access_client(client_id)` — global staff OR scoped to client
+     - `current_user_can_access_campaign(campaign_id)` — joins qua campaign.client_id
+   - Sections 5–11: Replace mọi `current_user_has_role()` → `current_user_has_global_role()` hoặc helper phù hợp.
+   - Section 8 (Approval): Fix `approval_events_read` — scoped qua join chain `approval_request→campaign→client`. Fix `approval_comments_client_read` — is_internal=false + tenant scope (không phải global role check).
+   - Section 14: NEW — 18 recommended cross-tenant tests với 4 test users (owner global, manager scoped A, client A, client B), cover T01-T18 từ basic access đến cross-tenant denial đến approval events/comments.
+2. **`supabase_wiring_README.md`**: Fix section 1.4 — thêm `roles` vào danh sách 16 bảng, cập nhật 4-helper architecture, update Pattern 1–4, tighten section 9 safety invariants (plan-only status ghi rõ ✅/⏳/⚠️).
+3. **`database/README.md`**: Update RLS section — 11+16=27 đúng, mention `roles`, note 4-helper architecture, production-env warning với link cross-tenant tests.
+
+### Remaining risks (chưa resolve đến Phase 16):
+- Policies chưa được apply lên Supabase thật — tất cả vẫn là plan/SQL
+- Cross-tenant tests chưa chạy — cần Supabase project thật với env vars
+- Scoped manager (`resource_type='client'`) chưa được test với real DB
+
+### Safety:
+- Không thay đổi code runtime. Build PASS. Demo Sign In + localStorage fallbacks preserved.
+
+---
+
 ## ✅ Phase 15 Codex Fix — Harden RLS + CRUD Plan (DONE — 2026-06-09)
 
 ### Vấn đề Codex phát hiện:

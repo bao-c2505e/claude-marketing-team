@@ -129,17 +129,24 @@ These can only be changed by an `owner` role user via the Settings page (Phase 1
 
 ## RLS (Row Level Security)
 
-RLS is enabled on a **subset** of tables in `schema_v1.sql` (applied in Phase 2). The remaining tables need `ALTER TABLE ... ENABLE ROW LEVEL SECURITY` before any production CRUD.
+RLS is enabled on **11 of 27 tables** in `schema_v1.sql`. The remaining 16 tables need `ALTER TABLE ... ENABLE ROW LEVEL SECURITY` before production CRUD.
 
-**RLS enabled in schema_v1.sql:**
+**RLS enabled in schema_v1.sql (11 tables):**
 `users`, `user_profiles`, `user_roles`, `clients`, `brands`, `campaigns`, `campaign_briefs`, `content_items`, `approval_requests`, `assets`, `reports`
 
-**RLS NOT yet enabled (must enable before production):**
-`generation_jobs`, `content_calendar_items`, `creative_briefs`, `ad_briefs`, `approval_events`, `approval_comments`, `asset_collections`, `report_metrics`, `connector_registry`, `module_registry`, `module_events`, `webhook_callbacks`, `automation_logs`, `audit_logs`, `system_settings`
+**RLS NOT yet enabled — must enable before production (16 tables):**
+`roles` *(Phase 16 — needs RLS + authenticated read policy)*, `generation_jobs`, `content_calendar_items`, `approval_events`, `approval_comments`, `asset_collections`, `report_metrics` *(all Phase 16)*, `creative_briefs`, `ad_briefs`, `connector_registry`, `module_registry`, `module_events`, `webhook_callbacks`, `automation_logs`, `audit_logs`, `system_settings` *(Phase 17+)*
 
-**⚠️ Important:** `user_roles` has RLS enabled but has no policies yet. Until bootstrap policies are applied (Phase 16), the anon client cannot read role assignments and every authenticated user will fall back to `viewer`. Do NOT enable production Supabase env until the bootstrap policies in `rls_policy_plan.md` are applied.
+**⚠️ Two critical facts:**
+1. `user_roles` has RLS but zero policies → `fetchUserRole()` returns empty → every user falls back to `viewer`. Bootstrap policies (section 3 of `rls_policy_plan.md`) must be applied first.
+2. `roles` not in either list above was a previous audit gap. It must have RLS enabled before `roles_read_authenticated` policy can work.
 
-Full policy plan: see `rls_policy_plan.md` and `../supabase_wiring_README.md` → Section 1.4.
+**Policy architecture (Phase 16):** Uses 4 tenant-aware helper functions (`current_user_has_global_role`, `current_user_has_scoped_role`, `current_user_can_access_client`, `current_user_can_access_campaign`) — all `SECURITY DEFINER` with fixed `search_path`. A manager scoped to Client A cannot see Client B data. Approval events/comments are scoped via join chain, not just role check.
+
+**Full policy plan (SQL + apply order + cross-tenant tests):** `rls_policy_plan.md`
+**Wiring overview:** `../supabase_wiring_README.md` → Section 1.4
+
+> **Do NOT enable production Supabase env in Vercel until all 18 cross-tenant tests in `rls_policy_plan.md` section 14 pass.**
 
 ---
 
