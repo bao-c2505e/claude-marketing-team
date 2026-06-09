@@ -37,7 +37,7 @@ import { useAuth } from './lib/auth/AuthContext';
 import { ROLE_LABELS, ROLE_COLORS } from './lib/auth/permissions';
 import { isSupabaseConfigured, supabase } from './lib/supabaseClient';
 import { createPhase16aRepositories } from './lib/core/repositoryFactory';
-import type { SupabaseClient } from '@supabase/supabase-js';
+import type { Client, Brand } from './types/core';
 import LoginScreen from './components/auth/LoginScreen';
 import ClientsTab from './components/core/ClientsTab';
 import BrandsTab from './components/core/BrandsTab';
@@ -53,7 +53,7 @@ import ExportPackTab from './components/core/ExportPackTab';
 import ConnectorRegistryTab from './components/core/ConnectorRegistryTab';
 import AutomationLogsTab from './components/core/AutomationLogsTab';
 import { loadCoreData, saveCoreData, loadGenerationData, saveGenerationData, loadApprovalData, saveApprovalData, loadAssetData, saveAssetData, canSubmitItem } from './lib/core/coreData';
-import type { CoreDataStore, GenerationDataStore, ApprovalDataStore, AssetDataStore } from './lib/core/coreData';
+import type { CoreDataStore, GenerationDataStore, ApprovalDataStore, AssetDataStore, ClientFormData, BrandFormData } from './lib/core/coreData';
 import { loadAutomationLogData, saveAutomationLogData } from './lib/core/automationLogs';
 import type { AutomationLogStore } from './lib/core/automationLogs';
 
@@ -202,86 +202,6 @@ Chiến dịch truyền thông tích hợp cho thương hiệu "Vị Cuốn", h�
   }
 ];
 
-// ---------------------------------------------------------------------------
-// Phase 16A — Supabase fire-and-forget sync helper
-// Diffs old vs new CoreDataStore and writes new/changed clients+brands to Supabase.
-// Called only when isSupabaseConfigured is true; errors are silently swallowed so
-// the UI is never blocked. localStorage is always updated first (in handleCoreUpdate).
-// ---------------------------------------------------------------------------
-
-async function syncClientsBrandsToSupabase(
-  sb: SupabaseClient,
-  prev: import('./lib/core/coreData').CoreDataStore,
-  next: import('./lib/core/coreData').CoreDataStore,
-): Promise<void> {
-  const prevClientIds = new Set(prev.clients.map(c => c.id));
-  for (const client of next.clients) {
-    if (!prevClientIds.has(client.id)) {
-      await sb.from('clients').insert({
-        id: client.id,
-        name: client.name,
-        slug: client.slug,
-        contact_name: client.contact_name,
-        contact_email: client.contact_email,
-        contact_phone: client.contact_phone,
-        status: client.status,
-        notes: client.notes,
-      });
-    } else {
-      const old = prev.clients.find(c => c.id === client.id);
-      if (old && JSON.stringify(old) !== JSON.stringify(client)) {
-        await sb.from('clients').update({
-          name: client.name,
-          slug: client.slug,
-          contact_name: client.contact_name,
-          contact_email: client.contact_email,
-          contact_phone: client.contact_phone,
-          status: client.status,
-          notes: client.notes,
-          updated_at: new Date().toISOString(),
-        }).eq('id', client.id);
-      }
-    }
-  }
-
-  const prevBrandIds = new Set(prev.brands.map(b => b.id));
-  for (const brand of next.brands) {
-    if (!prevBrandIds.has(brand.id)) {
-      await sb.from('brands').insert({
-        id: brand.id,
-        client_id: brand.client_id,
-        name: brand.name,
-        slug: brand.slug,
-        industry: brand.industry,
-        hero_product: brand.hero_product,
-        tone_of_voice: brand.tone_of_voice,
-        target_audience: brand.target_audience,
-        primary_channels: brand.primary_channels,
-        brand_colors: brand.brand_colors,
-        logo_url: brand.logo_url,
-        status: brand.status,
-      });
-    } else {
-      const old = prev.brands.find(b => b.id === brand.id);
-      if (old && JSON.stringify(old) !== JSON.stringify(brand)) {
-        await sb.from('brands').update({
-          name: brand.name,
-          slug: brand.slug,
-          industry: brand.industry,
-          hero_product: brand.hero_product,
-          tone_of_voice: brand.tone_of_voice,
-          target_audience: brand.target_audience,
-          primary_channels: brand.primary_channels,
-          brand_colors: brand.brand_colors,
-          logo_url: brand.logo_url,
-          status: brand.status,
-          updated_at: new Date().toISOString(),
-        }).eq('id', brand.id);
-      }
-    }
-  }
-}
-
 export default function App() {
   const { user, loading: authLoading, isAuthenticated, signOut, mode } = useAuth();
 
@@ -367,14 +287,41 @@ export default function App() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // handleCoreUpdate: used by Campaigns, Briefs, Generation, Approval, Assets, etc.
+  // Client/Brand mutations are routed through typed repo handlers below (Phase 16A fix).
   const handleCoreUpdate = (updated: CoreDataStore) => {
-    const prev = coreData;
     setCoreData(updated);
     saveCoreData(updated);
-    // Phase 16A: fire-and-forget Supabase sync for client/brand changes
-    if (isSupabaseConfigured && supabase) {
-      syncClientsBrandsToSupabase(supabase, prev, updated).catch(() => {});
-    }
+  };
+
+  // Phase 16A — typed repo handlers: mutations go through repos, return DB rows with real IDs.
+  // Errors propagate to the calling tab so the user sees them in the form/action error display.
+
+  const handleClientCreate = async (data: ClientFormData): Promise<void> => {
+    const client: Client = await repos.clients.create(data);
+    setCoreData(prev => {
+      const next = { ...prev, clients: [client, ...prev.clients] };
+      saveCoreData(next);
+      return next;
+    });
+  };
+
+  const handleClientUpdate = async (id: string, patch: Partial<Client>): Promise<void> => {
+    const updated: Client = await repos.clients.update(id, patch);
+    setCoreData(prev => {
+      const next = { ...prev, clients: prev.clients.map(c => c.id === id ? updated : c) };
+      saveCoreData(next);
+      return next;
+    });
+  };
+
+  const handleBrandCreate = async (data: BrandFormData): Promise<void> => {
+    const brand: Brand = await repos.brands.create(data);
+    setCoreData(prev => {
+      const next = { ...prev, brands: [brand, ...prev.brands] };
+      saveCoreData(next);
+      return next;
+    });
   };
 
   const handleCoreNavigate = (tab: string, filter?: { clientId?: string; brandId?: string }) => {
@@ -1087,8 +1034,8 @@ export default function App() {
                   clients={coreData.clients}
                   brands={coreData.brands}
                   campaigns={coreData.campaigns}
-                  briefs={coreData.briefs}
-                  onUpdate={handleCoreUpdate}
+                  onClientCreate={handleClientCreate}
+                  onClientUpdate={handleClientUpdate}
                   userRole={user?.role ?? null}
                   isSupabaseConfigured={isSupabaseConfigured}
                   onNavigate={handleCoreNavigate}
@@ -1101,8 +1048,7 @@ export default function App() {
                   clients={coreData.clients}
                   brands={coreData.brands}
                   campaigns={coreData.campaigns}
-                  briefs={coreData.briefs}
-                  onUpdate={handleCoreUpdate}
+                  onBrandCreate={handleBrandCreate}
                   userRole={user?.role ?? null}
                   isSupabaseConfigured={isSupabaseConfigured}
                   initialFilterClientId={coreNavFilter.clientId}

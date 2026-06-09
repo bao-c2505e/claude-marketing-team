@@ -1,17 +1,22 @@
 import { useState } from 'react';
 import { Plus, ChevronRight, ArrowLeft, Users, Tag } from 'lucide-react';
-import type { Client, Brand, Campaign, CampaignBrief, ResourceStatus } from '../../types/core';
-import type { ClientFormData, CoreDataStore } from '../../lib/core/coreData';
-import { generateId, CLIENT_STATUS_LABEL, CLIENT_STATUS_COLOR } from '../../lib/core/coreData';
+import type { Client, Brand, Campaign, ResourceStatus } from '../../types/core';
+import type { ClientFormData } from '../../lib/core/coreData';
+import { CLIENT_STATUS_LABEL, CLIENT_STATUS_COLOR } from '../../lib/core/coreData';
 import { can } from '../../lib/auth/permissions';
 import type { RoleName } from '../../types/core';
+
+// ---------------------------------------------------------------------------
+// Phase 16A fix: mutations are routed through async repo handlers in App.tsx.
+// generateId / onUpdate(CoreDataStore) removed — IDs come from the database row.
+// ---------------------------------------------------------------------------
 
 interface Props {
   clients: Client[];
   brands: Brand[];
   campaigns: Campaign[];
-  briefs: CampaignBrief[];
-  onUpdate: (updated: CoreDataStore) => void;
+  onClientCreate: (data: ClientFormData) => Promise<void>;
+  onClientUpdate: (id: string, patch: Partial<Client>) => Promise<void>;
   userRole: RoleName | null;
   isSupabaseConfigured: boolean;
   onNavigate: (tab: string, filter?: { clientId?: string; brandId?: string }) => void;
@@ -25,11 +30,22 @@ const EMPTY_FORM: ClientFormData = {
   notes: '',
 };
 
-export default function ClientsTab({ clients, brands, campaigns, briefs, onUpdate, userRole, isSupabaseConfigured, onNavigate }: Props) {
+export default function ClientsTab({
+  clients,
+  brands,
+  campaigns,
+  onClientCreate,
+  onClientUpdate,
+  userRole,
+  isSupabaseConfigured,
+  onNavigate,
+}: Props) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState<ClientFormData>(EMPTY_FORM);
   const [formError, setFormError] = useState('');
+  const [formLoading, setFormLoading] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const canManage = can.manageClients(userRole);
 
@@ -38,47 +54,40 @@ export default function ClientsTab({ clients, brands, campaigns, briefs, onUpdat
   const brandsForClient = (clientId: string) => brands.filter(b => b.client_id === clientId);
   const campaignsForClient = (clientId: string) => campaigns.filter(c => c.client_id === clientId);
 
-  const handleCreate = () => {
+  // ── Mutations (routed through repos in App.tsx) ──────────────────────────
+
+  const handleCreate = async () => {
     if (!form.name.trim()) { setFormError('Client name is required.'); return; }
-    const now = new Date().toISOString();
-    const newClient: Client = {
-      id: generateId('client'),
-      name: form.name.trim(),
-      slug: form.name.trim().toLowerCase().replace(/\s+/g, '-'),
-      contact_name: form.contact_name.trim() || null,
-      contact_email: form.contact_email.trim() || null,
-      contact_phone: null,
-      status: 'active' as ResourceStatus,
-      notes: form.notes.trim() || null,
-      created_by: 'demo-owner-000',
-      created_at: now,
-      updated_at: now,
-    };
-    onUpdate({ clients: [newClient, ...clients], brands, campaigns, briefs });
-    setForm(EMPTY_FORM);
+    setFormLoading(true);
     setFormError('');
-    setShowForm(false);
+    try {
+      await onClientCreate(form);
+      setForm(EMPTY_FORM);
+      setShowForm(false);
+    } catch (err) {
+      setFormError(err instanceof Error ? err.message : 'Failed to create client. Please try again.');
+    } finally {
+      setFormLoading(false);
+    }
   };
 
-  const handleArchive = (clientId: string) => {
-    const now = new Date().toISOString();
-    onUpdate({
-      clients: clients.map(c => c.id === clientId ? { ...c, status: 'archived' as ResourceStatus, updated_at: now } : c),
-      brands,
-      campaigns,
-      briefs,
-    });
-    if (selectedId === clientId) setSelectedId(null);
+  const handleArchive = async (clientId: string) => {
+    setActionError(null);
+    try {
+      await onClientUpdate(clientId, { status: 'archived' as ResourceStatus });
+      if (selectedId === clientId) setSelectedId(null);
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'Failed to archive client.');
+    }
   };
 
-  const handleActivate = (clientId: string) => {
-    const now = new Date().toISOString();
-    onUpdate({
-      clients: clients.map(c => c.id === clientId ? { ...c, status: 'active' as ResourceStatus, updated_at: now } : c),
-      brands,
-      campaigns,
-      briefs,
-    });
+  const handleActivate = async (clientId: string) => {
+    setActionError(null);
+    try {
+      await onClientUpdate(clientId, { status: 'active' as ResourceStatus });
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'Failed to activate client.');
+    }
   };
 
   // ── Detail view ──────────────────────────────────────────────────────────
@@ -97,6 +106,13 @@ export default function ClientsTab({ clients, brands, campaigns, briefs, onUpdat
           </button>
           <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Clients / {client.name}</span>
         </div>
+
+        {actionError && (
+          <div style={{ padding: '10px 14px', background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.4)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
+            <span style={{ fontSize: '0.8rem', color: '#f87171' }}>⚠ {actionError}</span>
+            <button onClick={() => setActionError(null)} style={{ background: 'none', border: 'none', color: '#f87171', cursor: 'pointer', fontSize: '0.85rem', padding: '0 4px' }}>✕</button>
+          </div>
+        )}
 
         <div className="glass-panel" style={{ padding: '24px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
@@ -188,6 +204,14 @@ export default function ClientsTab({ clients, brands, campaigns, briefs, onUpdat
         )}
       </div>
 
+      {/* Action-level error (archive / activate) */}
+      {actionError && (
+        <div style={{ padding: '10px 14px', background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.4)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
+          <span style={{ fontSize: '0.8rem', color: '#f87171' }}>⚠ {actionError}</span>
+          <button onClick={() => setActionError(null)} style={{ background: 'none', border: 'none', color: '#f87171', cursor: 'pointer', fontSize: '0.85rem', padding: '0 4px' }}>✕</button>
+        </div>
+      )}
+
       {/* Create form */}
       {showForm && canManage && (
         <div className="glass-panel" style={{ padding: '20px', border: '1px solid rgba(99,102,241,0.3)' }}>
@@ -207,6 +231,7 @@ export default function ClientsTab({ clients, brands, campaigns, briefs, onUpdat
                   onChange={e => setForm(prev => ({ ...prev, [f.key]: e.target.value }))}
                   placeholder={f.placeholder}
                   style={{ width: '100%' }}
+                  disabled={formLoading}
                 />
               </div>
             ))}
@@ -220,12 +245,15 @@ export default function ClientsTab({ clients, brands, campaigns, briefs, onUpdat
               placeholder="Optional notes about this client"
               rows={2}
               style={{ width: '100%', resize: 'vertical' }}
+              disabled={formLoading}
             />
           </div>
           {formError && <p style={{ fontSize: '0.8rem', color: '#f87171', marginTop: '8px' }}>{formError}</p>}
           <div style={{ display: 'flex', gap: '10px', marginTop: '16px' }}>
-            <button className="btn btn-primary" style={{ fontSize: '0.85rem' }} onClick={handleCreate}>Create Client</button>
-            <button className="btn btn-secondary" style={{ fontSize: '0.85rem' }} onClick={() => { setShowForm(false); setForm(EMPTY_FORM); setFormError(''); }}>Cancel</button>
+            <button className="btn btn-primary" style={{ fontSize: '0.85rem', opacity: formLoading ? 0.6 : 1 }} onClick={handleCreate} disabled={formLoading}>
+              {formLoading ? 'Saving…' : 'Create Client'}
+            </button>
+            <button className="btn btn-secondary" style={{ fontSize: '0.85rem' }} onClick={() => { setShowForm(false); setForm(EMPTY_FORM); setFormError(''); }} disabled={formLoading}>Cancel</button>
           </div>
         </div>
       )}

@@ -6,6 +6,17 @@ Nhật ký ghi lại các hành động mô phỏng của các AI Agent khi vậ
 
 ## 🗓️ Nhật Ký Hoạt Động (Simulated Activity Logs)
 
+### 🗓️ Ngày 09/06/2026 — Phase 16A Codex Fix: UUID + error handling
+- **[PC1 Claude Code Builder]:** Applied Codex required fixes for Phase 16A.
+- **[PC1]:** Removed `syncClientsBrandsToSupabase` — was inserting `client-*` / `brand-*` string IDs into UUID Postgres columns via `sb.from('clients').insert({ id: client.id, ... })`. UUID columns require proper UUIDs or Supabase-generated values.
+- **[PC1]:** Removed `.catch(() => {})` pattern — Supabase write errors are no longer silently swallowed. create() errors propagate to tab → `formError`. archive/activate errors propagate → `actionError`.
+- **[PC1]:** Rewrote ClientsTab — new async props: `onClientCreate(ClientFormData) → Promise<void>`, `onClientUpdate(id, patch) → Promise<void>`. Removed `generateId`, `onUpdate`, `briefs`. Added `formLoading` and `actionError` states.
+- **[PC1]:** Rewrote BrandsTab — new async prop: `onBrandCreate(BrandFormData) → Promise<void>`. Removed `generateId`, `onUpdate`, `briefs`. Added `formLoading`.
+- **[PC1]:** Fixed App.tsx — added `handleClientCreate`, `handleClientUpdate`, `handleBrandCreate` (use repos, update state with returned DB row). Restored `handleCoreUpdate` to pure localStorage write (no Supabase diff sync). Updated ClientsTab + BrandsTab renders.
+- **[PC1]:** Build: tsc + vite PASS — 0 TS errors. git diff --check exit 0. Demo Sign In preserved. No secrets.
+
+---
+
 ### 🗓️ Ngày 09/06/2026 — Phase 16A: Supabase CRUD Wiring — Clients + Brands
 - **[PC1 Claude Code Builder]:** Phase 16A complete. Repository pattern implemented for Clients and Brands. Wired into App.tsx with safe fallback.
 - **[PC1]:** Created `localStorageRepositories.ts` — `LocalStorageClientRepository` + `LocalStorageBrandRepository` wrap existing `coreData.ts` functions. Implement `ClientRepository`/`BrandRepository` interfaces from Phase 15.

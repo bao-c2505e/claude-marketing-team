@@ -6,6 +6,17 @@ Nhật ký theo dõi các mốc hoàn thành kỹ thuật qua các Phase.
 
 ## 📅 Nhật Ký Sự Kiện (Event Logs)
 
+### 🗓️ Ngày 09/06/2026 — Phase 16A Codex Fix: Route mutations through repos, surface errors
+- **Sự kiện:** Codex phát hiện 3 vấn đề nghiêm trọng trong Phase 16A — đã fix toàn bộ.
+- **Fix 1 (UUID bypass):** Xóa `syncClientsBrandsToSupabase` — function này insert local ID `client-*/brand-*` vào UUID column trong Supabase DB. Không dùng nữa.
+- **Fix 2 (Silent errors):** Xóa `.catch(() => {})` — lỗi Supabase write không còn bị nuốt. Lỗi create → hiện trong `formError` của tab. Lỗi archive/activate → hiện trong `actionError` của tab.
+- **Fix 3 (Repo bypass):** ClientsTab và BrandsTab không còn tự tạo ID local (`generateId`). Mutations đi qua `repos.clients`/`repos.brands` trong App.tsx. Row trả về từ DB (UUID thật) cập nhật React state.
+- **Files sửa:** `ClientsTab.tsx` (async props, formLoading, actionError), `BrandsTab.tsx` (async props, formLoading), `App.tsx` (3 typed handlers, remove sync bypass)
+- **Build:** tsc + vite PASS — 0 TS errors. git diff --check exit 0.
+- **Trạng thái:** ✅ DONE — UUID bug fixed, errors surfaced, repo contract enforced.
+
+---
+
 ### 🗓️ Ngày 09/06/2026 — Phase 16A: Supabase CRUD Wiring — Clients + Brands
 - **Sự kiện:** Implement repository pattern cho Clients và Brands. Wiring vào App.tsx với async Supabase load và diff-based write.
 - **Files mới:**

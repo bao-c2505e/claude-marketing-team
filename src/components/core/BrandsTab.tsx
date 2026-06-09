@@ -1,17 +1,21 @@
 import { useState, useEffect } from 'react';
 import { Plus, ArrowLeft, ChevronRight, Store } from 'lucide-react';
-import type { Client, Brand, Campaign, CampaignBrief, ResourceStatus } from '../../types/core';
-import type { BrandFormData, CoreDataStore } from '../../lib/core/coreData';
-import { generateId, CAMPAIGN_STATUS_LABEL, CAMPAIGN_STATUS_COLOR } from '../../lib/core/coreData';
+import type { Client, Brand, Campaign } from '../../types/core';
+import type { BrandFormData } from '../../lib/core/coreData';
+import { CAMPAIGN_STATUS_LABEL, CAMPAIGN_STATUS_COLOR } from '../../lib/core/coreData';
 import { can } from '../../lib/auth/permissions';
 import type { RoleName } from '../../types/core';
+
+// ---------------------------------------------------------------------------
+// Phase 16A fix: mutations are routed through async repo handlers in App.tsx.
+// generateId / onUpdate(CoreDataStore) removed — IDs come from the database row.
+// ---------------------------------------------------------------------------
 
 interface Props {
   clients: Client[];
   brands: Brand[];
   campaigns: Campaign[];
-  briefs: CampaignBrief[];
-  onUpdate: (updated: CoreDataStore) => void;
+  onBrandCreate: (data: BrandFormData) => Promise<void>;
   userRole: RoleName | null;
   isSupabaseConfigured: boolean;
   initialFilterClientId?: string;
@@ -28,11 +32,21 @@ const EMPTY_FORM: BrandFormData = {
   primary_channels: 'Facebook',
 };
 
-export default function BrandsTab({ clients, brands, campaigns, briefs, onUpdate, userRole, isSupabaseConfigured, initialFilterClientId, onNavigate }: Props) {
+export default function BrandsTab({
+  clients,
+  brands,
+  campaigns,
+  onBrandCreate,
+  userRole,
+  isSupabaseConfigured,
+  initialFilterClientId,
+  onNavigate,
+}: Props) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState<BrandFormData>(EMPTY_FORM);
   const [formError, setFormError] = useState('');
+  const [formLoading, setFormLoading] = useState(false);
   const [filterClientId, setFilterClientId] = useState<string>(initialFilterClientId ?? '');
 
   useEffect(() => {
@@ -45,33 +59,22 @@ export default function BrandsTab({ clients, brands, campaigns, briefs, onUpdate
   const campaignsForBrand = (brandId: string) => campaigns.filter(c => c.brand_id === brandId);
   const clientName = (clientId: string) => clients.find(c => c.id === clientId)?.name ?? '—';
 
-  // ── Create ────────────────────────────────────────────────────────────────
+  // ── Create (routed through repo in App.tsx) ───────────────────────────────
 
-  const handleCreate = () => {
+  const handleCreate = async () => {
     if (!form.client_id) { setFormError('Please select a client.'); return; }
     if (!form.name.trim()) { setFormError('Brand name is required.'); return; }
-    const now = new Date().toISOString();
-    const newBrand: Brand = {
-      id: generateId('brand'),
-      client_id: form.client_id,
-      name: form.name.trim(),
-      slug: form.name.trim().toLowerCase().replace(/\s+/g, '-'),
-      industry: form.industry.trim() || null,
-      hero_product: form.hero_product.trim() || null,
-      tone_of_voice: form.tone_of_voice.trim() || null,
-      target_audience: form.target_audience.trim() || null,
-      primary_channels: form.primary_channels.split(',').map(s => s.trim()).filter(Boolean),
-      brand_colors: null,
-      logo_url: null,
-      status: 'active' as ResourceStatus,
-      created_by: 'demo-owner-000',
-      created_at: now,
-      updated_at: now,
-    };
-    onUpdate({ clients, brands: [newBrand, ...brands], campaigns, briefs });
-    setForm(EMPTY_FORM);
+    setFormLoading(true);
     setFormError('');
-    setShowForm(false);
+    try {
+      await onBrandCreate(form);
+      setForm(EMPTY_FORM);
+      setShowForm(false);
+    } catch (err) {
+      setFormError(err instanceof Error ? err.message : 'Failed to create brand. Please try again.');
+    } finally {
+      setFormLoading(false);
+    }
   };
 
   // ── Detail view ───────────────────────────────────────────────────────────
@@ -199,7 +202,7 @@ export default function BrandsTab({ clients, brands, campaigns, briefs, onUpdate
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
             <div>
               <label style={{ display: 'block', fontSize: '0.78rem', color: 'var(--text-secondary)', marginBottom: '5px' }}>Client *</label>
-              <select className="form-control" value={form.client_id} onChange={e => setForm(p => ({ ...p, client_id: e.target.value }))} style={{ width: '100%' }}>
+              <select className="form-control" value={form.client_id} onChange={e => setForm(p => ({ ...p, client_id: e.target.value }))} style={{ width: '100%' }} disabled={formLoading}>
                 <option value="">Select client…</option>
                 {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
@@ -220,14 +223,17 @@ export default function BrandsTab({ clients, brands, campaigns, briefs, onUpdate
                   onChange={e => setForm(prev => ({ ...prev, [f.key]: e.target.value }))}
                   placeholder={f.placeholder}
                   style={{ width: '100%' }}
+                  disabled={formLoading}
                 />
               </div>
             ))}
           </div>
           {formError && <p style={{ fontSize: '0.8rem', color: '#f87171', marginTop: '8px' }}>{formError}</p>}
           <div style={{ display: 'flex', gap: '10px', marginTop: '16px' }}>
-            <button className="btn btn-primary" style={{ fontSize: '0.85rem' }} onClick={handleCreate}>Create Brand</button>
-            <button className="btn btn-secondary" style={{ fontSize: '0.85rem' }} onClick={() => { setShowForm(false); setForm(EMPTY_FORM); setFormError(''); }}>Cancel</button>
+            <button className="btn btn-primary" style={{ fontSize: '0.85rem', opacity: formLoading ? 0.6 : 1 }} onClick={handleCreate} disabled={formLoading}>
+              {formLoading ? 'Saving…' : 'Create Brand'}
+            </button>
+            <button className="btn btn-secondary" style={{ fontSize: '0.85rem' }} onClick={() => { setShowForm(false); setForm(EMPTY_FORM); setFormError(''); }} disabled={formLoading}>Cancel</button>
           </div>
         </div>
       )}

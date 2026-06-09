@@ -22,6 +22,22 @@ Chúng ta đang xây dựng **The Core Agency — Real Operations MVP**. Đây l
 
 ---
 
+## ✅ Phase 16A Codex Fix — Route mutations through repos, surface errors (DONE — 2026-06-09)
+
+### Issues fixed:
+1. **UUID bypass:** `syncClientsBrandsToSupabase` was inserting `client-*/brand-*` local string IDs into UUID Postgres columns. Removed entirely.
+2. **Silent errors:** `.catch(() => {})` swallowed all Supabase write failures. Removed. Errors now propagate as `formError` (create) or `actionError` (archive/activate) in each tab.
+3. **Repo bypass:** Mutations now go exclusively through `repos.clients`/`repos.brands`. Returned DB rows with real UUIDs update React state.
+
+### Files changed:
+- `src/components/core/ClientsTab.tsx` — async `onClientCreate`/`onClientUpdate` props, `formLoading`, `actionError`, removed `generateId`/`onUpdate`/`briefs`
+- `src/components/core/BrandsTab.tsx` — async `onBrandCreate` prop, `formLoading`, removed `generateId`/`onUpdate`/`briefs`
+- `src/App.tsx` — removed `syncClientsBrandsToSupabase`, added `handleClientCreate`/`handleClientUpdate`/`handleBrandCreate`, pure localStorage `handleCoreUpdate`
+
+### Build: PASS — 0 TS errors. git diff --check: exit 0.
+
+---
+
 ## ✅ Phase 16A — Supabase CRUD Wiring: Clients + Brands (DONE — 2026-06-09)
 
 ### Deliverables:

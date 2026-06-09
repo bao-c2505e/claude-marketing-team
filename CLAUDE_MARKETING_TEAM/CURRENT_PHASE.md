@@ -1,4 +1,4 @@
-# CURRENT PHASE — Phase 16A: Supabase CRUD Wiring — Clients + Brands ✅ DONE
+# CURRENT PHASE — Phase 16A: Supabase CRUD Wiring — Clients + Brands (Codex Fix) ✅ DONE
 
 ## 📌 Thông tin chung
 - **Phase hiện tại:** Phase 16A — Supabase CRUD Wiring Core Objects: Repository Base + Clients/Brands
@@ -98,6 +98,22 @@ With Supabase env (future):
 - Campaign/Brief/Generation/Approval wiring: NOT DONE (deferred to 16B+)
 - Build: PASS (0 TS errors, tsc + vite)
 - git diff --check: PASS
+
+---
+
+## ✅ Phase 16A Codex Fix (Applied — 2026-06-09)
+
+### Issues fixed:
+1. **UUID bypass (CRITICAL):** Removed `syncClientsBrandsToSupabase` which inserted local `client-*`/`brand-*` string IDs into UUID Postgres columns.
+2. **Error swallowing (REQUIRED):** Removed `.catch(() => {})` — errors now propagate to UI via `formError` (create) and `actionError` (archive/activate).
+3. **Repo bypass:** All client/brand mutations now route through `repos.clients` / `repos.brands` exclusively. The database row with real UUID is used to update React state.
+
+### Files changed in fix:
+| File | Change |
+|---|---|
+| `src/components/core/ClientsTab.tsx` | Async `onClientCreate`/`onClientUpdate` props; `formLoading`/`actionError` states; removed `generateId`, `onUpdate`, `briefs` |
+| `src/components/core/BrandsTab.tsx` | Async `onBrandCreate` prop; `formLoading` state; removed `generateId`, `onUpdate`, `briefs` |
+| `src/App.tsx` | Removed `syncClientsBrandsToSupabase`; added `handleClientCreate`, `handleClientUpdate`, `handleBrandCreate`; restored `handleCoreUpdate` to pure localStorage write |
 
 ---
 
