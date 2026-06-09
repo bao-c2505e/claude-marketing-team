@@ -26,6 +26,26 @@
     "request_id": "c88f110c-9a10-432d-8812-70b1ab23cd98",
     "event_type": "unknown_event_type.requested",
     "module_id": "n8n_event_router",
+    "error": {
+      "contract_version": "error_retry_logging_v0.1",
+      "request_id": "c88f110c-9a10-432d-8812-70b1ab23cd98",
+      "event_type": "unknown_event_type.requested",
+      "brand_id": "brand_demo_001",
+      "campaign_id": "campaign_demo_001",
+      "module_id": "n8n_event_router",
+      "error_type": "unsupported_event_type",
+      "error_code": "ERR_ROUTER_UNSUPPORTED_EVENT",
+      "error_message": "Event type 'unknown_event_type.requested' has no matching route configuration.",
+      "retryable": false,
+      "attempt": 1,
+      "max_attempts": 1,
+      "next_action": "stop",
+      "timestamp": "2026-06-09T16:18:00Z",
+      "source": "n8n_n9_error_retry_logging_mock",
+      "metadata": {
+        "unregistered_event_type": "unknown_event_type.requested"
+      }
+    },
     "attempts": 1,
     "final_status": "manual_review_required",
     "source": "n8n_n9_error_retry_logging_mock",

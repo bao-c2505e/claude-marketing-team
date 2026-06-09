@@ -100,7 +100,8 @@ To simulate and test error states, edit parameters in the **Set: Mock Error Scen
 ---
 
 ## 6. Troubleshooting Guide
--   **Unsupported `error_type`:** If the error type parameter in the Set node is not recognized, the normalization code default-classifies it as `unknown_error` or throws a validation error. Check Section 3.A for valid error types.
+-   **Unsupported `error_type`:** If the incoming `error_type` is not in the allowed list, the workflow normalizes it to `"unknown_error"`, sets the `retry_decision` to `"manual_review_required"`, sets the `next_action` to `"manual_review_required"`, and records in the final `notes` that the unsupported error type was normalized.
+-   **Dead-Letter Preview Content:** The dead-letter queue preview contains the full normalized `error` object (with contract_version, request_id, event_type, brand_id, campaign_id, module_id, error_type, error_code, error_message, retryable, attempt, max_attempts, next_action, timestamp, source, and metadata) for complete error tracking.
 -   **Missing Fields:** If the incoming error payload is missing key parameters (such as `request_id` or `event_type`), the "Code: Normalize Error Object" node automatically fills them with fallback defaults or raises validation issues.
 -   **Invalid JSON:** Ensure that formatting in the Set node contains valid Javascript primitives or JSON objects.
 -   **Retryable Flag Mismatch:** If a validation error is marked `retryable: true` in the source mock, the Normalize node JS Code overrides this because the policy defines validation errors as strictly non-retryable.
@@ -114,7 +115,7 @@ To simulate and test error states, edit parameters in the **Set: Mock Error Scen
 -   **No Real Databases:** Do not attempt to write logs to PostgreSQL or MySQL.
 -   **No Real Logging Services:** Do not dispatch telemetry to Datadog or ELK stack.
 -   **No Real Callback:** Do not send webhook callbacks to live external URLs.
--   **No Production URLs:** Do not use `thecoreagency.com` in workflows or examples.
+-   **No Production URLs:** Do not use production domain names in workflows or examples.
 -   **No Secrets:** Running workflows require zero API keys or passwords.
 -   **No Auto-Post:** Social content packs under error states must never automatically publish.
 -   **No Real Ads:** Do not spend mock budgets on live platforms.

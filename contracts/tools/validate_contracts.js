@@ -1154,25 +1154,60 @@ const allowedRetryDecisions = [
   'manual_review_required'
 ];
 
-// Helper to run common safety checks (brand_id, no production URLs, no real secrets)
-function runSafetyChecks(filePath, content) {
-  if (content.toLowerCase().includes('vicuon') || content.includes('Vị Cuốn')) {
-    console.error(`[FAIL] File '${filePath}' contains forbidden brand Vị Cuốn / vicuon`);
-    failed = true;
-  }
-  if (content.includes('thecoreagency.com')) {
-    console.error(`[FAIL] File '${filePath}' contains production domain target thecoreagency.com`);
-    failed = true;
-  }
-}
+// E. Secrets / forbidden text scanning
+const n9WorkflowPath = path.join(baseDir, '../n8n-workflows/n9_error_retry_logging.workflow.json');
+const n9FilesToScan = [
+  path.join(baseDir, 'error_handling_retry_logging_contract.md'),
+  path.join(baseDir, '../docs/pc2/phase_n9_error_retry_logging.md'),
+  n9WorkflowPath
+];
+n9ErrorFiles.forEach(f => n9FilesToScan.push(path.join(n9Dir, f)));
+n9PolicyFiles.forEach(f => n9FilesToScan.push(path.join(n9RetryPoliciesDir, f)));
+n9LogFiles.forEach(f => n9FilesToScan.push(path.join(n9LogEntriesDir, f)));
+n9DeadLetterFiles.forEach(f => n9FilesToScan.push(path.join(n9DeadLettersDir, f)));
+n9ExpectedOutputFiles.forEach(f => n9FilesToScan.push(path.join(n9ExpectedOutputsDir, f)));
 
-// 1. Validate error examples
+n9FilesToScan.forEach(filePath => {
+  if (fs.existsSync(filePath)) {
+    const content = fs.readFileSync(filePath, 'utf8');
+    const lowerContent = content.toLowerCase();
+    const baseName = path.basename(filePath);
+    
+    // Brand checks
+    if (lowerContent.includes('vicuon') || content.includes('Vị Cuốn')) {
+      console.error(`[FAIL] File '${baseName}' contains forbidden brand Vị Cuốn / vicuon`);
+      failed = true;
+    }
+    // Production domain checks
+    if (lowerContent.includes('thecoreagency.com')) {
+      console.error(`[FAIL] File '${baseName}' contains production domain target thecoreagency.com`);
+      failed = true;
+    }
+    // Api key checks
+    if (lowerContent.includes('api_key')) {
+      console.error(`[FAIL] File '${baseName}' contains forbidden term 'api_key'`);
+      failed = true;
+    }
+    // Secret checks (only for json/workflow to avoid markdown rule discussions)
+    if ((filePath.endsWith('.json') || filePath.endsWith('.workflow.json')) && lowerContent.includes('secret')) {
+      console.error(`[FAIL] JSON/Workflow File '${baseName}' contains forbidden term 'secret'`);
+      failed = true;
+    }
+    // Suspicious token check (allow mock_token or safe tokens)
+    if (lowerContent.includes('token') && (filePath.endsWith('.json') || filePath.endsWith('.workflow.json'))) {
+      if (!lowerContent.includes('mock_token') && !lowerContent.includes('workflow_engine')) {
+        console.error(`[FAIL] JSON/Workflow File '${baseName}' contains suspicious token term`);
+        failed = true;
+      }
+    }
+  }
+});
+
+// A. Validate error examples
 n9ErrorFiles.forEach(file => {
   const filePath = path.join(n9Dir, file);
   try {
     const content = fs.readFileSync(filePath, 'utf8');
-    runSafetyChecks(filePath, content);
-
     const parsed = JSON.parse(content);
     console.log(`[PASS] N9 error file parses as JSON: n9/${file}`);
 
@@ -1198,52 +1233,110 @@ n9ErrorFiles.forEach(file => {
       console.error(`[FAIL] N9 error ${file} has unsupported error_type '${parsed.error_type}'`);
       failed = true;
     }
+    
+    // Source check: should be mock/local only, not production
+    if (parsed.source.includes('production') || parsed.source.includes('prod')) {
+      console.error(`[FAIL] N9 error ${file} source is production-like: '${parsed.source}'`);
+      failed = true;
+    }
   } catch (err) {
     console.error(`[FAIL] Error validating N9 error file ${file}: ${err.message}`);
     failed = true;
   }
 });
 
-// 2. Validate policies
+// A. Validate policies
 n9PolicyFiles.forEach(file => {
   const filePath = path.join(n9RetryPoliciesDir, file);
   try {
     const content = fs.readFileSync(filePath, 'utf8');
-    runSafetyChecks(filePath, content);
-    JSON.parse(content);
+    const parsed = JSON.parse(content);
     console.log(`[PASS] N9 retry policy parses as JSON: n9/retry_policies/${file}`);
+
+    const required = [
+      'retry_policy_id', 'max_attempts', 'backoff_strategy', 'retryable_error_types',
+      'non_retryable_error_types', 'on_exhausted', 'notes'
+    ];
+    required.forEach(f => {
+      if (parsed[f] === undefined) {
+        console.error(`[FAIL] N9 retry policy ${file} is missing field '${f}'`);
+        failed = true;
+      }
+    });
   } catch (err) {
     console.error(`[FAIL] Error validating N9 retry policy ${file}: ${err.message}`);
     failed = true;
   }
 });
 
-// 3. Validate logs
+// A. Validate logs
 n9LogFiles.forEach(file => {
   const filePath = path.join(n9LogEntriesDir, file);
   try {
     const content = fs.readFileSync(filePath, 'utf8');
-    runSafetyChecks(filePath, content);
-    JSON.parse(content);
+    const parsed = JSON.parse(content);
     console.log(`[PASS] N9 log parses as JSON: n9/log_entries/${file}`);
+
+    const required = [
+      'log_id', 'request_id', 'event_type', 'module_id', 'phase', 'status',
+      'message', 'attempt', 'timestamp', 'source', 'metadata'
+    ];
+    required.forEach(f => {
+      if (parsed[f] === undefined) {
+        console.error(`[FAIL] N9 execution log ${file} is missing field '${f}'`);
+        failed = true;
+      }
+    });
+    
+    if (parsed.source.includes('production') || parsed.source.includes('prod')) {
+      console.error(`[FAIL] N9 execution log ${file} source is production-like: '${parsed.source}'`);
+      failed = true;
+    }
   } catch (err) {
     console.error(`[FAIL] Error validating N9 execution log ${file}: ${err.message}`);
     failed = true;
   }
 });
 
-// 4. Validate dead letter files
+// A. Validate dead letter files
 n9DeadLetterFiles.forEach(file => {
   const filePath = path.join(n9DeadLettersDir, file);
   try {
     const content = fs.readFileSync(filePath, 'utf8');
-    runSafetyChecks(filePath, content);
-    
     const parsed = JSON.parse(content);
     console.log(`[PASS] N9 dead letter parses as JSON: n9/dead_letters/${file}`);
 
-    if (parsed.error && parsed.error.brand_id && parsed.error.brand_id !== 'brand_demo_001') {
-      console.error(`[FAIL] N9 dead letter ${file} error brand_id must be 'brand_demo_001'`);
+    const required = [
+      'dead_letter_id', 'request_id', 'event_type', 'module_id', 'error',
+      'attempts', 'final_status', 'source', 'created_at', 'notes'
+    ];
+    required.forEach(f => {
+      if (parsed[f] === undefined) {
+        console.error(`[FAIL] N9 dead letter ${file} is missing field '${f}'`);
+        failed = true;
+      }
+    });
+
+    if (parsed.error) {
+      const errorRequired = [
+        'contract_version', 'request_id', 'event_type', 'brand_id', 'campaign_id',
+        'module_id', 'error_type', 'error_code', 'error_message', 'retryable',
+        'attempt', 'max_attempts', 'next_action', 'timestamp', 'source', 'metadata'
+      ];
+      errorRequired.forEach(ef => {
+        if (parsed.error[ef] === undefined) {
+          console.error(`[FAIL] N9 dead letter ${file} error object is missing field '${ef}'`);
+          failed = true;
+        }
+      });
+      if (parsed.error.brand_id && parsed.error.brand_id !== 'brand_demo_001') {
+        console.error(`[FAIL] N9 dead letter ${file} error brand_id must be 'brand_demo_001'`);
+        failed = true;
+      }
+    }
+    
+    if (parsed.source.includes('production') || parsed.source.includes('prod')) {
+      console.error(`[FAIL] N9 dead letter ${file} source is production-like: '${parsed.source}'`);
       failed = true;
     }
   } catch (err) {
@@ -1252,13 +1345,11 @@ n9DeadLetterFiles.forEach(file => {
   }
 });
 
-// 5. Validate expected output files
+// A. Validate expected output files
 n9ExpectedOutputFiles.forEach(file => {
   const filePath = path.join(n9ExpectedOutputsDir, file);
   try {
     const content = fs.readFileSync(filePath, 'utf8');
-    runSafetyChecks(filePath, content);
-
     const parsed = JSON.parse(content);
     console.log(`[PASS] N9 expected output parses as JSON: n9/expected_outputs/${file}`);
 
@@ -1283,18 +1374,35 @@ n9ExpectedOutputFiles.forEach(file => {
       console.error(`[FAIL] N9 expected output ${file} source must be 'n8n_n9_error_retry_logging_mock'`);
       failed = true;
     }
+    
+    // For dead_letter expected output, verify dead_letter_preview.error exists and contains normalized error fields.
+    if (parsed.retry_decision === 'exhausted_to_dead_letter' || parsed.retry_decision === 'manual_review_required') {
+      if (!parsed.dead_letter_preview || !parsed.dead_letter_preview.error) {
+        console.error(`[FAIL] N9 expected output ${file} has retry_decision '${parsed.retry_decision}' but is missing dead_letter_preview.error object`);
+        failed = true;
+      } else {
+        const errorRequired = [
+          'contract_version', 'request_id', 'event_type', 'brand_id', 'campaign_id',
+          'module_id', 'error_type', 'error_code', 'error_message', 'retryable',
+          'attempt', 'max_attempts', 'next_action', 'timestamp', 'source', 'metadata'
+        ];
+        errorRequired.forEach(ef => {
+          if (parsed.dead_letter_preview.error[ef] === undefined) {
+            console.error(`[FAIL] N9 expected output ${file} dead_letter_preview.error is missing field '${ef}'`);
+            failed = true;
+          }
+        });
+      }
+    }
   } catch (err) {
     console.error(`[FAIL] Error validating N9 expected output ${file}: ${err.message}`);
     failed = true;
   }
 });
 
-// 6. Validate Workflow
-const n9WorkflowPath = path.join(baseDir, '../n8n-workflows/n9_error_retry_logging.workflow.json');
+// B, C, D. Validate Workflow
 try {
   const content = fs.readFileSync(n9WorkflowPath, 'utf8');
-  runSafetyChecks(n9WorkflowPath, content);
-
   if (content.includes('"type": "n8n-nodes-base.httpRequest"') && content.includes('"url"')) {
     console.error(`[FAIL] n9_error_retry_logging.workflow.json contains an HTTP request node making calls`);
     failed = true;
@@ -1322,7 +1430,38 @@ try {
     }
   });
 
-  // Verify that the workflow includes/represents the source identifier
+  // B. Workflow retry decisions
+  const expectedRetryDecisions = [
+    'retry_scheduled',
+    'no_retry',
+    'exhausted_to_dead_letter',
+    'manual_review_required'
+  ];
+  expectedRetryDecisions.forEach(decision => {
+    if (!content.includes(decision)) {
+      console.error(`[FAIL] n9_error_retry_logging.workflow.json does not contain retry_decision '${decision}'`);
+      failed = true;
+    } else {
+      console.log(`[PASS] n9 workflow handles retry_decision: ${decision}`);
+    }
+  });
+
+  // C. Validate workflow error types
+  const expectedWorkflowErrorTypes = [
+    'unknown_error',
+    'unsupported_event_type',
+    'validation_error'
+  ];
+  expectedWorkflowErrorTypes.forEach(errType => {
+    if (!content.includes(errType)) {
+      console.error(`[FAIL] n9_error_retry_logging.workflow.json does not contain error_type '${errType}'`);
+      failed = true;
+    } else {
+      console.log(`[PASS] n9 workflow handles error_type: ${errType}`);
+    }
+  });
+
+  // D. Verify that the workflow includes/represents the source identifier
   if (!nodesText.includes('n8n_n9_error_retry_logging_mock')) {
     console.error(`[FAIL] n9_error_retry_logging.workflow.json is missing source identifier 'n8n_n9_error_retry_logging_mock'`);
     failed = true;
@@ -1342,6 +1481,7 @@ if (failed) {
   console.log('--- ALL CONTRACT VALIDATION CHECKS PASSED SUCCESSFULLY ---');
   process.exit(0);
 }
+
 
 
 
