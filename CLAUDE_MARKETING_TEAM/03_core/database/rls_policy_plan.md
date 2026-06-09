@@ -5,6 +5,8 @@
 **Target DB:** Supabase Postgres (schema_v1.sql)
 
 > This document is a **plan**, not a done checklist. Enabling Supabase production env before completing sections 2–14 and passing the cross-tenant tests in section 14 is a security risk.
+>
+> **Phase 16 must not start until Codex returns PASS on this RLS/tenant isolation plan.**
 
 ---
 
@@ -449,7 +451,7 @@ CREATE POLICY "approval_comments_client_read"
         AND current_user_can_access_campaign(ar.campaign_id)
     )
   );
-
+```
 
 ---
 
@@ -701,9 +703,15 @@ T31  U5 (viewer A)      reads connector_registry → denied                  ☐
  Demo fallback
 ──────────────────────────────────────────────────────────────
 T32  Remove env vars, open app                  → Demo Sign In works        ☐ EXPECTED
+
+──────────────────────────────────────────────────────────────
+ Scoped manager update allow/deny
+──────────────────────────────────────────────────────────────
+T33  U2 (manager A)     updates content_item in tenant A → allowed (content_items_modify policy allows scoped manager) ☐ EXPECTED
+T34  U2 (manager A)     updates content_item in tenant B → denied (cross-tenant, resource_id mismatch)                 ☐ EXPECTED
 ```
 
-**All 32 tests must show PASS on a real Supabase DB before enabling production env in Vercel.**
+**All 34 tests must show PASS on a real Supabase DB before enabling production env in Vercel.**
 
 ### Diagnostics
 

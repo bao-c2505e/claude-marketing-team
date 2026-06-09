@@ -445,6 +445,8 @@ The following must be done in Phase 16. **Do RLS step first** — without it, CR
 
 ## 10. Next Phase
 
+> **Phase 16 must not start until Codex returns PASS on this RLS/tenant isolation plan.**
+
 **Phase 16 — Supabase CRUD Wiring Core Objects**
 - Wire Priority 1 + 2 (Core + Content) localStorage → Supabase
 - Apply RLS policies

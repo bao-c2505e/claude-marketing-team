@@ -7,7 +7,7 @@ Nhật ký theo dõi các mốc hoàn thành kỹ thuật qua các Phase.
 ## 📅 Nhật Ký Sự Kiện (Event Logs)
 
 ### 🗓️ Ngày 09/06/2026 — Phase 15 Codex Fix 3: Finalize Tenant-Scoped RLS Plan
-- **Sự kiện:** Codex review lần 3 — 5 vấn đề còn lại đã fix tất cả.
+- **Sự kiện:** Codex review lần 3 — 5 remaining issues addressed in plan. Policies/tests pending real Supabase execution. Codex PASS required before Phase 16.
 - **Fix 1 (Content 3-tier):** `content_items_read` nay có 3 tiers: global staff (all), scoped manager (all statuses in tenant), client/viewer (approved only). Scoped manager giờ review được draft.
 - **Fix 2 (Approval comments 3-tier):** Split `approval_comments_staff_all` → 3 policies: global staff all, scoped staff read all-in-tenant, client/viewer non-internal-in-tenant. Warning ghi rõ Tier 2 phải dùng `has_scoped_role` không phải `can_access_campaign`.
 - **Fix 3 (Test matrix):** Thêm U5 (viewer-a), U6 (viewer-b). 18 tests → 32 tests. Tất cả `✅ PASS` → `☐ EXPECTED`. Thêm disclaimer note.
@@ -19,7 +19,7 @@ Nhật ký theo dõi các mốc hoàn thành kỹ thuật qua các Phase.
 ---
 
 ### 🗓️ Ngày 09/06/2026 — Phase 15 Codex Fix 2: Tighten RLS Tenant Isolation
-- **Sự kiện:** Codex review lần 2 phát hiện 5 vấn đề tiếp theo — đã fix tất cả.
+- **Sự kiện:** Codex review lần 2 phát hiện 5 vấn đề tiếp theo — issues addressed in plan. Policies/tests pending real Supabase execution.
 - **Vấn đề 1:** `roles` bị bỏ sót — 27 bảng trong schema nhưng audit chỉ có 26. Fix: thêm roles vào danh sách enable RLS (16 bảng thiếu), cập nhật Step 0, cập nhật bootstrap note.
 - **Vấn đề 2:** `current_user_has_role()` không phân biệt global vs scoped. Fix: thay bằng 4 helpers tenant-aware với SECURITY DEFINER + SET search_path.
 - **Vấn đề 3+4:** `approval_events_staff_read` + `approval_comments_client_public` expose cross-tenant data. Fix: policies giờ scope qua join chain approval_request→campaign→client.
@@ -31,7 +31,7 @@ Nhật ký theo dõi các mốc hoàn thành kỹ thuật qua các Phase.
 ---
 
 ### 🗓️ Ngày 09/06/2026 — Phase 15 Codex Fix: Harden RLS + CRUD Plan
-- **Sự kiện:** Codex review Phase 15 phát hiện 6 vấn đề — đã fix tất cả.
+- **Sự kiện:** Codex review Phase 15 phát hiện 6 vấn đề — issues addressed in plan. Policies/tests pending real Supabase execution.
 - **Vấn đề 1:** README khẳng định "RLS enabled on all tables" — sai. schema_v1.sql chỉ bật RLS trên 11/27 bảng. Fix: database/README.md cập nhật danh sách chính xác.
 - **Vấn đề 2:** `user_roles` có RLS nhưng 0 policies → `fetchUserRole()` trả về 'viewer' cho mọi user. Fix: thêm bootstrap policies vào rls_policy_plan.md + warning trong docs.
 - **Vấn đề 3:** Policy mẫu chỉ check role, không check tenant ownership → nguy cơ lộ dữ liệu đa tenant. Fix: supabase_wiring_README.md section 1.4 — thêm pattern tenant-scoped với `resource_id` check.
