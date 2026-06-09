@@ -22,6 +22,46 @@ Chúng ta đang xây dựng **The Core Agency — Real Operations MVP**. Đây l
 
 ---
 
+## ✅ Phase 14 — Automation Logs Foundation (DONE — 2026-06-09)
+
+### Mục tiêu:
+Tạo Automation Logs tab để Core ghi nhận, xem, lọc và quản lý log automation nội bộ/local. Phase này chỉ local/mock — không kết nối API thật, không gọi webhook thật, không retry thật.
+
+### Đã build:
+1. **`src/types/core.ts`**: Added `AutomationLogType` (10), `AutomationLogSource` (7), `AutomationLogSeverity` (4), `AutomationLogStatus` (5), `LocalAutomationLog` interface.
+2. **`src/lib/core/automationLogs.ts`** (NEW): Display maps (TYPE/SOURCE/SEVERITY/STATUS label+color), seed 9 mock logs, `AutomationLogStore`, `loadAutomationLogData()` / `saveAutomationLogData()` (max 200 logs, key: `core_agency_automation_logs_v1`), `createAutomationLog()`, `updateLogStatus()`, `AutomationLogStats`, `computeLogStats()`.
+3. **`src/components/core/AutomationLogsTab.tsx`** (NEW): Permission gate (`canViewAutomationLogs`), header + Phase 14 badge + Create Mock Log form (5 templates, owner/manager only), safety disclaimer bar, stats row (5 cards), filter bar (search + type/source/severity/status), log list (expand/collapse per row), expanded detail (message + payload JSON + related refs + timestamps + action buttons), footer notice.
+4. **`src/App.tsx`**: `Activity` icon import, `AutomationLogsTab` + log lib imports, `logData` state + `handleLogUpdate` handler, sidebar "Automation Logs" button (owner/manager only, with error count badge), tab routing `automation-logs`, phase badge → Phase 14.
+5. **`CLAUDE_MARKETING_TEAM/03_core/automation_logs_README.md`**: Created.
+
+### Permission Integration:
+- `canViewAutomationLogs` = owner/manager (already in permissions.ts from Phase 13 planning)
+- `canManageConnectors` (owner) OR owner/manager role can manage log status + create mock logs
+- client/viewer: tab hidden entirely, component-level permission gate as second guard
+
+### Stats tracked:
+- Total logs, Warnings, Errors, Unresolved (recorded + failed), Success
+
+### Actions:
+- Mark Reviewed (sets `reviewed_at`)
+- Mark Resolved (sets `resolved_at`)
+- Ignore
+- Create Mock Log (5 templates — no real action taken)
+
+### Safety:
+- No real workflow execution. No real webhook sent/retried. No external API calls.
+- No auto-post, no real ads, no customer messaging.
+- Safety disclaimer always visible. Logs hidden from client/viewer.
+- Build pass (tsc + vite, 0 errors, ~879KB bundle).
+
+---
+
+## ✅ Phase 13 — Connector Registry + Module Event Inbox (DONE — 2026-06-08)
+
+Completed in previous session. Commit: f21dbf7.
+
+---
+
 ## ✅ Phase 12 — Export Pack Foundation (DONE — 2026-06-08)
 
 ### Mục tiêu:

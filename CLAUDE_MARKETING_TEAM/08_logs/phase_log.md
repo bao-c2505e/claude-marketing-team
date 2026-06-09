@@ -6,6 +6,25 @@ Nhật ký theo dõi các mốc hoàn thành kỹ thuật qua các Phase.
 
 ## 📅 Nhật Ký Sự Kiện (Event Logs)
 
+### 🗓️ Ngày 09/06/2026 — Phase 14: Automation Logs Foundation
+- **Sự kiện:** Hoàn thành Automation Logs Foundation cho The Core Agency.
+- **Người thực hiện:** Claude Code Builder (PC1). Session trước bị limit — tiếp tục từ files dở.
+- **Hành động đã hoàn tất:**
+  1. Thêm Phase 14 types vào `src/types/core.ts`: `AutomationLogType` (10 values), `AutomationLogSource` (7), `AutomationLogSeverity` (4), `AutomationLogStatus` (5), `LocalAutomationLog` interface (đã có từ session trước — giữ nguyên).
+  2. Hoàn thiện `src/lib/core/automationLogs.ts`: display maps (TYPE/SOURCE/SEVERITY/STATUS label+color), 9 seed mock logs, `AutomationLogStore`, localStorage helpers (max 200 logs, key: `core_agency_automation_logs_v1`), `createAutomationLog()`, `updateLogStatus()`, `AutomationLogStats`, `computeLogStats()`. Fixed unused `NOW` variable.
+  3. Hoàn thiện `src/components/core/AutomationLogsTab.tsx`: permission gate (`canViewAutomationLogs`), header + Phase 14 badge + Create Mock Log form (5 templates), safety disclaimer bar, stats row (5 cards: Total/Warnings/Errors/Unresolved/Success), filter bar (search + 4 dropdowns), log list (expand/collapse), expanded detail (message + payload JSON + related refs + timestamps + actions: Mark Reviewed/Resolved/Ignore), footer notice. Fixed unused `LocalAutomationLog` import + unused `actorLabel` param.
+  4. Cập nhật `src/App.tsx`: import `Activity` icon + `AutomationLogsTab` + log lib; `logData` state + `handleLogUpdate`; sidebar "Automation Logs" button (owner/manager only, with unresolved error badge); tab routing `automation-logs`; phase badge → Phase 14.
+  5. Tạo `CLAUDE_MARKETING_TEAM/03_core/automation_logs_README.md`.
+  6. Cập nhật CURRENT_PHASE.md, SESSION_SUMMARY.md, phase_log.md, agent_activity_log.md.
+- **TypeScript fixes:** 3 TS6133/TS6196 errors fixed (unused NOW, unused LocalAutomationLog import, unused actorLabel destructuring).
+- **Safety:** No real API calls. No real webhooks. No real workflow execution. No auto-post/ads/messaging. Safety disclaimer always visible. Logs hidden from client/viewer.
+- **Permissions:** `canViewAutomationLogs` = owner/manager (set in Phase 13); `canManageConnectors` (owner) OR owner/manager = manage log status + create mock logs. Client/viewer: tab hidden + component-level gate.
+- **Build:** tsc + vite PASS — 0 errors. ~879KB bundle.
+- **Trạng thái Phase 14:** ✅ DONE.
+- **Next:** Phase 15 — Real Supabase Auth + Database Wiring Plan.
+
+---
+
 ### 🗓️ Ngày 08/06/2026 — Phase 13: Connector Registry + Module Event Inbox Foundation
 - **Sự kiện:** Hoàn thành Connector Registry + Module Event Inbox Foundation cho The Core Agency.
 - **Người thực hiện:** Claude Code Builder (PC1).

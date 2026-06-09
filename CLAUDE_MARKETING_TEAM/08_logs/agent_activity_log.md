@@ -6,6 +6,25 @@ Nhật ký ghi lại các hành động mô phỏng của các AI Agent khi vậ
 
 ## 🗓️ Nhật Ký Hoạt Động (Simulated Activity Logs)
 
+### 🗓️ Ngày 09/06/2026 — Phase 14: Automation Logs Foundation
+- **[PC1 Claude Code Builder]:** Phase 14 resumed from interrupted session. Files partially written from previous session — read state, verified usability, continued from existing content.
+- **[PC1]:** Phase 14 types verified in `src/types/core.ts` (`AutomationLogType`, `AutomationLogSource`, `AutomationLogSeverity`, `AutomationLogStatus`, `LocalAutomationLog`) — already complete.
+- **[PC1]:** Fixed unused variable `NOW` in `src/lib/core/automationLogs.ts` (TS6133).
+- **[PC1]:** Fixed unused import `LocalAutomationLog` in `src/components/core/AutomationLogsTab.tsx` (TS6196).
+- **[PC1]:** Fixed unused destructuring `actorLabel` in `AutomationLogsTab.tsx` (TS6133) — removed from destructuring, kept in Props interface for forward compat.
+- **[PC1]:** Added `Activity` icon to lucide-react imports in `src/App.tsx`.
+- **[PC1]:** Added `AutomationLogsTab`, `loadAutomationLogData`, `saveAutomationLogData`, `AutomationLogStore` imports to `src/App.tsx`.
+- **[PC1]:** Added `logData` state (Phase 14 automation logs) and `handleLogUpdate` handler to `App.tsx`.
+- **[PC1]:** Added sidebar "Automation Logs" button (owner/manager only, with unresolved error count badge) to `App.tsx`.
+- **[PC1]:** Added `automation-logs` tab routing in content area of `App.tsx`.
+- **[PC1]:** Updated phase badge to "Real Operations MVP — Phase 14".
+- **[PC1]:** Created `CLAUDE_MARKETING_TEAM/03_core/automation_logs_README.md`.
+- **[PC1]:** Updated CURRENT_PHASE.md, SESSION_SUMMARY.md, phase_log.md, agent_activity_log.md.
+- **[PC1]:** `npm run build` → PASS (tsc + vite, 0 errors). Git add/commit/push.
+- **[Safety confirmed]:** No real workflow execution. No real webhooks. No external API calls. No auto-post/ads/messaging. Logs hidden from client/viewer. Build pass.
+
+---
+
 ### 🗓️ Ngày 08/06/2026 — Phase 12: Export Pack Foundation
 - **[PC1 Claude Code Builder]:** Phase 12 initiated.
 - **[PC1]:** Added `ExportPackType`, `ExportPackFormat`, `ExportPackStatus`, `LocalExportPack` types to `src/types/core.ts`.

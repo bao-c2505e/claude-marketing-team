@@ -1,105 +1,94 @@
-# CURRENT PHASE — Phase 12: Export Pack Foundation ✅ DONE
+# CURRENT PHASE — Phase 14: Automation Logs Foundation ✅ DONE
 
 ## 📌 Thông tin chung
-- **Phase hiện tại:** Phase 12 — Export Pack Foundation
-- **Mục tiêu:** Tạo nền tảng Export Pack để gom dữ liệu campaign thành bộ xuất nội dung phục vụ team/client.
-- **Trạng thái:** ✅ DONE — ExportPackTab, exportPackGenerator, types extended, coreData extended, App wired, build pass.
+- **Phase hiện tại:** Phase 14 — Automation Logs Foundation
+- **Mục tiêu:** Tạo Automation Logs tab để Core ghi nhận, xem, lọc và quản lý log automation nội bộ/local.
+- **Trạng thái:** ✅ DONE — Types, lib, component, App wired, permission gated, build pass.
 
 ---
 
-## 📋 Checklist Phase 12
+## 📋 Checklist Phase 14
 
 ### Data Layer
-- [x] `src/types/core.ts` — added `ExportPackType` (6 values), `ExportPackFormat` (3 values), `ExportPackStatus` (4 values), `LocalExportPack` interface.
-- [x] `src/lib/core/coreData.ts` — added `ExportPackDataStore`, `loadExportPackData()`, `saveExportPackData()` (max 50 packs). Storage key: `core_agency_export_pack_data_v1`. Updated import to include `LocalExportPack`.
+- [x] `src/types/core.ts` — thêm `AutomationLogType` (10), `AutomationLogSource` (7), `AutomationLogSeverity` (4), `AutomationLogStatus` (5), `LocalAutomationLog` interface.
 
-### Export Logic
-- [x] `src/lib/core/exportPackGenerator.ts` — NEW
-  - [x] `generateExportPack()` — main entry point
-  - [x] `buildCampaignSummary()` — client + brand + campaign + brief
-  - [x] `buildContentCalendar()` — all content items with internal fields gated
-  - [x] `buildApprovedContent()` — approved items only (client-safe)
-  - [x] `buildClientReport()` — calls `generateLocalReport()` from reportGenerator
-  - [x] `buildAssetChecklist()` — all assets, internal notes gated
-  - [x] `buildFullCampaignPack()` — combines all 5 sections with `===` dividers
-  - [x] `formatContent()` — markdown / plain_text / json_preview
-  - [x] `CLIENT_SAFE_EXPORT_TYPES` — campaign_summary, approved_content, client_report
-  - [x] All section builders: empty state messages if no data found
-  - [x] Disclaimer block in every section
-  - [x] No AI API calls. No external service calls. No file upload.
+### Logic Layer
+- [x] `src/lib/core/automationLogs.ts` — NEW
+  - [x] Display maps: `LOG_TYPE_LABEL`, `LOG_SOURCE_LABEL`, `LOG_SEVERITY_LABEL/COLOR`, `LOG_STATUS_LABEL/COLOR`
+  - [x] Enum arrays: `LOG_TYPES`, `LOG_SOURCES`, `LOG_SEVERITIES`, `LOG_STATUSES`
+  - [x] Seed data: 9 mock logs (system/module/approval/connector/report/export/error/safety/webhook)
+  - [x] `AutomationLogStore` interface
+  - [x] `loadAutomationLogData()` / `saveAutomationLogData()` (max 200 logs, localStorage key: `core_agency_automation_logs_v1`)
+  - [x] `createAutomationLog()` — add new log to front of list
+  - [x] `updateLogStatus()` — mark reviewed/resolved/ignored (with timestamp)
+  - [x] `AutomationLogStats` interface + `computeLogStats()` — total/warnings/errors/unresolved/success
 
-### Components
-- [x] `src/components/core/ExportPackTab.tsx` — NEW
-  - [x] Safety banner (always visible)
-  - [x] Header: phase badge + history toggle
-  - [x] History panel: last 50 generated packs, load previous pack
-  - [x] Configure panel: client → brand → campaign (cascading), export type selector (role-gated), format selector
-  - [x] Generate button: `canExportPacks(role)` gate, disabled for viewer/client
-  - [x] Preview panel: pack meta, textarea (monospace), copy-to-clipboard, clipboard fallback note
-  - [x] Regenerate button
-  - [x] Governance reminders note
-  - [x] Permission gate: `canViewExportPacks(role)` required
+### Component
+- [x] `src/components/core/AutomationLogsTab.tsx` — NEW
+  - [x] Permission gate: `canViewAutomationLogs` required
+  - [x] Header: title + Phase 14 badge + localStorage mode badge + Create Mock Log button
+  - [x] Safety disclaimer bar (always visible)
+  - [x] Create Mock Log form (5 templates, owner/manager only)
+  - [x] Stats row (5 cards: Total/Warnings/Errors/Unresolved/Success)
+  - [x] Filter bar: search text + type/source/severity/status dropdowns + clear
+  - [x] Log list: expand/collapse per row, severity icon+badge, type/source chips, status badge, timestamp
+  - [x] Expanded detail: full message, payload preview (JSON), related refs chips, timestamps, action buttons
+  - [x] Actions: Mark Reviewed / Mark Resolved / Ignore (owner/manager only, status-aware)
+  - [x] Footer: Phase 14 local mode notice
 
 ### App Shell
 - [x] `src/App.tsx` — updated
-  - [x] Import `Package` icon from lucide-react
-  - [x] Import `ExportPackTab`
-  - [x] Sidebar "Export Pack" button (under Reports in Core section)
-  - [x] Tab routing `export-pack`
-  - [x] Phase badge → "Real Operations MVP — Phase 12"
+  - [x] Import `Activity` icon from lucide-react
+  - [x] Import `AutomationLogsTab`
+  - [x] Import `loadAutomationLogData`, `saveAutomationLogData`, `AutomationLogStore`
+  - [x] `logData` state + `handleLogUpdate` handler
+  - [x] Sidebar "Automation Logs" button (owner/manager only, with error count badge)
+  - [x] Tab routing `automation-logs`
+  - [x] Phase badge → "Real Operations MVP — Phase 14"
 
 ### Docs
-- [x] `CLAUDE_MARKETING_TEAM/03_core/export_pack_README.md`
+- [x] `CLAUDE_MARKETING_TEAM/03_core/automation_logs_README.md`
 
 ### Safety
+- [x] No real workflow execution
+- [x] No real webhook sent/retried
+- [x] No external API calls
+- [x] No auto-post / real ads / customer messaging
 - [x] No secrets in source
-- [x] No auto-post / auto-ads / auto-message
-- [x] No file upload to external service
-- [x] No email sending
-- [x] No AI/external API calls
-- [x] No PDF/DOCX generation (local text only)
-- [x] Safety banner always visible in ExportPackTab
-- [x] Client-safe exports strip: content_calendar, asset_checklist, full_campaign_pack, and internal fields (angle, owner_note, publish_note, asset.notes)
-- [x] Build pass
+- [x] Safety disclaimer always visible in UI
+- [x] Logs hidden from client/viewer roles (permission gate)
+- [x] Build pass (tsc + vite, 0 errors)
 
 ---
 
-## 🗂️ Export Chain Quick Reference
+## 🗂️ Automation Logs Quick Reference
 
 ```
-ExportPackTab (scope selector)
-  └── generateExportPack()
-        ├── campaign_summary    → client + brand + campaign + brief
-        ├── content_calendar   → all items (internal fields stripped for client)
-        ├── approved_content   → status=approved items only (client-safe)
-        ├── client_report      → reportGenerator.generateLocalReport()
-        ├── asset_checklist    → asset inventory (notes stripped for client)
-        └── full_campaign_pack → all 5 sections combined
+AutomationLogsTab
+  ├── Stats: total | warnings | errors | unresolved | success
+  ├── Filters: search | type | source | severity | status
+  ├── Log List: expand → message + payload + related refs + timestamps + actions
+  └── Create Mock Log: 5 templates (connector/module/safety/approval/system-error)
 ```
 
-**Storage:** localStorage key `core_agency_export_pack_data_v1` (max 50 packs)  
-**Permission:** `canExportPacks` = owner/manager | `canViewExportPacks` = owner/manager/client  
-**Formats:** markdown / plain_text / json_preview  
-**Next phase (13):** Connector Registry + Module Event Inbox Foundation
+**Storage:** localStorage `core_agency_automation_logs_v1` (max 200 logs)  
+**Permission:** `canViewAutomationLogs` = owner/manager only  
+**Create/Manage:** `canManageConnectors` (owner) OR owner/manager role  
+**Next phase (15):** Real Supabase Auth + Database Wiring Plan
 
 ---
 
-## 🛡️ Safety Guard (Phase 12)
+## 🛡️ Safety Guard (Phase 14)
 - Auto-post: NO
 - Real Ads: NO
 - Real Messaging: NO
 - Real Connectors: NO
 - Secrets Added: NO
 - Service Role Key in Frontend: NO
-- File Upload: NO
-- Email Sending: NO
-- AI API Calls: NO
+- Real Webhook: NO
+- Real Workflow Execution: NO
+- External API Calls: NO
 - Build Pass: YES (0 errors)
-
----
-
-## 📝 Closeout Note
-Phase 12 adds the Export Pack layer. Users can select campaign scope, choose export type, generate local markdown/text/JSON export, preview and copy to clipboard. Client-safe export types restrict internal data. Full campaign pack aggregates all 5 sections. No files are uploaded, no emails sent, no AI called. Approved content remains NOT published until a separate publish action (future phase).
 
 ---
 
@@ -116,6 +105,8 @@ Phase 12 adds the Export Pack layer. Users can select campaign scope, choose exp
 | Phase 7 | Content Calendar | (committed) |
 | Phase 8 | Approval Workflow | (committed) |
 | Phase 9 | Client View Foundation | (committed) |
-| Phase 10 | Asset Library Foundation | (committed) |
+| Phase 10 | Asset Library Foundation | 2ff8007 |
 | Phase 11 | Report Module Foundation | 6e15e25 |
-| Phase 12 | Export Pack Foundation | (this phase) |
+| Phase 12 | Export Pack Foundation | 860d06e |
+| Phase 13 | Connector Registry + Module Event Inbox | f21dbf7 |
+| Phase 14 | Automation Logs Foundation | (this phase) |

@@ -30,6 +30,7 @@ import {
   BarChart2,
   Package,
   Network,
+  Activity,
 } from 'lucide-react';
 import { sampleCampaigns, Campaign, CampaignBrief, CalendarItem, ChecklistItem } from './mockData';
 import { useAuth } from './lib/auth/AuthContext';
@@ -48,8 +49,11 @@ import AssetLibraryTab from './components/core/AssetLibraryTab';
 import ReportsTab from './components/core/ReportsTab';
 import ExportPackTab from './components/core/ExportPackTab';
 import ConnectorRegistryTab from './components/core/ConnectorRegistryTab';
+import AutomationLogsTab from './components/core/AutomationLogsTab';
 import { loadCoreData, saveCoreData, loadGenerationData, saveGenerationData, loadApprovalData, saveApprovalData, loadAssetData, saveAssetData, canSubmitItem } from './lib/core/coreData';
 import type { CoreDataStore, GenerationDataStore, ApprovalDataStore, AssetDataStore } from './lib/core/coreData';
+import { loadAutomationLogData, saveAutomationLogData } from './lib/core/automationLogs';
+import type { AutomationLogStore } from './lib/core/automationLogs';
 
 const manualExportBlocks = [
   {
@@ -292,6 +296,14 @@ export default function App() {
   const handleAssetUpdate = (data: AssetDataStore) => {
     setAssetData(data);
     saveAssetData(data);
+  };
+
+  // Phase 14 — Automation Logs
+  const [logData, setLogData] = useState<AutomationLogStore>(() => loadAutomationLogData());
+
+  const handleLogUpdate = (data: AutomationLogStore) => {
+    setLogData(data);
+    saveAutomationLogData(data);
   };
 
   const actorLabel = user?.email ?? user?.role ?? 'System';
@@ -595,7 +607,7 @@ export default function App() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-end' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <span className="badge badge-indigo" style={{ background: 'rgba(99, 102, 241, 0.15)', color: '#818cf8', borderColor: 'rgba(99, 102, 241, 0.3)', border: '1px solid' }}>
-              Real Operations MVP — Phase 13
+              Real Operations MVP — Phase 14
             </span>
             {/* User status */}
             {user && (
@@ -753,6 +765,21 @@ export default function App() {
             >
               <Network size={18} /> Connector Registry
             </button>
+
+            {(user?.role === 'owner' || user?.role === 'manager') && (
+              <button
+                className={`btn btn-secondary ${activeTab === 'automation-logs' ? 'active' : ''}`}
+                style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'automation-logs' ? '1px solid rgba(129,140,248,0.5)' : '', background: activeTab === 'automation-logs' ? 'rgba(99,102,241,0.1)' : '', position: 'relative' }}
+                onClick={() => setActiveTab('automation-logs')}
+              >
+                <Activity size={18} /> Automation Logs
+                {logData.logs.filter(l => l.status === 'recorded' && l.severity === 'error').length > 0 && (
+                  <span style={{ marginLeft: 'auto', fontSize: '0.65rem', fontWeight: 700, color: '#f87171', background: 'rgba(248,113,113,0.2)', borderRadius: '10px', padding: '1px 6px' }}>
+                    {logData.logs.filter(l => l.status === 'recorded' && l.severity === 'error').length}
+                  </span>
+                )}
+              </button>
+            )}
 
             {/* ── Client ── */}
             <div style={{ margin: '4px 0 2px', padding: '0 4px', fontSize: '0.68rem', fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Client</div>
@@ -1105,6 +1132,17 @@ export default function App() {
                   clients={coreData.clients}
                   brands={coreData.brands}
                   campaigns={coreData.campaigns}
+                  userRole={user?.role ?? null}
+                  actorLabel={actorLabel}
+                  isSupabaseConfigured={isSupabaseConfigured}
+                />
+              )}
+
+              {/* ── Phase 14: Automation Logs Tab ── */}
+              {activeTab === 'automation-logs' && (
+                <AutomationLogsTab
+                  logData={logData}
+                  onLogUpdate={handleLogUpdate}
                   userRole={user?.role ?? null}
                   actorLabel={actorLabel}
                   isSupabaseConfigured={isSupabaseConfigured}

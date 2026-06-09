@@ -917,3 +917,58 @@ export interface LocalModuleEvent {
   processed_at: string | null;
   created_at: string;
 }
+
+// ---------------------------------------------------------------------------
+// PHASE 14 — AUTOMATION LOGS
+// ---------------------------------------------------------------------------
+
+export type AutomationLogType =
+  | 'workflow'
+  | 'connector'
+  | 'module'
+  | 'webhook'
+  | 'approval'
+  | 'export'
+  | 'report'
+  | 'safety'
+  | 'error'
+  | 'system';
+
+export type AutomationLogSource =
+  | 'core'
+  | 'n8n'
+  | 'module'
+  | 'connector'
+  | 'webhook'
+  | 'user_action'
+  | 'system';
+
+export type AutomationLogSeverity = 'info' | 'warning' | 'error' | 'success';
+
+export type AutomationLogStatus =
+  | 'recorded'
+  | 'reviewed'
+  | 'ignored'
+  | 'resolved'
+  | 'failed';
+
+export interface LocalAutomationLog {
+  id: string;
+  log_type: AutomationLogType;
+  source: AutomationLogSource;
+  severity: AutomationLogSeverity;
+  status: AutomationLogStatus;
+  title: string;
+  message: string;
+  payload_preview: string | null;
+  related_connector_id: string | null;
+  related_module_id: string | null;
+  related_event_id: string | null;
+  related_client_id: string | null;
+  related_brand_id: string | null;
+  related_campaign_id: string | null;
+  related_content_item_id: string | null;
+  created_at: string;
+  reviewed_at: string | null;
+  resolved_at: string | null;
+}
