@@ -983,7 +983,6 @@ try {
   }
 
   const parsed = JSON.parse(content);
-  
   // Verify that the workflow includes/represents the 4 approval branches in some form
   const nodesText = JSON.stringify(parsed.nodes);
   const containsApprovedBranch = nodesText.includes('"approved"');
@@ -996,6 +995,92 @@ try {
     failed = true;
   } else {
     console.log(`[PASS] n8 workflow represents the 4 approval branches (approved, rejected, needs_revision, pending)`);
+  }
+
+  // 1. Verify required final output fields directly inside workflow nodes
+  const requiredOutputFields = [
+    'request_id',
+    'event_type',
+    'module_id',
+    'approval_status',
+    'final_status',
+    'callback_preview',
+    'next_action',
+    'source',
+    'notes'
+  ];
+  requiredOutputFields.forEach(field => {
+    if (!nodesText.includes(`"${field}"`)) {
+      console.error(`[FAIL] n8_unified_callback_approval_gate.workflow.json does not contain required output field '${field}' inside nodes`);
+      failed = true;
+    } else {
+      console.log(`[PASS] n8 workflow contains required output field '${field}' inside nodes`);
+    }
+  });
+
+  // 2. Verify all approval statuses inside workflow nodes
+  const requiredApprovalStatuses = [
+    'approved',
+    'rejected',
+    'needs_revision',
+    'pending_approval'
+  ];
+  requiredApprovalStatuses.forEach(status => {
+    if (!nodesText.includes(`"${status}"`)) {
+      console.error(`[FAIL] n8_unified_callback_approval_gate.workflow.json does not contain approval status '${status}' inside nodes`);
+      failed = true;
+    } else {
+      console.log(`[PASS] n8 workflow contains approval status '${status}' inside nodes`);
+    }
+  });
+
+  // 3. Verify approval-to-final-status mapping directly inside the workflow node JS Code
+  let approvedMapped = false;
+  let rejectedMapped = false;
+  let revisionMapped = false;
+  let pendingMapped = false;
+
+  parsed.nodes.forEach(node => {
+    if (node.parameters && node.parameters.jsCode) {
+      const code = node.parameters.jsCode;
+      if (code.includes('"approved"') && (code.includes('"ready_for_mock_callback_preview"') || code.includes('"ready_for_mock_callback"'))) {
+        approvedMapped = true;
+      }
+      if (code.includes('"rejected"') && code.includes('"stopped_rejected"')) {
+        rejectedMapped = true;
+      }
+      if (code.includes('"needs_revision"') && code.includes('"revision_required"')) {
+        revisionMapped = true;
+      }
+      if (code.includes('"pending_approval"') && code.includes('"waiting_for_owner_approval"')) {
+        pendingMapped = true;
+      }
+    }
+  });
+
+  if (!approvedMapped) {
+    console.error(`[FAIL] n8n workflow does not contain mapping: approved -> ready_for_mock_callback_preview in node JS code`);
+    failed = true;
+  } else {
+    console.log(`[PASS] n8n workflow contains mapping: approved -> ready_for_mock_callback_preview in node JS code`);
+  }
+  if (!rejectedMapped) {
+    console.error(`[FAIL] n8n workflow does not contain mapping: rejected -> stopped_rejected in node JS code`);
+    failed = true;
+  } else {
+    console.log(`[PASS] n8n workflow contains mapping: rejected -> stopped_rejected in node JS code`);
+  }
+  if (!revisionMapped) {
+    console.error(`[FAIL] n8n workflow does not contain mapping: needs_revision -> revision_required in node JS code`);
+    failed = true;
+  } else {
+    console.log(`[PASS] n8n workflow contains mapping: needs_revision -> revision_required in node JS code`);
+  }
+  if (!pendingMapped) {
+    console.error(`[FAIL] n8n workflow does not contain mapping: pending_approval -> waiting_for_owner_approval in node JS code`);
+    failed = true;
+  } else {
+    console.log(`[PASS] n8n workflow contains mapping: pending_approval -> waiting_for_owner_approval in node JS code`);
   }
 
   // Verify brand_demo_001 is used where brand_id exists in the workflow
