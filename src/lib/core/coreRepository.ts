@@ -15,6 +15,7 @@ import type {
   CampaignBrief,
   ContentPlanJob,
   ContentPlanItem,
+  PlanLengthDays,
   ContentApprovalRequest,
   ContentApprovalEvent,
   ContentApprovalComment,
@@ -140,6 +141,87 @@ export interface BriefRepository {
   get(params: BriefScopedParams): Promise<CampaignBrief | null>;
   create(data: BriefFormData): Promise<CampaignBrief>;
   update(params: BriefScopedParams, patch: BriefUpdatePatch): Promise<CampaignBrief>;
+}
+
+// ---------------------------------------------------------------------------
+// D2. Content Plan Generation (Phase 16C-1)
+//
+// Scoped repository for ContentPlanJob / ContentPlanItem (Phase 6 mock content
+// generation). Distinct from the legacy GenerationJobRepository /
+// ContentItemRepository in section E below, which target a different,
+// incompatible Phase-15-planned schema and are unused by the app.
+// ---------------------------------------------------------------------------
+
+export interface GenerationListParams {
+  clientId: string;
+  brandId: string;
+  campaignId: string;
+  briefId: string;
+}
+
+// clientId + brandId + campaignId + briefId + generationId all required —
+// prevents unscoped get/update on a content plan job
+export interface GenerationScopedParams {
+  clientId: string;
+  brandId: string;
+  campaignId: string;
+  briefId: string;
+  generationId: string;
+}
+
+// Tenant scope is supplied explicitly (not read from CampaignBrief.client_id /
+// brand_id, which are typed `string | null`) so create() always has
+// guaranteed non-null tenant IDs for the inserted job/item rows.
+export interface GenerationCreateInput {
+  brief: CampaignBrief;
+  clientId: string;
+  brandId: string;
+  campaignId: string;
+  briefId: string;
+  planLengthDays: PlanLengthDays;
+  requestedBy: string | null;
+}
+
+export interface GenerationListResult {
+  jobs: ContentPlanJob[];
+  items: ContentPlanItem[];
+}
+
+export interface GenerationDetailResult {
+  job: ContentPlanJob;
+  items: ContentPlanItem[];
+}
+
+// Identity, tenant-scope (FK), and audit fields — never settable via update().
+// requested_by is the closest ContentPlanJob equivalent to "submitted_by": it
+// records who triggered the generation and must not be reassigned by a patch.
+const GENERATION_IMMUTABLE_PATCH_FIELDS = [
+  'id', 'client_id', 'brand_id', 'campaign_id', 'brief_id',
+  'created_at', 'updated_at', 'requested_by',
+] as const;
+
+export type GenerationImmutableField = typeof GENERATION_IMMUTABLE_PATCH_FIELDS[number];
+
+// Compile-time contract for GenerationRepository.update() patches — excludes
+// identity/tenant/audit fields so callers can't even construct an unsafe patch.
+export type GenerationUpdatePatch = Partial<Omit<ContentPlanJob, GenerationImmutableField>>;
+
+// Runtime guard mirroring GenerationUpdatePatch — strips id/tenant/audit fields
+// from a patch before it reaches storage. Required in addition to the type
+// because patch objects can be built dynamically and bypass compile-time checks.
+export function sanitizeGenerationPatch(patch: Partial<ContentPlanJob>): GenerationUpdatePatch {
+  const safe = { ...patch } as Record<string, unknown>;
+  for (const field of GENERATION_IMMUTABLE_PATCH_FIELDS) {
+    delete safe[field];
+  }
+  return safe as GenerationUpdatePatch;
+}
+
+export interface GenerationRepository {
+  list(params: GenerationListParams): Promise<GenerationListResult>;
+  get(params: GenerationScopedParams): Promise<GenerationDetailResult | null>;
+  create(data: GenerationCreateInput): Promise<GenerationDetailResult>;
+  update(params: GenerationScopedParams, patch: GenerationUpdatePatch): Promise<ContentPlanJob>;
 }
 
 // ---------------------------------------------------------------------------

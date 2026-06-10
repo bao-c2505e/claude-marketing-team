@@ -1,0 +1,138 @@
+-- =============================================================================
+-- THE CORE AGENCY — Schema Extension: content_plan_jobs / content_plan_items
+-- (Phase 16C-1)
+--
+-- Phase 6 (frontend) introduced ContentPlanJob / ContentPlanItem types for
+-- mock content-plan generation, scoped by client_id/brand_id/campaign_id/
+-- brief_id. schema_v1.sql's existing `generation_jobs` / `content_items`
+-- tables target a different, incompatible Phase-15-planned schema (keyed by
+-- campaign_id only, with module/job_status enums) and are unused by the app.
+--
+-- This additive migration creates new tables matching the Phase 6 shape so
+-- Supabase CRUD wiring (Phase 16C-1) can persist generation jobs and content
+-- items without touching the legacy generation_jobs / content_items tables.
+--
+-- Safe to run multiple times (IF NOT EXISTS / duplicate_object guards).
+-- Additive only — no existing tables/columns are altered or dropped. Not
+-- applied to any live database; production Supabase env remains OFF.
+-- =============================================================================
+
+DO $$ BEGIN
+  CREATE TYPE content_plan_job_status AS ENUM (
+    'draft',
+    'queued',
+    'generating',
+    'completed',
+    'failed',
+    'archived'
+  );
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;
+
+DO $$ BEGIN
+  CREATE TYPE content_plan_item_status AS ENUM (
+    'generated',
+    'needs_review',
+    'revision_requested',
+    'approved',
+    'scheduled',
+    'published',
+    'rejected',
+    'archived'
+  );
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;
+
+DO $$ BEGIN
+  CREATE TYPE content_plan_generation_mode AS ENUM (
+    'mock',
+    'ai_ready',
+    'external_module'
+  );
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;
+
+-- content_plan_jobs: one row per "Generate N-day plan" run, scoped to a
+-- single client + brand + campaign + brief.
+CREATE TABLE IF NOT EXISTS content_plan_jobs (
+  id               UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  client_id        UUID NOT NULL REFERENCES clients(id) ON DELETE RESTRICT,
+  brand_id         UUID NOT NULL REFERENCES brands(id) ON DELETE RESTRICT,
+  campaign_id      UUID NOT NULL REFERENCES campaigns(id) ON DELETE CASCADE,
+  brief_id         UUID NOT NULL REFERENCES campaign_briefs(id) ON DELETE CASCADE,
+  plan_length_days INT NOT NULL CHECK (plan_length_days IN (7, 15, 30)),
+  generation_mode  content_plan_generation_mode NOT NULL DEFAULT 'mock',
+  status           content_plan_job_status NOT NULL DEFAULT 'draft',
+  requested_by     TEXT,
+  item_count       INT NOT NULL DEFAULT 0,
+  completed_at     TIMESTAMPTZ,
+  error_message    TEXT,
+  created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at       TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- content_plan_items: individual content pieces belonging to a
+-- content_plan_jobs row. Carries the same client/brand/campaign/brief scope
+-- as its parent job so it can be queried directly without a join.
+CREATE TABLE IF NOT EXISTS content_plan_items (
+  id                UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  generation_job_id UUID NOT NULL REFERENCES content_plan_jobs(id) ON DELETE CASCADE,
+  client_id         UUID NOT NULL REFERENCES clients(id) ON DELETE RESTRICT,
+  brand_id          UUID NOT NULL REFERENCES brands(id) ON DELETE RESTRICT,
+  campaign_id       UUID NOT NULL REFERENCES campaigns(id) ON DELETE CASCADE,
+  brief_id          UUID NOT NULL REFERENCES campaign_briefs(id) ON DELETE CASCADE,
+  day_number        INT NOT NULL,
+  planned_date      DATE,
+  channel           TEXT NOT NULL,
+  content_type      TEXT NOT NULL,
+  pillar            TEXT NOT NULL,
+  angle             TEXT NOT NULL,
+  hook              TEXT NOT NULL,
+  caption           TEXT NOT NULL,
+  visual_brief      TEXT NOT NULL,
+  cta               TEXT NOT NULL,
+  hashtags          TEXT NOT NULL,
+  status            content_plan_item_status NOT NULL DEFAULT 'needs_review',
+  -- Phase 7 — Calendar metadata (out of scope for 16C-1, columns reserved
+  -- for parity with the frontend ContentPlanItem type)
+  scheduled_time    TEXT,
+  publish_note      TEXT,
+  owner_note        TEXT,
+  last_moved_at     TIMESTAMPTZ,
+  created_at        TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at        TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_content_plan_jobs_brief    ON content_plan_jobs(brief_id);
+CREATE INDEX IF NOT EXISTS idx_content_plan_jobs_campaign ON content_plan_jobs(campaign_id);
+CREATE INDEX IF NOT EXISTS idx_content_plan_jobs_brand    ON content_plan_jobs(brand_id);
+CREATE INDEX IF NOT EXISTS idx_content_plan_jobs_client   ON content_plan_jobs(client_id);
+
+CREATE INDEX IF NOT EXISTS idx_content_plan_items_job      ON content_plan_items(generation_job_id);
+CREATE INDEX IF NOT EXISTS idx_content_plan_items_brief    ON content_plan_items(brief_id);
+CREATE INDEX IF NOT EXISTS idx_content_plan_items_campaign ON content_plan_items(campaign_id);
+
+-- updated_at triggers — mirrors set_updated_at() defined in schema_v1.sql
+DO $$ BEGIN
+  CREATE TRIGGER trg_content_plan_jobs_updated_at
+    BEFORE UPDATE ON content_plan_jobs
+    FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;
+
+DO $$ BEGIN
+  CREATE TRIGGER trg_content_plan_items_updated_at
+    BEFORE UPDATE ON content_plan_items
+    FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;
+
+-- RLS — enabled with no policies yet, matching the "safe default" posture of
+-- schema_v1.sql (only service_role can access until Phase 3 policies land).
+ALTER TABLE content_plan_jobs  ENABLE ROW LEVEL SECURITY;
+ALTER TABLE content_plan_items ENABLE ROW LEVEL SECURITY;

@@ -37,8 +37,8 @@ import { useAuth } from './lib/auth/AuthContext';
 import { ROLE_LABELS, ROLE_COLORS } from './lib/auth/permissions';
 import { isSupabaseConfigured, supabase } from './lib/supabaseClient';
 import { createPhase16aRepositories } from './lib/core/repositoryFactory';
-import type { BriefUpdatePatch } from './lib/core/coreRepository';
-import type { Client, Brand, Campaign as CoreCampaign, CampaignBrief as CoreCampaignBrief } from './types/core';
+import type { BriefUpdatePatch, GenerationDetailResult } from './lib/core/coreRepository';
+import type { Client, Brand, Campaign as CoreCampaign, CampaignBrief as CoreCampaignBrief, PlanLengthDays } from './types/core';
 import LoginScreen from './components/auth/LoginScreen';
 import ClientsTab from './components/core/ClientsTab';
 import BrandsTab from './components/core/BrandsTab';
@@ -283,10 +283,26 @@ export default function App() {
         loadedCampaigns.map(c => repos.briefs.list({ clientId: c.client_id, brandId: c.brand_id, campaignId: c.id })),
       );
       const loadedBriefs = briefArrays.flat();
+      // Load generation jobs/items scoped per client/brand/campaign/brief —
+      // never by briefId/generationId alone (Phase 16C-1)
+      const generationArrays = await Promise.all(
+        loadedCampaigns.flatMap((c, idx) =>
+          briefArrays[idx].map(b =>
+            repos.generations.list({ clientId: c.client_id, brandId: c.brand_id, campaignId: c.id, briefId: b.id }),
+          ),
+        ),
+      );
+      const loadedGenerationJobs = generationArrays.flatMap(r => r.jobs);
+      const loadedContentItems = generationArrays.flatMap(r => r.items);
       if (cancelled) return;
       setCoreData(prev => {
         const next = { ...prev, clients, brands, campaigns: loadedCampaigns, briefs: loadedBriefs };
         saveCoreData(next);
+        return next;
+      });
+      setGenData(() => {
+        const next = { generationJobs: loadedGenerationJobs, contentItems: loadedContentItems };
+        saveGenerationData(next);
         return next;
       });
     };
@@ -389,6 +405,25 @@ export default function App() {
   const handleGenerationUpdate = (updated: GenerationDataStore) => {
     setGenData(updated);
     saveGenerationData(updated);
+  };
+
+  // Phase 16C-1 — typed generation repo handler, scoped by
+  // clientId/brandId/campaignId/briefId (never by generationId alone).
+  const handleGenerationCreate = async (
+    brief: CoreCampaignBrief,
+    planLengthDays: PlanLengthDays,
+  ): Promise<GenerationDetailResult> => {
+    const campaign = coreData.campaigns.find(c => c.id === brief.campaign_id);
+    if (!campaign) throw new Error(`Campaign ${brief.campaign_id} not found for brief ${brief.id}`);
+    return repos.generations.create({
+      brief,
+      clientId: campaign.client_id,
+      brandId: campaign.brand_id,
+      campaignId: campaign.id,
+      briefId: brief.id,
+      planLengthDays,
+      requestedBy: user?.role ?? null,
+    });
   };
 
   const handleNavigateToGenerate = (briefId: string) => {
@@ -1149,6 +1184,7 @@ export default function App() {
                   generationJobs={genData.generationJobs}
                   contentItems={genData.contentItems}
                   onUpdate={handleGenerationUpdate}
+                  onGenerate={handleGenerationCreate}
                   userRole={user?.role ?? null}
                   isSupabaseConfigured={isSupabaseConfigured}
                   initialBriefId={genNavBriefId}

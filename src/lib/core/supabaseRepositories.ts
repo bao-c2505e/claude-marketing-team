@@ -10,11 +10,12 @@
 // =============================================================================
 
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { Client, Brand, Campaign, CampaignBrief } from '../../types/core';
-import type { ClientRepository, BrandRepository, CampaignRepository, CampaignListParams, CampaignGetParams, CampaignScopedParams, BriefRepository, BriefListParams, BriefScopedParams, BriefUpdatePatch } from './coreRepository';
-import { sanitizeBriefPatch } from './coreRepository';
+import type { Client, Brand, Campaign, CampaignBrief, ContentPlanJob, ContentPlanItem } from '../../types/core';
+import type { ClientRepository, BrandRepository, CampaignRepository, CampaignListParams, CampaignGetParams, CampaignScopedParams, BriefRepository, BriefListParams, BriefScopedParams, BriefUpdatePatch, GenerationRepository, GenerationListParams, GenerationScopedParams, GenerationCreateInput, GenerationListResult, GenerationDetailResult, GenerationUpdatePatch } from './coreRepository';
+import { sanitizeBriefPatch, sanitizeGenerationPatch } from './coreRepository';
 import type { ClientFormData, BrandFormData, CampaignFormData, BriefFormData } from './coreData';
 import { calculateCampaignDurationDays, parseLines, parseComma } from './coreData';
+import { generateContentPlan } from './contentGenerator';
 
 // Postgres error code returned by Supabase when a single-row query finds nothing
 const PGRST_NOT_FOUND = 'PGRST116';
@@ -367,5 +368,152 @@ export class SupabaseBriefRepository implements BriefRepository {
       throw error;
     }
     return data as CampaignBrief;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// E. SupabaseGenerationRepository (Phase 16C-1)
+//
+// Requires the Phase 16C-1 additive migration
+// (schema_v1_phase16c1_generation_extension.sql) that creates
+// content_plan_jobs / content_plan_items. Distinct from the legacy
+// generation_jobs / content_items tables, which target a different,
+// incompatible Phase-15-planned schema.
+// ---------------------------------------------------------------------------
+
+export class SupabaseGenerationRepository implements GenerationRepository {
+  constructor(private readonly sb: SupabaseClient) {}
+
+  async list({ clientId, brandId, campaignId, briefId }: GenerationListParams): Promise<GenerationListResult> {
+    const { data: jobs, error: jobsError } = await this.sb
+      .from('content_plan_jobs')
+      .select('*')
+      .eq('client_id', clientId)
+      .eq('brand_id', brandId)
+      .eq('campaign_id', campaignId)
+      .eq('brief_id', briefId)
+      .order('created_at', { ascending: false });
+    if (jobsError) throw jobsError;
+
+    const { data: items, error: itemsError } = await this.sb
+      .from('content_plan_items')
+      .select('*')
+      .eq('client_id', clientId)
+      .eq('brand_id', brandId)
+      .eq('campaign_id', campaignId)
+      .eq('brief_id', briefId)
+      .order('day_number', { ascending: true });
+    if (itemsError) throw itemsError;
+
+    return {
+      jobs: (jobs ?? []) as ContentPlanJob[],
+      items: (items ?? []) as ContentPlanItem[],
+    };
+  }
+
+  async get({ clientId, brandId, campaignId, briefId, generationId }: GenerationScopedParams): Promise<GenerationDetailResult | null> {
+    const { data: job, error: jobError } = await this.sb
+      .from('content_plan_jobs')
+      .select('*')
+      .eq('id', generationId)
+      .eq('client_id', clientId)
+      .eq('brand_id', brandId)
+      .eq('campaign_id', campaignId)
+      .eq('brief_id', briefId)
+      .single();
+    if (jobError) {
+      if (jobError.code === PGRST_NOT_FOUND) return null;
+      throw jobError;
+    }
+
+    const { data: items, error: itemsError } = await this.sb
+      .from('content_plan_items')
+      .select('*')
+      .eq('generation_job_id', generationId)
+      .order('day_number', { ascending: true });
+    if (itemsError) throw itemsError;
+
+    return {
+      job: job as ContentPlanJob,
+      items: (items ?? []) as ContentPlanItem[],
+    };
+  }
+
+  async create(data: GenerationCreateInput): Promise<GenerationDetailResult> {
+    // Mock-generate the job + items locally, then re-shape for insertion —
+    // never send the local job-*/item-* prefix IDs to Supabase UUID columns.
+    const { job, items } = generateContentPlan(data.brief, data.planLengthDays, data.requestedBy);
+
+    const jobRow = {
+      client_id: data.clientId,
+      brand_id: data.brandId,
+      campaign_id: data.campaignId,
+      brief_id: data.briefId,
+      plan_length_days: job.plan_length_days,
+      generation_mode: job.generation_mode,
+      status: job.status,
+      requested_by: job.requested_by,
+      item_count: job.item_count,
+      completed_at: job.completed_at,
+      error_message: job.error_message,
+    };
+    const { data: createdJob, error: jobError } = await this.sb
+      .from('content_plan_jobs')
+      .insert(jobRow)
+      .select()
+      .single();
+    if (jobError) throw jobError;
+    const newJob = createdJob as ContentPlanJob;
+
+    // Items reference the DB-generated job id, not the local job-* id
+    const itemRows = items.map(item => ({
+      generation_job_id: newJob.id,
+      client_id: data.clientId,
+      brand_id: data.brandId,
+      campaign_id: data.campaignId,
+      brief_id: data.briefId,
+      day_number: item.day_number,
+      planned_date: item.planned_date,
+      channel: item.channel,
+      content_type: item.content_type,
+      pillar: item.pillar,
+      angle: item.angle,
+      hook: item.hook,
+      caption: item.caption,
+      visual_brief: item.visual_brief,
+      cta: item.cta,
+      hashtags: item.hashtags,
+      status: item.status,
+    }));
+    const { data: createdItems, error: itemsError } = await this.sb
+      .from('content_plan_items')
+      .insert(itemRows)
+      .select();
+    if (itemsError) throw itemsError;
+
+    return {
+      job: newJob,
+      items: (createdItems ?? []) as ContentPlanItem[],
+    };
+  }
+
+  async update({ clientId, brandId, campaignId, briefId, generationId }: GenerationScopedParams, patch: GenerationUpdatePatch): Promise<ContentPlanJob> {
+    // Strip id/tenant/audit fields — patch can never reassign a job to another tenant/brief
+    const safe = sanitizeGenerationPatch(patch);
+    const { data, error } = await this.sb
+      .from('content_plan_jobs')
+      .update({ ...safe, updated_at: new Date().toISOString() })
+      .eq('id', generationId)
+      .eq('client_id', clientId)
+      .eq('brand_id', brandId)
+      .eq('campaign_id', campaignId)
+      .eq('brief_id', briefId)
+      .select()
+      .single();
+    if (error) {
+      if (error.code === PGRST_NOT_FOUND) throw new Error(`Generation job ${generationId} not found for brief ${briefId}`);
+      throw error;
+    }
+    return data as ContentPlanJob;
   }
 }

@@ -22,6 +22,34 @@ Chúng ta đang xây dựng **The Core Agency — Real Operations MVP**. Đây l
 
 ---
 
+## 🏁 Phase 16C-1 — Content Plan Generation CRUD Wiring (Implemented — Codex review pending — 2026-06-11)
+
+**Scope completed:** Supabase CRUD repository wiring for Content Plan Generation only (Calendar/Approval/Reports/Asset Library/Connector Inbox/Automation Logs untouched). Same repository pattern as Phase 16A/16B-1/16B-2.
+
+**New tables (additive):** `schema_v1.sql`'s legacy `generation_jobs`/`content_items` (Phase-15-planned, campaign-only scoping, unused by the app) are left untouched. New migration `CLAUDE_MARKETING_TEAM/03_core/database/schema_v1_phase16c1_generation_extension.sql` creates `content_plan_jobs` + `content_plan_items` tables matching the Phase 6 `ContentPlanJob`/`ContentPlanItem` TS types: 3 enums (`content_plan_job_status`, `content_plan_item_status`, `content_plan_generation_mode`), `client_id`/`brand_id`/`campaign_id`/`brief_id` UUID FKs on both tables, `plan_length_days CHECK (IN (7,15,30))`, `requested_by TEXT` (role name, not a user UUID), 7 indexes, `updated_at` triggers via existing `set_updated_at()`, RLS enabled (no policies yet, same posture as the rest of `schema_v1.sql`). All idempotent (`IF NOT EXISTS` / `duplicate_object`) — **not applied to any live DB**.
+
+**Final tenant-scope contract:**
+- `GenerationRepository.list({ clientId, brandId, campaignId, briefId })` — all 4 IDs required, returns `{ jobs, items }`
+- `GenerationRepository.get({ clientId, brandId, campaignId, briefId, generationId })` / `update({ ...same, generationId }, patch: GenerationUpdatePatch)` — all 5 IDs required
+- No method accepts `generationId` alone — never get/update/archive/list by `generationId` alone
+- Supabase always adds `.eq('client_id', clientId).eq('brand_id', brandId).eq('campaign_id', campaignId).eq('brief_id', briefId)` (+ `.eq('id', generationId)` for get/update on `content_plan_jobs`, `.eq('generation_job_id', ...)` for `content_plan_items`); `LocalStorageGenerationRepository` mirrors the same filtering
+- TypeScript enforces: unscoped generation calls (`list()`, `get({generationId})`, `update({generationId}, patch)`) are compile errors
+- `create(data: GenerationCreateInput)` requires `brief` + `clientId`+`brandId`+`campaignId`+`briefId`+`planLengthDays`+`requestedBy`; calls `generateContentPlan()` for the mock plan, then DB generates UUIDs for both `content_plan_jobs` and `content_plan_items` — local `job-*`/`item-*`/`generation-*` IDs never sent to Supabase
+- `update()` patch sanitized via `GENERATION_IMMUTABLE_PATCH_FIELDS = ['id','client_id','brand_id','campaign_id','brief_id','created_at','updated_at','requested_by']` + `sanitizeGenerationPatch()` (mirrors Phase 16B-2 Codex Fix 2)
+
+**App.tsx / ContentGenerationTab.tsx wiring:**
+- On Supabase mount, generation jobs/items loaded per-brief (after campaigns + briefs load): `Promise.all(loadedCampaigns.flatMap((c, idx) => briefArrays[idx].map(b => repos.generations.list({ clientId: c.client_id, brandId: c.brand_id, campaignId: c.id, briefId: b.id }))))`, flattened and saved via `setGenData` + `saveGenerationData`
+- New handler `handleGenerationCreate(brief, planLengthDays)` — derives `clientId`/`brandId`/`campaignId` from the brief's parent campaign (`coreData.campaigns.find(c => c.id === brief.campaign_id)`, same pattern as `handleBriefUpdate`), calls `repos.generations.create(...)`
+- `ContentGenerationTab.tsx`: new async `onGenerate` prop; `handleGenerate` rewritten from sync `setTimeout` + direct `generateContentPlan()` to `await onGenerate(brief, planLength)`, then merges `{job, items}` into state via the existing `onUpdate({ generationJobs, contentItems })` callback; new `genError` state + dismissible error banner; removed now-unused direct `generateContentPlan` import
+
+**Safety:** Supabase env OFF · no secrets · no service role key · Demo Sign In preserved · localStorage fallback preserved · Calendar/Approval/Reports/Asset Library/Connector Inbox/Automation Logs unchanged · local IDs never sent to Supabase UUID columns.
+
+**Build:** PASS — 0 TS errors (`tsc && vite build`). `git diff --check`: PASS (CRLF warnings only).
+
+**Codex result:** PENDING — recommended next step. **Trạng thái Phase 16C-1:** Implemented, awaiting Codex review. **Next:** Codex review of Phase 16C-1, then TBD.
+
+---
+
 ## 🏁 Phase 16B-2 — Campaign Briefs CRUD Wiring (CLOSED — Codex PASS — 2026-06-10)
 
 **Scope completed:** Supabase CRUD repository wiring for Campaign Briefs only (Generation/Calendar/Approval/Reports/Asset Library untouched). Same repository pattern as Phase 16A/16B-1.

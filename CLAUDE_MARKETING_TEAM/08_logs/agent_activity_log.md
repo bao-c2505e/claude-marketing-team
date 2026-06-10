@@ -6,6 +6,19 @@ Nhật ký ghi lại các hành động mô phỏng của các AI Agent khi vậ
 
 ## 🗓️ Nhật Ký Hoạt Động (Simulated Activity Logs)
 
+### 🗓️ Ngày 11/06/2026 — Phase 16C-1: Content Plan Generation CRUD Wiring (Implemented — awaiting Codex review)
+- **[PC1 Claude Code Builder]:** Phase 16C-1 implemented — Content Plan Generation CRUD repository wiring, build PASS, awaiting Codex review.
+- **[PC1]:** New additive migration `03_core/database/schema_v1_phase16c1_generation_extension.sql` creates `content_plan_jobs`/`content_plan_items` tables matching the Phase 6 `ContentPlanJob`/`ContentPlanItem` types (3 enums, `client_id`/`brand_id`/`campaign_id`/`brief_id` UUID FKs, `plan_length_days CHECK (IN (7,15,30))`, `requested_by TEXT`, 7 indexes, `updated_at` triggers, RLS enabled). Legacy `generation_jobs`/`content_items` tables (Phase-15-planned, campaign-only scope, unused by the app) left untouched. Not applied to any live DB.
+- **[PC1]:** `GenerationRepository.list({ clientId, brandId, campaignId, briefId })` returns `{ jobs, items }` — all 4 IDs required. `get`/`update({ ...same, generationId }, ...)` — all 5 IDs required. No method accepts `generationId` alone — TypeScript rejects unscoped calls.
+- **[PC1]:** `SupabaseGenerationRepository` queries always include `.eq('client_id', clientId).eq('brand_id', brandId).eq('campaign_id', campaignId).eq('brief_id', briefId)` (+ `.eq('id', generationId)` for get/update on `content_plan_jobs`, `.eq('generation_job_id', ...)` for `content_plan_items`). `LocalStorageGenerationRepository` mirrors the same scoping.
+- **[PC1]:** `SupabaseGenerationRepository.create` calls `generateContentPlan()` for the mock plan/items, then inserts into `content_plan_jobs`/`content_plan_items` — never sends a local `job-*`/`item-*`/`generation-*` ID, DB generates UUIDs, returned `{ job, items }` used to update React state.
+- **[PC1]:** `GENERATION_IMMUTABLE_PATCH_FIELDS = ['id','client_id','brand_id','campaign_id','brief_id','created_at','updated_at','requested_by']` + `GenerationUpdatePatch`/`sanitizeGenerationPatch()` block these fields on every `update()` in both repositories (mirrors Phase 16B-2 Codex Fix 2).
+- **[PC1]:** App.tsx loads generation jobs/items per-brief on Supabase mount (after campaigns + briefs load); added `handleGenerationCreate` (derives scope from the brief's parent campaign). `ContentGenerationTab.tsx` now uses async `onGenerate` prop, `handleGenerate` rewritten from sync `setTimeout` to `await onGenerate(...)`, new `genError` state + error banner; removed now-unused direct `generateContentPlan` import.
+- **[PC1]:** Production Supabase env OFF. No secrets. No service role key. Demo Sign In preserved. localStorage fallback preserved. Calendar/Approval/Reports/Asset Library/Connector Inbox/Automation Logs unchanged.
+- **[PC1]:** Build PASS — 0 TS errors. `git diff --check` PASS (CRLF warnings only). Awaiting Codex review.
+
+---
+
 ### 🗓️ Ngày 10/06/2026 — Phase 16B-2 CLOSED: Codex PASS
 - **[PC1 Claude Code Builder]:** Phase 16B-2 officially closed after Codex PASS.
 - **[PC1]:** Confirmed final state: `BriefRepository.list({ clientId, brandId, campaignId })`, `get`/`update({ clientId, brandId, campaignId, briefId }, ...)` — all scope params required per interface; TypeScript rejects unscoped calls. Supabase queries always `.eq('client_id', clientId).eq('brand_id', brandId).eq('campaign_id', campaignId)` (+ `.eq('id', briefId)` for get/update). `LocalStorageBriefRepository` mirrors the same scoping.

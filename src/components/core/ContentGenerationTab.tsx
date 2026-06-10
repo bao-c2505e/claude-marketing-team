@@ -10,7 +10,7 @@ import {
   CONTENT_ITEM_STATUS_LABEL, CONTENT_ITEM_STATUS_COLOR,
   BRIEF_STATUS_COLOR,
 } from '../../lib/core/coreData';
-import { generateContentPlan } from '../../lib/core/contentGenerator';
+import type { GenerationDetailResult } from '../../lib/core/coreRepository';
 import { can } from '../../lib/auth/permissions';
 
 interface Props {
@@ -21,6 +21,7 @@ interface Props {
   generationJobs: ContentPlanJob[];
   contentItems: ContentPlanItem[];
   onUpdate: (updated: GenerationDataStore) => void;
+  onGenerate: (brief: CampaignBrief, planLengthDays: PlanLengthDays) => Promise<GenerationDetailResult>;
   userRole: RoleName | null;
   isSupabaseConfigured: boolean;
   initialBriefId?: string;
@@ -67,7 +68,7 @@ function StatusChip({ label, color }: { label: string; color: string }) {
 export default function ContentGenerationTab({
   clients, brands, campaigns, briefs,
   generationJobs, contentItems,
-  onUpdate, userRole, isSupabaseConfigured, initialBriefId,
+  onUpdate, onGenerate, userRole, isSupabaseConfigured, initialBriefId,
   onNavigateToApprovals, submittableItemIds,
 }: Props) {
   const [mode, setMode] = useState<Mode>('list');
@@ -76,6 +77,7 @@ export default function ContentGenerationTab({
   const [planLength, setPlanLength] = useState<PlanLengthDays>(7);
   const [isGenerating, setIsGenerating] = useState(false);
   const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
+  const [genError, setGenError] = useState<string | null>(null);
 
   useEffect(() => {
     if (initialBriefId) setSelectedBriefId(initialBriefId);
@@ -90,12 +92,13 @@ export default function ContentGenerationTab({
   const campName   = (id: string) => campaigns.find(c => c.id === id)?.name ?? '—';
   const briefFor   = (id: string) => briefs.find(b => b.id === id);
 
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
     const brief = briefs.find(b => b.id === selectedBriefId);
     if (!brief || brief.status !== 'approved_for_generation') return;
     setIsGenerating(true);
-    setTimeout(() => {
-      const { job, items } = generateContentPlan(brief, planLength, userRole);
+    setGenError(null);
+    try {
+      const { job, items } = await onGenerate(brief, planLength);
       onUpdate({
         generationJobs: [job, ...generationJobs],
         contentItems: [...items, ...contentItems],
@@ -103,8 +106,11 @@ export default function ContentGenerationTab({
       setSelectedJobId(job.id);
       setExpandedItemId(null);
       setMode('detail');
+    } catch (err) {
+      setGenError(err instanceof Error ? err.message : 'Failed to generate content plan. Please try again.');
+    } finally {
       setIsGenerating(false);
-    }, 600);
+    }
   };
 
   const openDetail = (jobId: string) => {
@@ -346,6 +352,13 @@ export default function ContentGenerationTab({
           )}
         </div>
       </div>
+
+      {genError && (
+        <div style={{ padding: '10px 14px', background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.4)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
+          <span style={{ fontSize: '0.8rem', color: '#f87171' }}>⚠ {genError}</span>
+          <button onClick={() => setGenError(null)} style={{ background: 'none', border: 'none', color: '#f87171', cursor: 'pointer', fontSize: '0.85rem', padding: '0 4px' }}>✕</button>
+        </div>
+      )}
 
       <SafetyBanner />
 

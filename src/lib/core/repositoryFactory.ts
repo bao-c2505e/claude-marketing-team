@@ -3,26 +3,30 @@
 // Phase 16A — Supabase CRUD Wiring: Clients + Brands
 // Phase 16B-1 — Supabase CRUD Wiring: Campaigns
 // Phase 16B-2 — Supabase CRUD Wiring: Campaign Briefs
+// Phase 16C-1 — Supabase CRUD Wiring: Content Plan Generation
 //
 // Returns Supabase-backed repositories when configured,
 // localStorage repositories otherwise (demo mode / no env vars).
 //
-// Generation / Approval / etc. wiring is deferred to later phases.
+// Calendar / Approval / Reports / Asset Library / etc. wiring is deferred to
+// later phases.
 // =============================================================================
 
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { ClientRepository, BrandRepository, CampaignRepository, BriefRepository } from './coreRepository';
+import type { ClientRepository, BrandRepository, CampaignRepository, BriefRepository, GenerationRepository } from './coreRepository';
 import {
   LocalStorageClientRepository,
   LocalStorageBrandRepository,
   LocalStorageCampaignRepository,
   LocalStorageBriefRepository,
+  LocalStorageGenerationRepository,
 } from './localStorageRepositories';
 import {
   SupabaseClientRepository,
   SupabaseBrandRepository,
   SupabaseCampaignRepository,
   SupabaseBriefRepository,
+  SupabaseGenerationRepository,
 } from './supabaseRepositories';
 
 export interface Phase16aRepositories {
@@ -30,6 +34,7 @@ export interface Phase16aRepositories {
   brands: BrandRepository;
   campaigns: CampaignRepository;
   briefs: BriefRepository;
+  generations: GenerationRepository;
 }
 
 /**
@@ -52,6 +57,7 @@ export function createPhase16aRepositories(
       brands: new SupabaseBrandRepository(supabase),
       campaigns: new SupabaseCampaignRepository(supabase),
       briefs: new SupabaseBriefRepository(supabase),
+      generations: new SupabaseGenerationRepository(supabase),
     };
   }
   // Fallback — localStorage / demo mode
@@ -60,5 +66,6 @@ export function createPhase16aRepositories(
     brands: new LocalStorageBrandRepository(),
     campaigns: new LocalStorageCampaignRepository(),
     briefs: new LocalStorageBriefRepository(),
+    generations: new LocalStorageGenerationRepository(),
   };
 }

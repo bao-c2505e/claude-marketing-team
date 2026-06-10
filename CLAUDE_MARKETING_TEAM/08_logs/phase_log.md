@@ -6,6 +6,19 @@ Nhật ký theo dõi các mốc hoàn thành kỹ thuật qua các Phase.
 
 ## 📅 Nhật Ký Sự Kiện (Event Logs)
 
+### 🗓️ Ngày 11/06/2026 — Phase 16C-1: Content Plan Generation CRUD Wiring (Implemented — chờ Codex review)
+- **Sự kiện:** Phase 16C-1 đã triển khai xong, build PASS, đang chờ Codex review.
+- **Bảng mới (additive):** `schema_v1.sql` có sẵn `generation_jobs`/`content_items` (Phase-15-planned, scope theo campaign_id only, app không dùng) — giữ nguyên không đụng tới. Migration mới `03_core/database/schema_v1_phase16c1_generation_extension.sql` tạo `content_plan_jobs` + `content_plan_items` khớp với type `ContentPlanJob`/`ContentPlanItem` (Phase 6): 3 enum (`content_plan_job_status`, `content_plan_item_status`, `content_plan_generation_mode`), cả 2 bảng có `client_id`/`brand_id`/`campaign_id`/`brief_id` UUID FK, `plan_length_days CHECK (IN (7,15,30))`, `requested_by TEXT`, 7 index, trigger `updated_at` qua `set_updated_at()` có sẵn, RLS enable (chưa có policy). Idempotent, chưa apply lên DB live nào.
+- **Tenant-scope contract:** `GenerationRepository.list({ clientId, brandId, campaignId, briefId })` — cả 4 ID bắt buộc, trả về `{ jobs, items }`. `get`/`update({ ...same, generationId }, ...)` — cả 5 ID bắt buộc. **Không có method nào nhận `generationId` một mình** — không get/update/archive/list bằng generationId alone. Supabase queries luôn `.eq('client_id', ...).eq('brand_id', ...).eq('campaign_id', ...).eq('brief_id', ...)` (+ `.eq('id', generationId)` cho get/update trên `content_plan_jobs`, `.eq('generation_job_id', ...)` cho `content_plan_items`). `LocalStorageGenerationRepository` filter tương tự. TypeScript enforce tại compile time — unscoped calls không type-check.
+- **`create(data)`:** gọi `generateContentPlan()` để sinh mock plan/items, sau đó insert vào `content_plan_jobs`/`content_plan_items` — không bao giờ gửi local `job-*`/`item-*`/`generation-*` ID, DB tự generate UUID, row trả về dùng để update React state.
+- **Sanitizer:** `GENERATION_IMMUTABLE_PATCH_FIELDS = ['id','client_id','brand_id','campaign_id','brief_id','created_at','updated_at','requested_by']` + `GenerationUpdatePatch`/`sanitizeGenerationPatch()` chặn các field này trong mọi `update()` (mirror Phase 16B-2 Codex Fix 2).
+- **App.tsx / ContentGenerationTab.tsx:** generation jobs/items load per-brief sau khi campaigns + briefs load xong; thêm `handleGenerationCreate` (derive scope từ campaign cha của brief). `ContentGenerationTab` dùng async `onGenerate` prop, `handleGenerate` rewritten từ sync `setTimeout` sang `await onGenerate(...)`, thêm `genError` state + error banner; xoá import `generateContentPlan` trực tiếp (không còn dùng).
+- **An toàn:** Supabase env OFF · không secrets · không service role key · Demo Sign In preserved · localStorage fallback preserved · Calendar/Approval/Reports/Asset Library/Connector Inbox/Automation Logs không đổi.
+- **Build:** PASS — 0 TS errors (`tsc && vite build`). `git diff --check`: PASS (chỉ CRLF warnings).
+- **Trạng thái:** Implemented — chờ Codex review.
+
+---
+
 ### 🗓️ Ngày 10/06/2026 — Phase 16B-2 CLOSED: Codex PASS
 - **Sự kiện:** Phase 16B-2 chính thức đóng sau Codex PASS.
 - **Scope hoàn thành:** Supabase CRUD repository wiring cho Campaign Briefs only (Generation/Calendar/Approval/Reports/Asset Library không đổi).

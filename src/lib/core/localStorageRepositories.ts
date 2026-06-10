@@ -9,11 +9,12 @@
 // These implementations are the default — Demo Sign In + localhost always lands here.
 // =============================================================================
 
-import type { Client, Brand, Campaign, CampaignBrief } from '../../types/core';
-import type { ClientRepository, BrandRepository, CampaignRepository, CampaignListParams, CampaignGetParams, CampaignScopedParams, BriefRepository, BriefListParams, BriefScopedParams, BriefUpdatePatch } from './coreRepository';
-import { sanitizeBriefPatch } from './coreRepository';
+import type { Client, Brand, Campaign, CampaignBrief, ContentPlanJob, ContentPlanItem } from '../../types/core';
+import type { ClientRepository, BrandRepository, CampaignRepository, CampaignListParams, CampaignGetParams, CampaignScopedParams, BriefRepository, BriefListParams, BriefScopedParams, BriefUpdatePatch, GenerationRepository, GenerationListParams, GenerationScopedParams, GenerationCreateInput, GenerationListResult, GenerationDetailResult, GenerationUpdatePatch } from './coreRepository';
+import { sanitizeBriefPatch, sanitizeGenerationPatch } from './coreRepository';
 import type { ClientFormData, BrandFormData, CampaignFormData, BriefFormData } from './coreData';
-import { loadCoreData, saveCoreData, generateId, calculateCampaignDurationDays, parseLines, parseComma } from './coreData';
+import { loadCoreData, saveCoreData, generateId, calculateCampaignDurationDays, parseLines, parseComma, loadGenerationData, saveGenerationData } from './coreData';
+import { generateContentPlan } from './contentGenerator';
 
 // ---------------------------------------------------------------------------
 // A. LocalStorageClientRepository
@@ -263,6 +264,81 @@ export class LocalStorageBriefRepository implements BriefRepository {
     });
     if (!found) throw new Error(`Brief ${briefId} not found for campaign ${campaignId}`);
     saveCoreData({ ...store, briefs });
+    return found;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// E. LocalStorageGenerationRepository (Phase 16C-1)
+//
+// Operates on GenerationDataStore (separate localStorage key from
+// CoreDataStore) — mirrors the same client/brand/campaign/brief scoping as
+// LocalStorageBriefRepository.
+// ---------------------------------------------------------------------------
+
+export class LocalStorageGenerationRepository implements GenerationRepository {
+  async list({ clientId, brandId, campaignId, briefId }: GenerationListParams): Promise<GenerationListResult> {
+    const store = loadGenerationData();
+    const jobs = store.generationJobs.filter(
+      j => j.client_id === clientId && j.brand_id === brandId && j.campaign_id === campaignId && j.brief_id === briefId,
+    );
+    const items = store.contentItems.filter(
+      i => i.client_id === clientId && i.brand_id === brandId && i.campaign_id === campaignId && i.brief_id === briefId,
+    );
+    return { jobs, items };
+  }
+
+  async get({ clientId, brandId, campaignId, briefId, generationId }: GenerationScopedParams): Promise<GenerationDetailResult | null> {
+    const store = loadGenerationData();
+    const job = store.generationJobs.find(
+      j => j.id === generationId && j.client_id === clientId && j.brand_id === brandId && j.campaign_id === campaignId && j.brief_id === briefId,
+    );
+    if (!job) return null;
+    const items = store.contentItems.filter(i => i.generation_job_id === job.id);
+    return { job, items };
+  }
+
+  async create(data: GenerationCreateInput): Promise<GenerationDetailResult> {
+    const store = loadGenerationData();
+    const { job, items } = generateContentPlan(data.brief, data.planLengthDays, data.requestedBy);
+    // Tenant fields come from the verified scope params, not from
+    // brief.client_id/brand_id (typed string | null).
+    const scopedJob: ContentPlanJob = {
+      ...job,
+      client_id: data.clientId,
+      brand_id: data.brandId,
+      campaign_id: data.campaignId,
+      brief_id: data.briefId,
+    };
+    const scopedItems: ContentPlanItem[] = items.map(item => ({
+      ...item,
+      client_id: data.clientId,
+      brand_id: data.brandId,
+      campaign_id: data.campaignId,
+      brief_id: data.briefId,
+    }));
+    saveGenerationData({
+      generationJobs: [scopedJob, ...store.generationJobs],
+      contentItems: [...scopedItems, ...store.contentItems],
+    });
+    return { job: scopedJob, items: scopedItems };
+  }
+
+  async update({ clientId, brandId, campaignId, briefId, generationId }: GenerationScopedParams, patch: GenerationUpdatePatch): Promise<ContentPlanJob> {
+    const store = loadGenerationData();
+    const now = new Date().toISOString();
+    // Strip id/tenant/audit fields — patch can never reassign a job to another tenant/brief
+    const safe = sanitizeGenerationPatch(patch);
+    let found: ContentPlanJob | undefined;
+    const generationJobs = store.generationJobs.map(j => {
+      if (j.id === generationId && j.client_id === clientId && j.brand_id === brandId && j.campaign_id === campaignId && j.brief_id === briefId) {
+        found = { ...j, ...safe, updated_at: now };
+        return found;
+      }
+      return j;
+    });
+    if (!found) throw new Error(`Generation job ${generationId} not found for brief ${briefId}`);
+    saveGenerationData({ ...store, generationJobs });
     return found;
   }
 }

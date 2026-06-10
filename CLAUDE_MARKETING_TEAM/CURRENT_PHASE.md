@@ -1,10 +1,64 @@
-# CURRENT PHASE — Phase 16B-2 ✅ CLOSED (Codex PASS — 2026-06-10) | Phase 16B-1 ✅ CLOSED (Codex PASS — 2026-06-10) | Phase 16A ✅ CLOSED (Codex PASS — 2026-06-09)
+# CURRENT PHASE — Phase 16C-1 ⏳ AWAITING CODEX REVIEW (2026-06-11) | Phase 16B-2 ✅ CLOSED (Codex PASS — 2026-06-10) | Phase 16B-1 ✅ CLOSED (Codex PASS — 2026-06-10) | Phase 16A ✅ CLOSED (Codex PASS — 2026-06-09)
 
 ## 📌 Thông tin chung
-- **Phase trước:** Phase 16B-1 — Supabase CRUD Wiring: Campaigns
-- **Trạng thái Phase 16B-1:** ✅ CLOSED — repository + App.tsx + CampaignsTab wired, build PASS (0 TS errors). Codex Fix 1 applied (positive `duration_days` on create). Codex result: PASS.
-- **Phase hiện tại:** Phase 16B-2 — Campaign Briefs CRUD wiring — ✅ CLOSED. Build PASS (0 TS errors). Codex Fix 1 (migration backfill) + Fix 2 (update patch sanitizer) applied. Codex result: PASS.
-- **Phase tiếp theo:** TBD
+- **Phase trước:** Phase 16B-2 — Campaign Briefs CRUD Wiring
+- **Trạng thái Phase 16B-2:** ✅ CLOSED — repository + App.tsx + BriefIntakeTab wired, build PASS (0 TS errors). Codex Fix 1+2 applied (migration backfill + update patch sanitizer). Codex result: PASS.
+- **Phase hiện tại:** Phase 16C-1 — Content Plan Generation CRUD wiring — Implemented, build PASS (0 TS errors), `git diff --check` PASS. Awaiting Codex review.
+- **Phase tiếp theo:** TBD (pending Codex review of Phase 16C-1)
+
+---
+
+## 🏁 Phase 16C-1 — Content Plan Generation CRUD Wiring (Implemented — Codex review pending — 2026-06-11)
+
+### Scope completed:
+- Supabase CRUD repository wiring for **Content Plan Generation** only (Calendar/Approval/Reports/Asset Library/Connector Inbox/Automation Logs untouched, deferred to later phases)
+- New tables: `schema_v1.sql`'s legacy `generation_jobs`/`content_items` (Phase-15-planned, campaign-scoped, unused by the app) are left untouched. New **additive** migration `CLAUDE_MARKETING_TEAM/03_core/database/schema_v1_phase16c1_generation_extension.sql` creates `content_plan_jobs` and `content_plan_items` tables matching the Phase 6 `ContentPlanJob`/`ContentPlanItem` TS types: 3 new enums (`content_plan_job_status`, `content_plan_item_status`, `content_plan_generation_mode`), both tables with `client_id`/`brand_id`/`campaign_id`/`brief_id` UUID FKs, `plan_length_days CHECK (IN (7,15,30))`, `requested_by TEXT` (role name, not a user UUID), 7 indexes, `updated_at` triggers via existing `set_updated_at()`, RLS enabled (no policies yet, same "service_role only" posture as the rest of `schema_v1.sql`). All `CREATE TABLE/TYPE/INDEX/TRIGGER IF NOT EXISTS` / `EXCEPTION WHEN duplicate_object` — safe to re-run, **not applied to any live DB**.
+- `GenerationRepository` interface added to `coreRepository.ts`: `list`, `get`, `create`, `update` with scoped param types `GenerationListParams` / `GenerationScopedParams` / `GenerationCreateInput`, plus `GenerationListResult`/`GenerationDetailResult` (`{ jobs, items }` / `{ job, items }`)
+- Supabase implementation: `SupabaseGenerationRepository` (list/get/create/update)
+- localStorage fallback: `LocalStorageGenerationRepository` (operates on `GenerationDataStore` / `loadGenerationData()` / `saveGenerationData()`, key `core_agency_gen_data_v1`)
+- `createPhase16aRepositories` factory extended — bundle now returns `generations` repo
+- App.tsx wired: generation jobs/items loaded per-brief on Supabase mount (alongside clients/brands/campaigns/briefs), new `handleGenerationCreate` handler
+- `ContentGenerationTab.tsx`: new async `onGenerate` prop; `handleGenerate` rewritten from sync `setTimeout` + direct `generateContentPlan()` call to `await onGenerate(brief, planLength)`; `genError` state + dismissible error banner; removed now-unused direct `generateContentPlan` import
+
+### Tenant-scope contract (final):
+- `GenerationRepository.list({ clientId, brandId, campaignId, briefId })` — all 4 IDs required, returns `{ jobs, items }`
+- `GenerationRepository.get({ clientId, brandId, campaignId, briefId, generationId })` — all 5 IDs required
+- `GenerationRepository.create(data: GenerationCreateInput)` — requires `brief` + `clientId` + `brandId` + `campaignId` + `briefId` + `planLengthDays` + `requestedBy`; calls `generateContentPlan(brief, planLengthDays, requestedBy)` for the mock plan/items, then inserts into `content_plan_jobs`/`content_plan_items`; Supabase impl never sends a local `job-*`/`item-*`/`generation-*` `id` — DB generates the UUIDs, and the returned `{ job, items }` (with real UUIDs) is used to update React state
+- `GenerationRepository.update({ clientId, brandId, campaignId, briefId, generationId }, patch: GenerationUpdatePatch)` — all 5 IDs required; `GENERATION_IMMUTABLE_PATCH_FIELDS = ['id','client_id','brand_id','campaign_id','brief_id','created_at','updated_at','requested_by']`, `GenerationUpdatePatch = Partial<Omit<ContentPlanJob, GenerationImmutableField>>`, and the shared `sanitizeGenerationPatch()` helper strip all of those before the patch reaches storage (mirrors Phase 16B-2 Codex Fix 2)
+- No `archive()` method, and **no method accepts `generationId` alone** — `get`/`update`/`list` always require the full `clientId`+`brandId`+`campaignId`+`briefId` scope in addition to (for get/update) `generationId`
+- Supabase generation queries always include `.eq('client_id', clientId).eq('brand_id', brandId).eq('campaign_id', campaignId).eq('brief_id', briefId)`, plus `.eq('id', generationId)` for `get`/`update` on `content_plan_jobs`, and `.eq('generation_job_id', ...)` for the related `content_plan_items` query
+- `LocalStorageGenerationRepository` mirrors the same 4-ID (+ `generationId` for get/update) filtering against `loadGenerationData()`
+- TypeScript enforces: unscoped calls (`list()`, `get({generationId})`, `update({generationId}, patch)`) do not type-check
+
+### Data flow:
+- Supabase mode: on mount, after campaigns + briefs load, generation jobs/items loaded per-brief — `Promise.all(loadedCampaigns.flatMap((c, idx) => briefArrays[idx].map(b => repos.generations.list({ clientId: c.client_id, brandId: c.brand_id, campaignId: c.id, briefId: b.id }))))`, flattened into `loadedGenerationJobs`/`loadedContentItems`, then `setGenData` + `saveGenerationData`
+- localStorage mode: `LocalStorageGenerationRepository` filters `loadGenerationData()` by `client_id`+`brand_id`+`campaign_id`+`brief_id`
+- Create: `ContentGenerationTab.handleGenerate` calls `onGenerate(brief, planLength)` → `App.tsx`'s `handleGenerationCreate` derives `clientId`/`brandId`/`campaignId` from the brief's parent campaign (`coreData.campaigns.find(c => c.id === brief.campaign_id)`, same pattern as `handleBriefUpdate`), calls `repos.generations.create(...)`, returns `{ job, items }` with DB-issued UUIDs; the Tab merges these into `generationJobs`/`contentItems` via the existing `onUpdate({ generationJobs, contentItems })` callback and switches to the detail view
+- Update: existing `handleGenerationUpdate`/`onUpdate` state-merge flow is unchanged; `GenerationRepository.update()` is available for future status-transition wiring (Calendar/Approval phases) but not yet called from the UI
+
+### Safety record:
+- Production Supabase env: **OFF** (env vars unset)
+- Secrets / service role key in frontend: **NO**
+- Demo Sign In: **PRESERVED**
+- localStorage fallback: **PRESERVED**
+- Calendar / Approval / Reports / Asset Library / Connector Inbox / Automation Logs: **UNCHANGED** (untouched, deferred to later phases)
+- Local IDs (`job-*`/`item-*`/`generation-*`/`brief-*`) never sent to Supabase UUID/FK columns — DB generates UUIDs for `content_plan_jobs`/`content_plan_items`, returned rows update React state
+- Update patch sanitization: `sanitizeGenerationPatch()` blocks tenant scope fields (`client_id`/`brand_id`/`campaign_id`/`brief_id`), identity (`id`), audit (`created_at`/`updated_at`), and `requested_by`
+- Build: PASS — 0 TS errors (`tsc && vite build`)
+- `git diff --check`: PASS (CRLF warnings only, not errors)
+
+### Files changed:
+| File | Change |
+|---|---|
+| `CLAUDE_MARKETING_TEAM/03_core/database/schema_v1_phase16c1_generation_extension.sql` | NEW — additive migration: `content_plan_jobs`/`content_plan_items` tables, 3 enums, 7 indexes, `updated_at` triggers, RLS enable |
+| `src/lib/core/coreRepository.ts` | `GenerationRepository` + `GenerationListParams`/`GenerationScopedParams`/`GenerationCreateInput`/`GenerationListResult`/`GenerationDetailResult`; `GENERATION_IMMUTABLE_PATCH_FIELDS`/`GenerationImmutableField`/`GenerationUpdatePatch`/`sanitizeGenerationPatch()` |
+| `src/lib/core/localStorageRepositories.ts` | `LocalStorageGenerationRepository` (list/get/create/update, scoped, backed by `loadGenerationData()`/`saveGenerationData()`) |
+| `src/lib/core/supabaseRepositories.ts` | `SupabaseGenerationRepository` (list/get/create/update, scoped) |
+| `src/lib/core/repositoryFactory.ts` | Added `generations` to `Phase16aRepositories` bundle |
+| `src/App.tsx` | Per-brief generation load on Supabase mount; new `handleGenerationCreate`; wired into `ContentGenerationTab` via `onGenerate` |
+| `src/components/core/ContentGenerationTab.tsx` | New async `onGenerate` prop; `handleGenerate` rewritten to call `onGenerate` + existing `onUpdate`; `genError` state + error banner; removed direct `generateContentPlan` import |
+
+### Codex review: **PENDING** — recommended as the next step before closing this phase.
 
 ---
 
