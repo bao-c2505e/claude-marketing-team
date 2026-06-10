@@ -1,14 +1,14 @@
-# CURRENT PHASE — Phase 16C-1 ⏳ CODEX FIX APPLIED — AWAITING RE-REVIEW (2026-06-11) | Phase 16B-2 ✅ CLOSED (Codex PASS — 2026-06-10) | Phase 16B-1 ✅ CLOSED (Codex PASS — 2026-06-10) | Phase 16A ✅ CLOSED (Codex PASS — 2026-06-09)
+# CURRENT PHASE — Phase 16C-1 ✅ CLOSED (Codex PASS — 2026-06-11) | Phase 16B-2 ✅ CLOSED (Codex PASS — 2026-06-10) | Phase 16B-1 ✅ CLOSED (Codex PASS — 2026-06-10) | Phase 16A ✅ CLOSED (Codex PASS — 2026-06-09)
 
 ## 📌 Thông tin chung
 - **Phase trước:** Phase 16B-2 — Campaign Briefs CRUD Wiring
 - **Trạng thái Phase 16B-2:** ✅ CLOSED — repository + App.tsx + BriefIntakeTab wired, build PASS (0 TS errors). Codex Fix 1+2 applied (migration backfill + update patch sanitizer). Codex result: PASS.
-- **Phase hiện tại:** Phase 16C-1 — Content Plan Generation CRUD wiring — Implemented, build PASS (0 TS errors), `git diff --check` PASS. Codex required-fix round applied (scoped item reads, `archive()`, hardened sanitizer, RLS policies). Awaiting Codex re-review.
-- **Phase tiếp theo:** TBD (pending Codex re-review of Phase 16C-1)
+- **Phase hiện tại:** Phase 16C-1 — Content Plan Generation CRUD Wiring — ✅ CLOSED (Codex PASS — 2026-06-11). Build PASS (0 TS errors), `git diff --check` PASS. Two Codex required-fix rounds applied: (1) scoped item reads, scoped `archive()`, hardened sanitizer, baseline RLS policies; (2) RLS hardened to active/unexpired role checks with read/write role split, plus full client/brand/campaign/brief hierarchy validation.
+- **Phase tiếp theo:** TBD (pending Owner direction)
 
 ---
 
-## 🏁 Phase 16C-1 — Content Plan Generation CRUD Wiring (Implemented — Codex Fix applied — awaiting re-review — 2026-06-11)
+## 🏁 Phase 16C-1 — Content Plan Generation CRUD Wiring (CLOSED — Codex PASS — 2026-06-11)
 
 ### Scope completed:
 - Supabase CRUD repository wiring for **Content Plan Generation** only (Calendar/Approval/Reports/Asset Library/Connector Inbox/Automation Logs untouched, deferred to later phases)
@@ -84,7 +84,49 @@
 
 **Build:** PASS — 0 TS errors (`tsc && vite build`). `git diff --check`: PASS (CRLF warnings only).
 
-**Codex result:** Fix applied — awaiting Codex re-review.
+**Codex result:** Superseded — RLS (Fix 4) further hardened in Codex Fix Round 2 below; final Codex PASS recorded in the closure section below.
+
+---
+
+## ✅ Phase 16C-1 Codex Fix Round 2 — RLS Role Permissions + Brief Hierarchy (Applied — 2026-06-11)
+
+**Issue 1 (role permissions / active-expired assignments):** `content_plan_user_has_scope()` (Fix 4 above) granted INSERT/UPDATE to every scoped role — including read-only `client`/`viewer` roles — and did not check `user_roles.is_active`/`expires_at`, so revoked or expired assignments still matched.
+
+**Fix 1:** `content_plan_user_has_scope()` now requires `ur.is_active = TRUE AND (ur.expires_at IS NULL OR ur.expires_at > NOW())`, and takes a `p_roles role_name[]` parameter (default = all four roles, for reads). New `content_plan_user_can_write()` narrows this to `ARRAY['owner','manager']`. `content_plan_jobs`/`content_plan_items` policies are split: SELECT uses `content_plan_user_has_scope(...)` (any active, unexpired, in-scope role may read); INSERT/UPDATE use `content_plan_user_can_write(...)` (only owner/manager — `client`/`viewer` can never insert/update, including transitions to `archived`).
+
+**Issue 2 (missing brief_id / OR-based scope could authorize mismatched hierarchies):** the helper/policies omitted `brief_id`, and the role-scope OR-check (`global`/`client`/`brand`/`campaign`) could authorize a row whose `client_id`/`brand_id`/`campaign_id`/`brief_id` did not all belong to the same real tenant hierarchy.
+
+**Fix 2:** new `content_plan_hierarchy_is_valid(p_client_id, p_brand_id, p_campaign_id, p_brief_id)` — `SECURITY DEFINER`/`STABLE` SQL function that validates, against the real `clients → brands → campaigns → campaign_briefs` FK chain, that all four ids form ONE consistent hierarchy. `content_plan_user_has_scope()` now AND-s this check with the role-assignment check, so a role-scope match alone can never authorize a row with a mismatched/borrowed id. `brief_id` is now a parameter on every helper and is included in every policy call (SELECT / INSERT WITH CHECK / UPDATE USING / UPDATE WITH CHECK) for both `content_plan_jobs` and `content_plan_items`.
+
+**Migration safety:** additive only; `DROP POLICY IF EXISTS` + `DROP FUNCTION IF EXISTS` (for prior signatures) precede `CREATE OR REPLACE`, so the migration stays idempotent across iterative Codex-fix passes. No anon/broad access, no service role key/secrets, production Supabase env remains OFF. Calendar/Approval/Reports/Asset Library/Connector Inbox/Automation Logs untouched.
+
+**Build:** PASS — 0 TS errors (`tsc && vite build`). `git diff --check`: PASS (CRLF warnings only).
+
+**Codex result:** PASS.
+
+**Commits:** `c81b069` (fix: tighten generation rls role permissions) → `0876162` (fix: enforce generation rls brief hierarchy)
+
+---
+
+## 🏁 Phase 16C-1 — CLOSED (Codex PASS — 2026-06-11)
+
+**Summary:**
+- Generation CRUD wired to Supabase with localStorage fallback.
+- Full scope required: clientId + brandId + campaignId + briefId.
+- No get/update/archive by generationId alone.
+- Local generation/job/item IDs are not sent into Supabase UUID columns.
+- Update patch sanitizes tenant/audit/ownership fields.
+- Archive is fully scoped.
+- RLS policies enforce active/unexpired assignments, role-specific read/write permissions, and full client/brand/campaign/brief hierarchy.
+- Production Supabase env remains OFF.
+- Demo Sign In remains.
+- No secrets or service role key.
+
+- **Codex result:** PASS — no further required fixes.
+- **Commits:** `77987ab` (feat: wire generation crud to supabase) → `db0819b` (fix: harden generation crud tenant scope) → `c81b069` (fix: tighten generation rls role permissions) → `0876162` (fix: enforce generation rls brief hierarchy)
+- **git status:** working tree clean. main = origin/main.
+- **Trạng thái:** ✅ CLOSED.
+- **Next phase:** TBD.
 
 ---
 
@@ -454,3 +496,4 @@ With Supabase env (future):
 | Phase 16A | Supabase CRUD Wiring — Clients + Brands (Codex PASS) | df7e6aa |
 | Phase 16B-1 | Supabase CRUD Wiring — Campaigns (Codex PASS) | a2a8651 |
 | Phase 16B-2 | Supabase CRUD Wiring — Campaign Briefs (Codex PASS) | 4a5ce38 |
+| Phase 16C-1 | Supabase CRUD Wiring — Content Plan Generation (Codex PASS) | 0876162 |

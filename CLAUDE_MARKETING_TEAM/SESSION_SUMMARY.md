@@ -22,7 +22,7 @@ Chúng ta đang xây dựng **The Core Agency — Real Operations MVP**. Đây l
 
 ---
 
-## 🏁 Phase 16C-1 — Content Plan Generation CRUD Wiring (Implemented — Codex Fix applied — awaiting re-review — 2026-06-11)
+## 🏁 Phase 16C-1 — Content Plan Generation CRUD Wiring (CLOSED — Codex PASS — 2026-06-11)
 
 **Scope completed:** Supabase CRUD repository wiring for Content Plan Generation only (Calendar/Approval/Reports/Asset Library/Connector Inbox/Automation Logs untouched). Same repository pattern as Phase 16A/16B-1/16B-2.
 
@@ -71,7 +71,38 @@ Chúng ta đang xây dựng **The Core Agency — Real Operations MVP**. Đây l
 
 **Build:** PASS — 0 TS errors. `git diff --check`: PASS (CRLF warnings only).
 
-**Codex result:** Fix applied — awaiting re-review. **Trạng thái Phase 16C-1:** Codex Fix applied, awaiting Codex re-review. **Next:** Codex re-review of Phase 16C-1, then TBD.
+**Codex result:** PASS after Round 2 RLS hardening (see closure section below). **Trạng thái Phase 16C-1:** ✅ CLOSED. **Next:** TBD.
+
+---
+
+## ✅ Phase 16C-1 Codex Fix Round 2 — RLS Role Permissions + Brief Hierarchy (2026-06-11)
+
+**Fix 1 (role permissions + active/unexpired):** `content_plan_user_has_scope()` now requires `is_active = TRUE` and `(expires_at IS NULL OR expires_at > NOW())`, and takes `p_roles role_name[]`. New `content_plan_user_can_write()` narrows this to `['owner','manager']`. Policies split: SELECT = any active/unexpired/in-scope role; INSERT/UPDATE (incl. transitions to `archived`) = owner/manager only — `client`/`viewer` are read-only.
+
+**Fix 2 (brief_id + hierarchy validation):** new `content_plan_hierarchy_is_valid(client_id, brand_id, campaign_id, brief_id)` validates all 4 ids form one real `clients → brands → campaigns → campaign_briefs` chain; AND-ed into `content_plan_user_has_scope()`, removing the prior OR-based mismatched-scope risk. `brief_id` now appears in every helper signature/call and every policy (SELECT / INSERT WITH CHECK / UPDATE USING / UPDATE WITH CHECK) for both `content_plan_jobs` and `content_plan_items`.
+
+**Safety:** additive, idempotent (`DROP POLICY/FUNCTION IF EXISTS` before `CREATE OR REPLACE`), no anon/broad access, no secrets/service role key, Supabase env OFF, Calendar/Approval/Reports/Asset Library/Connector Inbox/Automation Logs unchanged.
+
+**Build:** PASS — 0 TS errors. `git diff --check`: PASS (CRLF warnings only).
+
+**Codex result:** PASS. **Commits:** `c81b069` (fix: tighten generation rls role permissions) → `0876162` (fix: enforce generation rls brief hierarchy).
+
+---
+
+## 🏁 Phase 16C-1 — CLOSED (Codex PASS — 2026-06-11)
+
+- Generation CRUD wired to Supabase with localStorage fallback.
+- Full scope required: clientId + brandId + campaignId + briefId.
+- No get/update/archive by generationId alone.
+- Local generation/job/item IDs are not sent into Supabase UUID columns.
+- Update patch sanitizes tenant/audit/ownership fields.
+- Archive is fully scoped.
+- RLS policies enforce active/unexpired assignments, role-specific read/write permissions, and full client/brand/campaign/brief hierarchy.
+- Production Supabase env remains OFF.
+- Demo Sign In remains.
+- No secrets or service role key.
+
+**Commits:** `77987ab` → `db0819b` → `c81b069` → `0876162`. **Trạng thái Phase 16C-1:** ✅ CLOSED. **Next:** TBD.
 
 ---
 

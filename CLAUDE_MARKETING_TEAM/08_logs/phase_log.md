@@ -6,6 +6,39 @@ Nhật ký theo dõi các mốc hoàn thành kỹ thuật qua các Phase.
 
 ## 📅 Nhật Ký Sự Kiện (Event Logs)
 
+### 🗓️ Ngày 11/06/2026 — Phase 16C-1 CLOSED: Codex PASS
+- **Sự kiện:** Phase 16C-1 chính thức đóng sau Codex PASS (sau 2 vòng Codex required-fix).
+- **Scope hoàn thành:** Supabase CRUD repository wiring cho Content Plan Generation only (Calendar/Approval/Reports/Asset Library/Connector Inbox/Automation Logs không đổi).
+- **Tổng kết:**
+  - Generation CRUD wired to Supabase with localStorage fallback.
+  - Full scope required: clientId + brandId + campaignId + briefId.
+  - No get/update/archive by generationId alone.
+  - Local generation/job/item IDs are not sent into Supabase UUID columns.
+  - Update patch sanitizes tenant/audit/ownership fields.
+  - Archive is fully scoped.
+  - RLS policies enforce active/unexpired assignments, role-specific read/write permissions, and full client/brand/campaign/brief hierarchy.
+  - Production Supabase env remains OFF.
+  - Demo Sign In remains.
+  - No secrets or service role key.
+- **Build:** PASS — 0 TS errors (`tsc && vite build`). `git diff --check`: PASS (chỉ CRLF warnings).
+- **Codex result:** PASS.
+- **Commits:** `77987ab` (feat: wire generation crud to supabase) → `db0819b` (fix: harden generation crud tenant scope) → `c81b069` (fix: tighten generation rls role permissions) → `0876162` (fix: enforce generation rls brief hierarchy)
+- **Trạng thái:** ✅ CLOSED.
+
+---
+
+### 🗓️ Ngày 11/06/2026 — Phase 16C-1 Codex Fix Round 2: RLS Role Permissions + Brief Hierarchy
+- **Sự kiện:** Áp dụng 2 fix bắt buộc theo yêu cầu Codex review vòng 2 cho Phase 16C-1, build PASS, Codex PASS.
+- **Fix 1 (role permissions + active/unexpired):** `content_plan_user_has_scope()` trước cho phép mọi role scoped (kể cả `client`/`viewer` chỉ-đọc) INSERT/UPDATE, và không kiểm tra `is_active`/`expires_at`. Sửa: yêu cầu `ur.is_active = TRUE AND (ur.expires_at IS NULL OR ur.expires_at > NOW())`, thêm tham số `p_roles role_name[]`. Hàm mới `content_plan_user_can_write()` giới hạn còn `['owner','manager']`. Policy tách: SELECT = mọi role active/unexpired/in-scope; INSERT/UPDATE (kể cả chuyển trạng thái `archived`) = chỉ owner/manager.
+- **Fix 2 (brief_id + hierarchy validation):** helper/policy trước thiếu `brief_id`, OR-based scope check có thể authorize row có `client_id`/`brand_id`/`campaign_id`/`brief_id` không khớp cùng 1 hierarchy. Sửa: thêm `content_plan_hierarchy_is_valid(client_id, brand_id, campaign_id, brief_id)` — SECURITY DEFINER/STABLE, validate cả 4 id theo đúng chuỗi FK thật `clients → brands → campaigns → campaign_briefs`. AND vào `content_plan_user_has_scope()`. `brief_id` nay có mặt trong mọi helper signature/call và mọi policy (SELECT/INSERT/UPDATE USING/WITH CHECK) cho cả `content_plan_jobs` và `content_plan_items`.
+- **An toàn:** additive, idempotent (`DROP POLICY/FUNCTION IF EXISTS` trước `CREATE OR REPLACE`), không anon/broad access, không secrets/service role key, Supabase env OFF, Calendar/Approval/Reports/Asset Library/Connector Inbox/Automation Logs không đổi.
+- **Build:** PASS — 0 TS errors (`tsc && vite build`). `git diff --check`: PASS (chỉ CRLF warnings).
+- **Codex result:** PASS.
+- **Commits:** `c81b069` (fix: tighten generation rls role permissions) → `0876162` (fix: enforce generation rls brief hierarchy)
+- **Trạng thái:** ✅ CLOSED — Phase 16C-1 hoàn tất.
+
+---
+
 ### 🗓️ Ngày 11/06/2026 — Phase 16C-1 Codex Fix: Harden Generation Tenant Scope
 - **Sự kiện:** Áp dụng 4 fix bắt buộc theo yêu cầu Codex review cho Phase 16C-1, build PASS, đang chờ Codex re-review.
 - **Fix 1 (item read thiếu tenant scope):** `get()` ở cả 2 repo trước đây lấy `content_plan_items` chỉ filter bằng `generation_job_id`. Sửa: thêm filter `client_id`/`brand_id`/`campaign_id`/`brief_id` vào query items (Supabase: thêm 4 `.eq()`; localStorage: thêm 4 điều kiện vào `filter()`).

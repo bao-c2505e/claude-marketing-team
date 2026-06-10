@@ -6,6 +6,26 @@ Nhật ký ghi lại các hành động mô phỏng của các AI Agent khi vậ
 
 ## 🗓️ Nhật Ký Hoạt Động (Simulated Activity Logs)
 
+### 🗓️ Ngày 11/06/2026 — Phase 16C-1 CLOSED: Codex PASS
+- **[PC1 Claude Code Builder]:** Phase 16C-1 officially closed after Codex PASS (2 Codex required-fix rounds applied).
+- **[PC1]:** Final summary — Generation CRUD wired to Supabase with localStorage fallback. Full scope required: clientId + brandId + campaignId + briefId. No get/update/archive by generationId alone. Local generation/job/item IDs are not sent into Supabase UUID columns. Update patch sanitizes tenant/audit/ownership fields. Archive is fully scoped. RLS policies enforce active/unexpired assignments, role-specific read/write permissions, and full client/brand/campaign/brief hierarchy. Production Supabase env remains OFF. Demo Sign In remains. No secrets or service role key.
+- **[PC1]:** Build PASS — 0 TS errors. `git diff --check` PASS (CRLF warnings only).
+- **[PC1]:** Codex result: PASS.
+- **[PC1]:** Commits: `77987ab` → `db0819b` → `c81b069` → `0876162`.
+- **[PC1]:** Phase 16C-1 CLOSED.
+
+---
+
+### 🗓️ Ngày 11/06/2026 — Phase 16C-1 Codex Fix Round 2: RLS Role Permissions + Brief Hierarchy
+- **[PC1 Claude Code Builder]:** Applied 2 required fixes from Codex review round 2 of Phase 16C-1 — build PASS, Codex PASS.
+- **[PC1]:** Fix 1 (role permissions + active/unexpired) — `content_plan_user_has_scope()` previously granted INSERT/UPDATE to every scoped role including read-only `client`/`viewer`, and did not check `is_active`/`expires_at`. Now requires `ur.is_active = TRUE AND (ur.expires_at IS NULL OR ur.expires_at > NOW())` and takes `p_roles role_name[]`. New `content_plan_user_can_write()` narrows this to `['owner','manager']`. Policies split: SELECT = any active/unexpired/in-scope role; INSERT/UPDATE (including transitions to `archived`) = owner/manager only.
+- **[PC1]:** Fix 2 (brief_id + hierarchy validation) — helpers/policies previously omitted `brief_id`, and the OR-based scope check could authorize rows with mismatched client/brand/campaign/brief relationships. Added `content_plan_hierarchy_is_valid(client_id, brand_id, campaign_id, brief_id)` — `SECURITY DEFINER`/`STABLE`, validates all 4 ids against the real `clients → brands → campaigns → campaign_briefs` FK chain. AND-ed into `content_plan_user_has_scope()`. `brief_id` now appears in every helper signature/call and every policy (SELECT/INSERT/UPDATE USING/WITH CHECK) for both `content_plan_jobs` and `content_plan_items`.
+- **[PC1]:** Migration remains additive and idempotent (`DROP POLICY/FUNCTION IF EXISTS` before `CREATE OR REPLACE`). No anon/broad access, no secrets/service role key, Supabase env OFF, Calendar/Approval/Reports/Asset Library/Connector Inbox/Automation Logs unchanged.
+- **[PC1]:** Build PASS — 0 TS errors. `git diff --check` PASS (CRLF warnings only).
+- **[PC1]:** Codex result: PASS. Commits: `c81b069` (fix: tighten generation rls role permissions) → `0876162` (fix: enforce generation rls brief hierarchy).
+
+---
+
 ### 🗓️ Ngày 11/06/2026 — Phase 16C-1: Content Plan Generation CRUD Wiring (Implemented — awaiting Codex review)
 - **[PC1 Claude Code Builder]:** Phase 16C-1 implemented — Content Plan Generation CRUD repository wiring, build PASS, awaiting Codex review.
 - **[PC1]:** New additive migration `03_core/database/schema_v1_phase16c1_generation_extension.sql` creates `content_plan_jobs`/`content_plan_items` tables matching the Phase 6 `ContentPlanJob`/`ContentPlanItem` types (3 enums, `client_id`/`brand_id`/`campaign_id`/`brief_id` UUID FKs, `plan_length_days CHECK (IN (7,15,30))`, `requested_by TEXT`, 7 indexes, `updated_at` triggers, RLS enabled). Legacy `generation_jobs`/`content_items` tables (Phase-15-planned, campaign-only scope, unused by the app) left untouched. Not applied to any live DB.
