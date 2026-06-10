@@ -1,22 +1,32 @@
 // =============================================================================
 // THE CORE AGENCY — Repository Factory
 // Phase 16A — Supabase CRUD Wiring: Clients + Brands
+// Phase 16B-1 — Supabase CRUD Wiring: Campaigns
 //
 // Returns Supabase-backed repositories when configured,
 // localStorage repositories otherwise (demo mode / no env vars).
 //
-// Phase 16A scope: Clients + Brands only.
-// Campaign / Brief / Generation / Approval / etc. wiring is deferred to later phases.
+// Phase 16B-1 scope: Clients + Brands + Campaigns.
+// Brief / Generation / Approval / etc. wiring is deferred to later phases.
 // =============================================================================
 
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { ClientRepository, BrandRepository } from './coreRepository';
-import { LocalStorageClientRepository, LocalStorageBrandRepository } from './localStorageRepositories';
-import { SupabaseClientRepository, SupabaseBrandRepository } from './supabaseRepositories';
+import type { ClientRepository, BrandRepository, CampaignRepository } from './coreRepository';
+import {
+  LocalStorageClientRepository,
+  LocalStorageBrandRepository,
+  LocalStorageCampaignRepository,
+} from './localStorageRepositories';
+import {
+  SupabaseClientRepository,
+  SupabaseBrandRepository,
+  SupabaseCampaignRepository,
+} from './supabaseRepositories';
 
 export interface Phase16aRepositories {
   clients: ClientRepository;
   brands: BrandRepository;
+  campaigns: CampaignRepository;
 }
 
 /**
@@ -37,11 +47,13 @@ export function createPhase16aRepositories(
     return {
       clients: new SupabaseClientRepository(supabase),
       brands: new SupabaseBrandRepository(supabase),
+      campaigns: new SupabaseCampaignRepository(supabase),
     };
   }
   // Fallback — localStorage / demo mode
   return {
     clients: new LocalStorageClientRepository(),
     brands: new LocalStorageBrandRepository(),
+    campaigns: new LocalStorageCampaignRepository(),
   };
 }

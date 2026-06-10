@@ -1,17 +1,22 @@
 import { useState, useEffect } from 'react';
 import { Plus, ArrowLeft, ChevronRight, Zap } from 'lucide-react';
-import type { Client, Brand, Campaign, CampaignBrief, CampaignStatus } from '../../types/core';
-import type { CampaignFormData, CoreDataStore } from '../../lib/core/coreData';
-import { generateId, CAMPAIGN_STATUS_LABEL, CAMPAIGN_STATUS_COLOR } from '../../lib/core/coreData';
+import type { Client, Brand, Campaign, CampaignStatus } from '../../types/core';
+import type { CampaignFormData } from '../../lib/core/coreData';
+import { CAMPAIGN_STATUS_LABEL, CAMPAIGN_STATUS_COLOR } from '../../lib/core/coreData';
 import { can } from '../../lib/auth/permissions';
 import type { RoleName } from '../../types/core';
+
+// ---------------------------------------------------------------------------
+// Phase 16B-1: mutations are routed through async repo handlers in App.tsx.
+// generateId / onUpdate(CoreDataStore) removed — IDs come from the database row.
+// ---------------------------------------------------------------------------
 
 interface Props {
   clients: Client[];
   brands: Brand[];
   campaigns: Campaign[];
-  briefs: CampaignBrief[];
-  onUpdate: (updated: CoreDataStore) => void;
+  onCampaignCreate: (data: CampaignFormData) => Promise<void>;
+  onCampaignUpdate: (campaign: Campaign, patch: Partial<Campaign>) => Promise<void>;
   userRole: RoleName | null;
   isSupabaseConfigured: boolean;
   initialFilterClientId?: string;
@@ -31,11 +36,13 @@ const EMPTY_FORM: CampaignFormData = {
 
 const STATUSES: CampaignStatus[] = ['draft', 'active', 'paused', 'completed', 'archived'];
 
-export default function CampaignsTab({ clients, brands, campaigns, briefs, onUpdate, userRole, isSupabaseConfigured, initialFilterClientId, initialFilterBrandId }: Props) {
+export default function CampaignsTab({ clients, brands, campaigns, onCampaignCreate, onCampaignUpdate, userRole, isSupabaseConfigured, initialFilterClientId, initialFilterBrandId }: Props) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState<CampaignFormData>(EMPTY_FORM);
   const [formError, setFormError] = useState('');
+  const [formLoading, setFormLoading] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
   const [filterClientId, setFilterClientId] = useState<string>(initialFilterClientId ?? '');
   const [filterBrandId, setFilterBrandId] = useState<string>(initialFilterBrandId ?? '');
 
@@ -61,43 +68,30 @@ export default function CampaignsTab({ clients, brands, campaigns, briefs, onUpd
 
   // ── Create ────────────────────────────────────────────────────────────────
 
-  const handleCreate = () => {
+  const handleCreate = async () => {
     if (!form.client_id) { setFormError('Please select a client.'); return; }
     if (!form.brand_id) { setFormError('Please select a brand.'); return; }
     if (!form.name.trim()) { setFormError('Campaign name is required.'); return; }
-    const now = new Date().toISOString();
-    const budgetNum = form.budget_estimate.trim() ? parseFloat(form.budget_estimate.replace(/,/g, '')) : null;
-    const newCampaign: Campaign = {
-      id: generateId('campaign'),
-      client_id: form.client_id,
-      brand_id: form.brand_id,
-      name: form.name.trim(),
-      description: form.description.trim() || null,
-      campaign_type: 'custom',
-      duration_days: 0,
-      start_date: form.start_date || null,
-      end_date: form.end_date || null,
-      status: form.status,
-      budget_estimate: budgetNum,
-      currency: 'VND',
-      created_by: 'demo-owner-000',
-      created_at: now,
-      updated_at: now,
-    };
-    onUpdate({ clients, brands, campaigns: [newCampaign, ...campaigns], briefs });
-    setForm(EMPTY_FORM);
+    setFormLoading(true);
     setFormError('');
-    setShowForm(false);
+    try {
+      await onCampaignCreate(form);
+      setForm(EMPTY_FORM);
+      setShowForm(false);
+    } catch (err) {
+      setFormError(err instanceof Error ? err.message : 'Failed to create campaign. Please try again.');
+    } finally {
+      setFormLoading(false);
+    }
   };
 
-  const handleStatusChange = (campaignId: string, newStatus: CampaignStatus) => {
-    const now = new Date().toISOString();
-    onUpdate({
-      clients,
-      brands,
-      campaigns: campaigns.map(c => c.id === campaignId ? { ...c, status: newStatus, updated_at: now } : c),
-      briefs,
-    });
+  const handleStatusChange = async (campaign: Campaign, newStatus: CampaignStatus) => {
+    setActionError(null);
+    try {
+      await onCampaignUpdate(campaign, { status: newStatus });
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'Failed to update campaign status.');
+    }
   };
 
   // ── Detail view ───────────────────────────────────────────────────────────
@@ -116,6 +110,13 @@ export default function CampaignsTab({ clients, brands, campaigns, briefs, onUpd
             Campaigns / {clientName(campaign.client_id)} / {brandName(campaign.brand_id)} / {campaign.name}
           </span>
         </div>
+
+        {actionError && (
+          <div style={{ padding: '10px 14px', background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.4)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
+            <span style={{ fontSize: '0.8rem', color: '#f87171' }}>⚠ {actionError}</span>
+            <button onClick={() => setActionError(null)} style={{ background: 'none', border: 'none', color: '#f87171', cursor: 'pointer', fontSize: '0.85rem', padding: '0 4px' }}>✕</button>
+          </div>
+        )}
 
         <div className="glass-panel" style={{ padding: '24px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
@@ -139,7 +140,7 @@ export default function CampaignsTab({ clients, brands, campaigns, briefs, onUpd
                 <select
                   className="form-control"
                   value={campaign.status}
-                  onChange={e => handleStatusChange(campaign.id, e.target.value as CampaignStatus)}
+                  onChange={e => handleStatusChange(campaign, e.target.value as CampaignStatus)}
                   style={{ fontSize: '0.82rem', padding: '5px 10px', width: 'auto' }}
                 >
                   {STATUSES.map(s => <option key={s} value={s}>{CAMPAIGN_STATUS_LABEL[s]}</option>)}
@@ -177,6 +178,13 @@ export default function CampaignsTab({ clients, brands, campaigns, briefs, onUpd
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+
+      {actionError && (
+        <div style={{ padding: '10px 14px', background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.4)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
+          <span style={{ fontSize: '0.8rem', color: '#f87171' }}>⚠ {actionError}</span>
+          <button onClick={() => setActionError(null)} style={{ background: 'none', border: 'none', color: '#f87171', cursor: 'pointer', fontSize: '0.85rem', padding: '0 4px' }}>✕</button>
+        </div>
+      )}
 
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
@@ -267,8 +275,10 @@ export default function CampaignsTab({ clients, brands, campaigns, briefs, onUpd
           </div>
           {formError && <p style={{ fontSize: '0.8rem', color: '#f87171', marginTop: '8px' }}>{formError}</p>}
           <div style={{ display: 'flex', gap: '10px', marginTop: '16px' }}>
-            <button className="btn btn-primary" style={{ fontSize: '0.85rem' }} onClick={handleCreate}>Create Campaign</button>
-            <button className="btn btn-secondary" style={{ fontSize: '0.85rem' }} onClick={() => { setShowForm(false); setForm(EMPTY_FORM); setFormError(''); }}>Cancel</button>
+            <button className="btn btn-primary" style={{ fontSize: '0.85rem', opacity: formLoading ? 0.6 : 1 }} onClick={handleCreate} disabled={formLoading}>
+              {formLoading ? 'Saving…' : 'Create Campaign'}
+            </button>
+            <button className="btn btn-secondary" style={{ fontSize: '0.85rem' }} onClick={() => { setShowForm(false); setForm(EMPTY_FORM); setFormError(''); }} disabled={formLoading}>Cancel</button>
           </div>
         </div>
       )}
@@ -312,7 +322,7 @@ export default function CampaignsTab({ clients, brands, campaigns, briefs, onUpd
                       <select
                         className="form-control"
                         value={c.status}
-                        onChange={e => handleStatusChange(c.id, e.target.value as CampaignStatus)}
+                        onChange={e => handleStatusChange(c, e.target.value as CampaignStatus)}
                         style={{ fontSize: '0.78rem', padding: '3px 8px', width: 'auto', color: CAMPAIGN_STATUS_COLOR[c.status] }}
                       >
                         {STATUSES.map(s => <option key={s} value={s}>{CAMPAIGN_STATUS_LABEL[s]}</option>)}

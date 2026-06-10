@@ -37,7 +37,7 @@ import { useAuth } from './lib/auth/AuthContext';
 import { ROLE_LABELS, ROLE_COLORS } from './lib/auth/permissions';
 import { isSupabaseConfigured, supabase } from './lib/supabaseClient';
 import { createPhase16aRepositories } from './lib/core/repositoryFactory';
-import type { Client, Brand } from './types/core';
+import type { Client, Brand, Campaign as CoreCampaign } from './types/core';
 import LoginScreen from './components/auth/LoginScreen';
 import ClientsTab from './components/core/ClientsTab';
 import BrandsTab from './components/core/BrandsTab';
@@ -53,7 +53,7 @@ import ExportPackTab from './components/core/ExportPackTab';
 import ConnectorRegistryTab from './components/core/ConnectorRegistryTab';
 import AutomationLogsTab from './components/core/AutomationLogsTab';
 import { loadCoreData, saveCoreData, loadGenerationData, saveGenerationData, loadApprovalData, saveApprovalData, loadAssetData, saveAssetData, canSubmitItem } from './lib/core/coreData';
-import type { CoreDataStore, GenerationDataStore, ApprovalDataStore, AssetDataStore, ClientFormData, BrandFormData } from './lib/core/coreData';
+import type { CoreDataStore, GenerationDataStore, ApprovalDataStore, AssetDataStore, ClientFormData, BrandFormData, CampaignFormData } from './lib/core/coreData';
 import { loadAutomationLogData, saveAutomationLogData } from './lib/core/automationLogs';
 import type { AutomationLogStore } from './lib/core/automationLogs';
 
@@ -274,9 +274,12 @@ export default function App() {
       // Load brands scoped per client to prevent cross-client data leakage
       const brandArrays = await Promise.all(clients.map(c => repos.brands.list(c.id)));
       const brands = brandArrays.flat();
+      // Load campaigns scoped per client to prevent cross-client data leakage
+      const campaignArrays = await Promise.all(clients.map(c => repos.campaigns.list({ clientId: c.id })));
+      const loadedCampaigns = campaignArrays.flat();
       if (cancelled) return;
       setCoreData(prev => {
-        const next = { ...prev, clients, brands };
+        const next = { ...prev, clients, brands, campaigns: loadedCampaigns };
         saveCoreData(next);
         return next;
       });
@@ -322,6 +325,28 @@ export default function App() {
     const brand: Brand = await repos.brands.create(data);
     setCoreData(prev => {
       const next = { ...prev, brands: [brand, ...prev.brands] };
+      saveCoreData(next);
+      return next;
+    });
+  };
+
+  // Phase 16B-1 — typed campaign repo handlers (clientId/brandId/campaignId scoped)
+  const handleCampaignCreate = async (data: CampaignFormData): Promise<void> => {
+    const campaign: CoreCampaign = await repos.campaigns.create(data);
+    setCoreData(prev => {
+      const next = { ...prev, campaigns: [campaign, ...prev.campaigns] };
+      saveCoreData(next);
+      return next;
+    });
+  };
+
+  const handleCampaignUpdate = async (campaign: CoreCampaign, patch: Partial<CoreCampaign>): Promise<void> => {
+    const updated: CoreCampaign = await repos.campaigns.update(
+      { clientId: campaign.client_id, brandId: campaign.brand_id, campaignId: campaign.id },
+      patch,
+    );
+    setCoreData(prev => {
+      const next = { ...prev, campaigns: prev.campaigns.map(c => c.id === updated.id ? updated : c) };
       saveCoreData(next);
       return next;
     });
@@ -1065,8 +1090,8 @@ export default function App() {
                   clients={coreData.clients}
                   brands={coreData.brands}
                   campaigns={coreData.campaigns}
-                  briefs={coreData.briefs}
-                  onUpdate={handleCoreUpdate}
+                  onCampaignCreate={handleCampaignCreate}
+                  onCampaignUpdate={handleCampaignUpdate}
                   userRole={user?.role ?? null}
                   isSupabaseConfigured={isSupabaseConfigured}
                   initialFilterClientId={coreNavFilter.clientId}

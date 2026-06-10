@@ -22,6 +22,29 @@ Chúng ta đang xây dựng **The Core Agency — Real Operations MVP**. Đây l
 
 ---
 
+## 🏁 Phase 16B-1 — Campaigns CRUD Wiring (DONE — 2026-06-10)
+
+**Scope completed:** Supabase CRUD repository wiring for Campaigns only (Briefs/Generation/Calendar/Approval/Reports deferred to 16B-2+). Same repository pattern as Phase 16A (Clients/Brands).
+
+**Final tenant-scope contract:**
+- `CampaignRepository.list({ clientId, brandId? })` — `clientId` required
+- `CampaignRepository.get({ clientId, campaignId, brandId? })` — scoped by client (+ brand if given)
+- `CampaignRepository.update({ clientId, brandId, campaignId }, patch)` / `archive({ clientId, brandId, campaignId })` — all 3 IDs required
+- Supabase always adds `.eq('client_id', clientId)`, plus `.eq('brand_id', brandId)` when required
+- TypeScript enforces: unscoped campaign calls (`list()`, `get({campaignId})`, `update({campaignId}, patch)`, `archive({campaignId})`) are compile errors
+- `create(data)` requires `client_id` + `brand_id`; DB generates UUID — local `campaign-*` IDs never sent to Supabase
+
+**App.tsx / CampaignsTab.tsx wiring:**
+- On Supabase mount, campaigns loaded per-client: `Promise.all(clients.map(c => repos.campaigns.list({ clientId: c.id })))`
+- New handlers: `handleCampaignCreate(data)`, `handleCampaignUpdate(campaign, patch)` — both return repo rows used to update `coreData.campaigns` + `saveCoreData`
+- `CampaignsTab.tsx`: `onCampaignCreate`/`onCampaignUpdate` async props, `formLoading`/`actionError` states, removed `generateId`/`onUpdate(CoreDataStore)`/`briefs` prop
+
+**Safety:** Supabase env OFF · no secrets · Demo Sign In preserved · localStorage fallback preserved · Brief/Generation/Calendar/Approval/Reports wiring deferred to 16B-2+
+
+**Build:** PASS — 0 TS errors (`tsc && vite build`). `git diff --check`: PASS (CRLF warnings only).
+
+---
+
 ## 🏁 Phase 16A CLOSED — Codex PASS (2026-06-09)
 
 **Scope completed:** Supabase CRUD repository wiring for Clients and Brands. Repository pattern implemented (interface → factory → Supabase/localStorage impls). All three Codex fix rounds applied and passed.

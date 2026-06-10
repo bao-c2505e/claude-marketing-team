@@ -1,9 +1,55 @@
-# CURRENT PHASE — Phase 16B (Next) | Phase 16A ✅ CLOSED (Codex PASS — 2026-06-09)
+# CURRENT PHASE — Phase 16B-2 (Next) | Phase 16B-1 ✅ DONE (build pass — 2026-06-10) | Phase 16A ✅ CLOSED (Codex PASS — 2026-06-09)
 
 ## 📌 Thông tin chung
-- **Phase trước:** Phase 16A — Supabase CRUD Wiring Core Objects: Repository Base + Clients/Brands
-- **Trạng thái Phase 16A:** ✅ CLOSED — Codex PASS. Repositories implemented, all tenant-scope fixes applied, build pass, 0 TS errors.
-- **Phase tiếp theo:** Phase 16B — Campaigns + Briefs CRUD wiring (see scope below)
+- **Phase trước:** Phase 16B-1 — Supabase CRUD Wiring: Campaigns
+- **Trạng thái Phase 16B-1:** ✅ DONE — repository + App.tsx + CampaignsTab wired, build PASS (0 TS errors).
+- **Phase tiếp theo:** Phase 16B-2 — Campaign Briefs CRUD wiring (see scope below)
+
+---
+
+## 🏁 Phase 16B-1 — Campaigns CRUD Wiring (DONE — 2026-06-10)
+
+### Scope completed:
+- Supabase CRUD repository wiring for **Campaigns** only (Briefs/Generation/Calendar/Approval/Reports untouched, deferred to 16B-2+)
+- `CampaignRepository` interface extended with scoped param types: `CampaignListParams`, `CampaignGetParams`, `CampaignScopedParams`
+- Supabase implementation: `SupabaseCampaignRepository` (list/get/create/update/archive)
+- localStorage fallback: `LocalStorageCampaignRepository`
+- `createPhase16aRepositories` factory extended — bundle now returns `campaigns` repo
+- App.tsx wired: campaigns loaded per-client on Supabase mount (alongside clients/brands), `handleCampaignCreate`, `handleCampaignUpdate`
+- `CampaignsTab.tsx`: async `onCampaignCreate`/`onCampaignUpdate` props, `formLoading`/`actionError` states; removed `generateId` and the broad `onUpdate(CoreDataStore)` / `briefs` prop
+
+### Tenant-scope contract (final):
+- `CampaignRepository.list({ clientId, brandId? })` — `clientId` required, `brandId` optional
+- `CampaignRepository.get({ clientId, campaignId, brandId? })` — scoped by client (+ brand if given)
+- `CampaignRepository.update({ clientId, brandId, campaignId }, patch)` — all 3 IDs required
+- `CampaignRepository.archive({ clientId, brandId, campaignId })` — all 3 IDs required
+- Supabase campaign queries always include `.eq('client_id', clientId)`, plus `.eq('brand_id', brandId)` when provided/required
+- TypeScript enforces: calling list/get/update/archive without the required scope is a compile error — unscoped calls (`list()`, `get({campaignId})`, `update({campaignId}, patch)`, `archive({campaignId})`) do not type-check
+- `create(data: CampaignFormData)` requires `client_id` + `brand_id`; Supabase impl never sends an `id` field — DB generates the UUID, and the returned row (with real UUID) is used to update React state
+
+### Data flow:
+- Supabase mode: on mount, campaigns loaded per-client — `Promise.all(clients.map(c => repos.campaigns.list({ clientId: c.id })))`, same pattern as brands (Phase 16A)
+- localStorage mode: `LocalStorageCampaignRepository` filters `loadCoreData().campaigns` by `client_id` (+ `brand_id` when given)
+- Create/update return the repository row, merged into `coreData.campaigns` React state and persisted via `saveCoreData`
+
+### Safety record:
+- Production Supabase env: **OFF** (env vars unset)
+- Secrets / service role key in frontend: **NO**
+- Demo Sign In: **PRESERVED**
+- localStorage fallback: **PRESERVED**
+- Brief / Generation / Calendar / Approval / Reports wiring: **NOT DONE** (deferred to 16B-2+)
+- Build: PASS — 0 TS errors (`tsc && vite build`)
+- `git diff --check`: PASS (CRLF warnings only, not errors)
+
+### Files changed:
+| File | Change |
+|---|---|
+| `src/lib/core/coreRepository.ts` | `CampaignRepository` interface + `CampaignListParams`/`CampaignGetParams`/`CampaignScopedParams` |
+| `src/lib/core/localStorageRepositories.ts` | `LocalStorageCampaignRepository` (list/get/create/update/archive, scoped) |
+| `src/lib/core/supabaseRepositories.ts` | `SupabaseCampaignRepository` (list/get/create/update/archive, scoped) |
+| `src/lib/core/repositoryFactory.ts` | Added `campaigns` to `Phase16aRepositories` bundle |
+| `src/App.tsx` | Per-client campaign load on Supabase mount; `handleCampaignCreate`/`handleCampaignUpdate`; wired into `CampaignsTab` |
+| `src/components/core/CampaignsTab.tsx` | `onCampaignCreate`/`onCampaignUpdate` async props; `formLoading`/`actionError`; removed `generateId`/`onUpdate`/`briefs` |
 
 ---
 
@@ -194,9 +240,8 @@ With Supabase env (future):
 
 ---
 
-## 🔮 Phase 16B Recommended Scope
-- Campaigns CRUD wiring (same repository pattern, `campaigns` table)
-- Campaign Briefs CRUD wiring (`campaign_briefs` table)
+## 🔮 Phase 16B-2 Recommended Scope
+- Campaign Briefs CRUD wiring (`campaign_briefs` table), same repository + tenant-scope pattern as Campaigns (16B-1)
 - Connect brief creation flow to Supabase
 - Keep localStorage fallback
 
@@ -222,3 +267,4 @@ With Supabase env (future):
 | Phase 14 | Automation Logs Foundation | 2d3c009 |
 | Phase 15 | Supabase Auth + Database Wiring Plan | 68e8982 |
 | Phase 16A | Supabase CRUD Wiring — Clients + Brands (Codex PASS) | df7e6aa |
+| Phase 16B-1 | Supabase CRUD Wiring — Campaigns | (this commit) |

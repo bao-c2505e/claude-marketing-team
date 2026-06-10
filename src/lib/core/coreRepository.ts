@@ -64,11 +64,30 @@ export interface BrandRepository {
 // C. Campaigns
 // ---------------------------------------------------------------------------
 
+export interface CampaignListParams {
+  clientId: string;
+  brandId?: string;
+}
+
+export interface CampaignGetParams {
+  clientId: string;
+  campaignId: string;
+  brandId?: string;
+}
+
+// clientId + brandId + campaignId all required — prevents unscoped mutations
+export interface CampaignScopedParams {
+  clientId: string;
+  brandId: string;
+  campaignId: string;
+}
+
 export interface CampaignRepository {
-  list(clientId?: string, brandId?: string): Promise<Campaign[]>;
-  get(id: string): Promise<Campaign | null>;
+  list(params: CampaignListParams): Promise<Campaign[]>;
+  get(params: CampaignGetParams): Promise<Campaign | null>;
   create(data: CampaignFormData): Promise<Campaign>;
-  update(id: string, patch: Partial<Campaign>): Promise<Campaign>;
+  update(params: CampaignScopedParams, patch: Partial<Campaign>): Promise<Campaign>;
+  archive(params: CampaignScopedParams): Promise<void>;
 }
 
 // ---------------------------------------------------------------------------
