@@ -6,6 +6,17 @@ Nhật ký ghi lại các hành động mô phỏng của các AI Agent khi vậ
 
 ## 🗓️ Nhật Ký Hoạt Động (Simulated Activity Logs)
 
+### 🗓️ Ngày 10/06/2026 — Phase 16B-2 CLOSED: Codex PASS
+- **[PC1 Claude Code Builder]:** Phase 16B-2 officially closed after Codex PASS.
+- **[PC1]:** Confirmed final state: `BriefRepository.list({ clientId, brandId, campaignId })`, `get`/`update({ clientId, brandId, campaignId, briefId }, ...)` — all scope params required per interface; TypeScript rejects unscoped calls. Supabase queries always `.eq('client_id', clientId).eq('brand_id', brandId).eq('campaign_id', campaignId)` (+ `.eq('id', briefId)` for get/update). `LocalStorageBriefRepository` mirrors the same scoping.
+- **[PC1]:** `SupabaseBriefRepository.create` never sends a local `brief-*` ID — DB generates the UUID, returned row used to update React state. No `archive()` method — `status: 'archived'` reachable via `update()`.
+- **[PC1]:** Codex Fix 1 (migration backfill) + Fix 2 (update patch sanitizer) applied and verified — `schema_v1_phase16b2_brief_extension.sql` backfills `client_id`/`brand_id` from `campaigns` before enforcing `NOT NULL` (idempotent, not applied to any live DB); `BriefUpdatePatch` + `sanitizeBriefPatch()` block `id`/`client_id`/`brand_id`/`campaign_id`/`created_at`/`updated_at`/`submitted_by`/`submitted_at` on every `update()` in both repositories.
+- **[PC1]:** Production Supabase env OFF. No secrets. No service role key. Demo Sign In preserved. localStorage fallback preserved. Generation/Calendar/Approval/Reports/Asset Library unchanged.
+- **[PC1]:** Git status clean. Commits: `1e3e664` → `4a5ce38`.
+- **[PC1]:** Codex result: PASS. Phase 16B-2 CLOSED.
+
+---
+
 ### 🗓️ Ngày 10/06/2026 — Phase 16B-2 Codex Fix 1+2: Migration backfill + brief update sanitizer
 - **[PC1 Claude Code Builder]:** Applied 2 required fixes from Codex review of Phase 16B-2 — build PASS, awaiting Codex re-review.
 - **[PC1]:** Fix 1 (migration backfill) — `schema_v1_phase16b2_brief_extension.sql` previously made `client_id`/`brand_id` `NOT NULL` with no backfill, so existing briefs would violate the constraint and/or vanish from every new tenant-scoped query. Now: (1) columns added nullable; (2) `UPDATE campaign_briefs b SET client_id = c.client_id, brand_id = c.brand_id FROM campaigns c WHERE b.campaign_id = c.id AND (b.client_id IS NULL OR b.brand_id IS NULL)` backfills from `campaigns`; (3) a `DO $$` block applies `NOT NULL` to both columns only if zero rows remain unbackfilled — orphaned `campaign_id` rows are reported via `RAISE NOTICE` (with brief IDs) and left nullable instead of guessing a tenant. Idempotent.

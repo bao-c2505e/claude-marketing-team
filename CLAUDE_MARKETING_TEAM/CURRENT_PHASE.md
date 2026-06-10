@@ -1,14 +1,14 @@
-# CURRENT PHASE — Phase 16B-2 (Codex Fix 1+2 applied — awaiting Codex re-review — 2026-06-10) | Phase 16B-1 ✅ CLOSED (Codex PASS — 2026-06-10) | Phase 16A ✅ CLOSED (Codex PASS — 2026-06-09)
+# CURRENT PHASE — Phase 16B-2 ✅ CLOSED (Codex PASS — 2026-06-10) | Phase 16B-1 ✅ CLOSED (Codex PASS — 2026-06-10) | Phase 16A ✅ CLOSED (Codex PASS — 2026-06-09)
 
 ## 📌 Thông tin chung
 - **Phase trước:** Phase 16B-1 — Supabase CRUD Wiring: Campaigns
 - **Trạng thái Phase 16B-1:** ✅ CLOSED — repository + App.tsx + CampaignsTab wired, build PASS (0 TS errors). Codex Fix 1 applied (positive `duration_days` on create). Codex result: PASS.
-- **Phase hiện tại:** Phase 16B-2 — Campaign Briefs CRUD wiring — implemented, build PASS (0 TS errors). Codex Fix 1 (migration backfill) + Fix 2 (update patch sanitizer) applied, awaiting Codex re-review (see scope below)
-- **Phase tiếp theo:** TBD — pending Codex re-review of Phase 16B-2
+- **Phase hiện tại:** Phase 16B-2 — Campaign Briefs CRUD wiring — ✅ CLOSED. Build PASS (0 TS errors). Codex Fix 1 (migration backfill) + Fix 2 (update patch sanitizer) applied. Codex result: PASS.
+- **Phase tiếp theo:** TBD
 
 ---
 
-## 🏁 Phase 16B-2 — Campaign Briefs CRUD Wiring (Codex Fix 1+2 applied — awaiting Codex re-review — 2026-06-10)
+## 🏁 Phase 16B-2 — Campaign Briefs CRUD Wiring (CLOSED — Codex PASS — 2026-06-10)
 
 ### Scope completed:
 - Supabase CRUD repository wiring for **Campaign Briefs** only (Generation/Calendar/Approval/Reports/Asset Library untouched)
@@ -73,7 +73,17 @@
 
 **Build:** PASS — 0 TS errors (`tsc && vite build`). `git diff --check`: PASS (CRLF warnings only).
 
-**Codex result:** Fix 1+2 applied — awaiting Codex re-review.
+**Codex result:** PASS — no further required fixes.
+
+---
+
+## 🏁 Phase 16B-2 — CLOSED (Codex PASS — 2026-06-10)
+
+- **Codex result:** PASS — no further required fixes (Fix 1: migration backfill, Fix 2: brief update patch sanitizer — both verified).
+- **Commits:** `1e3e664` (feat: add phase 16b2 brief repository wiring) → `4a5ce38` (fix: backfill and sanitize campaign brief updates)
+- **git status:** working tree clean. main = origin/main.
+- **Trạng thái:** ✅ CLOSED.
+- **Next phase:** TBD.
 
 ---
 
@@ -342,13 +352,6 @@ With Supabase env (future):
 
 ---
 
-## 🔮 Phase 16B-2 Recommended Scope
-- Campaign Briefs CRUD wiring (`campaign_briefs` table), same repository + tenant-scope pattern as Campaigns (16B-1)
-- Connect brief creation flow to Supabase
-- Keep localStorage fallback
-
----
-
 ## ✅ Previous Phases (CLOSED)
 
 | Phase | Feature | Commit |
@@ -370,3 +373,4 @@ With Supabase env (future):
 | Phase 15 | Supabase Auth + Database Wiring Plan | 68e8982 |
 | Phase 16A | Supabase CRUD Wiring — Clients + Brands (Codex PASS) | df7e6aa |
 | Phase 16B-1 | Supabase CRUD Wiring — Campaigns (Codex PASS) | a2a8651 |
+| Phase 16B-2 | Supabase CRUD Wiring — Campaign Briefs (Codex PASS) | 4a5ce38 |

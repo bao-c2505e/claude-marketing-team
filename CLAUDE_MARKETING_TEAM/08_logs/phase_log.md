@@ -6,6 +6,21 @@ Nhật ký theo dõi các mốc hoàn thành kỹ thuật qua các Phase.
 
 ## 📅 Nhật Ký Sự Kiện (Event Logs)
 
+### 🗓️ Ngày 10/06/2026 — Phase 16B-2 CLOSED: Codex PASS
+- **Sự kiện:** Phase 16B-2 chính thức đóng sau Codex PASS.
+- **Scope hoàn thành:** Supabase CRUD repository wiring cho Campaign Briefs only (Generation/Calendar/Approval/Reports/Asset Library không đổi).
+- **Tenant-scope contract cuối:** `BriefRepository.list({ clientId, brandId, campaignId })` — cả 3 ID bắt buộc. `get`/`update({ clientId, brandId, campaignId, briefId }, ...)` — cả 4 ID bắt buộc. Supabase queries luôn `.eq('client_id', ...).eq('brand_id', ...).eq('campaign_id', ...)` (+ `.eq('id', briefId)` cho get/update). `LocalStorageBriefRepository` filter tương tự. TypeScript enforce tại compile time.
+- **`create(data)`:** không bao giờ gửi local `brief-*` ID — DB tự generate UUID. Không có `archive()` — `status: 'archived'` đạt được qua `update()`.
+- **Migration:** `schema_v1_phase16b2_brief_extension.sql` — thêm `brief_status` enum, `client_id`/`brand_id`/`status` + 13 cột brief-detail, backfill `client_id`/`brand_id` từ `campaigns` trước khi enforce `NOT NULL`. Idempotent, chưa apply lên DB live nào.
+- **Sanitizer:** `BriefUpdatePatch` type + `sanitizeBriefPatch()` chặn `id`/`client_id`/`brand_id`/`campaign_id`/`created_at`/`updated_at`/`submitted_by`/`submitted_at` trong mọi `update()` (cả Supabase và localStorage).
+- **An toàn:** Supabase env OFF · không secrets · không service role key · Demo Sign In preserved · localStorage fallback preserved · Generation/Calendar/Approval/Reports/Asset Library không đổi.
+- **Build:** PASS — 0 TS errors (`tsc && vite build`). `git diff --check`: PASS (chỉ CRLF warnings).
+- **Codex result:** PASS.
+- **Commits:** `1e3e664` (feat: add phase 16b2 brief repository wiring) → `4a5ce38` (fix: backfill and sanitize campaign brief updates)
+- **Trạng thái:** ✅ CLOSED.
+
+---
+
 ### 🗓️ Ngày 10/06/2026 — Phase 16B-2 Codex Fix 1+2: Migration backfill + brief update sanitizer
 - **Sự kiện:** Áp dụng 2 fix theo yêu cầu Codex review cho Phase 16B-2, build PASS, đang chờ Codex re-review.
 - **Fix 1 (migration backfill):** `schema_v1_phase16b2_brief_extension.sql` trước đây thêm `client_id`/`brand_id` là `NOT NULL` ngay lập tức — các brief hiện có sẽ có giá trị NULL, vi phạm constraint và biến mất khỏi mọi query scoped mới. Sửa: (1) thêm `client_id`/`brand_id` dạng nullable; (2) backfill từ `campaigns` bằng `UPDATE campaign_briefs b SET client_id = c.client_id, brand_id = c.brand_id FROM campaigns c WHERE b.campaign_id = c.id AND (b.client_id IS NULL OR b.brand_id IS NULL)`; (3) khối `DO $$` chỉ `ALTER COLUMN ... SET NOT NULL` nếu sau backfill không còn row nào thiếu tenant ref — nếu còn (campaign_id mồ côi), `RAISE NOTICE` liệt kê các brief id bị ảnh hưởng, giữ cột nullable, không enforce NOT NULL (tránh đoán/làm sai tenant). Idempotent.

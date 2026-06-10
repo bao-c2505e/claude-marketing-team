@@ -22,7 +22,7 @@ Chúng ta đang xây dựng **The Core Agency — Real Operations MVP**. Đây l
 
 ---
 
-## 🏁 Phase 16B-2 — Campaign Briefs CRUD Wiring (Codex Fix 1+2 applied — awaiting Codex re-review — 2026-06-10)
+## 🏁 Phase 16B-2 — Campaign Briefs CRUD Wiring (CLOSED — Codex PASS — 2026-06-10)
 
 **Scope completed:** Supabase CRUD repository wiring for Campaign Briefs only (Generation/Calendar/Approval/Reports/Asset Library untouched). Same repository pattern as Phase 16A/16B-1.
 
@@ -64,7 +64,7 @@ Chúng ta đang xây dựng **The Core Agency — Real Operations MVP**. Đây l
 
 **Build:** PASS — 0 TS errors. `git diff --check`: PASS (CRLF warnings only).
 
-**Next:** Codex re-review of Phase 16B-2.
+**Codex result:** PASS. **Commits:** `1e3e664` → `4a5ce38`. **Trạng thái Phase 16B-2:** ✅ CLOSED. **Next:** TBD.
 
 ---
 
