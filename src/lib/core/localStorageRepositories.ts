@@ -10,7 +10,8 @@
 // =============================================================================
 
 import type { Client, Brand, Campaign, CampaignBrief } from '../../types/core';
-import type { ClientRepository, BrandRepository, CampaignRepository, CampaignListParams, CampaignGetParams, CampaignScopedParams, BriefRepository, BriefListParams, BriefScopedParams } from './coreRepository';
+import type { ClientRepository, BrandRepository, CampaignRepository, CampaignListParams, CampaignGetParams, CampaignScopedParams, BriefRepository, BriefListParams, BriefScopedParams, BriefUpdatePatch } from './coreRepository';
+import { sanitizeBriefPatch } from './coreRepository';
 import type { ClientFormData, BrandFormData, CampaignFormData, BriefFormData } from './coreData';
 import { loadCoreData, saveCoreData, generateId, calculateCampaignDurationDays, parseLines, parseComma } from './coreData';
 
@@ -247,13 +248,15 @@ export class LocalStorageBriefRepository implements BriefRepository {
     return brief;
   }
 
-  async update({ clientId, brandId, campaignId, briefId }: BriefScopedParams, patch: Partial<CampaignBrief>): Promise<CampaignBrief> {
+  async update({ clientId, brandId, campaignId, briefId }: BriefScopedParams, patch: BriefUpdatePatch): Promise<CampaignBrief> {
     const store = loadCoreData();
     const now = new Date().toISOString();
+    // Strip id/tenant/audit fields — patch can never reassign a brief to another tenant/campaign
+    const safe = sanitizeBriefPatch(patch);
     let found: CampaignBrief | undefined;
     const briefs = store.briefs.map(b => {
       if (b.id === briefId && b.client_id === clientId && b.brand_id === brandId && b.campaign_id === campaignId) {
-        found = { ...b, ...patch, updated_at: now };
+        found = { ...b, ...safe, updated_at: now };
         return found;
       }
       return b;

@@ -6,6 +6,17 @@ Nhật ký theo dõi các mốc hoàn thành kỹ thuật qua các Phase.
 
 ## 📅 Nhật Ký Sự Kiện (Event Logs)
 
+### 🗓️ Ngày 10/06/2026 — Phase 16B-2 Codex Fix 1+2: Migration backfill + brief update sanitizer
+- **Sự kiện:** Áp dụng 2 fix theo yêu cầu Codex review cho Phase 16B-2, build PASS, đang chờ Codex re-review.
+- **Fix 1 (migration backfill):** `schema_v1_phase16b2_brief_extension.sql` trước đây thêm `client_id`/`brand_id` là `NOT NULL` ngay lập tức — các brief hiện có sẽ có giá trị NULL, vi phạm constraint và biến mất khỏi mọi query scoped mới. Sửa: (1) thêm `client_id`/`brand_id` dạng nullable; (2) backfill từ `campaigns` bằng `UPDATE campaign_briefs b SET client_id = c.client_id, brand_id = c.brand_id FROM campaigns c WHERE b.campaign_id = c.id AND (b.client_id IS NULL OR b.brand_id IS NULL)`; (3) khối `DO $$` chỉ `ALTER COLUMN ... SET NOT NULL` nếu sau backfill không còn row nào thiếu tenant ref — nếu còn (campaign_id mồ côi), `RAISE NOTICE` liệt kê các brief id bị ảnh hưởng, giữ cột nullable, không enforce NOT NULL (tránh đoán/làm sai tenant). Idempotent.
+- **Fix 2 (sanitize update patch):** `LocalStorageBriefRepository.update` trước đây spread `patch` trực tiếp vào row (`{ ...b, ...patch, updated_at: now }`), cho phép patch ghi đè `client_id`/`brand_id`/`campaign_id`/`id`/`created_at`/`submitted_by`/`submitted_at`. `SupabaseBriefRepository.update` chỉ strip `id`/`created_at`/`client_id`/`brand_id`/`campaign_id`, chưa chặn `submitted_by`/`submitted_at`/`updated_at`. Sửa: thêm type `BriefUpdatePatch` (`Partial<Omit<CampaignBrief, 'id'|'client_id'|'brand_id'|'campaign_id'|'created_at'|'updated_at'|'submitted_by'|'submitted_at'>>`) và hàm runtime `sanitizeBriefPatch()` trong `coreRepository.ts`. Cả `LocalStorageBriefRepository.update` và `SupabaseBriefRepository.update` đều gọi `sanitizeBriefPatch(patch)` trước khi merge/gửi đi — không repo nào còn cho phép đổi tenant/identity/audit field qua `update()`.
+- **Tenant scope:** không đổi — `list`/`get`/`update` vẫn yêu cầu `clientId`+`brandId`+`campaignId`(+`briefId`); Supabase queries vẫn `.eq('client_id', ...).eq('brand_id', ...).eq('campaign_id', ...)` (+ `.eq('id', briefId)` cho get/update).
+- **An toàn:** Supabase env OFF · không secrets · không service role key · Demo Sign In preserved · localStorage fallback preserved (sanitizer áp dụng cả 2 repo).
+- **Build:** PASS — 0 TS errors (`tsc && vite build`). `git diff --check`: PASS (chỉ CRLF warnings).
+- **Trạng thái:** Codex Fix 1+2 applied — chờ Codex re-review.
+
+---
+
 ### 🗓️ Ngày 10/06/2026 — Phase 16B-2: Campaign Briefs CRUD Wiring (Implemented — chờ Codex review)
 - **Sự kiện:** Phase 16B-2 đã triển khai xong, build PASS, đang chờ Codex review.
 - **Schema gap:** `schema_v1.sql` thiếu `client_id`/`brand_id`/`status` + 13 cột brief-detail mà Phase 5 đã thêm vào `CampaignBrief` TS type/UI nhưng chưa migrate xuống DB. Migration bổ sung (additive, idempotent): `03_core/database/schema_v1_phase16b2_brief_extension.sql` (enum `brief_status` + các cột + 2 index) — chưa apply lên DB live nào.

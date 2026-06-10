@@ -1,14 +1,14 @@
-# CURRENT PHASE — Phase 16B-2 (Implemented — awaiting Codex review — 2026-06-10) | Phase 16B-1 ✅ CLOSED (Codex PASS — 2026-06-10) | Phase 16A ✅ CLOSED (Codex PASS — 2026-06-09)
+# CURRENT PHASE — Phase 16B-2 (Codex Fix 1+2 applied — awaiting Codex re-review — 2026-06-10) | Phase 16B-1 ✅ CLOSED (Codex PASS — 2026-06-10) | Phase 16A ✅ CLOSED (Codex PASS — 2026-06-09)
 
 ## 📌 Thông tin chung
 - **Phase trước:** Phase 16B-1 — Supabase CRUD Wiring: Campaigns
 - **Trạng thái Phase 16B-1:** ✅ CLOSED — repository + App.tsx + CampaignsTab wired, build PASS (0 TS errors). Codex Fix 1 applied (positive `duration_days` on create). Codex result: PASS.
-- **Phase hiện tại:** Phase 16B-2 — Campaign Briefs CRUD wiring — implemented, build PASS (0 TS errors), awaiting Codex review (see scope below)
-- **Phase tiếp theo:** TBD — pending Codex review of Phase 16B-2
+- **Phase hiện tại:** Phase 16B-2 — Campaign Briefs CRUD wiring — implemented, build PASS (0 TS errors). Codex Fix 1 (migration backfill) + Fix 2 (update patch sanitizer) applied, awaiting Codex re-review (see scope below)
+- **Phase tiếp theo:** TBD — pending Codex re-review of Phase 16B-2
 
 ---
 
-## 🏁 Phase 16B-2 — Campaign Briefs CRUD Wiring (Implemented — awaiting Codex review — 2026-06-10)
+## 🏁 Phase 16B-2 — Campaign Briefs CRUD Wiring (Codex Fix 1+2 applied — awaiting Codex re-review — 2026-06-10)
 
 ### Scope completed:
 - Supabase CRUD repository wiring for **Campaign Briefs** only (Generation/Calendar/Approval/Reports/Asset Library untouched)
@@ -24,7 +24,7 @@
 - `BriefRepository.list({ clientId, brandId, campaignId })` — all 3 IDs required
 - `BriefRepository.get({ clientId, brandId, campaignId, briefId })` — all 4 IDs required
 - `BriefRepository.create(data: BriefFormData)` — requires `client_id` + `brand_id` + `campaign_id` (+ denormalised `brand_name`/`industry`); Supabase impl never sends an `id`, `submitted_by`, `submitted_at`, `duration_days`, or `additional_notes` — DB generates the UUID, returned row updates React state
-- `BriefRepository.update({ clientId, brandId, campaignId, briefId }, patch)` — all 4 IDs required; Supabase strips `id`/`created_at`/`client_id`/`brand_id`/`campaign_id` from the patch before sending
+- `BriefRepository.update({ clientId, brandId, campaignId, briefId }, patch: BriefUpdatePatch)` — all 4 IDs required; `patch` type and the shared `sanitizeBriefPatch()` helper both strip `id`/`client_id`/`brand_id`/`campaign_id`/`created_at`/`updated_at`/`submitted_by`/`submitted_at` before the patch reaches storage (Codex Fix 2)
 - No `archive()` method — `BriefIntakeTab.tsx` has no Archive button; `status: 'archived'` remains reachable via `update()` (same as existing `handleStatusChange` transitions)
 - Supabase brief queries always include `.eq('client_id', clientId).eq('brand_id', brandId).eq('campaign_id', campaignId)`, plus `.eq('id', briefId)` for `get`/`update`
 - `LocalStorageBriefRepository` mirrors the same `client_id`/`brand_id`/`campaign_id` filtering
@@ -56,6 +56,24 @@
 | `src/lib/core/repositoryFactory.ts` | Added `briefs` to `Phase16aRepositories` bundle |
 | `src/App.tsx` | Per-campaign brief load on Supabase mount; `handleBriefCreate`/`handleBriefUpdate`; removed unused `handleCoreUpdate`; wired into `BriefIntakeTab` |
 | `src/components/core/BriefIntakeTab.tsx` | `onBriefCreate`/`onBriefUpdate` async props; `formLoading`/`actionError`; removed `generateId`/`onUpdate`/`CoreDataStore`; create-mode validation requires client + brand |
+
+---
+
+## ✅ Phase 16B-2 Codex Fix 1+2 — Migration Backfill + Brief Update Sanitizer (2026-06-10)
+
+**Issue 1 (migration):** `schema_v1_phase16b2_brief_extension.sql` added `client_id`/`brand_id` as `NOT NULL` directly. Any existing `campaign_briefs` rows would have `NULL` `client_id`/`brand_id` and (a) fail the new `NOT NULL` constraints on migration, and (b) even if nullable, would silently disappear from every new tenant-scoped `list`/`get`/`update` query.
+
+**Fix 1:** Migration now runs in 3 steps: (1) add `client_id`/`brand_id` as **nullable**; (2) `UPDATE campaign_briefs b SET client_id = c.client_id, brand_id = c.brand_id FROM campaigns c WHERE b.campaign_id = c.id AND (b.client_id IS NULL OR b.brand_id IS NULL)` — backfills every existing row from its campaign; (3) a `DO $$ ... $$` block counts any rows still missing a tenant ref — if zero, applies `ALTER COLUMN ... SET NOT NULL` to both columns; if any remain (orphaned `campaign_id` with no matching campaign), it `RAISE NOTICE`s the affected brief IDs, leaves the columns nullable, and skips the `NOT NULL` constraint rather than guessing/corrupting a tenant assignment. All steps are idempotent (re-running after a successful backfill is a no-op).
+
+**Issue 2 (update sanitization):** `LocalStorageBriefRepository.update` did `{ ...b, ...patch, updated_at: now }` — a patch could overwrite `id`, `client_id`, `brand_id`, `campaign_id`, `created_at`, `submitted_by`, `submitted_at`, reassigning a brief to a different tenant/campaign. `SupabaseBriefRepository.update` only stripped `id`/`created_at`/`client_id`/`brand_id`/`campaign_id` — `submitted_by`/`submitted_at`/`updated_at` were still patchable.
+
+**Fix 2:** New `BriefUpdatePatch` type (`Partial<Omit<CampaignBrief, 'id'|'client_id'|'brand_id'|'campaign_id'|'created_at'|'updated_at'|'submitted_by'|'submitted_at'>>`) and runtime `sanitizeBriefPatch()` helper added to `coreRepository.ts`. `BriefRepository.update`'s `patch` param is now typed `BriefUpdatePatch` (compile-time), and both `LocalStorageBriefRepository.update` and `SupabaseBriefRepository.update` call `sanitizeBriefPatch(patch)` (runtime) before merging/sending — neither repo can reassign identity, tenant, or audit fields via `update()`. `App.tsx`'s `handleBriefUpdate` and `BriefIntakeTab.tsx`'s `onBriefUpdate` prop are typed `BriefUpdatePatch` accordingly.
+
+**Tenant scope:** unchanged — `list`/`get`/`update` still require `clientId`+`brandId`+`campaignId`(+`briefId`), Supabase queries still chain `.eq('client_id', ...).eq('brand_id', ...).eq('campaign_id', ...)` (+`.eq('id', briefId)`).
+
+**Build:** PASS — 0 TS errors (`tsc && vite build`). `git diff --check`: PASS (CRLF warnings only).
+
+**Codex result:** Fix 1+2 applied — awaiting Codex re-review.
 
 ---
 

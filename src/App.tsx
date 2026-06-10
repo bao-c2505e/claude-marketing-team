@@ -37,6 +37,7 @@ import { useAuth } from './lib/auth/AuthContext';
 import { ROLE_LABELS, ROLE_COLORS } from './lib/auth/permissions';
 import { isSupabaseConfigured, supabase } from './lib/supabaseClient';
 import { createPhase16aRepositories } from './lib/core/repositoryFactory';
+import type { BriefUpdatePatch } from './lib/core/coreRepository';
 import type { Client, Brand, Campaign as CoreCampaign, CampaignBrief as CoreCampaignBrief } from './types/core';
 import LoginScreen from './components/auth/LoginScreen';
 import ClientsTab from './components/core/ClientsTab';
@@ -362,7 +363,7 @@ export default function App() {
     return brief;
   };
 
-  const handleBriefUpdate = async (brief: CoreCampaignBrief, patch: Partial<CoreCampaignBrief>): Promise<void> => {
+  const handleBriefUpdate = async (brief: CoreCampaignBrief, patch: BriefUpdatePatch): Promise<void> => {
     const campaign = coreData.campaigns.find(c => c.id === brief.campaign_id);
     if (!campaign) throw new Error(`Campaign ${brief.campaign_id} not found for brief ${brief.id}`);
     const updated: CoreCampaignBrief = await repos.briefs.update(

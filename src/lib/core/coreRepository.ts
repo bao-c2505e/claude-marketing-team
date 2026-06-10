@@ -108,11 +108,38 @@ export interface BriefScopedParams {
   briefId: string;
 }
 
+// Identity, tenant-scope (FK), and audit fields — never settable via update().
+// Reassigning these would let a patch move a brief to another tenant/campaign
+// or rewrite its creation/submission history.
+const BRIEF_IMMUTABLE_PATCH_FIELDS = [
+  'id', 'client_id', 'brand_id', 'campaign_id',
+  'created_at', 'updated_at', 'submitted_by', 'submitted_at',
+] as const;
+
+export type BriefImmutableField = typeof BRIEF_IMMUTABLE_PATCH_FIELDS[number];
+
+// Compile-time contract for BriefRepository.update() patches — excludes
+// identity/tenant/audit fields so callers can't even construct an unsafe patch.
+export type BriefUpdatePatch = Partial<Omit<CampaignBrief, BriefImmutableField>>;
+
+// Codex Fix 2 (2026-06-10): runtime guard mirroring BriefUpdatePatch — strips
+// id/tenant/audit fields from a patch before it reaches storage. Required in
+// addition to the type because patch objects can be built dynamically
+// (e.g. via `as Record<string, unknown>` or object spread) and bypass
+// compile-time checks.
+export function sanitizeBriefPatch(patch: Partial<CampaignBrief>): BriefUpdatePatch {
+  const safe = { ...patch } as Record<string, unknown>;
+  for (const field of BRIEF_IMMUTABLE_PATCH_FIELDS) {
+    delete safe[field];
+  }
+  return safe as BriefUpdatePatch;
+}
+
 export interface BriefRepository {
   list(params: BriefListParams): Promise<CampaignBrief[]>;
   get(params: BriefScopedParams): Promise<CampaignBrief | null>;
   create(data: BriefFormData): Promise<CampaignBrief>;
-  update(params: BriefScopedParams, patch: Partial<CampaignBrief>): Promise<CampaignBrief>;
+  update(params: BriefScopedParams, patch: BriefUpdatePatch): Promise<CampaignBrief>;
 }
 
 // ---------------------------------------------------------------------------

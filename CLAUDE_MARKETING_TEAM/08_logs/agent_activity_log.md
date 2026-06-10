@@ -6,6 +6,16 @@ Nhật ký ghi lại các hành động mô phỏng của các AI Agent khi vậ
 
 ## 🗓️ Nhật Ký Hoạt Động (Simulated Activity Logs)
 
+### 🗓️ Ngày 10/06/2026 — Phase 16B-2 Codex Fix 1+2: Migration backfill + brief update sanitizer
+- **[PC1 Claude Code Builder]:** Applied 2 required fixes from Codex review of Phase 16B-2 — build PASS, awaiting Codex re-review.
+- **[PC1]:** Fix 1 (migration backfill) — `schema_v1_phase16b2_brief_extension.sql` previously made `client_id`/`brand_id` `NOT NULL` with no backfill, so existing briefs would violate the constraint and/or vanish from every new tenant-scoped query. Now: (1) columns added nullable; (2) `UPDATE campaign_briefs b SET client_id = c.client_id, brand_id = c.brand_id FROM campaigns c WHERE b.campaign_id = c.id AND (b.client_id IS NULL OR b.brand_id IS NULL)` backfills from `campaigns`; (3) a `DO $$` block applies `NOT NULL` to both columns only if zero rows remain unbackfilled — orphaned `campaign_id` rows are reported via `RAISE NOTICE` (with brief IDs) and left nullable instead of guessing a tenant. Idempotent.
+- **[PC1]:** Fix 2 (update sanitizer) — `LocalStorageBriefRepository.update` previously spread `patch` directly onto the stored row, permitting tenant reassignment (`client_id`/`brand_id`/`campaign_id`) plus rewriting `id`/`created_at`/`submitted_by`/`submitted_at`. `SupabaseBriefRepository.update` only stripped `id`/`created_at`/`client_id`/`brand_id`/`campaign_id`. Added `BriefUpdatePatch` type (`Partial<Omit<CampaignBrief, 'id'|'client_id'|'brand_id'|'campaign_id'|'created_at'|'updated_at'|'submitted_by'|'submitted_at'>>`) and runtime `sanitizeBriefPatch()` helper in `coreRepository.ts`; both repositories now sanitize the patch before merging/sending. `App.tsx`/`BriefIntakeTab.tsx` updated to the `BriefUpdatePatch` type.
+- **[PC1]:** Tenant scope unchanged — `list`/`get`/`update` still require `clientId`+`brandId`+`campaignId`(+`briefId`); Supabase queries unchanged.
+- **[PC1]:** Production Supabase env OFF. No secrets. No service role key. Demo Sign In preserved. localStorage fallback preserved (sanitizer applies to both repos).
+- **[PC1]:** Build PASS — 0 TS errors. `git diff --check` PASS (CRLF warnings only). Awaiting Codex re-review.
+
+---
+
 ### 🗓️ Ngày 10/06/2026 — Phase 16B-2: Campaign Briefs CRUD Wiring (Implemented — awaiting Codex review)
 - **[PC1 Claude Code Builder]:** Phase 16B-2 implemented — Campaign Briefs CRUD repository wiring, build PASS, awaiting Codex review.
 - **[PC1]:** Schema gap fixed first: `schema_v1.sql`'s `campaign_briefs` table was missing `client_id`/`brand_id`/`status` + 13 brief-detail columns that Phase 5 added to the `CampaignBrief` TS type/UI but never migrated to the DB. New additive migration `03_core/database/schema_v1_phase16b2_brief_extension.sql` (`brief_status` enum + columns + 2 indexes), not applied to any live DB.

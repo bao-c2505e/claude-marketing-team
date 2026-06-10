@@ -11,7 +11,8 @@
 
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Client, Brand, Campaign, CampaignBrief } from '../../types/core';
-import type { ClientRepository, BrandRepository, CampaignRepository, CampaignListParams, CampaignGetParams, CampaignScopedParams, BriefRepository, BriefListParams, BriefScopedParams } from './coreRepository';
+import type { ClientRepository, BrandRepository, CampaignRepository, CampaignListParams, CampaignGetParams, CampaignScopedParams, BriefRepository, BriefListParams, BriefScopedParams, BriefUpdatePatch } from './coreRepository';
+import { sanitizeBriefPatch } from './coreRepository';
 import type { ClientFormData, BrandFormData, CampaignFormData, BriefFormData } from './coreData';
 import { calculateCampaignDurationDays, parseLines, parseComma } from './coreData';
 
@@ -349,8 +350,9 @@ export class SupabaseBriefRepository implements BriefRepository {
     return created as CampaignBrief;
   }
 
-  async update({ clientId, brandId, campaignId, briefId }: BriefScopedParams, patch: Partial<CampaignBrief>): Promise<CampaignBrief> {
-    const { id: _id, created_at: _ca, client_id: _cid, brand_id: _bid, campaign_id: _cmpid, ...safe } = patch as Record<string, unknown>;
+  async update({ clientId, brandId, campaignId, briefId }: BriefScopedParams, patch: BriefUpdatePatch): Promise<CampaignBrief> {
+    // Strip id/tenant/audit fields — patch can never reassign a brief to another tenant/campaign
+    const safe = sanitizeBriefPatch(patch);
     const { data, error } = await this.sb
       .from('campaign_briefs')
       .update({ ...safe, updated_at: new Date().toISOString() })

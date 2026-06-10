@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Plus, ArrowLeft, ClipboardList, ChevronRight, Zap } from 'lucide-react';
 import type { Client, Brand, Campaign, CampaignBrief, BriefStatus, RoleName } from '../../types/core';
 import type { BriefFormData } from '../../lib/core/coreData';
+import type { BriefUpdatePatch } from '../../lib/core/coreRepository';
 import {
   BRIEF_STATUS_LABEL, BRIEF_STATUS_COLOR, EMPTY_BRIEF_FORM,
   parseLines, parseComma,
@@ -14,7 +15,7 @@ interface Props {
   campaigns: Campaign[];
   briefs: CampaignBrief[];
   onBriefCreate: (data: BriefFormData) => Promise<CampaignBrief>;
-  onBriefUpdate: (brief: CampaignBrief, patch: Partial<CampaignBrief>) => Promise<void>;
+  onBriefUpdate: (brief: CampaignBrief, patch: BriefUpdatePatch) => Promise<void>;
   userRole: RoleName | null;
   isSupabaseConfigured: boolean;
   onNavigateToGenerate?: (briefId: string) => void;

@@ -22,7 +22,7 @@ Chúng ta đang xây dựng **The Core Agency — Real Operations MVP**. Đây l
 
 ---
 
-## 🏁 Phase 16B-2 — Campaign Briefs CRUD Wiring (Implemented — awaiting Codex review — 2026-06-10)
+## 🏁 Phase 16B-2 — Campaign Briefs CRUD Wiring (Codex Fix 1+2 applied — awaiting Codex re-review — 2026-06-10)
 
 **Scope completed:** Supabase CRUD repository wiring for Campaign Briefs only (Generation/Calendar/Approval/Reports/Asset Library untouched). Same repository pattern as Phase 16A/16B-1.
 
@@ -30,7 +30,7 @@ Chúng ta đang xây dựng **The Core Agency — Real Operations MVP**. Đây l
 
 **Final tenant-scope contract:**
 - `BriefRepository.list({ clientId, brandId, campaignId })` — all 3 IDs required
-- `BriefRepository.get({ clientId, brandId, campaignId, briefId })` / `update({ clientId, brandId, campaignId, briefId }, patch)` — all 4 IDs required
+- `BriefRepository.get({ clientId, brandId, campaignId, briefId })` / `update({ clientId, brandId, campaignId, briefId }, patch: BriefUpdatePatch)` — all 4 IDs required
 - Supabase always adds `.eq('client_id', clientId).eq('brand_id', brandId).eq('campaign_id', campaignId)` (+ `.eq('id', briefId)` for get/update); `LocalStorageBriefRepository` mirrors the same filtering
 - TypeScript enforces: unscoped brief calls (`list()`, `get({briefId})`, `update({briefId}, patch)`) are compile errors
 - `create(data)` requires `client_id` + `brand_id` + `campaign_id` (+ denormalised `brand_name`/`industry`); DB generates UUID — local `brief-*` IDs never sent to Supabase
@@ -46,7 +46,25 @@ Chúng ta đang xây dựng **The Core Agency — Real Operations MVP**. Đây l
 
 **Build:** PASS — 0 TS errors (`tsc && vite build`). `git diff --check`: PASS (CRLF warnings only).
 
-**Next:** Codex review of Phase 16B-2.
+---
+
+## ✅ Phase 16B-2 Codex Fix 1+2 — Migration Backfill + Brief Update Sanitizer (2026-06-10)
+
+**Issue 1 (migration):** the original migration added `client_id`/`brand_id` as `NOT NULL` directly, with no backfill — any pre-existing `campaign_briefs` rows would fail the constraint and/or silently disappear from the new tenant-scoped `list`/`get`/`update` queries.
+
+**Fix 1:** migration now (1) adds `client_id`/`brand_id` nullable, (2) backfills both from `campaigns` via `UPDATE campaign_briefs b SET client_id = c.client_id, brand_id = c.brand_id FROM campaigns c WHERE b.campaign_id = c.id AND (b.client_id IS NULL OR b.brand_id IS NULL)`, then (3) a `DO $$` block enforces `NOT NULL` on both columns only if zero rows remain unbackfilled — if a brief's `campaign_id` has no matching campaign, it `RAISE NOTICE`s the affected brief IDs, leaves those columns nullable, and skips `NOT NULL` rather than guessing/corrupting a tenant assignment. Idempotent.
+
+**Issue 2 (sanitization):** `LocalStorageBriefRepository.update` spread `patch` directly onto the stored row (`{ ...b, ...patch, updated_at: now }`), so a patch could reassign `client_id`/`brand_id`/`campaign_id`/`id`/`created_at`/`submitted_by`/`submitted_at`. `SupabaseBriefRepository.update` only stripped `id`/`created_at`/`client_id`/`brand_id`/`campaign_id` — `submitted_by`/`submitted_at`/`updated_at` were still patchable.
+
+**Fix 2:** new `BriefUpdatePatch` type (`Partial<Omit<CampaignBrief, 'id'|'client_id'|'brand_id'|'campaign_id'|'created_at'|'updated_at'|'submitted_by'|'submitted_at'>>`) + runtime `sanitizeBriefPatch()` helper in `coreRepository.ts`. `BriefRepository.update`'s `patch` is now typed `BriefUpdatePatch`, and both `LocalStorageBriefRepository.update` and `SupabaseBriefRepository.update` call `sanitizeBriefPatch(patch)` before merging/sending. `App.tsx handleBriefUpdate` and `BriefIntakeTab.tsx onBriefUpdate` updated to the `BriefUpdatePatch` type.
+
+**localStorage fallback:** still safe — sanitizer runs in `LocalStorageBriefRepository.update` too; tenant/campaign/identity/audit fields cannot be reassigned via `update()` in either mode.
+
+**Tenant scope:** unchanged — `list`/`get`/`update` still require `clientId`+`brandId`+`campaignId`(+`briefId`); Supabase queries unchanged (`.eq('client_id', ...).eq('brand_id', ...).eq('campaign_id', ...)`, `.eq('id', briefId)` for get/update).
+
+**Build:** PASS — 0 TS errors. `git diff --check`: PASS (CRLF warnings only).
+
+**Next:** Codex re-review of Phase 16B-2.
 
 ---
 
