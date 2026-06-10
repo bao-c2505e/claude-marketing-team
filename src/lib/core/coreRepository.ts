@@ -192,12 +192,34 @@ export interface GenerationDetailResult {
   items: ContentPlanItem[];
 }
 
-// Identity, tenant-scope (FK), and audit fields — never settable via update().
-// requested_by is the closest ContentPlanJob equivalent to "submitted_by": it
-// records who triggered the generation and must not be reassigned by a patch.
+// Identity, tenant-scope (FK), ownership, and audit fields — never settable
+// via update(). Both snake_case (DB column names) and camelCase (TS/JS object
+// aliases) variants are listed so a dynamically-built patch (e.g. spread from
+// an untyped JSON payload) can't smuggle a reassignment through under an
+// alternate casing. requested_by is the closest ContentPlanJob equivalent to
+// "submitted_by": it records who triggered the generation and must not be
+// reassigned by a patch. The archive_at/deleted_at/owner_id/tenant_id/
+// organization_id/user_id variants are not current ContentPlanJob columns,
+// but are blocked defensively in case future columns or generic patch sources
+// introduce them.
 const GENERATION_IMMUTABLE_PATCH_FIELDS = [
-  'id', 'client_id', 'brand_id', 'campaign_id', 'brief_id',
-  'created_at', 'updated_at', 'requested_by',
+  'id',
+  'client_id', 'clientId',
+  'brand_id', 'brandId',
+  'campaign_id', 'campaignId',
+  'brief_id', 'briefId',
+  'created_at', 'createdAt',
+  'updated_at', 'updatedAt',
+  'requested_by', 'requestedBy',
+  'submitted_by', 'submittedBy',
+  'submitted_at', 'submittedAt',
+  'archived_at', 'archivedAt',
+  'archive_at', 'archiveAt',
+  'deleted_at', 'deletedAt',
+  'owner_id', 'ownerId',
+  'tenant_id', 'tenantId',
+  'organization_id', 'organizationId',
+  'user_id', 'userId',
 ] as const;
 
 export type GenerationImmutableField = typeof GENERATION_IMMUTABLE_PATCH_FIELDS[number];
@@ -206,10 +228,12 @@ export type GenerationImmutableField = typeof GENERATION_IMMUTABLE_PATCH_FIELDS[
 // identity/tenant/audit fields so callers can't even construct an unsafe patch.
 export type GenerationUpdatePatch = Partial<Omit<ContentPlanJob, GenerationImmutableField>>;
 
-// Runtime guard mirroring GenerationUpdatePatch — strips id/tenant/audit fields
-// from a patch before it reaches storage. Required in addition to the type
-// because patch objects can be built dynamically and bypass compile-time checks.
-export function sanitizeGenerationPatch(patch: Partial<ContentPlanJob>): GenerationUpdatePatch {
+// Runtime guard mirroring GenerationUpdatePatch — strips id/tenant/ownership/
+// audit fields (snake_case + camelCase) from a patch before it reaches
+// storage. Required in addition to the type because patch objects can be
+// built dynamically (e.g. spread from an untyped payload) and bypass
+// compile-time checks.
+export function sanitizeGenerationPatch(patch: Partial<ContentPlanJob> & Record<string, unknown>): GenerationUpdatePatch {
   const safe = { ...patch } as Record<string, unknown>;
   for (const field of GENERATION_IMMUTABLE_PATCH_FIELDS) {
     delete safe[field];
@@ -222,6 +246,7 @@ export interface GenerationRepository {
   get(params: GenerationScopedParams): Promise<GenerationDetailResult | null>;
   create(data: GenerationCreateInput): Promise<GenerationDetailResult>;
   update(params: GenerationScopedParams, patch: GenerationUpdatePatch): Promise<ContentPlanJob>;
+  archive(params: GenerationScopedParams): Promise<void>;
 }
 
 // ---------------------------------------------------------------------------

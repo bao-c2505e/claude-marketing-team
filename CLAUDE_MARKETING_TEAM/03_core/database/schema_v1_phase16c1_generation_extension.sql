@@ -132,7 +132,94 @@ EXCEPTION
   WHEN duplicate_object THEN NULL;
 END $$;
 
--- RLS — enabled with no policies yet, matching the "safe default" posture of
--- schema_v1.sql (only service_role can access until Phase 3 policies land).
+-- RLS — enabled with tenant-scoped policies (Codex required-fix, 2026-06-11).
+-- schema_v1.sql's other tables are still "service_role only, no policies"
+-- (Phase 3/4 TODO). These two new tables are not read by service_role-only
+-- code paths today, so they get real policies now, built on the access model
+-- that already exists in schema_v1.sql: user_roles(user_id, resource_type,
+-- resource_id) where resource_type is 'global' | 'client' | 'brand' |
+-- 'campaign' and resource_id is the matching client/brand/campaign id (NULL
+-- for 'global').
+--
+-- content_plan_user_has_scope() checks whether auth.uid() has a user_roles
+-- row granting global access, or access scoped to the row's client/brand/
+-- campaign. SECURITY DEFINER + fixed search_path is required because
+-- user_roles itself has RLS enabled with no policies, so a normal (non-owner)
+-- session could not otherwise read it to evaluate the check. auth.uid() is
+-- NULL for anon/unauthenticated requests, and user_roles.user_id is NOT NULL,
+-- so anon never matches — no anonymous public access is granted.
 ALTER TABLE content_plan_jobs  ENABLE ROW LEVEL SECURITY;
 ALTER TABLE content_plan_items ENABLE ROW LEVEL SECURITY;
+
+CREATE OR REPLACE FUNCTION content_plan_user_has_scope(
+  p_client_id   UUID,
+  p_brand_id    UUID,
+  p_campaign_id UUID
+) RETURNS BOOLEAN
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT EXISTS (
+    SELECT 1
+    FROM user_roles ur
+    WHERE ur.user_id = auth.uid()
+      AND (
+        (ur.resource_type = 'global'   AND ur.resource_id IS NULL)
+        OR (ur.resource_type = 'client'   AND ur.resource_id = p_client_id)
+        OR (ur.resource_type = 'brand'    AND ur.resource_id = p_brand_id)
+        OR (ur.resource_type = 'campaign' AND ur.resource_id = p_campaign_id)
+      )
+  );
+$$;
+
+DO $$ BEGIN
+  CREATE POLICY content_plan_jobs_select ON content_plan_jobs
+    FOR SELECT
+    USING (content_plan_user_has_scope(client_id, brand_id, campaign_id));
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;
+
+DO $$ BEGIN
+  CREATE POLICY content_plan_jobs_insert ON content_plan_jobs
+    FOR INSERT
+    WITH CHECK (content_plan_user_has_scope(client_id, brand_id, campaign_id));
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;
+
+DO $$ BEGIN
+  CREATE POLICY content_plan_jobs_update ON content_plan_jobs
+    FOR UPDATE
+    USING (content_plan_user_has_scope(client_id, brand_id, campaign_id))
+    WITH CHECK (content_plan_user_has_scope(client_id, brand_id, campaign_id));
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;
+
+DO $$ BEGIN
+  CREATE POLICY content_plan_items_select ON content_plan_items
+    FOR SELECT
+    USING (content_plan_user_has_scope(client_id, brand_id, campaign_id));
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;
+
+DO $$ BEGIN
+  CREATE POLICY content_plan_items_insert ON content_plan_items
+    FOR INSERT
+    WITH CHECK (content_plan_user_has_scope(client_id, brand_id, campaign_id));
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;
+
+DO $$ BEGIN
+  CREATE POLICY content_plan_items_update ON content_plan_items
+    FOR UPDATE
+    USING (content_plan_user_has_scope(client_id, brand_id, campaign_id))
+    WITH CHECK (content_plan_user_has_scope(client_id, brand_id, campaign_id));
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;

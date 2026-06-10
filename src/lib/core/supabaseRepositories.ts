@@ -430,6 +430,10 @@ export class SupabaseGenerationRepository implements GenerationRepository {
       .from('content_plan_items')
       .select('*')
       .eq('generation_job_id', generationId)
+      .eq('client_id', clientId)
+      .eq('brand_id', brandId)
+      .eq('campaign_id', campaignId)
+      .eq('brief_id', briefId)
       .order('day_number', { ascending: true });
     if (itemsError) throw itemsError;
 
@@ -515,5 +519,9 @@ export class SupabaseGenerationRepository implements GenerationRepository {
       throw error;
     }
     return data as ContentPlanJob;
+  }
+
+  async archive(params: GenerationScopedParams): Promise<void> {
+    await this.update(params, { status: 'archived' });
   }
 }

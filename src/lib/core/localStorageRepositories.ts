@@ -294,7 +294,9 @@ export class LocalStorageGenerationRepository implements GenerationRepository {
       j => j.id === generationId && j.client_id === clientId && j.brand_id === brandId && j.campaign_id === campaignId && j.brief_id === briefId,
     );
     if (!job) return null;
-    const items = store.contentItems.filter(i => i.generation_job_id === job.id);
+    const items = store.contentItems.filter(
+      i => i.generation_job_id === job.id && i.client_id === clientId && i.brand_id === brandId && i.campaign_id === campaignId && i.brief_id === briefId,
+    );
     return { job, items };
   }
 
@@ -340,5 +342,9 @@ export class LocalStorageGenerationRepository implements GenerationRepository {
     if (!found) throw new Error(`Generation job ${generationId} not found for brief ${briefId}`);
     saveGenerationData({ ...store, generationJobs });
     return found;
+  }
+
+  async archive(params: GenerationScopedParams): Promise<void> {
+    await this.update(params, { status: 'archived' });
   }
 }
