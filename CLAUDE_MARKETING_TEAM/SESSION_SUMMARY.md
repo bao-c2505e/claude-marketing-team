@@ -45,6 +45,16 @@ Chúng ta đang xây dựng **The Core Agency — Real Operations MVP**. Đây l
 
 ---
 
+## ✅ Phase 16B-1 Codex Fix 1 — Positive `duration_days` on Create (2026-06-10)
+
+**Issue:** `schema_v1.sql` → `campaigns.duration_days INT NOT NULL DEFAULT 7 CHECK (duration_days > 0)`. Both `SupabaseCampaignRepository.create` and `LocalStorageCampaignRepository.create` hardcoded `duration_days: 0`, which would fail the CHECK constraint on every Supabase insert.
+
+**Fix:** New helper `calculateCampaignDurationDays(startDate, endDate)` in `src/lib/core/coreData.ts` — inclusive day count `max(1, round((end - start) / 1 day) + 1)`, falling back to `1` when dates are missing/invalid. Both repositories' `create()` now use this helper instead of `0`.
+
+**Tenant scope:** unchanged. **Build:** PASS — 0 TS errors. `git diff --check`: PASS.
+
+---
+
 ## 🏁 Phase 16A CLOSED — Codex PASS (2026-06-09)
 
 **Scope completed:** Supabase CRUD repository wiring for Clients and Brands. Repository pattern implemented (interface → factory → Supabase/localStorage impls). All three Codex fix rounds applied and passed.

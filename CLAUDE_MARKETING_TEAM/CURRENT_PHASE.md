@@ -1,8 +1,8 @@
-# CURRENT PHASE — Phase 16B-2 (Next) | Phase 16B-1 ✅ DONE (build pass — 2026-06-10) | Phase 16A ✅ CLOSED (Codex PASS — 2026-06-09)
+# CURRENT PHASE — Phase 16B-2 (Next) | Phase 16B-1 ✅ DONE + Codex Fix 1 (build pass — 2026-06-10) | Phase 16A ✅ CLOSED (Codex PASS — 2026-06-09)
 
 ## 📌 Thông tin chung
 - **Phase trước:** Phase 16B-1 — Supabase CRUD Wiring: Campaigns
-- **Trạng thái Phase 16B-1:** ✅ DONE — repository + App.tsx + CampaignsTab wired, build PASS (0 TS errors).
+- **Trạng thái Phase 16B-1:** ✅ DONE — repository + App.tsx + CampaignsTab wired, build PASS (0 TS errors). Codex Fix 1 applied (positive `duration_days` on create).
 - **Phase tiếp theo:** Phase 16B-2 — Campaign Briefs CRUD wiring (see scope below)
 
 ---
@@ -50,6 +50,28 @@
 | `src/lib/core/repositoryFactory.ts` | Added `campaigns` to `Phase16aRepositories` bundle |
 | `src/App.tsx` | Per-client campaign load on Supabase mount; `handleCampaignCreate`/`handleCampaignUpdate`; wired into `CampaignsTab` |
 | `src/components/core/CampaignsTab.tsx` | `onCampaignCreate`/`onCampaignUpdate` async props; `formLoading`/`actionError`; removed `generateId`/`onUpdate`/`briefs` |
+
+---
+
+## ✅ Phase 16B-1 Codex Fix 1 — Positive `duration_days` on Create (Applied — 2026-06-10)
+
+### Issue fixed:
+- `schema_v1.sql` defines `campaigns.duration_days INT NOT NULL DEFAULT 7 CHECK (duration_days > 0)`. Both `SupabaseCampaignRepository.create` and `LocalStorageCampaignRepository.create` hardcoded `duration_days: 0`, which would violate the CHECK constraint and fail every Supabase campaign insert.
+
+### Fix:
+- Added `calculateCampaignDurationDays(startDate, endDate)` helper to `src/lib/core/coreData.ts`: inclusive day count `max(1, round((end - start) / 1 day) + 1)` when both dates are valid; falls back to `1` if either date is missing/invalid.
+- Both `SupabaseCampaignRepository.create` and `LocalStorageCampaignRepository.create` now compute `duration_days: calculateCampaignDurationDays(data.start_date, data.end_date)` instead of hardcoding `0`.
+
+### Files changed in fix 1:
+| File | Change |
+|---|---|
+| `src/lib/core/coreData.ts` | Added `calculateCampaignDurationDays` helper |
+| `src/lib/core/localStorageRepositories.ts` | `LocalStorageCampaignRepository.create` — `duration_days` computed via helper |
+| `src/lib/core/supabaseRepositories.ts` | `SupabaseCampaignRepository.create` — `duration_days` computed via helper |
+
+### Tenant-scope contract: UNCHANGED (list/get/update/archive scoping untouched).
+
+### Build: PASS — 0 TS errors. git diff --check: PASS (CRLF warnings only, not errors).
 
 ---
 

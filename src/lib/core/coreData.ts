@@ -365,6 +365,21 @@ export function generateId(prefix: string): string {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 }
 
+// Inclusive day count between start_date and end_date (campaigns.duration_days
+// has a DB CHECK constraint requiring > 0, so always return at least 1).
+export function calculateCampaignDurationDays(
+  startDate: string | null | undefined,
+  endDate: string | null | undefined,
+): number {
+  if (!startDate || !endDate) return 1;
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return 1;
+  const msPerDay = 24 * 60 * 60 * 1000;
+  const diffDays = Math.round((end.getTime() - start.getTime()) / msPerDay) + 1;
+  return Math.max(1, diffDays);
+}
+
 // ---------------------------------------------------------------------------
 // Display helpers
 // ---------------------------------------------------------------------------

@@ -12,7 +12,7 @@
 import type { Client, Brand, Campaign } from '../../types/core';
 import type { ClientRepository, BrandRepository, CampaignRepository, CampaignListParams, CampaignGetParams, CampaignScopedParams } from './coreRepository';
 import type { ClientFormData, BrandFormData, CampaignFormData } from './coreData';
-import { loadCoreData, saveCoreData, generateId } from './coreData';
+import { loadCoreData, saveCoreData, generateId, calculateCampaignDurationDays } from './coreData';
 
 // ---------------------------------------------------------------------------
 // A. LocalStorageClientRepository
@@ -152,7 +152,7 @@ export class LocalStorageCampaignRepository implements CampaignRepository {
       name: data.name.trim(),
       description: data.description.trim() || null,
       campaign_type: 'custom',
-      duration_days: 0,
+      duration_days: calculateCampaignDurationDays(data.start_date, data.end_date),
       start_date: data.start_date || null,
       end_date: data.end_date || null,
       status: data.status,
