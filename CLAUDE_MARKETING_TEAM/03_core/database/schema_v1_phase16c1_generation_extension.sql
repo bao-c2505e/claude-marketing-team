@@ -132,29 +132,43 @@ EXCEPTION
   WHEN duplicate_object THEN NULL;
 END $$;
 
--- RLS — enabled with tenant-scoped policies (Codex required-fix, 2026-06-11).
+-- RLS — enabled with tenant-scoped, role-aware policies (Codex required-fix,
+-- 2026-06-11; tightened in a second pass same day per follow-up Codex review).
 -- schema_v1.sql's other tables are still "service_role only, no policies"
 -- (Phase 3/4 TODO). These two new tables are not read by service_role-only
 -- code paths today, so they get real policies now, built on the access model
--- that already exists in schema_v1.sql: user_roles(user_id, resource_type,
--- resource_id) where resource_type is 'global' | 'client' | 'brand' |
--- 'campaign' and resource_id is the matching client/brand/campaign id (NULL
--- for 'global').
+-- that already exists in schema_v1.sql: user_roles(user_id, role_id,
+-- resource_type, resource_id, is_active, expires_at) joined to roles(name),
+-- where resource_type is 'global' | 'client' | 'brand' | 'campaign',
+-- resource_id is the matching client/brand/campaign id (NULL for 'global'),
+-- and roles.name is one of 'owner' | 'manager' | 'client' | 'viewer'.
 --
 -- content_plan_user_has_scope() checks whether auth.uid() has a user_roles
--- row granting global access, or access scoped to the row's client/brand/
--- campaign. SECURITY DEFINER + fixed search_path is required because
--- user_roles itself has RLS enabled with no policies, so a normal (non-owner)
--- session could not otherwise read it to evaluate the check. auth.uid() is
--- NULL for anon/unauthenticated requests, and user_roles.user_id is NOT NULL,
--- so anon never matches — no anonymous public access is granted.
+-- row that is:
+--   - is_active = TRUE (revoked/disabled assignments never match)
+--   - unexpired: expires_at IS NULL OR expires_at > NOW()
+--   - scoped to the row's client/brand/campaign (or 'global')
+--   - assigned a role whose name is in p_roles (defaults to all four
+--     project roles — i.e. any valid, active, unexpired, in-scope
+--     assignment may read)
+-- content_plan_user_can_write() narrows p_roles to the write-capable roles
+-- ('owner', 'manager') per roles.description in schema_v1.sql. The 'client'
+-- and 'viewer' roles are read-only and can never satisfy an INSERT/UPDATE
+-- check (including status transitions to 'archived').
+--
+-- SECURITY DEFINER + fixed search_path is required because user_roles itself
+-- has RLS enabled with no policies, so a normal (non-owner) session could not
+-- otherwise read it to evaluate the check. auth.uid() is NULL for
+-- anon/unauthenticated requests, and user_roles.user_id is NOT NULL, so anon
+-- never matches — no anonymous public access is granted.
 ALTER TABLE content_plan_jobs  ENABLE ROW LEVEL SECURITY;
 ALTER TABLE content_plan_items ENABLE ROW LEVEL SECURITY;
 
 CREATE OR REPLACE FUNCTION content_plan_user_has_scope(
   p_client_id   UUID,
   p_brand_id    UUID,
-  p_campaign_id UUID
+  p_campaign_id UUID,
+  p_roles       role_name[] DEFAULT ARRAY['owner','manager','client','viewer']::role_name[]
 ) RETURNS BOOLEAN
 LANGUAGE sql
 STABLE
@@ -164,7 +178,11 @@ AS $$
   SELECT EXISTS (
     SELECT 1
     FROM user_roles ur
+    JOIN roles r ON r.id = ur.role_id
     WHERE ur.user_id = auth.uid()
+      AND ur.is_active = TRUE
+      AND (ur.expires_at IS NULL OR ur.expires_at > NOW())
+      AND r.name = ANY (p_roles)
       AND (
         (ur.resource_type = 'global'   AND ur.resource_id IS NULL)
         OR (ur.resource_type = 'client'   AND ur.resource_id = p_client_id)
@@ -174,52 +192,53 @@ AS $$
   );
 $$;
 
-DO $$ BEGIN
-  CREATE POLICY content_plan_jobs_select ON content_plan_jobs
-    FOR SELECT
-    USING (content_plan_user_has_scope(client_id, brand_id, campaign_id));
-EXCEPTION
-  WHEN duplicate_object THEN NULL;
-END $$;
+CREATE OR REPLACE FUNCTION content_plan_user_can_write(
+  p_client_id   UUID,
+  p_brand_id    UUID,
+  p_campaign_id UUID
+) RETURNS BOOLEAN
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT content_plan_user_has_scope(
+    p_client_id, p_brand_id, p_campaign_id,
+    ARRAY['owner','manager']::role_name[]
+  );
+$$;
 
-DO $$ BEGIN
-  CREATE POLICY content_plan_jobs_insert ON content_plan_jobs
-    FOR INSERT
-    WITH CHECK (content_plan_user_has_scope(client_id, brand_id, campaign_id));
-EXCEPTION
-  WHEN duplicate_object THEN NULL;
-END $$;
+-- content_plan_jobs: any active, unexpired, in-scope role may read; only
+-- owner/manager may insert or update (including status -> 'archived').
+DROP POLICY IF EXISTS content_plan_jobs_select ON content_plan_jobs;
+CREATE POLICY content_plan_jobs_select ON content_plan_jobs
+  FOR SELECT
+  USING (content_plan_user_has_scope(client_id, brand_id, campaign_id));
 
-DO $$ BEGIN
-  CREATE POLICY content_plan_jobs_update ON content_plan_jobs
-    FOR UPDATE
-    USING (content_plan_user_has_scope(client_id, brand_id, campaign_id))
-    WITH CHECK (content_plan_user_has_scope(client_id, brand_id, campaign_id));
-EXCEPTION
-  WHEN duplicate_object THEN NULL;
-END $$;
+DROP POLICY IF EXISTS content_plan_jobs_insert ON content_plan_jobs;
+CREATE POLICY content_plan_jobs_insert ON content_plan_jobs
+  FOR INSERT
+  WITH CHECK (content_plan_user_can_write(client_id, brand_id, campaign_id));
 
-DO $$ BEGIN
-  CREATE POLICY content_plan_items_select ON content_plan_items
-    FOR SELECT
-    USING (content_plan_user_has_scope(client_id, brand_id, campaign_id));
-EXCEPTION
-  WHEN duplicate_object THEN NULL;
-END $$;
+DROP POLICY IF EXISTS content_plan_jobs_update ON content_plan_jobs;
+CREATE POLICY content_plan_jobs_update ON content_plan_jobs
+  FOR UPDATE
+  USING (content_plan_user_can_write(client_id, brand_id, campaign_id))
+  WITH CHECK (content_plan_user_can_write(client_id, brand_id, campaign_id));
 
-DO $$ BEGIN
-  CREATE POLICY content_plan_items_insert ON content_plan_items
-    FOR INSERT
-    WITH CHECK (content_plan_user_has_scope(client_id, brand_id, campaign_id));
-EXCEPTION
-  WHEN duplicate_object THEN NULL;
-END $$;
+-- content_plan_items: same read/write split as content_plan_jobs.
+DROP POLICY IF EXISTS content_plan_items_select ON content_plan_items;
+CREATE POLICY content_plan_items_select ON content_plan_items
+  FOR SELECT
+  USING (content_plan_user_has_scope(client_id, brand_id, campaign_id));
 
-DO $$ BEGIN
-  CREATE POLICY content_plan_items_update ON content_plan_items
-    FOR UPDATE
-    USING (content_plan_user_has_scope(client_id, brand_id, campaign_id))
-    WITH CHECK (content_plan_user_has_scope(client_id, brand_id, campaign_id));
-EXCEPTION
-  WHEN duplicate_object THEN NULL;
-END $$;
+DROP POLICY IF EXISTS content_plan_items_insert ON content_plan_items;
+CREATE POLICY content_plan_items_insert ON content_plan_items
+  FOR INSERT
+  WITH CHECK (content_plan_user_can_write(client_id, brand_id, campaign_id));
+
+DROP POLICY IF EXISTS content_plan_items_update ON content_plan_items;
+CREATE POLICY content_plan_items_update ON content_plan_items
+  FOR UPDATE
+  USING (content_plan_user_can_write(client_id, brand_id, campaign_id))
+  WITH CHECK (content_plan_user_can_write(client_id, brand_id, campaign_id));
