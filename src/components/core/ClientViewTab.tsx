@@ -7,8 +7,7 @@ import type {
   Client, Brand, Campaign, CampaignBrief, ContentPlanItem,
   ContentApprovalRequest, RoleName,
 } from '../../types/core';
-import type { GenerationDataStore, ApprovalDataStore } from '../../lib/core/coreData';
-import { addApprovalComment } from '../../lib/core/coreData';
+import type { ApprovalDataStore } from '../../lib/core/coreData';
 import { can, isInternalRole } from '../../lib/auth/permissions';
 
 // ---------------------------------------------------------------------------
@@ -22,10 +21,8 @@ interface Props {
   briefs: CampaignBrief[];
   contentItems: ContentPlanItem[];
   approvalData: ApprovalDataStore;
-  genData: GenerationDataStore;
-  onApprovalUpdate: (approval: ApprovalDataStore, gen: GenerationDataStore) => void;
+  onComment: (request: ContentApprovalRequest, commentText: string, isInternal?: boolean) => Promise<void>;
   userRole: RoleName | null;
-  actorLabel: string;
   isSupabaseConfigured: boolean;
 }
 
@@ -80,13 +77,15 @@ function ClientSafetyBanner() {
 
 export default function ClientViewTab({
   clients, brands, campaigns, briefs,
-  contentItems, approvalData, genData,
-  onApprovalUpdate, userRole, actorLabel, isSupabaseConfigured,
+  contentItems, approvalData,
+  onComment, userRole, isSupabaseConfigured,
 }: Props) {
   const [selectedCampaignId, setSelectedCampaignId] = useState<string>('');
   const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
   const [feedbackItemId, setFeedbackItemId] = useState<string | null>(null);
   const [feedbackText, setFeedbackText] = useState<string>('');
+  const [feedbackLoading, setFeedbackLoading] = useState(false);
+  const [feedbackError, setFeedbackError] = useState<string | null>(null);
 
   const isPreview = isInternalRole(userRole);
   const canView = can.viewContent(userRole);
@@ -142,16 +141,21 @@ export default function ClientViewTab({
 
   // ---------- actions ----------
 
-  const handleAddFeedback = (item: ContentPlanItem) => {
+  const handleAddFeedback = async (item: ContentPlanItem) => {
     if (!feedbackText.trim()) return;
     const req = requestByItemId.get(item.id);
     if (!req) return;
-    const updated = addApprovalComment(
-      approvalData, req.id, item.id, actorLabel, feedbackText.trim(), false,
-    );
-    onApprovalUpdate(updated, genData);
-    setFeedbackText('');
-    setFeedbackItemId(null);
+    setFeedbackError(null);
+    setFeedbackLoading(true);
+    try {
+      await onComment(req, feedbackText.trim(), false);
+      setFeedbackText('');
+      setFeedbackItemId(null);
+    } catch (err) {
+      setFeedbackError(err instanceof Error ? err.message : 'Failed to submit feedback.');
+    } finally {
+      setFeedbackLoading(false);
+    }
   };
 
   // ---------- access guard ----------
@@ -552,30 +556,35 @@ export default function ClientViewTab({
                                 <div style={{ display: 'flex', gap: '8px' }}>
                                   <button
                                     onClick={() => handleAddFeedback(item)}
-                                    disabled={!feedbackText.trim()}
+                                    disabled={!feedbackText.trim() || feedbackLoading}
                                     style={{
                                       display: 'flex', alignItems: 'center', gap: '5px',
                                       background: feedbackText.trim() ? 'rgba(96,165,250,0.2)' : 'rgba(255,255,255,0.04)',
                                       border: `1px solid ${feedbackText.trim() ? 'rgba(96,165,250,0.5)' : 'var(--border-color)'}`,
                                       color: feedbackText.trim() ? '#60a5fa' : 'var(--text-muted)',
                                       borderRadius: '7px', padding: '7px 14px',
-                                      cursor: feedbackText.trim() ? 'pointer' : 'not-allowed',
+                                      cursor: feedbackText.trim() && !feedbackLoading ? 'pointer' : 'not-allowed',
+                                      opacity: feedbackLoading ? 0.6 : 1,
                                       fontSize: '0.82rem', fontWeight: 600,
                                     }}
                                   >
-                                    <Send size={12} /> Submit Feedback
+                                    <Send size={12} /> {feedbackLoading ? 'Submitting…' : 'Submit Feedback'}
                                   </button>
                                   <button
-                                    onClick={() => { setFeedbackItemId(null); setFeedbackText(''); }}
+                                    onClick={() => { setFeedbackItemId(null); setFeedbackText(''); setFeedbackError(null); }}
+                                    disabled={feedbackLoading}
                                     style={{
                                       background: 'transparent', border: '1px solid var(--border-color)',
                                       color: 'var(--text-muted)', borderRadius: '7px', padding: '7px 12px',
-                                      cursor: 'pointer', fontSize: '0.82rem',
+                                      cursor: feedbackLoading ? 'not-allowed' : 'pointer', fontSize: '0.82rem',
                                     }}
                                   >
                                     Cancel
                                   </button>
                                 </div>
+                                {feedbackError && (
+                                  <div style={{ fontSize: '0.78rem', color: '#f87171' }}>{feedbackError}</div>
+                                )}
                               </div>
                             )}
                           </div>

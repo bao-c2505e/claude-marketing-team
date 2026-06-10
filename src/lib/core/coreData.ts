@@ -368,6 +368,15 @@ export function generateId(prefix: string): string {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 }
 
+// RFC 4122 UUID check — local ids from generateId() never match this, so
+// callers can use it to decide whether an id is safe to send to a Supabase
+// UUID column or must stay on the localStorage fallback (Phase 16C-2).
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+export function isUuid(value: string | null | undefined): boolean {
+  return typeof value === 'string' && UUID_PATTERN.test(value);
+}
+
 // Shared brief field parsers — campaign_briefs stores content_pillars/key_messages
 // as TEXT[] (one item per line) and channels as TEXT[] (comma-separated input).
 export function parseLines(s: string): string[] {
@@ -719,16 +728,16 @@ export function submitForApproval(
 }
 
 // Execute an approval action (approve / reject / revision_requested / cancelled)
-type ResolvingAction = 'approved' | 'rejected' | 'revision_requested' | 'cancelled';
+export type ResolvingAction = 'approved' | 'rejected' | 'revision_requested' | 'cancelled';
 
-const ACTION_TO_APPROVAL_STATUS: Record<ResolvingAction, ContentApprovalStatus> = {
+export const ACTION_TO_APPROVAL_STATUS: Record<ResolvingAction, ContentApprovalStatus> = {
   approved:           'approved',
   rejected:           'rejected',
   revision_requested: 'revision_requested',
   cancelled:          'cancelled',
 };
 
-const ACTION_TO_ITEM_STATUS: Record<ResolvingAction, string> = {
+export const ACTION_TO_ITEM_STATUS: Record<ResolvingAction, string> = {
   approved:           'approved',
   rejected:           'rejected',
   revision_requested: 'revision_requested',

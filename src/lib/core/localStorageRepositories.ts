@@ -10,10 +10,10 @@
 // =============================================================================
 
 import type { Client, Brand, Campaign, CampaignBrief, ContentPlanJob, ContentPlanItem } from '../../types/core';
-import type { ClientRepository, BrandRepository, CampaignRepository, CampaignListParams, CampaignGetParams, CampaignScopedParams, BriefRepository, BriefListParams, BriefScopedParams, BriefUpdatePatch, GenerationRepository, GenerationListParams, GenerationScopedParams, GenerationCreateInput, GenerationListResult, GenerationDetailResult, GenerationUpdatePatch } from './coreRepository';
+import type { ClientRepository, BrandRepository, CampaignRepository, CampaignListParams, CampaignGetParams, CampaignScopedParams, BriefRepository, BriefListParams, BriefScopedParams, BriefUpdatePatch, GenerationRepository, GenerationListParams, GenerationScopedParams, GenerationCreateInput, GenerationListResult, GenerationDetailResult, GenerationUpdatePatch, ApprovalRepository, ApprovalListParams, ApprovalScopedParams, ApprovalListResult, ApprovalDetailResult, ApprovalCreateInput, ApprovalSubmitResult, ApprovalActionResult, ApprovalCommentResult, ResolvingApprovalAction } from './coreRepository';
 import { sanitizeBriefPatch, sanitizeGenerationPatch } from './coreRepository';
 import type { ClientFormData, BrandFormData, CampaignFormData, BriefFormData } from './coreData';
-import { loadCoreData, saveCoreData, generateId, calculateCampaignDurationDays, parseLines, parseComma, loadGenerationData, saveGenerationData } from './coreData';
+import { loadCoreData, saveCoreData, generateId, calculateCampaignDurationDays, parseLines, parseComma, loadGenerationData, saveGenerationData, loadApprovalData, saveApprovalData, submitForApproval, executeApprovalAction, addApprovalComment } from './coreData';
 import { generateContentPlan } from './contentGenerator';
 
 // ---------------------------------------------------------------------------
@@ -346,5 +346,107 @@ export class LocalStorageGenerationRepository implements GenerationRepository {
 
   async archive(params: GenerationScopedParams): Promise<void> {
     await this.update(params, { status: 'archived' });
+  }
+}
+
+// ---------------------------------------------------------------------------
+// F. LocalStorageApprovalRepository (Phase 16C-2)
+//
+// Operates on ApprovalDataStore (separate localStorage key) — every method
+// re-validates the full client/brand/campaign/brief/generation chain against
+// the stored request before reading or mutating it, mirroring
+// LocalStorageGenerationRepository.
+// ---------------------------------------------------------------------------
+
+export class LocalStorageApprovalRepository implements ApprovalRepository {
+  async list({ clientId, brandId, campaignId, briefId, generationId }: ApprovalListParams): Promise<ApprovalListResult> {
+    const store = loadApprovalData();
+    const requests = store.approvalRequests.filter(
+      r => r.client_id === clientId && r.brand_id === brandId && r.campaign_id === campaignId
+        && r.brief_id === briefId && r.generation_job_id === generationId,
+    );
+    const ids = new Set(requests.map(r => r.id));
+    return {
+      requests,
+      events: store.approvalEvents.filter(e => ids.has(e.approval_request_id)),
+      comments: store.approvalComments.filter(c => ids.has(c.approval_request_id)),
+    };
+  }
+
+  async get(params: ApprovalScopedParams): Promise<ApprovalDetailResult | null> {
+    const { requests, events, comments } = await this.list(params);
+    const request = requests.find(r => r.id === params.approvalId);
+    if (!request) return null;
+    return {
+      request,
+      events: events.filter(e => e.approval_request_id === params.approvalId),
+      comments: comments.filter(c => c.approval_request_id === params.approvalId),
+    };
+  }
+
+  async create(data: ApprovalCreateInput): Promise<ApprovalSubmitResult> {
+    const { contentItem, clientId, brandId, campaignId, briefId, generationId, actorLabel, priority, dueDate } = data;
+    // Reject if the content item doesn't actually belong to the claimed scope
+    if (
+      contentItem.client_id !== clientId || contentItem.brand_id !== brandId
+      || contentItem.campaign_id !== campaignId || contentItem.brief_id !== briefId
+      || contentItem.generation_job_id !== generationId
+    ) {
+      throw new Error(`Content item ${contentItem.id} does not match the claimed approval scope`);
+    }
+    const approvalStore = loadApprovalData();
+    const genStore = loadGenerationData();
+    const { approval, gen } = submitForApproval(approvalStore, genStore, contentItem, actorLabel, {
+      priority,
+      due_date: dueDate ?? undefined,
+    });
+    saveApprovalData(approval);
+    saveGenerationData(gen);
+    return {
+      request: approval.approvalRequests[0],
+      event: approval.approvalEvents[0],
+      updatedItem: gen.contentItems.find(i => i.id === contentItem.id)!,
+    };
+  }
+
+  async executeAction(params: ApprovalScopedParams, action: ResolvingApprovalAction, actorLabel: string, comment?: string): Promise<ApprovalActionResult> {
+    const { clientId, brandId, campaignId, briefId, generationId, approvalId } = params;
+    const approvalStore = loadApprovalData();
+    const request = approvalStore.approvalRequests.find(r => r.id === approvalId);
+    if (
+      !request || request.client_id !== clientId || request.brand_id !== brandId
+      || request.campaign_id !== campaignId || request.brief_id !== briefId
+      || request.generation_job_id !== generationId
+    ) {
+      throw new Error(`Approval request ${approvalId} not found in scope`);
+    }
+    const genStore = loadGenerationData();
+    const { approval, gen } = executeApprovalAction(approvalStore, genStore, approvalId, action, actorLabel, comment);
+    saveApprovalData(approval);
+    saveGenerationData(gen);
+    return {
+      request: approval.approvalRequests.find(r => r.id === approvalId)!,
+      event: approval.approvalEvents[0],
+      updatedItem: gen.contentItems.find(i => i.id === request.content_item_id)!,
+    };
+  }
+
+  async addComment(params: ApprovalScopedParams, actorLabel: string, commentText: string, isInternal = true): Promise<ApprovalCommentResult> {
+    const { clientId, brandId, campaignId, briefId, generationId, approvalId } = params;
+    const approvalStore = loadApprovalData();
+    const request = approvalStore.approvalRequests.find(r => r.id === approvalId);
+    if (
+      !request || request.client_id !== clientId || request.brand_id !== brandId
+      || request.campaign_id !== campaignId || request.brief_id !== briefId
+      || request.generation_job_id !== generationId
+    ) {
+      throw new Error(`Approval request ${approvalId} not found in scope`);
+    }
+    const updated = addApprovalComment(approvalStore, approvalId, request.content_item_id, actorLabel, commentText, isInternal);
+    saveApprovalData(updated);
+    return {
+      comment: updated.approvalComments[0],
+      event: updated.approvalEvents[0],
+    };
   }
 }

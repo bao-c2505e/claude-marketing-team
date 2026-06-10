@@ -37,8 +37,9 @@ import { useAuth } from './lib/auth/AuthContext';
 import { ROLE_LABELS, ROLE_COLORS } from './lib/auth/permissions';
 import { isSupabaseConfigured, supabase } from './lib/supabaseClient';
 import { createPhase16aRepositories } from './lib/core/repositoryFactory';
-import type { BriefUpdatePatch, GenerationDetailResult } from './lib/core/coreRepository';
-import type { Client, Brand, Campaign as CoreCampaign, CampaignBrief as CoreCampaignBrief, PlanLengthDays } from './types/core';
+import { LocalStorageApprovalRepository } from './lib/core/localStorageRepositories';
+import type { BriefUpdatePatch, GenerationDetailResult, ResolvingApprovalAction, ApprovalRepository } from './lib/core/coreRepository';
+import type { Client, Brand, Campaign as CoreCampaign, CampaignBrief as CoreCampaignBrief, PlanLengthDays, ContentPlanItem, ContentApprovalRequest } from './types/core';
 import LoginScreen from './components/auth/LoginScreen';
 import ClientsTab from './components/core/ClientsTab';
 import BrandsTab from './components/core/BrandsTab';
@@ -53,7 +54,7 @@ import ReportsTab from './components/core/ReportsTab';
 import ExportPackTab from './components/core/ExportPackTab';
 import ConnectorRegistryTab from './components/core/ConnectorRegistryTab';
 import AutomationLogsTab from './components/core/AutomationLogsTab';
-import { loadCoreData, saveCoreData, loadGenerationData, saveGenerationData, loadApprovalData, saveApprovalData, loadAssetData, saveAssetData, canSubmitItem } from './lib/core/coreData';
+import { loadCoreData, saveCoreData, loadGenerationData, saveGenerationData, loadApprovalData, saveApprovalData, loadAssetData, saveAssetData, canSubmitItem, isUuid } from './lib/core/coreData';
 import type { CoreDataStore, GenerationDataStore, ApprovalDataStore, AssetDataStore, ClientFormData, BrandFormData, CampaignFormData, BriefFormData } from './lib/core/coreData';
 import { loadAutomationLogData, saveAutomationLogData } from './lib/core/automationLogs';
 import type { AutomationLogStore } from './lib/core/automationLogs';
@@ -262,6 +263,10 @@ export default function App() {
     [],
   );
 
+  // Phase 16C-2 — Always-available localStorage approval repo, used as the
+  // per-operation fallback when scope IDs are not valid UUIDs (local/demo data).
+  const localApprovals = useMemo(() => new LocalStorageApprovalRepository(), []);
+
   // Phase 16A — Non-blocking error state for Supabase data load failures
   const [supabaseLoadError, setSupabaseLoadError] = useState<string | null>(null);
 
@@ -294,6 +299,22 @@ export default function App() {
       );
       const loadedGenerationJobs = generationArrays.flatMap(r => r.jobs);
       const loadedContentItems = generationArrays.flatMap(r => r.items);
+      // Load approval requests/events/comments scoped per generation job —
+      // never by approvalId/generationId alone (Phase 16C-2)
+      const approvalArrays = await Promise.all(
+        loadedGenerationJobs
+          .filter(job => job.client_id && job.brand_id)
+          .map(job => repos.approvals.list({
+            clientId: job.client_id as string,
+            brandId: job.brand_id as string,
+            campaignId: job.campaign_id,
+            briefId: job.brief_id,
+            generationId: job.id,
+          })),
+      );
+      const loadedApprovalRequests = approvalArrays.flatMap(r => r.requests);
+      const loadedApprovalEvents = approvalArrays.flatMap(r => r.events);
+      const loadedApprovalComments = approvalArrays.flatMap(r => r.comments);
       if (cancelled) return;
       setCoreData(prev => {
         const next = { ...prev, clients, brands, campaigns: loadedCampaigns, briefs: loadedBriefs };
@@ -303,6 +324,15 @@ export default function App() {
       setGenData(() => {
         const next = { generationJobs: loadedGenerationJobs, contentItems: loadedContentItems };
         saveGenerationData(next);
+        return next;
+      });
+      setApprovalData(() => {
+        const next = {
+          approvalRequests: loadedApprovalRequests,
+          approvalEvents: loadedApprovalEvents,
+          approvalComments: loadedApprovalComments,
+        };
+        saveApprovalData(next);
         return next;
       });
     };
@@ -434,13 +464,6 @@ export default function App() {
   // Phase 8 — Approval data (separate store)
   const [approvalData, setApprovalData] = useState<ApprovalDataStore>(() => loadApprovalData());
 
-  const handleApprovalUpdate = (approval: ApprovalDataStore, gen: GenerationDataStore) => {
-    setApprovalData(approval);
-    saveApprovalData(approval);
-    setGenData(gen);
-    saveGenerationData(gen);
-  };
-
   const handleNavigateToApprovals = () => {
     setActiveTab('approvals');
   };
@@ -462,6 +485,129 @@ export default function App() {
   };
 
   const actorLabel = user?.email ?? user?.role ?? 'System';
+
+  // Phase 16C-2 — Approval CRUD: per-operation repo selection. Falls back to
+  // localStorage whenever any scope ID is not a valid UUID (local/demo data),
+  // satisfying the local/demo fallback requirement even if Supabase is configured.
+  const approvalRepoFor = (ids: {
+    clientId: string | null;
+    brandId: string | null;
+    campaignId: string | null;
+    briefId: string | null;
+    generationId: string | null;
+  }): ApprovalRepository => {
+    if (
+      isSupabaseConfigured
+      && isUuid(ids.clientId)
+      && isUuid(ids.brandId)
+      && isUuid(ids.campaignId)
+      && isUuid(ids.briefId)
+      && isUuid(ids.generationId)
+    ) {
+      return repos.approvals;
+    }
+    return localApprovals;
+  };
+
+  // Phase 16C-2 — Submit a content item for approval, scoped by its full
+  // tenant chain (clientId/brandId/campaignId/briefId/generationId).
+  const handleApprovalSubmit = async (item: ContentPlanItem): Promise<void> => {
+    const scope = {
+      clientId: item.client_id,
+      brandId: item.brand_id,
+      campaignId: item.campaign_id,
+      briefId: item.brief_id,
+      generationId: item.generation_job_id,
+    };
+    if (!scope.clientId || !scope.brandId) {
+      throw new Error(`Content item ${item.id} is missing client/brand scope`);
+    }
+    const repo = approvalRepoFor(scope);
+    const result = await repo.create({
+      contentItem: item,
+      clientId: scope.clientId,
+      brandId: scope.brandId,
+      campaignId: scope.campaignId,
+      briefId: scope.briefId,
+      generationId: scope.generationId,
+      actorLabel,
+    });
+    setApprovalData(prev => {
+      const next: ApprovalDataStore = {
+        approvalRequests: [result.request, ...prev.approvalRequests],
+        approvalEvents: [result.event, ...prev.approvalEvents],
+        approvalComments: prev.approvalComments,
+      };
+      saveApprovalData(next);
+      return next;
+    });
+    setGenData(prev => {
+      const next: GenerationDataStore = {
+        ...prev,
+        contentItems: prev.contentItems.map(i => i.id === result.updatedItem.id ? result.updatedItem : i),
+      };
+      saveGenerationData(next);
+      return next;
+    });
+  };
+
+  // Phase 16C-2 — Approve/reject/request revision/cancel an approval request,
+  // scoped by its full tenant chain (never by approvalId alone).
+  const handleApprovalAction = async (
+    request: ContentApprovalRequest,
+    action: ResolvingApprovalAction,
+    comment?: string,
+  ): Promise<void> => {
+    const { client_id: clientId, brand_id: brandId, campaign_id: campaignId, brief_id: briefId, generation_job_id: generationId } = request;
+    if (!clientId || !brandId || !briefId || !generationId) {
+      throw new Error(`Approval request ${request.id} is missing tenant scope`);
+    }
+    const scope = { clientId, brandId, campaignId, briefId, generationId, approvalId: request.id };
+    const repo = approvalRepoFor(scope);
+    const result = await repo.executeAction(scope, action, actorLabel, comment);
+    setApprovalData(prev => {
+      const next: ApprovalDataStore = {
+        approvalRequests: prev.approvalRequests.map(r => r.id === result.request.id ? result.request : r),
+        approvalEvents: [result.event, ...prev.approvalEvents],
+        approvalComments: prev.approvalComments,
+      };
+      saveApprovalData(next);
+      return next;
+    });
+    setGenData(prev => {
+      const next: GenerationDataStore = {
+        ...prev,
+        contentItems: prev.contentItems.map(i => i.id === result.updatedItem.id ? result.updatedItem : i),
+      };
+      saveGenerationData(next);
+      return next;
+    });
+  };
+
+  // Phase 16C-2 — Add a comment to an approval request, scoped by its full
+  // tenant chain (never by approvalId alone).
+  const handleApprovalComment = async (
+    request: ContentApprovalRequest,
+    commentText: string,
+    isInternal = true,
+  ): Promise<void> => {
+    const { client_id: clientId, brand_id: brandId, campaign_id: campaignId, brief_id: briefId, generation_job_id: generationId } = request;
+    if (!clientId || !brandId || !briefId || !generationId) {
+      throw new Error(`Approval request ${request.id} is missing tenant scope`);
+    }
+    const scope = { clientId, brandId, campaignId, briefId, generationId, approvalId: request.id };
+    const repo = approvalRepoFor(scope);
+    const result = await repo.addComment(scope, actorLabel, commentText, isInternal);
+    setApprovalData(prev => {
+      const next: ApprovalDataStore = {
+        ...prev,
+        approvalEvents: [result.event, ...prev.approvalEvents],
+        approvalComments: [result.comment, ...prev.approvalComments],
+      };
+      saveApprovalData(next);
+      return next;
+    });
+  };
 
   const submittableItemIds = new Set(
     genData.contentItems.filter(i => canSubmitItem(approvalData, i)).map(i => i.id)
@@ -1217,12 +1363,11 @@ export default function App() {
                   brands={coreData.brands}
                   campaigns={coreData.campaigns}
                   contentItems={genData.contentItems}
-                  generationJobs={genData.generationJobs}
                   approvalData={approvalData}
-                  genData={genData}
-                  onUpdate={handleApprovalUpdate}
+                  onSubmit={handleApprovalSubmit}
+                  onAction={handleApprovalAction}
+                  onComment={handleApprovalComment}
                   userRole={user?.role ?? null}
-                  actorLabel={actorLabel}
                   isSupabaseConfigured={isSupabaseConfigured}
                 />
               )}
@@ -1236,10 +1381,8 @@ export default function App() {
                   briefs={coreData.briefs}
                   contentItems={genData.contentItems}
                   approvalData={approvalData}
-                  genData={genData}
-                  onApprovalUpdate={handleApprovalUpdate}
+                  onComment={handleApprovalComment}
                   userRole={user?.role ?? null}
-                  actorLabel={actorLabel}
                   isSupabaseConfigured={isSupabaseConfigured}
                 />
               )}

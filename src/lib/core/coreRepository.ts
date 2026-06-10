@@ -19,6 +19,7 @@ import type {
   ContentApprovalRequest,
   ContentApprovalEvent,
   ContentApprovalComment,
+  ApprovalPriority,
   AssetItem,
   LocalAssetCollection,
   LocalExportPack,
@@ -268,24 +269,89 @@ export interface ContentItemRepository {
 }
 
 // ---------------------------------------------------------------------------
-// F. Approval Workflow
+// F. Approval Workflow (Phase 16C-2)
+//
+// Scoped repository for ContentApprovalRequest / ContentApprovalEvent /
+// ContentApprovalComment — the Phase 8 approval workflow for content_plan_items
+// (Phase 16C-1). Every approval request belongs to exactly one
+// content_plan_items row, which belongs to exactly one content_plan_jobs row,
+// so every operation requires the full client/brand/campaign/brief/generation
+// chain — never just an approvalId. Replaces the unscoped
+// ApprovalRequestRepository / ApprovalEventRepository / ApprovalCommentRepository
+// placeholders that previously lived in this section (unused dead code).
 // ---------------------------------------------------------------------------
 
-export interface ApprovalRequestRepository {
-  list(campaignId?: string): Promise<ContentApprovalRequest[]>;
-  get(id: string): Promise<ContentApprovalRequest | null>;
-  create(data: Omit<ContentApprovalRequest, 'id' | 'created_at' | 'updated_at' | 'resolved_at'>): Promise<ContentApprovalRequest>;
-  update(id: string, patch: Partial<ContentApprovalRequest>): Promise<ContentApprovalRequest>;
+export interface ApprovalListParams {
+  clientId: string;
+  brandId: string;
+  campaignId: string;
+  briefId: string;
+  generationId: string;
 }
 
-export interface ApprovalEventRepository {
-  listForRequest(requestId: string): Promise<ContentApprovalEvent[]>;
-  create(event: Omit<ContentApprovalEvent, 'id' | 'created_at'>): Promise<ContentApprovalEvent>;
+// clientId + brandId + campaignId + briefId + generationId + approvalId all
+// required — prevents unscoped get/update/approve/reject/comment by
+// approvalId alone.
+export interface ApprovalScopedParams extends ApprovalListParams {
+  approvalId: string;
 }
 
-export interface ApprovalCommentRepository {
-  listForRequest(requestId: string): Promise<ContentApprovalComment[]>;
-  create(comment: Omit<ContentApprovalComment, 'id' | 'created_at'>): Promise<ContentApprovalComment>;
+export interface ApprovalListResult {
+  requests: ContentApprovalRequest[];
+  events: ContentApprovalEvent[];
+  comments: ContentApprovalComment[];
+}
+
+export interface ApprovalDetailResult {
+  request: ContentApprovalRequest;
+  events: ContentApprovalEvent[];
+  comments: ContentApprovalComment[];
+}
+
+// Tenant scope is supplied explicitly (not read from ContentPlanItem.client_id /
+// brand_id, which are typed `string | null`) so create() always has
+// guaranteed non-null tenant IDs for the inserted request/event rows.
+export interface ApprovalCreateInput {
+  contentItem: ContentPlanItem;
+  clientId: string;
+  brandId: string;
+  campaignId: string;
+  briefId: string;
+  generationId: string;
+  actorLabel: string;
+  priority?: ApprovalPriority;
+  dueDate?: string | null;
+}
+
+export interface ApprovalSubmitResult {
+  request: ContentApprovalRequest;
+  event: ContentApprovalEvent;
+  updatedItem: ContentPlanItem;
+}
+
+export interface ApprovalActionResult {
+  request: ContentApprovalRequest;
+  event: ContentApprovalEvent;
+  updatedItem: ContentPlanItem;
+}
+
+export interface ApprovalCommentResult {
+  comment: ContentApprovalComment;
+  event: ContentApprovalEvent;
+}
+
+// approve/reject/needs_revision/archive — each is a scoped status transition
+// on an existing approval request, never a free-form patch. 'cancelled' is
+// the closest equivalent to "archive" for ContentApprovalStatus, which has no
+// separate archived state.
+export type ResolvingApprovalAction = 'approved' | 'rejected' | 'revision_requested' | 'cancelled';
+
+export interface ApprovalRepository {
+  list(params: ApprovalListParams): Promise<ApprovalListResult>;
+  get(params: ApprovalScopedParams): Promise<ApprovalDetailResult | null>;
+  create(data: ApprovalCreateInput): Promise<ApprovalSubmitResult>;
+  executeAction(params: ApprovalScopedParams, action: ResolvingApprovalAction, actorLabel: string, comment?: string): Promise<ApprovalActionResult>;
+  addComment(params: ApprovalScopedParams, actorLabel: string, commentText: string, isInternal?: boolean): Promise<ApprovalCommentResult>;
 }
 
 // ---------------------------------------------------------------------------
@@ -373,9 +439,7 @@ export interface CoreRepositories {
   briefs:           BriefRepository;
   generationJobs:   GenerationJobRepository;
   contentItems:     ContentItemRepository;
-  approvalRequests: ApprovalRequestRepository;
-  approvalEvents:   ApprovalEventRepository;
-  approvalComments: ApprovalCommentRepository;
+  approvals:        ApprovalRepository;
   assets:           AssetRepository;
   assetCollections: AssetCollectionRepository;
   reports:          ReportRepository;

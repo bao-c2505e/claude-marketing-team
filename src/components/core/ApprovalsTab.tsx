@@ -9,15 +9,15 @@ import type {
   ContentApprovalRequest, ContentApprovalEvent, ContentApprovalComment,
   ContentApprovalStatus, ApprovalPriority,
 } from '../../types/core';
-import type { GenerationDataStore, ApprovalDataStore } from '../../lib/core/coreData';
+import type { ApprovalDataStore } from '../../lib/core/coreData';
 import {
   APPROVAL_STATUS_LABEL, APPROVAL_STATUS_COLOR,
   APPROVAL_PRIORITY_LABEL, APPROVAL_PRIORITY_COLOR,
   APPROVAL_ACTION_LABEL,
   CONTENT_ITEM_STATUS_LABEL, CONTENT_ITEM_STATUS_COLOR,
   canSubmitItem,
-  submitForApproval, executeApprovalAction, addApprovalComment,
 } from '../../lib/core/coreData';
+import type { ResolvingApprovalAction } from '../../lib/core/coreRepository';
 import { can } from '../../lib/auth/permissions';
 
 // ---------------------------------------------------------------------------
@@ -29,12 +29,11 @@ interface Props {
   brands: Brand[];
   campaigns: Campaign[];
   contentItems: ContentPlanItem[];
-  generationJobs: GenerationDataStore['generationJobs'];
   approvalData: ApprovalDataStore;
-  genData: GenerationDataStore;
-  onUpdate: (approval: ApprovalDataStore, gen: GenerationDataStore) => void;
+  onSubmit: (item: ContentPlanItem) => Promise<void>;
+  onAction: (request: ContentApprovalRequest, action: ResolvingApprovalAction, comment?: string) => Promise<void>;
+  onComment: (request: ContentApprovalRequest, commentText: string, isInternal?: boolean) => Promise<void>;
   userRole: RoleName | null;
-  actorLabel: string;
   isSupabaseConfigured: boolean;
 }
 
@@ -210,22 +209,30 @@ function FilterBar({
 interface SubmitPanelProps {
   items: ContentPlanItem[];
   approvalData: ApprovalDataStore;
-  genData: GenerationDataStore;
   canSubmit: boolean;
-  actorLabel: string;
-  onUpdate: (approval: ApprovalDataStore, gen: GenerationDataStore) => void;
+  onSubmit: (item: ContentPlanItem) => Promise<void>;
   clientName: (id: string | null) => string;
   brandName: (id: string | null) => string;
   campaignName: (id: string) => string;
 }
 
-function SubmitPanel({ items, approvalData, genData, canSubmit, actorLabel, onUpdate, clientName, brandName, campaignName }: SubmitPanelProps) {
+function SubmitPanel({ items, approvalData, canSubmit, onSubmit, clientName, brandName, campaignName }: SubmitPanelProps) {
+  const [submittingId, setSubmittingId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
   const eligible = items.filter(i => canSubmitItem(approvalData, i));
   if (eligible.length === 0) return null;
 
-  const handleSubmit = (item: ContentPlanItem) => {
-    const { approval, gen } = submitForApproval(approvalData, genData, item, actorLabel);
-    onUpdate(approval, gen);
+  const handleSubmit = async (item: ContentPlanItem) => {
+    setError(null);
+    setSubmittingId(item.id);
+    try {
+      await onSubmit(item);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to submit for approval.');
+    } finally {
+      setSubmittingId(null);
+    }
   };
 
   return (
@@ -234,8 +241,12 @@ function SubmitPanel({ items, approvalData, genData, canSubmit, actorLabel, onUp
         <Send size={14} style={{ color: '#60a5fa' }} />
         Ready to Submit ({eligible.length})
       </div>
+      {error && (
+        <div style={{ fontSize: '0.75rem', color: '#f87171' }}>{error}</div>
+      )}
       {eligible.map(item => {
         const statusColor = CONTENT_ITEM_STATUS_COLOR[item.status] ?? '#94a3b8';
+        const submitting = submittingId === item.id;
         return (
           <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 14px', background: 'rgba(96,165,250,0.04)', border: '1px solid rgba(96,165,250,0.2)', borderRadius: '8px' }}>
             <div style={{ flex: 1, minWidth: 0 }}>
@@ -250,9 +261,10 @@ function SubmitPanel({ items, approvalData, genData, canSubmit, actorLabel, onUp
             {canSubmit ? (
               <button
                 onClick={() => handleSubmit(item)}
-                style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '5px 12px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 700, background: 'rgba(96,165,250,0.18)', border: '1px solid rgba(96,165,250,0.4)', color: '#60a5fa', cursor: 'pointer', flexShrink: 0 }}
+                disabled={submitting}
+                style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '5px 12px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 700, background: 'rgba(96,165,250,0.18)', border: '1px solid rgba(96,165,250,0.4)', color: '#60a5fa', cursor: submitting ? 'not-allowed' : 'pointer', opacity: submitting ? 0.6 : 1, flexShrink: 0 }}
               >
-                <Send size={12} /> Submit for Approval
+                <Send size={12} /> {submitting ? 'Submitting…' : 'Submit for Approval'}
               </button>
             ) : (
               <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>No permission</span>
@@ -328,10 +340,8 @@ interface DetailViewProps {
   comments: ContentApprovalComment[];
   canApprove: boolean;
   canSubmitAction: boolean;
-  actorLabel: string;
-  approvalData: ApprovalDataStore;
-  genData: GenerationDataStore;
-  onUpdate: (approval: ApprovalDataStore, gen: GenerationDataStore) => void;
+  onAction: (request: ContentApprovalRequest, action: ResolvingApprovalAction, comment?: string) => Promise<void>;
+  onComment: (request: ContentApprovalRequest, commentText: string, isInternal?: boolean) => Promise<void>;
   onBack: () => void;
   clientName: (id: string | null) => string;
   brandName: (id: string | null) => string;
@@ -341,12 +351,16 @@ interface DetailViewProps {
 function DetailView({
   request, item, events, comments,
   canApprove, canSubmitAction,
-  actorLabel, approvalData, genData, onUpdate, onBack,
+  onAction, onComment, onBack,
   clientName, brandName, campaignName,
 }: DetailViewProps) {
   const [commentText, setCommentText] = useState('');
   const [actionComment, setActionComment] = useState('');
   const [showActionForm, setShowActionForm] = useState<'approve' | 'reject' | 'revision_requested' | null>(null);
+  const [actionLoading, setActionLoading] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [commentLoading, setCommentLoading] = useState(false);
+  const [commentError, setCommentError] = useState<string | null>(null);
 
   const isActive = request.status === 'submitted';
 
@@ -361,27 +375,44 @@ function DetailView({
     textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '3px',
   };
 
-  const handleAction = (action: 'approved' | 'rejected' | 'revision_requested') => {
-    const { approval, gen } = executeApprovalAction(
-      approvalData, genData, request.id, action, actorLabel, actionComment || undefined,
-    );
-    onUpdate(approval, gen);
-    setShowActionForm(null);
-    setActionComment('');
+  const handleAction = async (action: 'approved' | 'rejected' | 'revision_requested') => {
+    setActionError(null);
+    setActionLoading(true);
+    try {
+      await onAction(request, action, actionComment || undefined);
+      setShowActionForm(null);
+      setActionComment('');
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'Failed to update approval.');
+    } finally {
+      setActionLoading(false);
+    }
   };
 
-  const handleCancel = () => {
-    const { approval, gen } = executeApprovalAction(
-      approvalData, genData, request.id, 'cancelled', actorLabel,
-    );
-    onUpdate(approval, gen);
+  const handleCancel = async () => {
+    setActionError(null);
+    setActionLoading(true);
+    try {
+      await onAction(request, 'cancelled');
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'Failed to cancel request.');
+    } finally {
+      setActionLoading(false);
+    }
   };
 
-  const handleComment = () => {
+  const handleComment = async () => {
     if (!commentText.trim()) return;
-    const updated = addApprovalComment(approvalData, request.id, request.content_item_id, actorLabel, commentText.trim());
-    onUpdate(updated, genData);
-    setCommentText('');
+    setCommentError(null);
+    setCommentLoading(true);
+    try {
+      await onComment(request, commentText.trim());
+      setCommentText('');
+    } catch (err) {
+      setCommentError(err instanceof Error ? err.message : 'Failed to add comment.');
+    } finally {
+      setCommentLoading(false);
+    }
   };
 
   const btnBase: React.CSSProperties = {
@@ -496,14 +527,18 @@ function DetailView({
               <div style={{ display: 'flex', gap: '8px' }}>
                 <button
                   onClick={() => handleAction(showActionForm === 'approve' ? 'approved' : showActionForm === 'reject' ? 'rejected' : 'revision_requested')}
-                  style={{ ...btnBase, background: showActionForm === 'approve' ? 'rgba(52,211,153,0.2)' : showActionForm === 'reject' ? 'rgba(248,113,113,0.2)' : 'rgba(251,146,60,0.2)', border: `1px solid ${showActionForm === 'approve' ? 'rgba(52,211,153,0.4)' : showActionForm === 'reject' ? 'rgba(248,113,113,0.4)' : 'rgba(251,146,60,0.4)'}`, color: showActionForm === 'approve' ? '#34d399' : showActionForm === 'reject' ? '#f87171' : '#fb923c' }}
+                  disabled={actionLoading}
+                  style={{ ...btnBase, background: showActionForm === 'approve' ? 'rgba(52,211,153,0.2)' : showActionForm === 'reject' ? 'rgba(248,113,113,0.2)' : 'rgba(251,146,60,0.2)', border: `1px solid ${showActionForm === 'approve' ? 'rgba(52,211,153,0.4)' : showActionForm === 'reject' ? 'rgba(248,113,113,0.4)' : 'rgba(251,146,60,0.4)'}`, color: showActionForm === 'approve' ? '#34d399' : showActionForm === 'reject' ? '#f87171' : '#fb923c', opacity: actionLoading ? 0.6 : 1, cursor: actionLoading ? 'not-allowed' : 'pointer' }}
                 >
-                  {showActionForm === 'approve' ? <><CheckCircle size={14} /> Confirm Approve</> : showActionForm === 'reject' ? <><XCircle size={14} /> Confirm Reject</> : <><RotateCcw size={14} /> Confirm Revision</>}
+                  {showActionForm === 'approve' ? <><CheckCircle size={14} /> {actionLoading ? 'Approving…' : 'Confirm Approve'}</> : showActionForm === 'reject' ? <><XCircle size={14} /> {actionLoading ? 'Rejecting…' : 'Confirm Reject'}</> : <><RotateCcw size={14} /> {actionLoading ? 'Submitting…' : 'Confirm Revision'}</>}
                 </button>
-                <button onClick={() => { setShowActionForm(null); setActionComment(''); }} style={{ ...btnBase, background: 'transparent', border: '1px solid var(--border-color)', color: 'var(--text-muted)' }}>
+                <button onClick={() => { setShowActionForm(null); setActionComment(''); setActionError(null); }} disabled={actionLoading} style={{ ...btnBase, background: 'transparent', border: '1px solid var(--border-color)', color: 'var(--text-muted)', cursor: actionLoading ? 'not-allowed' : 'pointer' }}>
                   Cancel
                 </button>
               </div>
+              {actionError && (
+                <div style={{ fontSize: '0.75rem', color: '#f87171' }}>{actionError}</div>
+              )}
             </div>
           ) : (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
@@ -525,9 +560,12 @@ function DetailView({
                 </div>
               )}
               {canSubmitAction && (
-                <button onClick={handleCancel} style={{ ...btnBase, background: 'transparent', border: '1px solid var(--border-color)', color: 'var(--text-muted)', marginLeft: 'auto' }}>
-                  <X size={12} /> Cancel Request
+                <button onClick={handleCancel} disabled={actionLoading} style={{ ...btnBase, background: 'transparent', border: '1px solid var(--border-color)', color: 'var(--text-muted)', marginLeft: 'auto', opacity: actionLoading ? 0.6 : 1, cursor: actionLoading ? 'not-allowed' : 'pointer' }}>
+                  <X size={12} /> {actionLoading ? 'Cancelling…' : 'Cancel Request'}
                 </button>
+              )}
+              {actionError && (
+                <div style={{ fontSize: '0.75rem', color: '#f87171', width: '100%' }}>{actionError}</div>
               )}
             </div>
           )}
@@ -552,12 +590,15 @@ function DetailView({
           />
           <button
             onClick={handleComment}
-            disabled={!commentText.trim()}
-            style={{ ...btnBase, alignSelf: 'flex-end', background: commentText.trim() ? 'rgba(99,102,241,0.2)' : 'rgba(255,255,255,0.04)', border: `1px solid ${commentText.trim() ? 'rgba(99,102,241,0.4)' : 'var(--border-color)'}`, color: commentText.trim() ? '#818cf8' : 'var(--text-muted)', cursor: commentText.trim() ? 'pointer' : 'not-allowed' }}
+            disabled={!commentText.trim() || commentLoading}
+            style={{ ...btnBase, alignSelf: 'flex-end', background: commentText.trim() ? 'rgba(99,102,241,0.2)' : 'rgba(255,255,255,0.04)', border: `1px solid ${commentText.trim() ? 'rgba(99,102,241,0.4)' : 'var(--border-color)'}`, color: commentText.trim() ? '#818cf8' : 'var(--text-muted)', cursor: commentText.trim() && !commentLoading ? 'pointer' : 'not-allowed', opacity: commentLoading ? 0.6 : 1 }}
           >
-            <Send size={13} /> Send
+            <Send size={13} /> {commentLoading ? 'Sending…' : 'Send'}
           </button>
         </div>
+        {commentError && (
+          <div style={{ fontSize: '0.75rem', color: '#f87171', marginTop: '8px' }}>{commentError}</div>
+        )}
       </div>
 
       {/* Comments */}
@@ -629,8 +670,8 @@ function DetailView({
 export default function ApprovalsTab({
   clients, brands, campaigns,
   contentItems,
-  approvalData, genData,
-  onUpdate, userRole, actorLabel, isSupabaseConfigured,
+  approvalData,
+  onSubmit, onAction, onComment, userRole, isSupabaseConfigured,
 }: Props) {
   const canView        = can.viewContent(userRole);
   const canApprove     = can.approveContent(userRole);
@@ -689,10 +730,8 @@ export default function ApprovalsTab({
         comments={comments}
         canApprove={canApprove}
         canSubmitAction={canSubmitPerm}
-        actorLabel={actorLabel}
-        approvalData={approvalData}
-        genData={genData}
-        onUpdate={onUpdate}
+        onAction={onAction}
+        onComment={onComment}
         onBack={() => { setViewMode('list'); setSelectedReqId(null); }}
         clientName={clientName}
         brandName={brandName}
@@ -745,10 +784,8 @@ export default function ApprovalsTab({
           <SubmitPanel
             items={contentItems}
             approvalData={approvalData}
-            genData={genData}
             canSubmit={canSubmitPerm}
-            actorLabel={actorLabel}
-            onUpdate={onUpdate}
+            onSubmit={onSubmit}
             clientName={clientName}
             brandName={brandName}
             campaignName={campaignName}

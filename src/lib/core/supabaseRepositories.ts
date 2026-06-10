@@ -10,11 +10,11 @@
 // =============================================================================
 
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { Client, Brand, Campaign, CampaignBrief, ContentPlanJob, ContentPlanItem } from '../../types/core';
-import type { ClientRepository, BrandRepository, CampaignRepository, CampaignListParams, CampaignGetParams, CampaignScopedParams, BriefRepository, BriefListParams, BriefScopedParams, BriefUpdatePatch, GenerationRepository, GenerationListParams, GenerationScopedParams, GenerationCreateInput, GenerationListResult, GenerationDetailResult, GenerationUpdatePatch } from './coreRepository';
+import type { Client, Brand, Campaign, CampaignBrief, ContentPlanJob, ContentPlanItem, ContentApprovalRequest, ContentApprovalEvent, ContentApprovalComment } from '../../types/core';
+import type { ClientRepository, BrandRepository, CampaignRepository, CampaignListParams, CampaignGetParams, CampaignScopedParams, BriefRepository, BriefListParams, BriefScopedParams, BriefUpdatePatch, GenerationRepository, GenerationListParams, GenerationScopedParams, GenerationCreateInput, GenerationListResult, GenerationDetailResult, GenerationUpdatePatch, ApprovalRepository, ApprovalListParams, ApprovalScopedParams, ApprovalListResult, ApprovalDetailResult, ApprovalCreateInput, ApprovalSubmitResult, ApprovalActionResult, ApprovalCommentResult, ResolvingApprovalAction } from './coreRepository';
 import { sanitizeBriefPatch, sanitizeGenerationPatch } from './coreRepository';
 import type { ClientFormData, BrandFormData, CampaignFormData, BriefFormData } from './coreData';
-import { calculateCampaignDurationDays, parseLines, parseComma } from './coreData';
+import { calculateCampaignDurationDays, parseLines, parseComma, ACTION_TO_APPROVAL_STATUS, ACTION_TO_ITEM_STATUS } from './coreData';
 import { generateContentPlan } from './contentGenerator';
 
 // Postgres error code returned by Supabase when a single-row query finds nothing
@@ -523,5 +523,285 @@ export class SupabaseGenerationRepository implements GenerationRepository {
 
   async archive(params: GenerationScopedParams): Promise<void> {
     await this.update(params, { status: 'archived' });
+  }
+}
+
+// ---------------------------------------------------------------------------
+// F. SupabaseApprovalRepository (Phase 16C-2)
+//
+// Requires the Phase 16C-2 additive migration
+// (schema_v1_phase16c2_approval_extension.sql) that creates
+// content_approval_requests / content_approval_events /
+// content_approval_comments. Every operation is scoped by the full
+// client/brand/campaign/brief/generation chain (+ approvalId for
+// get/executeAction/addComment) — never by approvalId alone.
+// ---------------------------------------------------------------------------
+
+export class SupabaseApprovalRepository implements ApprovalRepository {
+  constructor(private readonly sb: SupabaseClient) {}
+
+  async list({ clientId, brandId, campaignId, briefId, generationId }: ApprovalListParams): Promise<ApprovalListResult> {
+    const { data: requests, error: reqError } = await this.sb
+      .from('content_approval_requests')
+      .select('*')
+      .eq('client_id', clientId)
+      .eq('brand_id', brandId)
+      .eq('campaign_id', campaignId)
+      .eq('brief_id', briefId)
+      .eq('generation_job_id', generationId)
+      .order('created_at', { ascending: false });
+    if (reqError) throw reqError;
+
+    const ids = (requests ?? []).map(r => r.id as string);
+    if (ids.length === 0) {
+      return { requests: [], events: [], comments: [] };
+    }
+
+    const { data: events, error: eventsError } = await this.sb
+      .from('content_approval_events')
+      .select('*')
+      .in('approval_request_id', ids)
+      .order('created_at', { ascending: false });
+    if (eventsError) throw eventsError;
+
+    const { data: comments, error: commentsError } = await this.sb
+      .from('content_approval_comments')
+      .select('*')
+      .in('approval_request_id', ids)
+      .order('created_at', { ascending: false });
+    if (commentsError) throw commentsError;
+
+    return {
+      requests: requests as ContentApprovalRequest[],
+      events: (events ?? []) as ContentApprovalEvent[],
+      comments: (comments ?? []) as ContentApprovalComment[],
+    };
+  }
+
+  async get({ clientId, brandId, campaignId, briefId, generationId, approvalId }: ApprovalScopedParams): Promise<ApprovalDetailResult | null> {
+    const { data: request, error: reqError } = await this.sb
+      .from('content_approval_requests')
+      .select('*')
+      .eq('id', approvalId)
+      .eq('client_id', clientId)
+      .eq('brand_id', brandId)
+      .eq('campaign_id', campaignId)
+      .eq('brief_id', briefId)
+      .eq('generation_job_id', generationId)
+      .single();
+    if (reqError) {
+      if (reqError.code === PGRST_NOT_FOUND) return null;
+      throw reqError;
+    }
+
+    const { data: events, error: eventsError } = await this.sb
+      .from('content_approval_events')
+      .select('*')
+      .eq('approval_request_id', approvalId)
+      .order('created_at', { ascending: false });
+    if (eventsError) throw eventsError;
+
+    const { data: comments, error: commentsError } = await this.sb
+      .from('content_approval_comments')
+      .select('*')
+      .eq('approval_request_id', approvalId)
+      .order('created_at', { ascending: false });
+    if (commentsError) throw commentsError;
+
+    return {
+      request: request as ContentApprovalRequest,
+      events: (events ?? []) as ContentApprovalEvent[],
+      comments: (comments ?? []) as ContentApprovalComment[],
+    };
+  }
+
+  async create({ contentItem, clientId, brandId, campaignId, briefId, generationId, actorLabel, priority, dueDate }: ApprovalCreateInput): Promise<ApprovalSubmitResult> {
+    // Reject if the content item doesn't actually belong to the claimed scope
+    if (
+      contentItem.client_id !== clientId || contentItem.brand_id !== brandId
+      || contentItem.campaign_id !== campaignId || contentItem.brief_id !== briefId
+      || contentItem.generation_job_id !== generationId
+    ) {
+      throw new Error(`Content item ${contentItem.id} does not match the claimed approval scope`);
+    }
+
+    const requestRow = {
+      content_item_id: contentItem.id,
+      generation_job_id: generationId,
+      brief_id: briefId,
+      campaign_id: campaignId,
+      brand_id: brandId,
+      client_id: clientId,
+      title: contentItem.hook.slice(0, 80),
+      status: 'submitted',
+      priority: priority ?? 'normal',
+      requested_by: actorLabel,
+      assigned_to_role: 'manager',
+      due_date: dueDate ?? null,
+    };
+    const { data: createdRequest, error: reqError } = await this.sb
+      .from('content_approval_requests')
+      .insert(requestRow)
+      .select()
+      .single();
+    if (reqError) throw reqError;
+    const request = createdRequest as ContentApprovalRequest;
+
+    const eventRow = {
+      approval_request_id: request.id,
+      content_item_id: contentItem.id,
+      action: 'submitted',
+      actor_label: actorLabel,
+      comment: null,
+      previous_status: null,
+      new_status: 'submitted',
+    };
+    const { data: createdEvent, error: eventError } = await this.sb
+      .from('content_approval_events')
+      .insert(eventRow)
+      .select()
+      .single();
+    if (eventError) throw eventError;
+
+    const { data: updatedItem, error: itemError } = await this.sb
+      .from('content_plan_items')
+      .update({ status: 'needs_review', updated_at: new Date().toISOString() })
+      .eq('id', contentItem.id)
+      .eq('client_id', clientId)
+      .eq('brand_id', brandId)
+      .eq('campaign_id', campaignId)
+      .eq('brief_id', briefId)
+      .eq('generation_job_id', generationId)
+      .select()
+      .single();
+    if (itemError) throw itemError;
+
+    return {
+      request,
+      event: createdEvent as ContentApprovalEvent,
+      updatedItem: updatedItem as ContentPlanItem,
+    };
+  }
+
+  async executeAction({ clientId, brandId, campaignId, briefId, generationId, approvalId }: ApprovalScopedParams, action: ResolvingApprovalAction, actorLabel: string, comment?: string): Promise<ApprovalActionResult> {
+    const { data: existing, error: fetchError } = await this.sb
+      .from('content_approval_requests')
+      .select('*')
+      .eq('id', approvalId)
+      .eq('client_id', clientId)
+      .eq('brand_id', brandId)
+      .eq('campaign_id', campaignId)
+      .eq('brief_id', briefId)
+      .eq('generation_job_id', generationId)
+      .single();
+    if (fetchError) {
+      if (fetchError.code === PGRST_NOT_FOUND) throw new Error(`Approval request ${approvalId} not found in scope`);
+      throw fetchError;
+    }
+    const previous = existing as ContentApprovalRequest;
+    const now = new Date().toISOString();
+    const newApprovalStatus = ACTION_TO_APPROVAL_STATUS[action];
+    const newItemStatus = ACTION_TO_ITEM_STATUS[action];
+
+    const { data: updatedRequest, error: updateError } = await this.sb
+      .from('content_approval_requests')
+      .update({ status: newApprovalStatus, updated_at: now, resolved_at: now })
+      .eq('id', approvalId)
+      .eq('client_id', clientId)
+      .eq('brand_id', brandId)
+      .eq('campaign_id', campaignId)
+      .eq('brief_id', briefId)
+      .eq('generation_job_id', generationId)
+      .select()
+      .single();
+    if (updateError) throw updateError;
+
+    const eventRow = {
+      approval_request_id: approvalId,
+      content_item_id: previous.content_item_id,
+      action,
+      actor_label: actorLabel,
+      comment: comment ?? null,
+      previous_status: previous.status,
+      new_status: newApprovalStatus,
+    };
+    const { data: createdEvent, error: eventError } = await this.sb
+      .from('content_approval_events')
+      .insert(eventRow)
+      .select()
+      .single();
+    if (eventError) throw eventError;
+
+    const { data: updatedItem, error: itemError } = await this.sb
+      .from('content_plan_items')
+      .update({ status: newItemStatus, updated_at: now })
+      .eq('id', previous.content_item_id)
+      .eq('client_id', clientId)
+      .eq('brand_id', brandId)
+      .eq('campaign_id', campaignId)
+      .eq('brief_id', briefId)
+      .eq('generation_job_id', generationId)
+      .select()
+      .single();
+    if (itemError) throw itemError;
+
+    return {
+      request: updatedRequest as ContentApprovalRequest,
+      event: createdEvent as ContentApprovalEvent,
+      updatedItem: updatedItem as ContentPlanItem,
+    };
+  }
+
+  async addComment({ clientId, brandId, campaignId, briefId, generationId, approvalId }: ApprovalScopedParams, actorLabel: string, commentText: string, isInternal = true): Promise<ApprovalCommentResult> {
+    const { data: existing, error: fetchError } = await this.sb
+      .from('content_approval_requests')
+      .select('id, content_item_id')
+      .eq('id', approvalId)
+      .eq('client_id', clientId)
+      .eq('brand_id', brandId)
+      .eq('campaign_id', campaignId)
+      .eq('brief_id', briefId)
+      .eq('generation_job_id', generationId)
+      .single();
+    if (fetchError) {
+      if (fetchError.code === PGRST_NOT_FOUND) throw new Error(`Approval request ${approvalId} not found in scope`);
+      throw fetchError;
+    }
+    const request = existing as Pick<ContentApprovalRequest, 'id' | 'content_item_id'>;
+
+    const commentRow = {
+      approval_request_id: approvalId,
+      content_item_id: request.content_item_id,
+      actor_label: actorLabel,
+      comment: commentText,
+      is_internal: isInternal,
+    };
+    const { data: createdComment, error: commentError } = await this.sb
+      .from('content_approval_comments')
+      .insert(commentRow)
+      .select()
+      .single();
+    if (commentError) throw commentError;
+
+    const eventRow = {
+      approval_request_id: approvalId,
+      content_item_id: request.content_item_id,
+      action: 'commented',
+      actor_label: actorLabel,
+      comment: commentText,
+      previous_status: null,
+      new_status: null,
+    };
+    const { data: createdEvent, error: eventError } = await this.sb
+      .from('content_approval_events')
+      .insert(eventRow)
+      .select()
+      .single();
+    if (eventError) throw eventError;
+
+    return {
+      comment: createdComment as ContentApprovalComment,
+      event: createdEvent as ContentApprovalEvent,
+    };
   }
 }

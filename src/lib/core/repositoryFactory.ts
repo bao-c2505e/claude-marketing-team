@@ -13,13 +13,14 @@
 // =============================================================================
 
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { ClientRepository, BrandRepository, CampaignRepository, BriefRepository, GenerationRepository } from './coreRepository';
+import type { ClientRepository, BrandRepository, CampaignRepository, BriefRepository, GenerationRepository, ApprovalRepository } from './coreRepository';
 import {
   LocalStorageClientRepository,
   LocalStorageBrandRepository,
   LocalStorageCampaignRepository,
   LocalStorageBriefRepository,
   LocalStorageGenerationRepository,
+  LocalStorageApprovalRepository,
 } from './localStorageRepositories';
 import {
   SupabaseClientRepository,
@@ -27,6 +28,7 @@ import {
   SupabaseCampaignRepository,
   SupabaseBriefRepository,
   SupabaseGenerationRepository,
+  SupabaseApprovalRepository,
 } from './supabaseRepositories';
 
 export interface Phase16aRepositories {
@@ -35,6 +37,7 @@ export interface Phase16aRepositories {
   campaigns: CampaignRepository;
   briefs: BriefRepository;
   generations: GenerationRepository;
+  approvals: ApprovalRepository;
 }
 
 /**
@@ -58,6 +61,7 @@ export function createPhase16aRepositories(
       campaigns: new SupabaseCampaignRepository(supabase),
       briefs: new SupabaseBriefRepository(supabase),
       generations: new SupabaseGenerationRepository(supabase),
+      approvals: new SupabaseApprovalRepository(supabase),
     };
   }
   // Fallback — localStorage / demo mode
@@ -67,5 +71,6 @@ export function createPhase16aRepositories(
     campaigns: new LocalStorageCampaignRepository(),
     briefs: new LocalStorageBriefRepository(),
     generations: new LocalStorageGenerationRepository(),
+    approvals: new LocalStorageApprovalRepository(),
   };
 }
