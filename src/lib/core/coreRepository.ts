@@ -94,11 +94,25 @@ export interface CampaignRepository {
 // D. Campaign Briefs
 // ---------------------------------------------------------------------------
 
+export interface BriefListParams {
+  clientId: string;
+  brandId: string;
+  campaignId: string;
+}
+
+// clientId + brandId + campaignId + briefId all required — prevents unscoped mutations
+export interface BriefScopedParams {
+  clientId: string;
+  brandId: string;
+  campaignId: string;
+  briefId: string;
+}
+
 export interface BriefRepository {
-  list(campaignId?: string): Promise<CampaignBrief[]>;
-  get(id: string): Promise<CampaignBrief | null>;
+  list(params: BriefListParams): Promise<CampaignBrief[]>;
+  get(params: BriefScopedParams): Promise<CampaignBrief | null>;
   create(data: BriefFormData): Promise<CampaignBrief>;
-  update(id: string, patch: Partial<CampaignBrief>): Promise<CampaignBrief>;
+  update(params: BriefScopedParams, patch: Partial<CampaignBrief>): Promise<CampaignBrief>;
 }
 
 // ---------------------------------------------------------------------------

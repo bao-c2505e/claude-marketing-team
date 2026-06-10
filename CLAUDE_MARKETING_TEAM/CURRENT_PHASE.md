@@ -1,9 +1,61 @@
-# CURRENT PHASE — Phase 16B-2 (Next) | Phase 16B-1 ✅ CLOSED (Codex PASS — 2026-06-10) | Phase 16A ✅ CLOSED (Codex PASS — 2026-06-09)
+# CURRENT PHASE — Phase 16B-2 (Implemented — awaiting Codex review — 2026-06-10) | Phase 16B-1 ✅ CLOSED (Codex PASS — 2026-06-10) | Phase 16A ✅ CLOSED (Codex PASS — 2026-06-09)
 
 ## 📌 Thông tin chung
 - **Phase trước:** Phase 16B-1 — Supabase CRUD Wiring: Campaigns
 - **Trạng thái Phase 16B-1:** ✅ CLOSED — repository + App.tsx + CampaignsTab wired, build PASS (0 TS errors). Codex Fix 1 applied (positive `duration_days` on create). Codex result: PASS.
-- **Phase tiếp theo:** Phase 16B-2 — Campaign Briefs CRUD wiring (see scope below)
+- **Phase hiện tại:** Phase 16B-2 — Campaign Briefs CRUD wiring — implemented, build PASS (0 TS errors), awaiting Codex review (see scope below)
+- **Phase tiếp theo:** TBD — pending Codex review of Phase 16B-2
+
+---
+
+## 🏁 Phase 16B-2 — Campaign Briefs CRUD Wiring (Implemented — awaiting Codex review — 2026-06-10)
+
+### Scope completed:
+- Supabase CRUD repository wiring for **Campaign Briefs** only (Generation/Calendar/Approval/Reports/Asset Library untouched)
+- Schema gap fixed first: `schema_v1.sql`'s `campaign_briefs` table was missing `client_id`, `brand_id`, `status`, and 13 fields that Phase 5 added to the `CampaignBrief` TS type/UI but never migrated to the DB. New **additive** migration `CLAUDE_MARKETING_TEAM/03_core/database/schema_v1_phase16b2_brief_extension.sql` adds: `brief_status` enum, `client_id UUID REFERENCES clients(id)`, `brand_id UUID REFERENCES brands(id)`, `status brief_status DEFAULT 'draft'`, plus `brief_title`, `campaign_goal`, `product_focus`, `offer`, `tone_of_voice`, `content_pillars`, `must_include`, `must_avoid`, `competitors`, `reference_links`, `budget_note`, `timeline_note`, `approval_requirements`, and 2 indexes (`idx_campaign_briefs_client`, `idx_campaign_briefs_brand`). All `ADD COLUMN IF NOT EXISTS` / `CREATE TYPE ... EXCEPTION WHEN duplicate_object` — safe to re-run, **not applied to any live DB**.
+- `BriefRepository` interface added: `list`, `get`, `create`, `update` with scoped param types `BriefListParams` / `BriefScopedParams`
+- Supabase implementation: `SupabaseBriefRepository` (list/get/create/update)
+- localStorage fallback: `LocalStorageBriefRepository`
+- `createPhase16aRepositories` factory extended — bundle now returns `briefs` repo
+- App.tsx wired: briefs loaded per-campaign on Supabase mount (alongside clients/brands/campaigns), `handleBriefCreate`, `handleBriefUpdate`; removed now-unused `handleCoreUpdate`
+- `BriefIntakeTab.tsx`: async `onBriefCreate`/`onBriefUpdate` props, `formLoading`/`actionError` states; removed `generateId` and the broad `onUpdate(CoreDataStore)` prop; create-mode validation now requires client + brand selection (both required by `BriefFormData`)
+
+### Tenant-scope contract (final):
+- `BriefRepository.list({ clientId, brandId, campaignId })` — all 3 IDs required
+- `BriefRepository.get({ clientId, brandId, campaignId, briefId })` — all 4 IDs required
+- `BriefRepository.create(data: BriefFormData)` — requires `client_id` + `brand_id` + `campaign_id` (+ denormalised `brand_name`/`industry`); Supabase impl never sends an `id`, `submitted_by`, `submitted_at`, `duration_days`, or `additional_notes` — DB generates the UUID, returned row updates React state
+- `BriefRepository.update({ clientId, brandId, campaignId, briefId }, patch)` — all 4 IDs required; Supabase strips `id`/`created_at`/`client_id`/`brand_id`/`campaign_id` from the patch before sending
+- No `archive()` method — `BriefIntakeTab.tsx` has no Archive button; `status: 'archived'` remains reachable via `update()` (same as existing `handleStatusChange` transitions)
+- Supabase brief queries always include `.eq('client_id', clientId).eq('brand_id', brandId).eq('campaign_id', campaignId)`, plus `.eq('id', briefId)` for `get`/`update`
+- `LocalStorageBriefRepository` mirrors the same `client_id`/`brand_id`/`campaign_id` filtering
+- TypeScript enforces: unscoped calls (`list()`, `get({briefId})`, `update({briefId}, patch)`) do not type-check
+
+### Data flow:
+- Supabase mode: on mount, after campaigns load, briefs loaded per-campaign — `Promise.all(loadedCampaigns.map(c => repos.briefs.list({ clientId: c.client_id, brandId: c.brand_id, campaignId: c.id })))`
+- localStorage mode: `LocalStorageBriefRepository` filters `loadCoreData().briefs` by `client_id` + `brand_id` + `campaign_id`
+- Create: `BriefIntakeTab` resolves `brand_name`/`industry` from the selected brand at submit time, calls `onBriefCreate(data)`, then navigates to the detail view of the returned brief (real DB-issued `id`)
+- Update (edit form + status transitions): `handleBriefUpdate` derives `clientId`/`brandId`/`campaignId` from the parent campaign (`coreData.campaigns.find(c => c.id === brief.campaign_id)`), calls `repos.briefs.update(...)`, merges the returned row into `coreData.briefs`
+
+### Safety record:
+- Production Supabase env: **OFF** (env vars unset)
+- Secrets / service role key in frontend: **NO**
+- Demo Sign In: **PRESERVED**
+- localStorage fallback: **PRESERVED**
+- Generation / Calendar / Approval / Reports / Asset Library: **UNCHANGED** (read `briefs` as props only, untouched)
+- Build: PASS — 0 TS errors (`tsc && vite build`)
+- `git diff --check`: PASS (CRLF warnings only, not errors)
+
+### Files changed:
+| File | Change |
+|---|---|
+| `CLAUDE_MARKETING_TEAM/03_core/database/schema_v1_phase16b2_brief_extension.sql` | NEW — additive migration: `brief_status` enum, `client_id`/`brand_id`/`status` + 13 brief-detail columns, 2 indexes |
+| `src/lib/core/coreData.ts` | `BriefFormData`/`EMPTY_BRIEF_FORM` extended with `brand_name`/`industry`; new shared exported `parseLines`/`parseComma` helpers |
+| `src/lib/core/coreRepository.ts` | `BriefRepository` + `BriefListParams`/`BriefScopedParams` — scoped contract (replaces old unscoped interface) |
+| `src/lib/core/localStorageRepositories.ts` | `LocalStorageBriefRepository` (list/get/create/update, scoped) |
+| `src/lib/core/supabaseRepositories.ts` | `SupabaseBriefRepository` (list/get/create/update, scoped) |
+| `src/lib/core/repositoryFactory.ts` | Added `briefs` to `Phase16aRepositories` bundle |
+| `src/App.tsx` | Per-campaign brief load on Supabase mount; `handleBriefCreate`/`handleBriefUpdate`; removed unused `handleCoreUpdate`; wired into `BriefIntakeTab` |
+| `src/components/core/BriefIntakeTab.tsx` | `onBriefCreate`/`onBriefUpdate` async props; `formLoading`/`actionError`; removed `generateId`/`onUpdate`/`CoreDataStore`; create-mode validation requires client + brand |
 
 ---
 

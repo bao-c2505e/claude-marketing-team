@@ -2,31 +2,34 @@
 // THE CORE AGENCY — Repository Factory
 // Phase 16A — Supabase CRUD Wiring: Clients + Brands
 // Phase 16B-1 — Supabase CRUD Wiring: Campaigns
+// Phase 16B-2 — Supabase CRUD Wiring: Campaign Briefs
 //
 // Returns Supabase-backed repositories when configured,
 // localStorage repositories otherwise (demo mode / no env vars).
 //
-// Phase 16B-1 scope: Clients + Brands + Campaigns.
-// Brief / Generation / Approval / etc. wiring is deferred to later phases.
+// Generation / Approval / etc. wiring is deferred to later phases.
 // =============================================================================
 
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { ClientRepository, BrandRepository, CampaignRepository } from './coreRepository';
+import type { ClientRepository, BrandRepository, CampaignRepository, BriefRepository } from './coreRepository';
 import {
   LocalStorageClientRepository,
   LocalStorageBrandRepository,
   LocalStorageCampaignRepository,
+  LocalStorageBriefRepository,
 } from './localStorageRepositories';
 import {
   SupabaseClientRepository,
   SupabaseBrandRepository,
   SupabaseCampaignRepository,
+  SupabaseBriefRepository,
 } from './supabaseRepositories';
 
 export interface Phase16aRepositories {
   clients: ClientRepository;
   brands: BrandRepository;
   campaigns: CampaignRepository;
+  briefs: BriefRepository;
 }
 
 /**
@@ -48,6 +51,7 @@ export function createPhase16aRepositories(
       clients: new SupabaseClientRepository(supabase),
       brands: new SupabaseBrandRepository(supabase),
       campaigns: new SupabaseCampaignRepository(supabase),
+      briefs: new SupabaseBriefRepository(supabase),
     };
   }
   // Fallback — localStorage / demo mode
@@ -55,5 +59,6 @@ export function createPhase16aRepositories(
     clients: new LocalStorageClientRepository(),
     brands: new LocalStorageBrandRepository(),
     campaigns: new LocalStorageCampaignRepository(),
+    briefs: new LocalStorageBriefRepository(),
   };
 }

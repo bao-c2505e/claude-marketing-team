@@ -6,6 +6,18 @@ Nhật ký ghi lại các hành động mô phỏng của các AI Agent khi vậ
 
 ## 🗓️ Nhật Ký Hoạt Động (Simulated Activity Logs)
 
+### 🗓️ Ngày 10/06/2026 — Phase 16B-2: Campaign Briefs CRUD Wiring (Implemented — awaiting Codex review)
+- **[PC1 Claude Code Builder]:** Phase 16B-2 implemented — Campaign Briefs CRUD repository wiring, build PASS, awaiting Codex review.
+- **[PC1]:** Schema gap fixed first: `schema_v1.sql`'s `campaign_briefs` table was missing `client_id`/`brand_id`/`status` + 13 brief-detail columns that Phase 5 added to the `CampaignBrief` TS type/UI but never migrated to the DB. New additive migration `03_core/database/schema_v1_phase16b2_brief_extension.sql` (`brief_status` enum + columns + 2 indexes), not applied to any live DB.
+- **[PC1]:** `BriefRepository.list({ clientId, brandId, campaignId })`, `get`/`update({ clientId, brandId, campaignId, briefId }, ...)` — all scope params required per interface; TypeScript rejects unscoped calls.
+- **[PC1]:** `SupabaseBriefRepository` queries always include `.eq('client_id', clientId).eq('brand_id', brandId).eq('campaign_id', campaignId)` (+ `.eq('id', briefId)` for get/update). `LocalStorageBriefRepository` mirrors the same scoping.
+- **[PC1]:** `SupabaseBriefRepository.create` never sends a local `brief-*` ID — DB generates the UUID, returned row used to update React state. No `archive()` method — `status: 'archived'` reachable via `update()`.
+- **[PC1]:** App.tsx loads briefs per-campaign on Supabase mount (after campaigns load); added `handleBriefCreate`/`handleBriefUpdate`, removed now-unused `handleCoreUpdate`. `BriefIntakeTab.tsx` now uses async `onBriefCreate`/`onBriefUpdate` props with `formLoading`/`actionError` states.
+- **[PC1]:** Production Supabase env OFF. No secrets. No service role key. Demo Sign In preserved. localStorage fallback preserved. Generation/Calendar/Approval/Reports/Asset Library unchanged.
+- **[PC1]:** Build PASS — 0 TS errors. `git diff --check` PASS (CRLF warnings only). Awaiting Codex review.
+
+---
+
 ### 🗓️ Ngày 10/06/2026 — Phase 16B-1 CLOSED: Codex PASS
 - **[PC1 Claude Code Builder]:** Phase 16B-1 officially closed after Codex PASS.
 - **[PC1]:** Confirmed final state: `CampaignRepository.list({ clientId, brandId? })`, `get({ clientId, campaignId, brandId? })`, `update`/`archive({ clientId, brandId, campaignId })` — all scope params required per interface; TypeScript rejects unscoped calls.

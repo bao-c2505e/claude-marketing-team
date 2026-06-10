@@ -10,10 +10,10 @@
 // =============================================================================
 
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { Client, Brand, Campaign } from '../../types/core';
-import type { ClientRepository, BrandRepository, CampaignRepository, CampaignListParams, CampaignGetParams, CampaignScopedParams } from './coreRepository';
-import type { ClientFormData, BrandFormData, CampaignFormData } from './coreData';
-import { calculateCampaignDurationDays } from './coreData';
+import type { Client, Brand, Campaign, CampaignBrief } from '../../types/core';
+import type { ClientRepository, BrandRepository, CampaignRepository, CampaignListParams, CampaignGetParams, CampaignScopedParams, BriefRepository, BriefListParams, BriefScopedParams } from './coreRepository';
+import type { ClientFormData, BrandFormData, CampaignFormData, BriefFormData } from './coreData';
+import { calculateCampaignDurationDays, parseLines, parseComma } from './coreData';
 
 // Postgres error code returned by Supabase when a single-row query finds nothing
 const PGRST_NOT_FOUND = 'PGRST116';
@@ -267,5 +267,103 @@ export class SupabaseCampaignRepository implements CampaignRepository {
       throw error;
     }
     void data;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// D. SupabaseBriefRepository
+//
+// Requires the Phase 16B-2 additive migration (schema_v1_phase16b2_brief_extension.sql)
+// that adds client_id, brand_id, status, and the Phase 5 brief-detail columns
+// to campaign_briefs.
+// ---------------------------------------------------------------------------
+
+export class SupabaseBriefRepository implements BriefRepository {
+  constructor(private readonly sb: SupabaseClient) {}
+
+  async list({ clientId, brandId, campaignId }: BriefListParams): Promise<CampaignBrief[]> {
+    const { data, error } = await this.sb
+      .from('campaign_briefs')
+      .select('*')
+      .eq('client_id', clientId)
+      .eq('brand_id', brandId)
+      .eq('campaign_id', campaignId)
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    return (data ?? []) as CampaignBrief[];
+  }
+
+  async get({ clientId, brandId, campaignId, briefId }: BriefScopedParams): Promise<CampaignBrief | null> {
+    const { data, error } = await this.sb
+      .from('campaign_briefs')
+      .select('*')
+      .eq('id', briefId)
+      .eq('client_id', clientId)
+      .eq('brand_id', brandId)
+      .eq('campaign_id', campaignId)
+      .single();
+    if (error) {
+      if (error.code === PGRST_NOT_FOUND) return null;
+      throw error;
+    }
+    return data as CampaignBrief | null;
+  }
+
+  async create(data: BriefFormData): Promise<CampaignBrief> {
+    // No id field — DB generates UUID; never send local brief-* prefix IDs.
+    // submitted_by/submitted_at left unset — 'demo-owner-000' is not a valid
+    // users.id UUID, and both columns are nullable.
+    const row = {
+      campaign_id: data.campaign_id,
+      brand_id: data.brand_id,
+      client_id: data.client_id,
+      brand_name: data.brand_name.trim(),
+      hero_product: data.product_focus.trim() || null,
+      industry: data.industry.trim() || null,
+      brief_title: data.brief_title.trim() || null,
+      campaign_goal: data.campaign_goal.trim() || null,
+      product_focus: data.product_focus.trim() || null,
+      offer: data.offer.trim() || null,
+      tone_of_voice: data.tone_of_voice.trim() || null,
+      tone: data.tone_of_voice.trim() || null,
+      target_audience: data.target_audience.trim() || null,
+      campaign_goals: data.campaign_goal.trim() ? [data.campaign_goal.trim()] : null,
+      key_messages: data.key_messages ? parseLines(data.key_messages) : null,
+      channels: parseComma(data.channels),
+      content_pillars: data.content_pillars ? parseLines(data.content_pillars) : null,
+      must_include: data.must_include.trim() || null,
+      must_avoid: data.must_avoid.trim() || null,
+      competitors: data.competitors.trim() || null,
+      reference_links: data.reference_links.trim() || null,
+      budget_note: data.budget_note.trim() || null,
+      timeline_note: data.timeline_note.trim() || null,
+      approval_requirements: data.approval_requirements.trim() || null,
+      status: 'draft',
+    };
+    const { data: created, error } = await this.sb
+      .from('campaign_briefs')
+      .insert(row)
+      .select()
+      .single();
+    if (error) throw error;
+    return created as CampaignBrief;
+  }
+
+  async update({ clientId, brandId, campaignId, briefId }: BriefScopedParams, patch: Partial<CampaignBrief>): Promise<CampaignBrief> {
+    const { id: _id, created_at: _ca, client_id: _cid, brand_id: _bid, campaign_id: _cmpid, ...safe } = patch as Record<string, unknown>;
+    const { data, error } = await this.sb
+      .from('campaign_briefs')
+      .update({ ...safe, updated_at: new Date().toISOString() })
+      .eq('id', briefId)
+      .eq('client_id', clientId)
+      .eq('brand_id', brandId)
+      .eq('campaign_id', campaignId)
+      .select()
+      .single();
+    if (error) {
+      if (error.code === PGRST_NOT_FOUND) throw new Error(`Brief ${briefId} not found for campaign ${campaignId}`);
+      throw error;
+    }
+    return data as CampaignBrief;
   }
 }

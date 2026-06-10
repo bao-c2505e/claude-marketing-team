@@ -9,10 +9,10 @@
 // These implementations are the default — Demo Sign In + localhost always lands here.
 // =============================================================================
 
-import type { Client, Brand, Campaign } from '../../types/core';
-import type { ClientRepository, BrandRepository, CampaignRepository, CampaignListParams, CampaignGetParams, CampaignScopedParams } from './coreRepository';
-import type { ClientFormData, BrandFormData, CampaignFormData } from './coreData';
-import { loadCoreData, saveCoreData, generateId, calculateCampaignDurationDays } from './coreData';
+import type { Client, Brand, Campaign, CampaignBrief } from '../../types/core';
+import type { ClientRepository, BrandRepository, CampaignRepository, CampaignListParams, CampaignGetParams, CampaignScopedParams, BriefRepository, BriefListParams, BriefScopedParams } from './coreRepository';
+import type { ClientFormData, BrandFormData, CampaignFormData, BriefFormData } from './coreData';
+import { loadCoreData, saveCoreData, generateId, calculateCampaignDurationDays, parseLines, parseComma } from './coreData';
 
 // ---------------------------------------------------------------------------
 // A. LocalStorageClientRepository
@@ -184,5 +184,82 @@ export class LocalStorageCampaignRepository implements CampaignRepository {
 
   async archive(params: CampaignScopedParams): Promise<void> {
     await this.update(params, { status: 'archived' });
+  }
+}
+
+// ---------------------------------------------------------------------------
+// D. LocalStorageBriefRepository
+// ---------------------------------------------------------------------------
+
+export class LocalStorageBriefRepository implements BriefRepository {
+  async list({ clientId, brandId, campaignId }: BriefListParams): Promise<CampaignBrief[]> {
+    return loadCoreData().briefs.filter(
+      b => b.client_id === clientId && b.brand_id === brandId && b.campaign_id === campaignId,
+    );
+  }
+
+  async get({ clientId, brandId, campaignId, briefId }: BriefScopedParams): Promise<CampaignBrief | null> {
+    return (
+      loadCoreData().briefs.find(
+        b => b.id === briefId && b.client_id === clientId && b.brand_id === brandId && b.campaign_id === campaignId,
+      ) ?? null
+    );
+  }
+
+  async create(data: BriefFormData): Promise<CampaignBrief> {
+    const store = loadCoreData();
+    const now = new Date().toISOString();
+    const brief: CampaignBrief = {
+      id: generateId('brief'),
+      campaign_id: data.campaign_id,
+      brand_id: data.brand_id,
+      client_id: data.client_id,
+      brand_name: data.brand_name.trim(),
+      hero_product: data.product_focus.trim() || null,
+      industry: data.industry.trim() || null,
+      brief_title: data.brief_title.trim() || null,
+      campaign_goal: data.campaign_goal.trim() || null,
+      product_focus: data.product_focus.trim() || null,
+      offer: data.offer.trim() || null,
+      tone_of_voice: data.tone_of_voice.trim() || null,
+      tone: data.tone_of_voice.trim() || null,
+      target_audience: data.target_audience.trim() || null,
+      campaign_goals: data.campaign_goal.trim() ? [data.campaign_goal.trim()] : null,
+      key_messages: data.key_messages ? parseLines(data.key_messages) : null,
+      channels: parseComma(data.channels),
+      content_pillars: data.content_pillars ? parseLines(data.content_pillars) : null,
+      must_include: data.must_include.trim() || null,
+      must_avoid: data.must_avoid.trim() || null,
+      competitors: data.competitors.trim() || null,
+      reference_links: data.reference_links.trim() || null,
+      budget_note: data.budget_note.trim() || null,
+      timeline_note: data.timeline_note.trim() || null,
+      approval_requirements: data.approval_requirements.trim() || null,
+      duration_days: null,
+      additional_notes: null,
+      status: 'draft',
+      submitted_by: 'demo-owner-000',
+      submitted_at: now,
+      created_at: now,
+      updated_at: now,
+    };
+    saveCoreData({ ...store, briefs: [brief, ...store.briefs] });
+    return brief;
+  }
+
+  async update({ clientId, brandId, campaignId, briefId }: BriefScopedParams, patch: Partial<CampaignBrief>): Promise<CampaignBrief> {
+    const store = loadCoreData();
+    const now = new Date().toISOString();
+    let found: CampaignBrief | undefined;
+    const briefs = store.briefs.map(b => {
+      if (b.id === briefId && b.client_id === clientId && b.brand_id === brandId && b.campaign_id === campaignId) {
+        found = { ...b, ...patch, updated_at: now };
+        return found;
+      }
+      return b;
+    });
+    if (!found) throw new Error(`Brief ${briefId} not found for campaign ${campaignId}`);
+    saveCoreData({ ...store, briefs });
+    return found;
   }
 }

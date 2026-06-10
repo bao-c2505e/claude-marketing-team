@@ -37,7 +37,7 @@ import { useAuth } from './lib/auth/AuthContext';
 import { ROLE_LABELS, ROLE_COLORS } from './lib/auth/permissions';
 import { isSupabaseConfigured, supabase } from './lib/supabaseClient';
 import { createPhase16aRepositories } from './lib/core/repositoryFactory';
-import type { Client, Brand, Campaign as CoreCampaign } from './types/core';
+import type { Client, Brand, Campaign as CoreCampaign, CampaignBrief as CoreCampaignBrief } from './types/core';
 import LoginScreen from './components/auth/LoginScreen';
 import ClientsTab from './components/core/ClientsTab';
 import BrandsTab from './components/core/BrandsTab';
@@ -53,7 +53,7 @@ import ExportPackTab from './components/core/ExportPackTab';
 import ConnectorRegistryTab from './components/core/ConnectorRegistryTab';
 import AutomationLogsTab from './components/core/AutomationLogsTab';
 import { loadCoreData, saveCoreData, loadGenerationData, saveGenerationData, loadApprovalData, saveApprovalData, loadAssetData, saveAssetData, canSubmitItem } from './lib/core/coreData';
-import type { CoreDataStore, GenerationDataStore, ApprovalDataStore, AssetDataStore, ClientFormData, BrandFormData, CampaignFormData } from './lib/core/coreData';
+import type { CoreDataStore, GenerationDataStore, ApprovalDataStore, AssetDataStore, ClientFormData, BrandFormData, CampaignFormData, BriefFormData } from './lib/core/coreData';
 import { loadAutomationLogData, saveAutomationLogData } from './lib/core/automationLogs';
 import type { AutomationLogStore } from './lib/core/automationLogs';
 
@@ -277,9 +277,14 @@ export default function App() {
       // Load campaigns scoped per client to prevent cross-client data leakage
       const campaignArrays = await Promise.all(clients.map(c => repos.campaigns.list({ clientId: c.id })));
       const loadedCampaigns = campaignArrays.flat();
+      // Load briefs scoped per campaign to prevent cross-tenant data leakage
+      const briefArrays = await Promise.all(
+        loadedCampaigns.map(c => repos.briefs.list({ clientId: c.client_id, brandId: c.brand_id, campaignId: c.id })),
+      );
+      const loadedBriefs = briefArrays.flat();
       if (cancelled) return;
       setCoreData(prev => {
-        const next = { ...prev, clients, brands, campaigns: loadedCampaigns };
+        const next = { ...prev, clients, brands, campaigns: loadedCampaigns, briefs: loadedBriefs };
         saveCoreData(next);
         return next;
       });
@@ -293,12 +298,6 @@ export default function App() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // handleCoreUpdate: used by Campaigns, Briefs, Generation, Approval, Assets, etc.
-  // Client/Brand mutations are routed through typed repo handlers below (Phase 16A fix).
-  const handleCoreUpdate = (updated: CoreDataStore) => {
-    setCoreData(updated);
-    saveCoreData(updated);
-  };
 
   // Phase 16A — typed repo handlers: mutations go through repos, return DB rows with real IDs.
   // Errors propagate to the calling tab so the user sees them in the form/action error display.
@@ -347,6 +346,31 @@ export default function App() {
     );
     setCoreData(prev => {
       const next = { ...prev, campaigns: prev.campaigns.map(c => c.id === updated.id ? updated : c) };
+      saveCoreData(next);
+      return next;
+    });
+  };
+
+  // Phase 16B-2 — typed brief repo handlers (clientId/brandId/campaignId scoped)
+  const handleBriefCreate = async (data: BriefFormData): Promise<CoreCampaignBrief> => {
+    const brief: CoreCampaignBrief = await repos.briefs.create(data);
+    setCoreData(prev => {
+      const next = { ...prev, briefs: [brief, ...prev.briefs] };
+      saveCoreData(next);
+      return next;
+    });
+    return brief;
+  };
+
+  const handleBriefUpdate = async (brief: CoreCampaignBrief, patch: Partial<CoreCampaignBrief>): Promise<void> => {
+    const campaign = coreData.campaigns.find(c => c.id === brief.campaign_id);
+    if (!campaign) throw new Error(`Campaign ${brief.campaign_id} not found for brief ${brief.id}`);
+    const updated: CoreCampaignBrief = await repos.briefs.update(
+      { clientId: campaign.client_id, brandId: campaign.brand_id, campaignId: campaign.id, briefId: brief.id },
+      patch,
+    );
+    setCoreData(prev => {
+      const next = { ...prev, briefs: prev.briefs.map(b => b.id === updated.id ? updated : b) };
       saveCoreData(next);
       return next;
     });
@@ -1106,7 +1130,8 @@ export default function App() {
                   brands={coreData.brands}
                   campaigns={coreData.campaigns}
                   briefs={coreData.briefs}
-                  onUpdate={handleCoreUpdate}
+                  onBriefCreate={handleBriefCreate}
+                  onBriefUpdate={handleBriefUpdate}
                   userRole={user?.role ?? null}
                   isSupabaseConfigured={isSupabaseConfigured}
                   onNavigateToGenerate={handleNavigateToGenerate}

@@ -6,6 +6,18 @@ Nhật ký theo dõi các mốc hoàn thành kỹ thuật qua các Phase.
 
 ## 📅 Nhật Ký Sự Kiện (Event Logs)
 
+### 🗓️ Ngày 10/06/2026 — Phase 16B-2: Campaign Briefs CRUD Wiring (Implemented — chờ Codex review)
+- **Sự kiện:** Phase 16B-2 đã triển khai xong, build PASS, đang chờ Codex review.
+- **Schema gap:** `schema_v1.sql` thiếu `client_id`/`brand_id`/`status` + 13 cột brief-detail mà Phase 5 đã thêm vào `CampaignBrief` TS type/UI nhưng chưa migrate xuống DB. Migration bổ sung (additive, idempotent): `03_core/database/schema_v1_phase16b2_brief_extension.sql` (enum `brief_status` + các cột + 2 index) — chưa apply lên DB live nào.
+- **Tenant-scope contract:** `BriefRepository.list({ clientId, brandId, campaignId })` — cả 3 ID bắt buộc. `get`/`update({ clientId, brandId, campaignId, briefId }, ...)` — cả 4 ID bắt buộc. Supabase queries luôn `.eq('client_id', ...).eq('brand_id', ...).eq('campaign_id', ...)` (+ `.eq('id', briefId)` cho get/update). `LocalStorageBriefRepository` filter tương tự. TypeScript enforce tại compile time — unscoped calls không type-check.
+- **`create(data)`:** không bao giờ gửi local `brief-*` ID — DB tự generate UUID, row trả về dùng để update React state. Không có `archive()` — `status: 'archived'` đạt được qua `update()` (UI không có nút Archive).
+- **App.tsx / BriefIntakeTab.tsx:** briefs load per-campaign sau khi campaigns load xong; thêm `handleBriefCreate`/`handleBriefUpdate`, xoá `handleCoreUpdate` (không còn dùng); `BriefIntakeTab` dùng async `onBriefCreate`/`onBriefUpdate` với `formLoading`/`actionError`.
+- **An toàn:** Supabase env OFF · không secrets · không service role key · Demo Sign In preserved · localStorage fallback preserved · Generation/Calendar/Approval/Reports/Asset Library không đổi.
+- **Build:** PASS — 0 TS errors (`tsc && vite build`). `git diff --check`: PASS (chỉ CRLF warnings).
+- **Trạng thái:** Implemented — chờ Codex review.
+
+---
+
 ### 🗓️ Ngày 10/06/2026 — Phase 16B-1 CLOSED: Codex PASS
 - **Sự kiện:** Phase 16B-1 chính thức đóng sau Codex PASS.
 - **Scope hoàn thành:** Supabase CRUD repository wiring cho Campaigns only (Briefs/Generation/Calendar/Approval/Reports deferred to 16B-2+).

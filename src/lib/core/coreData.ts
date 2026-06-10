@@ -37,6 +37,9 @@ export interface BriefFormData {
   campaign_id: string;
   brand_id: string;
   client_id: string;
+  // denormalised from the selected brand — stored on campaign_briefs
+  brand_name: string;
+  industry: string;
   brief_title: string;
   campaign_goal: string;
   product_focus: string;
@@ -363,6 +366,16 @@ export function saveCoreData(data: CoreDataStore): void {
 
 export function generateId(prefix: string): string {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+}
+
+// Shared brief field parsers — campaign_briefs stores content_pillars/key_messages
+// as TEXT[] (one item per line) and channels as TEXT[] (comma-separated input).
+export function parseLines(s: string): string[] {
+  return s.split('\n').map(l => l.trim()).filter(Boolean);
+}
+
+export function parseComma(s: string): string[] {
+  return s.split(',').map(l => l.trim()).filter(Boolean);
 }
 
 // Inclusive day count between start_date and end_date (campaigns.duration_days
@@ -815,6 +828,8 @@ export const EMPTY_BRIEF_FORM: BriefFormData = {
   campaign_id: '',
   brand_id: '',
   client_id: '',
+  brand_name: '',
+  industry: '',
   brief_title: '',
   campaign_goal: '',
   product_focus: '',

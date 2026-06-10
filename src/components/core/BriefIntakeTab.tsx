@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Plus, ArrowLeft, ClipboardList, ChevronRight, Zap } from 'lucide-react';
 import type { Client, Brand, Campaign, CampaignBrief, BriefStatus, RoleName } from '../../types/core';
-import type { BriefFormData, CoreDataStore } from '../../lib/core/coreData';
+import type { BriefFormData } from '../../lib/core/coreData';
 import {
-  generateId,
   BRIEF_STATUS_LABEL, BRIEF_STATUS_COLOR, EMPTY_BRIEF_FORM,
+  parseLines, parseComma,
 } from '../../lib/core/coreData';
 import { can } from '../../lib/auth/permissions';
 
@@ -13,7 +13,8 @@ interface Props {
   brands: Brand[];
   campaigns: Campaign[];
   briefs: CampaignBrief[];
-  onUpdate: (updated: CoreDataStore) => void;
+  onBriefCreate: (data: BriefFormData) => Promise<CampaignBrief>;
+  onBriefUpdate: (brief: CampaignBrief, patch: Partial<CampaignBrief>) => Promise<void>;
   userRole: RoleName | null;
   isSupabaseConfigured: boolean;
   onNavigateToGenerate?: (briefId: string) => void;
@@ -43,11 +44,13 @@ function SectionLabel({ children }: { children: string }) {
   );
 }
 
-export default function BriefIntakeTab({ clients, brands, campaigns, briefs, onUpdate, userRole, isSupabaseConfigured, onNavigateToGenerate }: Props) {
+export default function BriefIntakeTab({ clients, brands, campaigns, briefs, onBriefCreate, onBriefUpdate, userRole, isSupabaseConfigured, onNavigateToGenerate }: Props) {
   const [mode, setMode] = useState<Mode>('list');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [form, setForm] = useState<BriefFormData>(EMPTY_BRIEF_FORM);
   const [formError, setFormError] = useState('');
+  const [formLoading, setFormLoading] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
   const [filterClientId, setFilterClientId] = useState('');
   const [filterBrandId, setFilterBrandId] = useState('');
   const [filterCampaignId, setFilterCampaignId] = useState('');
@@ -87,6 +90,10 @@ export default function BriefIntakeTab({ clients, brands, campaigns, briefs, onU
   }, [form.brand_id, mode, brands]);
 
   const validate = (): boolean => {
+    if (mode === 'create') {
+      if (!form.client_id) { setFormError('Please select a client.'); return false; }
+      if (!form.brand_id) { setFormError('Please select a brand.'); return false; }
+    }
     if (!form.campaign_id) { setFormError('Please select a campaign.'); return false; }
     if (!form.brief_title.trim()) { setFormError('Brief title is required.'); return false; }
     if (!form.campaign_goal.trim()) { setFormError('Campaign goal is required.'); return false; }
@@ -97,88 +104,62 @@ export default function BriefIntakeTab({ clients, brands, campaigns, briefs, onU
     return true;
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!validate()) return;
-    const now = new Date().toISOString();
-    const brand = brands.find(b => b.id === form.brand_id);
-    const parseLines = (s: string) => s.split('\n').map(l => l.trim()).filter(Boolean);
-    const parseComma = (s: string) => s.split(',').map(l => l.trim()).filter(Boolean);
+    setFormLoading(true);
+    setFormError('');
+    try {
+      if (mode === 'edit' && selectedId) {
+        const brief = briefs.find(b => b.id === selectedId);
+        if (!brief) throw new Error('Brief not found.');
+        await onBriefUpdate(brief, {
+          brief_title: form.brief_title,
+          campaign_goal: form.campaign_goal,
+          product_focus: form.product_focus,
+          hero_product: form.product_focus,
+          offer: form.offer || null,
+          target_audience: form.target_audience,
+          tone_of_voice: form.tone_of_voice,
+          tone: form.tone_of_voice,
+          channels: parseComma(form.channels),
+          content_pillars: form.content_pillars ? parseLines(form.content_pillars) : null,
+          key_messages: form.key_messages ? parseLines(form.key_messages) : null,
+          campaign_goals: [form.campaign_goal],
+          must_include: form.must_include || null,
+          must_avoid: form.must_avoid || null,
+          competitors: form.competitors || null,
+          reference_links: form.reference_links || null,
+          budget_note: form.budget_note || null,
+          timeline_note: form.timeline_note || null,
+          approval_requirements: form.approval_requirements || null,
+        });
+        setMode('detail');
+        return;
+      }
 
-    if (mode === 'edit' && selectedId) {
-      const updated = briefs.map(b => b.id === selectedId ? {
-        ...b,
-        brief_title: form.brief_title,
-        campaign_goal: form.campaign_goal,
-        product_focus: form.product_focus,
-        hero_product: form.product_focus,
-        offer: form.offer || null,
-        target_audience: form.target_audience,
-        tone_of_voice: form.tone_of_voice,
-        tone: form.tone_of_voice,
-        channels: parseComma(form.channels),
-        content_pillars: form.content_pillars ? parseLines(form.content_pillars) : null,
-        key_messages: form.key_messages ? parseLines(form.key_messages) : null,
-        campaign_goals: [form.campaign_goal],
-        must_include: form.must_include || null,
-        must_avoid: form.must_avoid || null,
-        competitors: form.competitors || null,
-        reference_links: form.reference_links || null,
-        budget_note: form.budget_note || null,
-        timeline_note: form.timeline_note || null,
-        approval_requirements: form.approval_requirements || null,
-        updated_at: now,
-      } : b);
-      onUpdate({ clients, brands, campaigns, briefs: updated });
+      // create
+      const brand = brands.find(b => b.id === form.brand_id);
+      const created = await onBriefCreate({
+        ...form,
+        brand_name: brand?.name ?? '',
+        industry: brand?.industry ?? '',
+      });
+      setSelectedId(created.id);
       setMode('detail');
-      return;
+    } catch (err) {
+      setFormError(err instanceof Error ? err.message : 'Failed to save brief. Please try again.');
+    } finally {
+      setFormLoading(false);
     }
-
-    // create
-    const newBrief: CampaignBrief = {
-      id: generateId('brief'),
-      campaign_id: form.campaign_id,
-      brand_id: form.brand_id || null,
-      client_id: form.client_id || null,
-      brand_name: brand?.name ?? '',
-      brief_title: form.brief_title,
-      campaign_goal: form.campaign_goal,
-      hero_product: form.product_focus,
-      product_focus: form.product_focus,
-      industry: brand?.industry ?? null,
-      offer: form.offer || null,
-      tone: form.tone_of_voice,
-      tone_of_voice: form.tone_of_voice,
-      target_audience: form.target_audience,
-      campaign_goals: [form.campaign_goal],
-      key_messages: form.key_messages ? parseLines(form.key_messages) : null,
-      channels: parseComma(form.channels),
-      content_pillars: form.content_pillars ? parseLines(form.content_pillars) : null,
-      must_include: form.must_include || null,
-      must_avoid: form.must_avoid || null,
-      competitors: form.competitors || null,
-      reference_links: form.reference_links || null,
-      budget_note: form.budget_note || null,
-      timeline_note: form.timeline_note || null,
-      approval_requirements: form.approval_requirements || null,
-      duration_days: null,
-      additional_notes: null,
-      status: 'draft',
-      submitted_by: 'demo-owner-000',
-      submitted_at: now,
-      created_at: now,
-      updated_at: now,
-    };
-    onUpdate({ clients, brands, campaigns, briefs: [newBrief, ...briefs] });
-    setSelectedId(newBrief.id);
-    setMode('detail');
   };
 
-  const handleStatusChange = (briefId: string, newStatus: BriefStatus) => {
-    const now = new Date().toISOString();
-    onUpdate({
-      clients, brands, campaigns,
-      briefs: briefs.map(b => b.id === briefId ? { ...b, status: newStatus, updated_at: now } : b),
-    });
+  const handleStatusChange = async (brief: CampaignBrief, newStatus: BriefStatus) => {
+    setActionError(null);
+    try {
+      await onBriefUpdate(brief, { status: newStatus });
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'Failed to update brief status.');
+    }
   };
 
   const openEdit = (brief: CampaignBrief) => {
@@ -186,6 +167,8 @@ export default function BriefIntakeTab({ clients, brands, campaigns, briefs, onU
       campaign_id: brief.campaign_id,
       brand_id: brief.brand_id ?? '',
       client_id: brief.client_id ?? '',
+      brand_name: brief.brand_name ?? '',
+      industry: brief.industry ?? '',
       brief_title: brief.brief_title ?? '',
       campaign_goal: brief.campaign_goal ?? (brief.campaign_goals?.[0] ?? ''),
       product_focus: brief.product_focus ?? brief.hero_product ?? '',
@@ -245,6 +228,13 @@ export default function BriefIntakeTab({ clients, brands, campaigns, briefs, onU
           </span>
         </div>
 
+        {actionError && (
+          <div style={{ padding: '10px 14px', background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.4)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
+            <span style={{ fontSize: '0.8rem', color: '#f87171' }}>⚠ {actionError}</span>
+            <button onClick={() => setActionError(null)} style={{ background: 'none', border: 'none', color: '#f87171', cursor: 'pointer', fontSize: '0.85rem', padding: '0 4px' }}>✕</button>
+          </div>
+        )}
+
         <div className="glass-panel" style={{ padding: '24px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
             <div>
@@ -259,17 +249,17 @@ export default function BriefIntakeTab({ clients, brands, campaigns, briefs, onU
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
               {canEdit && <button className="btn btn-secondary" style={{ fontSize: '0.82rem', padding: '5px 12px' }} onClick={() => openEdit(brief)}>Edit Brief</button>}
               {canEdit && brief.status === 'draft' && (
-                <button className="btn btn-secondary" style={{ fontSize: '0.82rem', padding: '5px 12px', color: '#60a5fa' }} onClick={() => handleStatusChange(brief.id, 'ready_for_generation')}>
+                <button className="btn btn-secondary" style={{ fontSize: '0.82rem', padding: '5px 12px', color: '#60a5fa' }} onClick={() => handleStatusChange(brief, 'ready_for_generation')}>
                   Mark Ready for Generation
                 </button>
               )}
               {canApprove && brief.status === 'ready_for_generation' && (
-                <button className="btn btn-secondary" style={{ fontSize: '0.82rem', padding: '5px 12px', color: '#34d399' }} onClick={() => handleStatusChange(brief.id, 'approved_for_generation')}>
+                <button className="btn btn-secondary" style={{ fontSize: '0.82rem', padding: '5px 12px', color: '#34d399' }} onClick={() => handleStatusChange(brief, 'approved_for_generation')}>
                   Approve for Generation
                 </button>
               )}
               {canEdit && brief.status !== 'draft' && brief.status !== 'archived' && (
-                <button className="btn btn-secondary" style={{ fontSize: '0.82rem', padding: '5px 12px', color: '#f59e0b' }} onClick={() => handleStatusChange(brief.id, 'needs_revision')}>
+                <button className="btn btn-secondary" style={{ fontSize: '0.82rem', padding: '5px 12px', color: '#f59e0b' }} onClick={() => handleStatusChange(brief, 'needs_revision')}>
                   Needs Revision
                 </button>
               )}
@@ -433,10 +423,10 @@ export default function BriefIntakeTab({ clients, brands, campaigns, briefs, onU
           )}
 
           <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
-            <button className="btn btn-primary" style={{ fontSize: '0.85rem' }} onClick={handleSave}>
-              {mode === 'edit' ? 'Save Changes' : 'Save Brief as Draft'}
+            <button className="btn btn-primary" style={{ fontSize: '0.85rem' }} onClick={handleSave} disabled={formLoading}>
+              {formLoading ? 'Saving…' : (mode === 'edit' ? 'Save Changes' : 'Save Brief as Draft')}
             </button>
-            <button className="btn btn-secondary" style={{ fontSize: '0.85rem' }} onClick={() => { mode === 'edit' ? setMode('detail') : setMode('list'); }}>
+            <button className="btn btn-secondary" style={{ fontSize: '0.85rem' }} disabled={formLoading} onClick={() => { mode === 'edit' ? setMode('detail') : setMode('list'); }}>
               Cancel
             </button>
           </div>
@@ -473,6 +463,13 @@ export default function BriefIntakeTab({ clients, brands, campaigns, briefs, onU
           </button>
         )}
       </div>
+
+      {actionError && (
+        <div style={{ padding: '10px 14px', background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.4)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
+          <span style={{ fontSize: '0.8rem', color: '#f87171' }}>⚠ {actionError}</span>
+          <button onClick={() => setActionError(null)} style={{ background: 'none', border: 'none', color: '#f87171', cursor: 'pointer', fontSize: '0.85rem', padding: '0 4px' }}>✕</button>
+        </div>
+      )}
 
       {/* Filters */}
       <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
@@ -524,7 +521,7 @@ export default function BriefIntakeTab({ clients, brands, campaigns, briefs, onU
                 <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
                   {canEdit && b.status === 'draft' && (
                     <button className="btn btn-secondary" style={{ padding: '4px 10px', fontSize: '0.78rem', color: '#60a5fa' }}
-                      onClick={() => handleStatusChange(b.id, 'ready_for_generation')}>
+                      onClick={() => handleStatusChange(b, 'ready_for_generation')}>
                       Mark Ready
                     </button>
                   )}
