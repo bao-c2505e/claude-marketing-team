@@ -6,6 +6,18 @@ Nhật ký ghi lại các hành động mô phỏng của các AI Agent khi vậ
 
 ## 🗓️ Nhật Ký Hoạt Động (Simulated Activity Logs)
 
+### 🗓️ Ngày 10/06/2026 — Phase 16B-1 CLOSED: Codex PASS
+- **[PC1 Claude Code Builder]:** Phase 16B-1 officially closed after Codex PASS.
+- **[PC1]:** Confirmed final state: `CampaignRepository.list({ clientId, brandId? })`, `get({ clientId, campaignId, brandId? })`, `update`/`archive({ clientId, brandId, campaignId })` — all scope params required per interface; TypeScript rejects unscoped calls.
+- **[PC1]:** `SupabaseCampaignRepository` queries always include `.eq('client_id', clientId)`, plus `.eq('brand_id', brandId)` for update/archive/get. `LocalStorageCampaignRepository` mirrors the same scoping.
+- **[PC1]:** `SupabaseCampaignRepository.create` never sends a local `campaign-*` ID — DB generates the UUID, returned row used to update React state.
+- **[PC1]:** Codex Fix 1 applied — `duration_days: 0` violated `schema_v1.sql` CHECK (`duration_days > 0`). Added `calculateCampaignDurationDays(startDate, endDate)` helper in `coreData.ts` (inclusive day count, fallback `1`), applied identically in both Supabase and localStorage `create()`. Build PASS, git diff --check PASS. Commit `a2a8651`.
+- **[PC1]:** Production Supabase env OFF. No secrets. No service role key. Demo Sign In preserved. localStorage fallback preserved. Brief/Generation/Calendar/Approval/Reports wiring deferred to 16B-2+.
+- **[PC1]:** Git status clean. Commits: `e733633` → `a2a8651`.
+- **[PC1]:** Codex result: PASS. Phase 16B-1 CLOSED.
+
+---
+
 ### 🗓️ Ngày 09/06/2026 — Phase 16A CLOSED: Codex PASS
 - **[PC1 Claude Code Builder]:** Phase 16A officially closed after Codex PASS.
 - **[PC1]:** Confirmed final state: `BrandRepository.list(clientId: string)` required in interface and both implementations. `SupabaseBrandRepository.list` unconditionally applies `.eq('client_id', clientId)`. `LocalStorageBrandRepository.list` unconditionally filters by `clientId`. No unscoped brand read path exists anywhere in the codebase.

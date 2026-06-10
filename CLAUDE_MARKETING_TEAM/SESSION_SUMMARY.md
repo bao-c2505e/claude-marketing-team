@@ -22,7 +22,7 @@ Chúng ta đang xây dựng **The Core Agency — Real Operations MVP**. Đây l
 
 ---
 
-## 🏁 Phase 16B-1 — Campaigns CRUD Wiring (DONE — 2026-06-10)
+## 🏁 Phase 16B-1 — Campaigns CRUD Wiring (CLOSED — Codex PASS — 2026-06-10)
 
 **Scope completed:** Supabase CRUD repository wiring for Campaigns only (Briefs/Generation/Calendar/Approval/Reports deferred to 16B-2+). Same repository pattern as Phase 16A (Clients/Brands).
 
@@ -52,6 +52,8 @@ Chúng ta đang xây dựng **The Core Agency — Real Operations MVP**. Đây l
 **Fix:** New helper `calculateCampaignDurationDays(startDate, endDate)` in `src/lib/core/coreData.ts` — inclusive day count `max(1, round((end - start) / 1 day) + 1)`, falling back to `1` when dates are missing/invalid. Both repositories' `create()` now use this helper instead of `0`.
 
 **Tenant scope:** unchanged. **Build:** PASS — 0 TS errors. `git diff --check`: PASS.
+
+**Codex result:** PASS. **Commits:** `e733633` → `a2a8651`. **Trạng thái Phase 16B-1:** ✅ CLOSED. **Next:** Phase 16B-2 — Campaign Briefs CRUD wiring.
 
 ---
 

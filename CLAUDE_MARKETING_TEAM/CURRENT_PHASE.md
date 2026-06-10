@@ -1,13 +1,13 @@
-# CURRENT PHASE — Phase 16B-2 (Next) | Phase 16B-1 ✅ DONE + Codex Fix 1 (build pass — 2026-06-10) | Phase 16A ✅ CLOSED (Codex PASS — 2026-06-09)
+# CURRENT PHASE — Phase 16B-2 (Next) | Phase 16B-1 ✅ CLOSED (Codex PASS — 2026-06-10) | Phase 16A ✅ CLOSED (Codex PASS — 2026-06-09)
 
 ## 📌 Thông tin chung
 - **Phase trước:** Phase 16B-1 — Supabase CRUD Wiring: Campaigns
-- **Trạng thái Phase 16B-1:** ✅ DONE — repository + App.tsx + CampaignsTab wired, build PASS (0 TS errors). Codex Fix 1 applied (positive `duration_days` on create).
+- **Trạng thái Phase 16B-1:** ✅ CLOSED — repository + App.tsx + CampaignsTab wired, build PASS (0 TS errors). Codex Fix 1 applied (positive `duration_days` on create). Codex result: PASS.
 - **Phase tiếp theo:** Phase 16B-2 — Campaign Briefs CRUD wiring (see scope below)
 
 ---
 
-## 🏁 Phase 16B-1 — Campaigns CRUD Wiring (DONE — 2026-06-10)
+## 🏁 Phase 16B-1 — Campaigns CRUD Wiring (CLOSED — Codex PASS — 2026-06-10)
 
 ### Scope completed:
 - Supabase CRUD repository wiring for **Campaigns** only (Briefs/Generation/Calendar/Approval/Reports untouched, deferred to 16B-2+)
@@ -72,6 +72,16 @@
 ### Tenant-scope contract: UNCHANGED (list/get/update/archive scoping untouched).
 
 ### Build: PASS — 0 TS errors. git diff --check: PASS (CRLF warnings only, not errors).
+
+---
+
+## 🏁 Phase 16B-1 — CLOSED (Codex PASS — 2026-06-10)
+
+- **Codex result:** PASS — no further required fixes.
+- **Commits:** `e733633` (feat: add phase 16b1 campaign repository wiring) → `a2a8651` (fix: ensure positive campaign duration on create)
+- **git status:** working tree clean. main = origin/main.
+- **Trạng thái:** ✅ CLOSED.
+- **Next phase:** Phase 16B-2 — Campaign Briefs CRUD wiring.
 
 ---
 
@@ -289,4 +299,4 @@ With Supabase env (future):
 | Phase 14 | Automation Logs Foundation | 2d3c009 |
 | Phase 15 | Supabase Auth + Database Wiring Plan | 68e8982 |
 | Phase 16A | Supabase CRUD Wiring — Clients + Brands (Codex PASS) | df7e6aa |
-| Phase 16B-1 | Supabase CRUD Wiring — Campaigns | (this commit) |
+| Phase 16B-1 | Supabase CRUD Wiring — Campaigns (Codex PASS) | a2a8651 |

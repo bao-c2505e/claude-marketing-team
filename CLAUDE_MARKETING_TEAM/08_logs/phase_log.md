@@ -6,6 +6,20 @@ Nhật ký theo dõi các mốc hoàn thành kỹ thuật qua các Phase.
 
 ## 📅 Nhật Ký Sự Kiện (Event Logs)
 
+### 🗓️ Ngày 10/06/2026 — Phase 16B-1 CLOSED: Codex PASS
+- **Sự kiện:** Phase 16B-1 chính thức đóng sau Codex PASS.
+- **Scope hoàn thành:** Supabase CRUD repository wiring cho Campaigns only (Briefs/Generation/Calendar/Approval/Reports deferred to 16B-2+).
+- **Tenant-scope contract cuối:** `CampaignRepository.list({ clientId, brandId? })` — `clientId` bắt buộc. `get({ clientId, campaignId, brandId? })` — scoped by client (+ brand nếu có). `update`/`archive({ clientId, brandId, campaignId })` — cả 3 ID bắt buộc. Supabase queries luôn `.eq('client_id', clientId)`, plus `.eq('brand_id', brandId)` khi áp dụng. TypeScript enforce tại compile time — unscoped calls không type-check.
+- **`create(data)`:** `SupabaseCampaignRepository.create` không bao giờ gửi local `campaign-*` ID — DB tự generate UUID, row trả về dùng để update React state.
+- **Codex Fix 1 (duration_days):** `duration_days: 0` vi phạm CHECK (`duration_days > 0`) trong `schema_v1.sql`. Fix: helper `calculateCampaignDurationDays(startDate, endDate)` — inclusive day count, fallback `1` nếu thiếu/invalid date. Áp dụng đồng nhất cho cả `SupabaseCampaignRepository.create` và `LocalStorageCampaignRepository.create`. Commit: `a2a8651`.
+- **An toàn:** Supabase env OFF · không secrets · không service role key · Demo Sign In preserved · localStorage fallback preserved.
+- **Không wired:** Brief / Generation / Calendar / Approval / Reports — deferred to Phase 16B-2+.
+- **Codex result:** PASS.
+- **Commits:** `e733633` (feat: campaign repository wiring) → `a2a8651` (fix: positive duration_days)
+- **Trạng thái:** ✅ CLOSED.
+
+---
+
 ### 🗓️ Ngày 09/06/2026 — Phase 16A CLOSED: Codex PASS
 - **Sự kiện:** Phase 16A chính thức đóng sau Codex PASS.
 - **Scope hoàn thành:** Supabase CRUD repository wiring cho Clients và Brands. Repository pattern: interface → factory → Supabase/localStorage impls. Wired vào App.tsx.
