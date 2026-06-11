@@ -487,14 +487,18 @@ export default function App() {
   const actorLabel = user?.email ?? user?.role ?? 'System';
 
   // Phase 16C-2 — Approval CRUD: per-operation repo selection. Falls back to
-  // localStorage whenever any scope ID is not a valid UUID (local/demo data),
-  // satisfying the local/demo fallback requirement even if Supabase is configured.
+  // localStorage whenever any ID *used by that operation* — tenant scope,
+  // approvalId, and/or contentItemId — is not a valid UUID (local/demo data),
+  // so local-format ids (approval-*/item-*/generation-*/job-*) are never sent
+  // into a Supabase UUID column, even if Supabase is configured.
   const approvalRepoFor = (ids: {
     clientId: string | null;
     brandId: string | null;
     campaignId: string | null;
     briefId: string | null;
     generationId: string | null;
+    approvalId?: string | null;
+    contentItemId?: string | null;
   }): ApprovalRepository => {
     if (
       isSupabaseConfigured
@@ -503,6 +507,8 @@ export default function App() {
       && isUuid(ids.campaignId)
       && isUuid(ids.briefId)
       && isUuid(ids.generationId)
+      && (ids.approvalId === undefined || isUuid(ids.approvalId))
+      && (ids.contentItemId === undefined || isUuid(ids.contentItemId))
     ) {
       return repos.approvals;
     }
@@ -518,6 +524,7 @@ export default function App() {
       campaignId: item.campaign_id,
       briefId: item.brief_id,
       generationId: item.generation_job_id,
+      contentItemId: item.id,
     };
     if (!scope.clientId || !scope.brandId) {
       throw new Error(`Content item ${item.id} is missing client/brand scope`);
@@ -558,11 +565,11 @@ export default function App() {
     action: ResolvingApprovalAction,
     comment?: string,
   ): Promise<void> => {
-    const { client_id: clientId, brand_id: brandId, campaign_id: campaignId, brief_id: briefId, generation_job_id: generationId } = request;
+    const { client_id: clientId, brand_id: brandId, campaign_id: campaignId, brief_id: briefId, generation_job_id: generationId, content_item_id: contentItemId } = request;
     if (!clientId || !brandId || !briefId || !generationId) {
       throw new Error(`Approval request ${request.id} is missing tenant scope`);
     }
-    const scope = { clientId, brandId, campaignId, briefId, generationId, approvalId: request.id };
+    const scope = { clientId, brandId, campaignId, briefId, generationId, approvalId: request.id, contentItemId };
     const repo = approvalRepoFor(scope);
     const result = await repo.executeAction(scope, action, actorLabel, comment);
     setApprovalData(prev => {
@@ -591,11 +598,11 @@ export default function App() {
     commentText: string,
     isInternal = true,
   ): Promise<void> => {
-    const { client_id: clientId, brand_id: brandId, campaign_id: campaignId, brief_id: briefId, generation_job_id: generationId } = request;
+    const { client_id: clientId, brand_id: brandId, campaign_id: campaignId, brief_id: briefId, generation_job_id: generationId, content_item_id: contentItemId } = request;
     if (!clientId || !brandId || !briefId || !generationId) {
       throw new Error(`Approval request ${request.id} is missing tenant scope`);
     }
-    const scope = { clientId, brandId, campaignId, briefId, generationId, approvalId: request.id };
+    const scope = { clientId, brandId, campaignId, briefId, generationId, approvalId: request.id, contentItemId };
     const repo = approvalRepoFor(scope);
     const result = await repo.addComment(scope, actorLabel, commentText, isInternal);
     setApprovalData(prev => {

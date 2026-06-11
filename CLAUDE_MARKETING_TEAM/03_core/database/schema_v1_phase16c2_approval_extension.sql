@@ -140,35 +140,47 @@ END $$;
 --
 -- content_approval_hierarchy_is_valid() reuses content_plan_hierarchy_is_valid()
 -- (Phase 16C-1) to verify client_id/brand_id/campaign_id/brief_id form one
--- consistent tenant chain, and additionally verifies that
--- generation_job_id is a content_plan_jobs row whose own
--- client/brand/campaign/brief ids match the same chain. A row whose five ids
--- don't form a single real chain is never authorized, regardless of role.
+-- consistent tenant chain, verifies that generation_job_id is a
+-- content_plan_jobs row whose own client/brand/campaign/brief ids match the
+-- same chain, and additionally verifies that content_item_id is a
+-- content_plan_items row belonging to that exact generation_job_id AND whose
+-- own client/brand/campaign/brief ids also match the same chain. A row whose
+-- six ids (client/brand/campaign/brief/generation/content_item) don't form a
+-- single real chain — e.g. a content_item_id borrowed from a different
+-- generation/brief/campaign/brand/client — is never authorized, regardless of
+-- role.
 --
 -- content_approval_user_has_scope() checks whether auth.uid() has a
 -- user_roles row that is active, unexpired, scoped to the row's
 -- client/brand/campaign (or 'global'), and assigned a role in p_roles
 -- (defaults to all four project roles), AND that
--- content_approval_hierarchy_is_valid() holds for the row's five ids.
+-- content_approval_hierarchy_is_valid() holds for the row's six ids
+-- (including content_item_id).
 --
 -- content_approval_user_can_write() narrows p_roles to the write-capable
 -- roles ('owner', 'manager') — matches canRequestApproval / canApproveContent
 -- / canRejectContent in src/lib/auth/permissions.ts, which are owner/manager
--- only. The 'client' and 'viewer' roles can read and add comments but can
--- never submit, approve, reject, request revision, or cancel.
+-- only. The 'client' and 'viewer' roles can read but can never submit,
+-- approve, reject, request revision, cancel, or insert events/comments
+-- (including 'commented' events and review comments) — write access to
+-- content_approval_requests/events/comments is owner/manager only.
 --
 -- content_approval_events / content_approval_comments carry no scope columns
--- of their own, so content_approval_request_user_has_scope() /
--- content_approval_request_user_can_write() resolve scope via a subquery on
--- approval_request_id -> content_approval_requests, then delegate to the
--- functions above.
+-- of their own beyond approval_request_id and content_item_id, so
+-- content_approval_request_user_has_scope() /
+-- content_approval_request_user_can_write() take BOTH the parent
+-- approval_request_id AND the child row's own content_item_id, verify the
+-- referenced content_approval_requests row exists and has that exact
+-- content_item_id (so an event/comment can never reference a different
+-- content item than its parent request), and then delegate to the functions
+-- above using the parent request's full six-id scope.
 --
 -- SECURITY DEFINER + fixed search_path is required because user_roles,
--- brands, campaigns, campaign_briefs, content_plan_jobs and
--- content_approval_requests all have RLS enabled, so a normal session could
--- not otherwise read them to evaluate these checks. auth.uid() is NULL for
--- anon/unauthenticated requests, and user_roles.user_id is NOT NULL, so anon
--- never matches — no anonymous public access is granted.
+-- brands, campaigns, campaign_briefs, content_plan_jobs, content_plan_items
+-- and content_approval_requests all have RLS enabled, so a normal session
+-- could not otherwise read them to evaluate these checks. auth.uid() is NULL
+-- for anon/unauthenticated requests, and user_roles.user_id is NOT NULL, so
+-- anon never matches — no anonymous public access is granted.
 ALTER TABLE content_approval_requests ENABLE ROW LEVEL SECURITY;
 ALTER TABLE content_approval_events   ENABLE ROW LEVEL SECURITY;
 ALTER TABLE content_approval_comments ENABLE ROW LEVEL SECURITY;
@@ -181,12 +193,22 @@ DROP POLICY IF EXISTS content_approval_events_insert   ON content_approval_event
 DROP POLICY IF EXISTS content_approval_comments_select ON content_approval_comments;
 DROP POLICY IF EXISTS content_approval_comments_insert ON content_approval_comments;
 
+-- Drop prior-signature helpers so CREATE OR REPLACE below can't leave a stale
+-- overload (without content_item_id in the chain) reachable. Policies are
+-- dropped above, so these drops never need CASCADE.
+DROP FUNCTION IF EXISTS content_approval_hierarchy_is_valid(UUID, UUID, UUID, UUID, UUID);
+DROP FUNCTION IF EXISTS content_approval_user_has_scope(UUID, UUID, UUID, UUID, UUID, role_name[]);
+DROP FUNCTION IF EXISTS content_approval_user_can_write(UUID, UUID, UUID, UUID, UUID);
+DROP FUNCTION IF EXISTS content_approval_request_user_has_scope(UUID, role_name[]);
+DROP FUNCTION IF EXISTS content_approval_request_user_can_write(UUID);
+
 CREATE OR REPLACE FUNCTION content_approval_hierarchy_is_valid(
-  p_client_id      UUID,
-  p_brand_id       UUID,
-  p_campaign_id    UUID,
-  p_brief_id       UUID,
-  p_generation_id  UUID
+  p_client_id        UUID,
+  p_brand_id         UUID,
+  p_campaign_id      UUID,
+  p_brief_id         UUID,
+  p_generation_id    UUID,
+  p_content_item_id  UUID
 ) RETURNS BOOLEAN
 LANGUAGE sql
 STABLE
@@ -202,23 +224,34 @@ AS $$
         AND j.brand_id    = p_brand_id
         AND j.campaign_id = p_campaign_id
         AND j.brief_id    = p_brief_id
+    )
+    AND EXISTS (
+      SELECT 1
+      FROM content_plan_items i
+      WHERE i.id                = p_content_item_id
+        AND i.generation_job_id = p_generation_id
+        AND i.client_id         = p_client_id
+        AND i.brand_id          = p_brand_id
+        AND i.campaign_id       = p_campaign_id
+        AND i.brief_id          = p_brief_id
     );
 $$;
 
 CREATE OR REPLACE FUNCTION content_approval_user_has_scope(
-  p_client_id     UUID,
-  p_brand_id      UUID,
-  p_campaign_id   UUID,
-  p_brief_id      UUID,
-  p_generation_id UUID,
-  p_roles         role_name[] DEFAULT ARRAY['owner','manager','client','viewer']::role_name[]
+  p_client_id        UUID,
+  p_brand_id         UUID,
+  p_campaign_id      UUID,
+  p_brief_id         UUID,
+  p_generation_id    UUID,
+  p_content_item_id  UUID,
+  p_roles            role_name[] DEFAULT ARRAY['owner','manager','client','viewer']::role_name[]
 ) RETURNS BOOLEAN
 LANGUAGE sql
 STABLE
 SECURITY DEFINER
 SET search_path = public
 AS $$
-  SELECT content_approval_hierarchy_is_valid(p_client_id, p_brand_id, p_campaign_id, p_brief_id, p_generation_id)
+  SELECT content_approval_hierarchy_is_valid(p_client_id, p_brand_id, p_campaign_id, p_brief_id, p_generation_id, p_content_item_id)
     AND EXISTS (
     SELECT 1
     FROM user_roles ur
@@ -237,11 +270,12 @@ AS $$
 $$;
 
 CREATE OR REPLACE FUNCTION content_approval_user_can_write(
-  p_client_id     UUID,
-  p_brand_id      UUID,
-  p_campaign_id   UUID,
-  p_brief_id      UUID,
-  p_generation_id UUID
+  p_client_id        UUID,
+  p_brand_id         UUID,
+  p_campaign_id      UUID,
+  p_brief_id         UUID,
+  p_generation_id    UUID,
+  p_content_item_id  UUID
 ) RETURNS BOOLEAN
 LANGUAGE sql
 STABLE
@@ -249,13 +283,14 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
   SELECT content_approval_user_has_scope(
-    p_client_id, p_brand_id, p_campaign_id, p_brief_id, p_generation_id,
+    p_client_id, p_brand_id, p_campaign_id, p_brief_id, p_generation_id, p_content_item_id,
     ARRAY['owner','manager']::role_name[]
   );
 $$;
 
 CREATE OR REPLACE FUNCTION content_approval_request_user_has_scope(
   p_approval_request_id UUID,
+  p_content_item_id     UUID,
   p_roles               role_name[] DEFAULT ARRAY['owner','manager','client','viewer']::role_name[]
 ) RETURNS BOOLEAN
 LANGUAGE sql
@@ -266,15 +301,17 @@ AS $$
   SELECT EXISTS (
     SELECT 1
     FROM content_approval_requests req
-    WHERE req.id = p_approval_request_id
+    WHERE req.id              = p_approval_request_id
+      AND req.content_item_id = p_content_item_id
       AND content_approval_user_has_scope(
-        req.client_id, req.brand_id, req.campaign_id, req.brief_id, req.generation_job_id, p_roles
+        req.client_id, req.brand_id, req.campaign_id, req.brief_id, req.generation_job_id, req.content_item_id, p_roles
       )
   );
 $$;
 
 CREATE OR REPLACE FUNCTION content_approval_request_user_can_write(
-  p_approval_request_id UUID
+  p_approval_request_id UUID,
+  p_content_item_id     UUID
 ) RETURNS BOOLEAN
 LANGUAGE sql
 STABLE
@@ -283,6 +320,7 @@ SET search_path = public
 AS $$
   SELECT content_approval_request_user_has_scope(
     p_approval_request_id,
+    p_content_item_id,
     ARRAY['owner','manager']::role_name[]
   );
 $$;
@@ -292,38 +330,35 @@ $$;
 -- reject / request revision / cancel).
 CREATE POLICY content_approval_requests_select ON content_approval_requests
   FOR SELECT
-  USING (content_approval_user_has_scope(client_id, brand_id, campaign_id, brief_id, generation_job_id));
+  USING (content_approval_user_has_scope(client_id, brand_id, campaign_id, brief_id, generation_job_id, content_item_id));
 
 CREATE POLICY content_approval_requests_insert ON content_approval_requests
   FOR INSERT
-  WITH CHECK (content_approval_user_can_write(client_id, brand_id, campaign_id, brief_id, generation_job_id));
+  WITH CHECK (content_approval_user_can_write(client_id, brand_id, campaign_id, brief_id, generation_job_id, content_item_id));
 
 CREATE POLICY content_approval_requests_update ON content_approval_requests
   FOR UPDATE
-  USING (content_approval_user_can_write(client_id, brand_id, campaign_id, brief_id, generation_job_id))
-  WITH CHECK (content_approval_user_can_write(client_id, brand_id, campaign_id, brief_id, generation_job_id));
+  USING (content_approval_user_can_write(client_id, brand_id, campaign_id, brief_id, generation_job_id, content_item_id))
+  WITH CHECK (content_approval_user_can_write(client_id, brand_id, campaign_id, brief_id, generation_job_id, content_item_id));
 
--- content_approval_events: any in-scope role may read. Insert is allowed for
--- 'commented' events to any in-scope role (comments are open to client/
--- viewer too); all other event types (status transitions) require
--- owner/manager.
+-- content_approval_events: any in-scope role may read. INSERT (status
+-- transitions AND 'commented' notifications) requires owner/manager —
+-- read-only roles ('client'/'viewer') can never insert events.
 CREATE POLICY content_approval_events_select ON content_approval_events
   FOR SELECT
-  USING (content_approval_request_user_has_scope(approval_request_id));
+  USING (content_approval_request_user_has_scope(approval_request_id, content_item_id));
 
 CREATE POLICY content_approval_events_insert ON content_approval_events
   FOR INSERT
-  WITH CHECK (
-    (action = 'commented' AND content_approval_request_user_has_scope(approval_request_id))
-    OR (action <> 'commented' AND content_approval_request_user_can_write(approval_request_id))
-  );
+  WITH CHECK (content_approval_request_user_can_write(approval_request_id, content_item_id));
 
--- content_approval_comments: any in-scope role may read or add comments
--- (client-visible feedback as well as internal notes).
+-- content_approval_comments: any in-scope role may read. INSERT requires
+-- owner/manager — read-only roles ('client'/'viewer') can never insert
+-- comments.
 CREATE POLICY content_approval_comments_select ON content_approval_comments
   FOR SELECT
-  USING (content_approval_request_user_has_scope(approval_request_id));
+  USING (content_approval_request_user_has_scope(approval_request_id, content_item_id));
 
 CREATE POLICY content_approval_comments_insert ON content_approval_comments
   FOR INSERT
-  WITH CHECK (content_approval_request_user_has_scope(approval_request_id));
+  WITH CHECK (content_approval_request_user_can_write(approval_request_id, content_item_id));
