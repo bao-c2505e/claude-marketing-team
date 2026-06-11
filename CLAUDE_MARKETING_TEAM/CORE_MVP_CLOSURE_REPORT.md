@@ -77,7 +77,7 @@ This report formally closes the Core MVP build cycle (Phases 1–18). It is docu
 
 Ordered by suggested priority; every item stays behind the existing approval gates.
 
-1. **Phase 19 / Ver2 planning (Owner + AI Coordinator)** — decide the Ver2 scope: which of the deferred areas (Calendar/Reports/Logs Supabase wiring, real generation, file storage) come first, and whether Ver2 targets internal agency ops or client-facing SaaS.
+1. **Post-MVP / Ver2 planning (Owner + AI Coordinator)** — decide the Ver2 scope: which of the deferred areas (Calendar/Reports/Logs Supabase wiring, real generation, file storage) come first, and whether Ver2 targets internal agency ops or client-facing SaaS. (Note: the Core MVP is complete at 18/18 phases — Ver2 work is a new Post-MVP workstream, not "MVP Phase 19". See `PHASE_19_VER2_ROADMAP.md` for the resulting roadmap, work packages V2-A…V2-F.)
 2. **Client demo preparation** — run the Phase 17 manual E2E checklist (sections B–G); rehearse with `07_docs/client_demo_script.md`; verify Vercel deploy matches `fd86ead`; tailor sample data to the demo audience.
 3. **Supabase production hardening** — apply migrations to a **staging** project first; create real user/role rows; verify every RLS policy with each role (incl. the client-feedback limitation above); only then consider production env vars. Anon key + RLS only — service-role key stays server-side forever.
 4. **PC2 n8n/modules integration (separate workstream)** — n8n as automation backbone per the locked architecture: webhook callback surface into Core, module event inbox wiring, `WEBHOOK_SHARED_SECRET` handling on a backend (never frontend). Registry-only until Owner approves activation.

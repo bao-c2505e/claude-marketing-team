@@ -6,16 +6,24 @@ Nhật ký theo dõi các mốc hoàn thành kỹ thuật qua các Phase.
 
 ## 📅 Nhật Ký Sự Kiện (Event Logs)
 
-### 🗓️ Ngày 11/06/2026 — Phase 19 CLOSED: Ver2 Scope Planning + Controlled Demo Roadmap
-- **Sự kiện:** Phase 19 hoàn tất — lập roadmap Ver2 sau khi đóng Core MVP. **Documentation/planning only** — không đổi product code, không connector, không secrets, không live automation.
+### 🗓️ Ngày 11/06/2026 — Naming cleanup: "Phase 19" → Post-MVP / Ver2 Planning workstream
+- **Sự kiện:** Làm rõ naming sau khi đóng Core MVP. **Core MVP = 18/18 phases, CLOSED — Phase 18 là phase MVP cuối cùng; không thêm MVP phase nào nữa.** Công việc "Phase 19" trước đó được reframe thành **Post-MVP / Ver2 Planning workstream**; work packages "19A–19F" đổi tên thành **V2-A…V2-F**.
+- **Docs cập nhật:** `PHASE_19_VER2_ROADMAP.md` (thêm naming clarification + đổi 19A–19F → V2-A…V2-F; giữ filename để không vỡ link), `CURRENT_PHASE.md` (header: "CORE MVP CLOSED — 18/18 PHASES COMPLETE | Next workstream: Post-MVP / Ver2 Planning"), `SESSION_SUMMARY.md`, hai log files.
+- **Build:** PASS — 0 TS errors. `npm run test`: 45/45 PASS (docs-only diff, không đổi product code).
+
+---
+
+### 🗓️ Ngày 11/06/2026 — Ver2 Planning (Post-MVP) — Roadmap DONE
+*(Naming note: entry này ban đầu ghi là "Phase 19" — đã retire; Core MVP dừng ở 18 phases. Đây là Ver2/Post-MVP workstream.)*
+- **Sự kiện:** Hoàn tất roadmap Ver2 sau khi đóng Core MVP. **Documentation/planning only** — không đổi product code, không connector, không secrets, không live automation.
 - **Deliverable:** `CLAUDE_MARKETING_TEAM/PHASE_19_VER2_ROADMAP.md`:
   - Bảng scope options (risk level + dependencies): E2E pass, demo prep, Supabase staging, PC2 n8n dry-run, UI polish, connector readiness plan.
-  - Priority order: 19A trước tiên → 19B (+ 19D song song) → 19E filler → 19C/19F cuối + Owner-gated. Items rủi ro cần Owner approval trước khi bắt đầu: SQL lên live DB (kể cả staging), n8n dry-run, connector activation, real client data.
-  - Phase breakdown 19A–19F — mỗi phase có goal / deliverables / files / safety rules / checks / Codex review focus / Owner checkpoint.
+  - Priority order: V2-A trước tiên → V2-B (+ V2-D song song) → V2-E filler → V2-C/V2-F cuối + Owner-gated. Items rủi ro cần Owner approval trước khi bắt đầu: SQL lên live DB (kể cả staging), n8n dry-run, connector activation, real client data.
+  - Work-package breakdown V2-A…V2-F — mỗi package có goal / deliverables / files / safety rules / checks / Codex review focus / Owner checkpoint.
   - Standing Ver2 safety rules: không real ads/posting/messaging/automation; không secrets; production Supabase OFF; UUID gating/tenant scope/sanitizers/RLS là load-bearing; FnB OS V1 untouched.
 - **Build:** PASS — 0 TS errors (`tsc && vite build`, 1575 modules). `npm run test`: 45/45 PASS (docs-only diff).
-- **Recommended first Ver2 implementation phase:** **19A — Manual Browser E2E Pass + Demo Script Verification** (zero risk, không cần approval để bắt đầu, đóng verification gap cuối của MVP, gate cho 19B/19D).
-- **Trạng thái:** ✅ CLOSED. Chờ Owner go-ahead cho 19A.
+- **Recommended first Ver2 work package:** **V2-A — Manual Browser E2E Pass + Demo Script Verification** (zero risk, không cần approval để bắt đầu, đóng verification gap cuối của MVP, gate cho V2-B/V2-D).
+- **Trạng thái:** ✅ DONE. Chờ Owner go-ahead cho V2-A.
 
 ---
 
@@ -25,7 +33,7 @@ Nhật ký theo dõi các mốc hoàn thành kỹ thuật qua các Phase.
 - **Final reviewed product commit:** `fd86ead` (Phase 18 — Codex PASS).
 - **Build:** PASS — 0 TS errors (`tsc && vite build`, 1575 modules). `npm run test`: 45/45 PASS.
 - **Approved scope:** controlled internal testing / controlled client demo. Mọi thứ vượt scope này (live data, live connectors, real client accounts) yêu cầu phase mới + Owner approval.
-- **Recommended next:** (1) Phase 19 / Ver2 planning → (2) client demo prep → (3) Supabase staging hardening → (4) PC2 n8n/modules workstream → (5) UI/brand polish → (6) gated real-connector plan.
+- **Recommended next:** (1) Post-MVP / Ver2 planning → (2) client demo prep → (3) Supabase staging hardening → (4) PC2 n8n/modules workstream → (5) UI/brand polish → (6) gated real-connector plan.
 - **Trạng thái:** 🏁 CORE MVP CLOSED.
 
 ---

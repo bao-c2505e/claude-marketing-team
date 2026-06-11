@@ -22,29 +22,34 @@ Chúng ta đang xây dựng **The Core Agency — Real Operations MVP**. Đây l
 
 ---
 
-## 🏁 Phase 19 — Ver2 Scope Planning + Controlled Demo Roadmap (CLOSED — 2026-06-11)
+## 🏁 Ver2 Planning (Post-MVP) — Roadmap DONE (2026-06-11)
+
+> **Naming:** Core MVP = **18/18 phases complete and CLOSED** (Phase 18 was
+> the final MVP phase). This work is the **Post-MVP / Ver2 Planning
+> workstream** — NOT "MVP Phase 19". Work packages are named V2-A…V2-F.
 
 **Documentation/planning only — no product code, connectors, secrets, or
-live automation.** Deliverable: `PHASE_19_VER2_ROADMAP.md`.
+live automation.** Deliverable: `PHASE_19_VER2_ROADMAP.md` (filename keeps
+its historical prefix; content is the Ver2 roadmap).
 
 **Contents:** Ver2 scope options (with risk levels + dependencies),
-recommended priority order, and a breakdown into six small phases — each
-with goal, exact deliverables, files likely touched, safety rules,
+recommended priority order, and a breakdown into six small work packages —
+each with goal, exact deliverables, files likely touched, safety rules,
 test/check requirements, Codex review focus, and an Owner approval
 checkpoint:
-- **19A** — Manual browser E2E pass (Phase 17 checklist B–G) + demo script
+- **V2-A** — Manual browser E2E pass (Phase 17 checklist B–G) + demo script
   verification. Zero risk; gates everything else. **← recommended first.**
-- **19B** — Supabase staging hardening: migrations applied in order to a
+- **V2-B** — Supabase staging hardening: migrations applied in order to a
   disposable staging project, RLS verification matrix (table × role × op),
   client-feedback policy decision. Owner approval required BEFORE starting.
-- **19C** — PC2 n8n/modules callback dry-run: design doc first, backend-held
+- **V2-C** — PC2 n8n/modules callback dry-run: design doc first, backend-held
   `WEBHOOK_SHARED_SECRET`, event-insert-only receiver, kill switch.
-  Owner-gated; depends on 19B.
-- **19D** — Client demo package: demo-day runbook + rehearsal + Vercel
-  deploy verification. Parallel-safe with 19B.
-- **19E** — UI/brand polish: code-splitting, ESLint, accessibility. Zero
+  Owner-gated; depends on V2-B.
+- **V2-D** — Client demo package: demo-day runbook + rehearsal + Vercel
+  deploy verification. Parallel-safe with V2-B.
+- **V2-E** — UI/brand polish: code-splitting, ESLint, accessibility. Zero
   behavior change; parallel filler.
-- **19F** — Real connector readiness plan (**plan only**): 5-gate activation
+- **V2-F** — Real connector readiness plan (**plan only**): 5-gate activation
   framework (Owner sign-off / backend secrets / dry-run / kill switch /
   audit log), per-connector one-pagers, activation order n8n → Canva →
   read-only analytics → outbound-write last.
@@ -77,7 +82,7 @@ Anything beyond (live data, live connectors, real client accounts) requires
 a new phase with Owner approval.
 
 **Recommended next roadmap (closure report §6):**
-1. Phase 19 / Ver2 planning (Owner + AI Coordinator — decide Ver2 scope)
+1. Post-MVP / Ver2 planning (Owner + AI Coordinator — decide Ver2 scope)
 2. Client demo preparation (manual E2E pass B–G, demo script rehearsal)
 3. Supabase production hardening (staging first, RLS verification per role)
 4. PC2 n8n/modules integration (separate workstream, registry-only until approved)

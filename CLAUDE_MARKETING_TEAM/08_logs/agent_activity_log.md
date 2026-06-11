@@ -6,12 +6,20 @@ Nhật ký ghi lại các hành động mô phỏng của các AI Agent khi vậ
 
 ## 🗓️ Nhật Ký Hoạt Động (Simulated Activity Logs)
 
-### 🗓️ Ngày 11/06/2026 — Phase 19 CLOSED: Ver2 Scope Planning + Controlled Demo Roadmap
-- **[PC1 Claude Code Builder]:** Created `CLAUDE_MARKETING_TEAM/PHASE_19_VER2_ROADMAP.md` — Ver2 planning package: scope options table (risk + dependencies), recommended priority order, phase breakdown 19A–19F with per-phase goal/deliverables/files/safety/checks/Codex-focus/Owner-checkpoint, suggested sequencing diagram, standing Ver2 safety rules.
-- **[PC1]:** Priorities: 19A (E2E pass + demo script, zero risk) first → 19B Supabase staging (Owner approval required before start) with 19D demo package in parallel → 19E UI polish as filler → 19C n8n dry-run and 19F connector plan last, both Owner-gated. No connector goes live inside Ver2 without written per-connector Owner sign-off.
-- **[PC1]:** Updated CURRENT_PHASE.md (header + Phase 19 section), SESSION_SUMMARY.md, 08_logs/phase_log.md, 08_logs/agent_activity_log.md.
+### 🗓️ Ngày 11/06/2026 — Naming cleanup: "Phase 19" → Post-MVP / Ver2 Planning workstream
+- **[PC1 Claude Code Builder]:** Reframed the "Phase 19" work as the **Post-MVP / Ver2 Planning workstream** per Owner clarification: Core MVP = 18/18 phases, CLOSED; Phase 18 was the final MVP phase; no MVP phases are being added. Work packages "19A–19F" renamed **V2-A…V2-F**.
+- **[PC1]:** Updated `PHASE_19_VER2_ROADMAP.md` (naming clarification block + V2-A…V2-F throughout; filename kept to preserve links), `CURRENT_PHASE.md` (header now "CORE MVP CLOSED — 18/18 PHASES COMPLETE | Next workstream: Post-MVP / Ver2 Planning"), `SESSION_SUMMARY.md`, both logs.
+- **[PC1]:** Docs-only diff — product code untouched. `npm run build` PASS (0 TS errors); `npm run test` 45/45 PASS.
+
+---
+
+### 🗓️ Ngày 11/06/2026 — Ver2 Planning (Post-MVP) — Roadmap DONE
+*(Naming note: originally logged as "Phase 19" — retired; Core MVP ends at 18 phases. This is the Ver2/Post-MVP workstream.)*
+- **[PC1 Claude Code Builder]:** Created `CLAUDE_MARKETING_TEAM/PHASE_19_VER2_ROADMAP.md` — Ver2 planning package: scope options table (risk + dependencies), recommended priority order, work-package breakdown V2-A…V2-F with per-package goal/deliverables/files/safety/checks/Codex-focus/Owner-checkpoint, suggested sequencing diagram, standing Ver2 safety rules.
+- **[PC1]:** Priorities: V2-A (E2E pass + demo script, zero risk) first → V2-B Supabase staging (Owner approval required before start) with V2-D demo package in parallel → V2-E UI polish as filler → V2-C n8n dry-run and V2-F connector plan last, both Owner-gated. No connector goes live inside Ver2 without written per-connector Owner sign-off.
+- **[PC1]:** Updated CURRENT_PHASE.md, SESSION_SUMMARY.md, 08_logs/phase_log.md, 08_logs/agent_activity_log.md.
 - **[PC1]:** Documentation only — product code untouched. `npm run build` PASS (0 TS errors, 1575 modules); `npm run test` 45/45 PASS.
-- **[PC1]:** Recommended first Ver2 implementation phase: **19A**. Phase 19 CLOSED.
+- **[PC1]:** Recommended first Ver2 work package: **V2-A**. Roadmap DONE.
 
 ---
 
@@ -20,7 +28,7 @@ Nhật ký ghi lại các hành động mô phỏng của các AI Agent khi vậ
 - **[PC1]:** Updated CURRENT_PHASE.md (header → CORE MVP CLOSED, closure section added), SESSION_SUMMARY.md (closure section), 08_logs/phase_log.md, 08_logs/agent_activity_log.md.
 - **[PC1]:** Re-ran `npm run build` (PASS — 0 TS errors, 1575 modules) and `npm run test` (45/45 PASS) to confirm no behavior change at closure.
 - **[PC1]:** Final reviewed product commit: `fd86ead`. Approved scope: controlled internal testing / controlled client demo only.
-- **[PC1]:** Recommended next: Phase 19 / Ver2 planning with Owner + AI Coordinator (then demo prep → Supabase staging hardening → PC2 n8n/modules → UI polish → gated connector plan).
+- **[PC1]:** Recommended next: Post-MVP / Ver2 planning with Owner + AI Coordinator (then demo prep → Supabase staging hardening → PC2 n8n/modules → UI polish → gated connector plan).
 - **[PC1]:** 🏁 CORE MVP CLOSED.
 
 ---
