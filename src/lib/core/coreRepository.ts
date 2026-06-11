@@ -372,8 +372,9 @@ export interface ApprovalRepository {
 // with no client/brand scope (client_id/brand_id both null) can never be
 // routed to Supabase (its hierarchy can't be validated against
 // clients/brands), so it always falls back to localStorage. campaign_id/
-// brief_id/generation_job_id/content_item_id are optional and only present
-// when the asset is scoped that deep.
+// brief_id/generation_job_id/content_item_id/asset_collection_id are optional
+// and only present when the asset is scoped that deep / belongs to a
+// collection.
 export interface AssetListParams {
   clientId: string | null;
   brandId: string | null;
@@ -381,11 +382,25 @@ export interface AssetListParams {
   briefId?: string | null;
   generationId?: string | null;
   contentItemId?: string | null;
+  assetCollectionId?: string | null;
 }
 
+// Codex Fix Round (2026-06-11): every field is required (though nullable) —
+// unlike AssetListParams (where an absent key means "don't filter on this
+// level" for list()), get/update/archive target ONE existing asset and must
+// state its FULL applicable scope, including assetCollectionId. A caller
+// can no longer omit a hierarchy level and have it silently match any value;
+// it must explicitly pass `null` for levels the asset doesn't belong to.
 // Adds the asset's own id — prevents unscoped get/update/archive by assetId
 // alone.
-export interface AssetScopedParams extends AssetListParams {
+export interface AssetScopedParams {
+  clientId: string | null;
+  brandId: string | null;
+  campaignId: string | null;
+  briefId: string | null;
+  generationId: string | null;
+  contentItemId: string | null;
+  assetCollectionId: string | null;
   assetId: string;
 }
 

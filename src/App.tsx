@@ -38,7 +38,7 @@ import { ROLE_LABELS, ROLE_COLORS } from './lib/auth/permissions';
 import { isSupabaseConfigured, supabase } from './lib/supabaseClient';
 import { createPhase16aRepositories } from './lib/core/repositoryFactory';
 import { LocalStorageApprovalRepository, LocalStorageAssetRepository } from './lib/core/localStorageRepositories';
-import type { BriefUpdatePatch, GenerationDetailResult, ResolvingApprovalAction, ApprovalRepository, AssetRepository, AssetCreateInput, AssetUpdatePatch } from './lib/core/coreRepository';
+import type { BriefUpdatePatch, GenerationDetailResult, ResolvingApprovalAction, ApprovalRepository, AssetRepository, AssetCreateInput, AssetUpdatePatch, AssetScopedParams } from './lib/core/coreRepository';
 import type { Client, Brand, Campaign as CoreCampaign, CampaignBrief as CoreCampaignBrief, PlanLengthDays, ContentPlanItem, ContentApprovalRequest, AssetItem } from './types/core';
 import LoginScreen from './components/auth/LoginScreen';
 import ClientsTab from './components/core/ClientsTab';
@@ -494,10 +494,17 @@ export default function App() {
   // Phase 16D — Asset Library CRUD: per-operation repo selection. client_id/
   // brand_id are required for Supabase routing (content_assets.client_id/
   // brand_id are NOT NULL); campaign_id/brief_id/generation_job_id/
-  // content_item_id are optional — null or undefined skip the UUID check and
-  // only validated when present. Local-format ids (asset-*/ast-*/col-*/
-  // campaign-*/brand-*/client-*/brief-*/generation-*/job-*/item-*/
-  // content-item-*) always fall back to localStorage.
+  // content_item_id/asset_collection_id are optional — null or undefined skip
+  // the UUID check and only validated when present. Local-format ids
+  // (asset-*/ast-*/col-*/collection-*/asset-collection-*/campaign-*/brand-*/
+  // client-*/brief-*/generation-*/job-*/item-*/content-item-*) always fall
+  // back to localStorage.
+  //
+  // Codex Fix Round (2026-06-11): asset_collection_id / assetCollectionId is
+  // now part of the gate. content_assets.asset_collection_id is a UUID FK to
+  // content_asset_collections — a local collection id (col-*/collection-*/
+  // asset-collection-*) must never be sent there, so any operation touching
+  // such a collection id falls back to localStorage too.
   const assetRepoFor = (ids: {
     clientId: string | null;
     brandId: string | null;
@@ -505,6 +512,7 @@ export default function App() {
     briefId?: string | null;
     generationId?: string | null;
     contentItemId?: string | null;
+    assetCollectionId?: string | null;
     assetId?: string;
   }): AssetRepository => {
     const okOrAbsent = (v?: string | null) => v === undefined || v === null || isUuid(v);
@@ -516,6 +524,7 @@ export default function App() {
       && okOrAbsent(ids.briefId)
       && okOrAbsent(ids.generationId)
       && okOrAbsent(ids.contentItemId)
+      && okOrAbsent(ids.assetCollectionId)
       && (ids.assetId === undefined || isUuid(ids.assetId))
     ) {
       return repos.assets;
@@ -526,6 +535,9 @@ export default function App() {
   // Phase 16D — Create an asset, scoped by the client/brand/campaign chosen in
   // the form. The Asset Library UI does not expose brief/generation/
   // content-item linkage, so new assets always have those set to null.
+  // asset_collection_id (input.data.asset_collection_id) is included in the
+  // routing check — a local collection id routes the create to localStorage
+  // even if client/brand are valid Supabase UUIDs.
   const handleAssetCreate = async (input: AssetCreateInput): Promise<void> => {
     const repo = assetRepoFor({
       clientId: input.clientId,
@@ -534,6 +546,7 @@ export default function App() {
       briefId: input.briefId,
       generationId: input.generationId,
       contentItemId: input.contentItemId,
+      assetCollectionId: input.data.asset_collection_id,
     });
     const created = await repo.create(input);
     setAssetData(prev => {
@@ -546,17 +559,25 @@ export default function App() {
   // Phase 16D — Update an asset, scoped by its own full tenant chain (never by
   // assetId alone). Tenant/audit/identity fields are stripped from the patch
   // by the repository (sanitizeAssetPatch).
+  //
+  // Codex Fix Round (2026-06-11): scope.assetCollectionId is the asset's
+  // CURRENT collection (used to match the existing row); nextCollectionId is
+  // whichever collection id the operation will actually write (the patch's
+  // new value if it changes the collection, otherwise the current one). Both
+  // must be UUID-or-null for the operation to be routed to Supabase.
   const handleAssetEdit = async (asset: AssetItem, patch: AssetUpdatePatch): Promise<void> => {
-    const scope = {
+    const scope: AssetScopedParams = {
       clientId: asset.client_id,
       brandId: asset.brand_id,
       campaignId: asset.campaign_id,
       briefId: asset.brief_id,
       generationId: asset.generation_job_id,
       contentItemId: asset.content_item_id,
+      assetCollectionId: asset.asset_collection_id,
       assetId: asset.id,
     };
-    const repo = assetRepoFor(scope);
+    const nextCollectionId = patch.asset_collection_id !== undefined ? patch.asset_collection_id : asset.asset_collection_id;
+    const repo = assetRepoFor({ ...scope, assetCollectionId: nextCollectionId });
     const updated = await repo.update(scope, patch);
     setAssetData(prev => {
       const next: AssetDataStore = { ...prev, assets: prev.assets.map(a => a.id === updated.id ? updated : a) };

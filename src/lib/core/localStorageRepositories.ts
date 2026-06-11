@@ -468,6 +468,7 @@ function assetMatchesScope(asset: AssetItem, params: AssetListParams): boolean {
   if (params.briefId !== undefined && asset.brief_id !== params.briefId) return false;
   if (params.generationId !== undefined && asset.generation_job_id !== params.generationId) return false;
   if (params.contentItemId !== undefined && asset.content_item_id !== params.contentItemId) return false;
+  if (params.assetCollectionId !== undefined && asset.asset_collection_id !== params.assetCollectionId) return false;
   return true;
 }
 

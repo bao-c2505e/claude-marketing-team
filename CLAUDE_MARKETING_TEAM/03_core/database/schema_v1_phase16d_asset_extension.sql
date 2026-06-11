@@ -151,17 +151,22 @@ END $$;
 -- content_plan_jobs row whose own client/brand/campaign/brief ids match;
 -- content_item_id (if present) requires generation_job_id to be set and must
 -- be a content_plan_items row belonging to that exact generation_job_id with
--- matching client/brand/campaign/brief ids. A row whose ids don't form one
--- consistent chain at whatever depth it claims is never authorized, regardless
--- of role.
+-- matching client/brand/campaign/brief ids; asset_collection_id (if present)
+-- must be a content_asset_collections row with the SAME client_id + brand_id,
+-- and if that collection is itself campaign-scoped, its campaign_id must
+-- equal the asset's own campaign_id (Codex Fix Round, 2026-06-11) — an asset
+-- can never reference a collection from another client/brand/campaign. A row
+-- whose ids don't form one consistent chain at whatever depth it claims is
+-- never authorized, regardless of role.
 --
 -- content_asset_user_has_scope() checks whether auth.uid() has a user_roles
 -- row that is active, unexpired, scoped to the row's client/brand/campaign (or
 -- 'global'), and assigned a role in p_roles (defaults to all four project
--- roles), AND that content_asset_hierarchy_is_valid() holds for the row's six
--- ids. content_asset_user_can_write() narrows p_roles to the write-capable
--- roles ('owner', 'manager') — the 'client' and 'viewer' roles can read but
--- can never insert/update/archive an asset.
+-- roles), AND that content_asset_hierarchy_is_valid() holds for the row's
+-- seven ids (including asset_collection_id). content_asset_user_can_write()
+-- narrows p_roles to the write-capable roles ('owner', 'manager') — the
+-- 'client' and 'viewer' roles can read but can never insert/update/archive an
+-- asset.
 --
 -- content_asset_collection_hierarchy_is_valid() / _user_has_scope() /
 -- _user_can_write() are the brand-level equivalents for
@@ -183,20 +188,29 @@ DROP POLICY IF EXISTS content_assets_update             ON content_assets;
 DROP POLICY IF EXISTS content_asset_collections_select  ON content_asset_collections;
 DROP POLICY IF EXISTS content_asset_collections_insert  ON content_asset_collections;
 
+-- Codex Fix Round (2026-06-11): content_asset_hierarchy_is_valid() /
+-- _user_has_scope() / _user_can_write() gained a 7th parameter
+-- (p_asset_collection_id). Drop both the old 6-arg signatures (in case an
+-- earlier version of this migration already ran) and the new 7-arg
+-- signatures (for idempotent re-runs of this version) before recreating them.
 DROP FUNCTION IF EXISTS content_asset_hierarchy_is_valid(UUID, UUID, UUID, UUID, UUID, UUID);
+DROP FUNCTION IF EXISTS content_asset_hierarchy_is_valid(UUID, UUID, UUID, UUID, UUID, UUID, UUID);
 DROP FUNCTION IF EXISTS content_asset_user_has_scope(UUID, UUID, UUID, UUID, UUID, UUID, role_name[]);
+DROP FUNCTION IF EXISTS content_asset_user_has_scope(UUID, UUID, UUID, UUID, UUID, UUID, UUID, role_name[]);
 DROP FUNCTION IF EXISTS content_asset_user_can_write(UUID, UUID, UUID, UUID, UUID, UUID);
+DROP FUNCTION IF EXISTS content_asset_user_can_write(UUID, UUID, UUID, UUID, UUID, UUID, UUID);
 DROP FUNCTION IF EXISTS content_asset_collection_hierarchy_is_valid(UUID, UUID, UUID);
 DROP FUNCTION IF EXISTS content_asset_collection_user_has_scope(UUID, UUID, UUID, role_name[]);
 DROP FUNCTION IF EXISTS content_asset_collection_user_can_write(UUID, UUID, UUID);
 
 CREATE OR REPLACE FUNCTION content_asset_hierarchy_is_valid(
-  p_client_id       UUID,
-  p_brand_id        UUID,
-  p_campaign_id     UUID,
-  p_brief_id        UUID,
-  p_generation_id   UUID,
-  p_content_item_id UUID
+  p_client_id           UUID,
+  p_brand_id            UUID,
+  p_campaign_id         UUID,
+  p_brief_id            UUID,
+  p_generation_id       UUID,
+  p_content_item_id     UUID,
+  p_asset_collection_id UUID
 ) RETURNS BOOLEAN
 LANGUAGE sql
 STABLE
@@ -252,24 +266,41 @@ AS $$
             AND i.brief_id          = p_brief_id
         )
       )
+    )
+    AND (
+      -- Codex Fix Round (2026-06-11): if the asset references a collection,
+      -- that collection must belong to the SAME client+brand, and if the
+      -- collection is itself campaign-scoped, its campaign_id must match the
+      -- asset's own campaign_id. content_asset_collections has no
+      -- brief/generation/content_item columns, so no deeper check applies.
+      p_asset_collection_id IS NULL
+      OR EXISTS (
+        SELECT 1
+        FROM content_asset_collections col
+        WHERE col.id          = p_asset_collection_id
+          AND col.client_id   = p_client_id
+          AND col.brand_id    = p_brand_id
+          AND (col.campaign_id IS NULL OR col.campaign_id = p_campaign_id)
+      )
     );
 $$;
 
 CREATE OR REPLACE FUNCTION content_asset_user_has_scope(
-  p_client_id       UUID,
-  p_brand_id        UUID,
-  p_campaign_id     UUID,
-  p_brief_id        UUID,
-  p_generation_id   UUID,
-  p_content_item_id UUID,
-  p_roles           role_name[] DEFAULT ARRAY['owner','manager','client','viewer']::role_name[]
+  p_client_id           UUID,
+  p_brand_id            UUID,
+  p_campaign_id         UUID,
+  p_brief_id            UUID,
+  p_generation_id       UUID,
+  p_content_item_id     UUID,
+  p_asset_collection_id UUID,
+  p_roles               role_name[] DEFAULT ARRAY['owner','manager','client','viewer']::role_name[]
 ) RETURNS BOOLEAN
 LANGUAGE sql
 STABLE
 SECURITY DEFINER
 SET search_path = public
 AS $$
-  SELECT content_asset_hierarchy_is_valid(p_client_id, p_brand_id, p_campaign_id, p_brief_id, p_generation_id, p_content_item_id)
+  SELECT content_asset_hierarchy_is_valid(p_client_id, p_brand_id, p_campaign_id, p_brief_id, p_generation_id, p_content_item_id, p_asset_collection_id)
     AND EXISTS (
     SELECT 1
     FROM user_roles ur
@@ -288,12 +319,13 @@ AS $$
 $$;
 
 CREATE OR REPLACE FUNCTION content_asset_user_can_write(
-  p_client_id       UUID,
-  p_brand_id        UUID,
-  p_campaign_id     UUID,
-  p_brief_id        UUID,
-  p_generation_id   UUID,
-  p_content_item_id UUID
+  p_client_id           UUID,
+  p_brand_id            UUID,
+  p_campaign_id         UUID,
+  p_brief_id            UUID,
+  p_generation_id       UUID,
+  p_content_item_id     UUID,
+  p_asset_collection_id UUID
 ) RETURNS BOOLEAN
 LANGUAGE sql
 STABLE
@@ -301,7 +333,7 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
   SELECT content_asset_user_has_scope(
-    p_client_id, p_brand_id, p_campaign_id, p_brief_id, p_generation_id, p_content_item_id,
+    p_client_id, p_brand_id, p_campaign_id, p_brief_id, p_generation_id, p_content_item_id, p_asset_collection_id,
     ARRAY['owner','manager']::role_name[]
   );
 $$;
@@ -380,16 +412,16 @@ $$;
 -- 'archived' — there is no DELETE policy, archive is a status update).
 CREATE POLICY content_assets_select ON content_assets
   FOR SELECT
-  USING (content_asset_user_has_scope(client_id, brand_id, campaign_id, brief_id, generation_job_id, content_item_id));
+  USING (content_asset_user_has_scope(client_id, brand_id, campaign_id, brief_id, generation_job_id, content_item_id, asset_collection_id));
 
 CREATE POLICY content_assets_insert ON content_assets
   FOR INSERT
-  WITH CHECK (content_asset_user_can_write(client_id, brand_id, campaign_id, brief_id, generation_job_id, content_item_id));
+  WITH CHECK (content_asset_user_can_write(client_id, brand_id, campaign_id, brief_id, generation_job_id, content_item_id, asset_collection_id));
 
 CREATE POLICY content_assets_update ON content_assets
   FOR UPDATE
-  USING (content_asset_user_can_write(client_id, brand_id, campaign_id, brief_id, generation_job_id, content_item_id))
-  WITH CHECK (content_asset_user_can_write(client_id, brand_id, campaign_id, brief_id, generation_job_id, content_item_id));
+  USING (content_asset_user_can_write(client_id, brand_id, campaign_id, brief_id, generation_job_id, content_item_id, asset_collection_id))
+  WITH CHECK (content_asset_user_can_write(client_id, brand_id, campaign_id, brief_id, generation_job_id, content_item_id, asset_collection_id));
 
 -- content_asset_collections: same read/write split, brand-level scope. No
 -- update/delete policy — there is no edit-collection UI yet.

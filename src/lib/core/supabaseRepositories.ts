@@ -14,11 +14,29 @@ import type { Client, Brand, Campaign, CampaignBrief, ContentPlanJob, ContentPla
 import type { ClientRepository, BrandRepository, CampaignRepository, CampaignListParams, CampaignGetParams, CampaignScopedParams, BriefRepository, BriefListParams, BriefScopedParams, BriefUpdatePatch, GenerationRepository, GenerationListParams, GenerationScopedParams, GenerationCreateInput, GenerationListResult, GenerationDetailResult, GenerationUpdatePatch, ApprovalRepository, ApprovalListParams, ApprovalScopedParams, ApprovalListResult, ApprovalDetailResult, ApprovalCreateInput, ApprovalSubmitResult, ApprovalActionResult, ApprovalCommentResult, ResolvingApprovalAction, AssetRepository, AssetListParams, AssetScopedParams, AssetCreateInput, AssetUpdatePatch, AssetCollectionRepository, AssetCollectionListParams, AssetCollectionCreateInput } from './coreRepository';
 import { sanitizeBriefPatch, sanitizeGenerationPatch, sanitizeAssetPatch } from './coreRepository';
 import type { ClientFormData, BrandFormData, CampaignFormData, BriefFormData } from './coreData';
-import { calculateCampaignDurationDays, parseLines, parseComma, ACTION_TO_APPROVAL_STATUS, ACTION_TO_ITEM_STATUS } from './coreData';
+import { calculateCampaignDurationDays, parseLines, parseComma, ACTION_TO_APPROVAL_STATUS, ACTION_TO_ITEM_STATUS, isUuid } from './coreData';
 import { generateContentPlan } from './contentGenerator';
 
 // Postgres error code returned by Supabase when a single-row query finds nothing
 const PGRST_NOT_FOUND = 'PGRST116';
+
+// Codex Fix Round (2026-06-11): defense-in-depth for the Asset repository —
+// every id this repository writes or filters by must be UUID-shaped.
+// assetRepoFor() in App.tsx already prevents local-format ids
+// (col-*/asset-*/collection-*/etc.) from selecting this repository, but these
+// guards ensure a routing bug there can never smuggle a non-UUID value into a
+// content_assets/content_asset_collections UUID column.
+function assertUuid(value: string | null | undefined, field: string): asserts value is string {
+  if (!isUuid(value)) {
+    throw new Error(`Invalid ${field}: expected a UUID, got ${JSON.stringify(value)}`);
+  }
+}
+
+function assertUuidOrNull(value: string | null | undefined, field: string): void {
+  if (value !== null && value !== undefined && !isUuid(value)) {
+    throw new Error(`Invalid ${field}: "${value}" is not a UUID`);
+  }
+}
 
 // ---------------------------------------------------------------------------
 // A. SupabaseClientRepository
@@ -819,7 +837,15 @@ export class SupabaseApprovalRepository implements ApprovalRepository {
 export class SupabaseAssetRepository implements AssetRepository {
   constructor(private readonly sb: SupabaseClient) {}
 
-  async list({ clientId, brandId, campaignId, briefId, generationId, contentItemId }: AssetListParams): Promise<AssetItem[]> {
+  async list({ clientId, brandId, campaignId, briefId, generationId, contentItemId, assetCollectionId }: AssetListParams): Promise<AssetItem[]> {
+    assertUuid(clientId, 'clientId');
+    assertUuid(brandId, 'brandId');
+    assertUuidOrNull(campaignId, 'campaignId');
+    assertUuidOrNull(briefId, 'briefId');
+    assertUuidOrNull(generationId, 'generationId');
+    assertUuidOrNull(contentItemId, 'contentItemId');
+    assertUuidOrNull(assetCollectionId, 'assetCollectionId');
+
     let query = this.sb
       .from('content_assets')
       .select('*')
@@ -830,13 +856,26 @@ export class SupabaseAssetRepository implements AssetRepository {
     if (briefId !== undefined) query = briefId === null ? query.is('brief_id', null) : query.eq('brief_id', briefId);
     if (generationId !== undefined) query = generationId === null ? query.is('generation_job_id', null) : query.eq('generation_job_id', generationId);
     if (contentItemId !== undefined) query = contentItemId === null ? query.is('content_item_id', null) : query.eq('content_item_id', contentItemId);
+    if (assetCollectionId !== undefined) query = assetCollectionId === null ? query.is('asset_collection_id', null) : query.eq('asset_collection_id', assetCollectionId);
 
     const { data, error } = await query.order('created_at', { ascending: false });
     if (error) throw error;
     return (data ?? []) as AssetItem[];
   }
 
-  async get({ assetId, clientId, brandId, campaignId, briefId, generationId, contentItemId }: AssetScopedParams): Promise<AssetItem | null> {
+  // Codex Fix Round (2026-06-11): AssetScopedParams fields are all required
+  // (no `undefined`), so every level — including assetCollectionId — is
+  // always filtered, never silently skipped.
+  async get({ assetId, clientId, brandId, campaignId, briefId, generationId, contentItemId, assetCollectionId }: AssetScopedParams): Promise<AssetItem | null> {
+    assertUuid(assetId, 'assetId');
+    assertUuid(clientId, 'clientId');
+    assertUuid(brandId, 'brandId');
+    assertUuidOrNull(campaignId, 'campaignId');
+    assertUuidOrNull(briefId, 'briefId');
+    assertUuidOrNull(generationId, 'generationId');
+    assertUuidOrNull(contentItemId, 'contentItemId');
+    assertUuidOrNull(assetCollectionId, 'assetCollectionId');
+
     let query = this.sb
       .from('content_assets')
       .select('*')
@@ -844,10 +883,11 @@ export class SupabaseAssetRepository implements AssetRepository {
       .eq('client_id', clientId)
       .eq('brand_id', brandId);
 
-    if (campaignId !== undefined) query = campaignId === null ? query.is('campaign_id', null) : query.eq('campaign_id', campaignId);
-    if (briefId !== undefined) query = briefId === null ? query.is('brief_id', null) : query.eq('brief_id', briefId);
-    if (generationId !== undefined) query = generationId === null ? query.is('generation_job_id', null) : query.eq('generation_job_id', generationId);
-    if (contentItemId !== undefined) query = contentItemId === null ? query.is('content_item_id', null) : query.eq('content_item_id', contentItemId);
+    query = campaignId === null ? query.is('campaign_id', null) : query.eq('campaign_id', campaignId);
+    query = briefId === null ? query.is('brief_id', null) : query.eq('brief_id', briefId);
+    query = generationId === null ? query.is('generation_job_id', null) : query.eq('generation_job_id', generationId);
+    query = contentItemId === null ? query.is('content_item_id', null) : query.eq('content_item_id', contentItemId);
+    query = assetCollectionId === null ? query.is('asset_collection_id', null) : query.eq('asset_collection_id', assetCollectionId);
 
     const { data, error } = await query.single();
     if (error) {
@@ -858,6 +898,14 @@ export class SupabaseAssetRepository implements AssetRepository {
   }
 
   async create(input: AssetCreateInput): Promise<AssetItem> {
+    assertUuid(input.clientId, 'clientId');
+    assertUuid(input.brandId, 'brandId');
+    assertUuidOrNull(input.campaignId, 'campaignId');
+    assertUuidOrNull(input.briefId, 'briefId');
+    assertUuidOrNull(input.generationId, 'generationId');
+    assertUuidOrNull(input.contentItemId, 'contentItemId');
+    assertUuidOrNull(input.data.asset_collection_id, 'assetCollectionId');
+
     const row = {
       ...input.data,
       client_id: input.clientId,
@@ -876,9 +924,24 @@ export class SupabaseAssetRepository implements AssetRepository {
     return data as AssetItem;
   }
 
+  // Codex Fix Round (2026-06-11): AssetScopedParams fields are all required
+  // (no `undefined`), so every level — including assetCollectionId — is
+  // always filtered, never silently skipped. The patch's own
+  // asset_collection_id (if it moves the asset to a different collection)
+  // is separately UUID-gated before being sent to Postgres.
   async update(params: AssetScopedParams, patch: AssetUpdatePatch): Promise<AssetItem> {
-    const { assetId, clientId, brandId, campaignId, briefId, generationId, contentItemId } = params;
+    const { assetId, clientId, brandId, campaignId, briefId, generationId, contentItemId, assetCollectionId } = params;
+    assertUuid(assetId, 'assetId');
+    assertUuid(clientId, 'clientId');
+    assertUuid(brandId, 'brandId');
+    assertUuidOrNull(campaignId, 'campaignId');
+    assertUuidOrNull(briefId, 'briefId');
+    assertUuidOrNull(generationId, 'generationId');
+    assertUuidOrNull(contentItemId, 'contentItemId');
+    assertUuidOrNull(assetCollectionId, 'assetCollectionId');
+
     const safePatch = sanitizeAssetPatch(patch);
+    assertUuidOrNull(safePatch.asset_collection_id, 'assetCollectionId (patch)');
 
     let query = this.sb
       .from('content_assets')
@@ -887,10 +950,11 @@ export class SupabaseAssetRepository implements AssetRepository {
       .eq('client_id', clientId)
       .eq('brand_id', brandId);
 
-    if (campaignId !== undefined) query = campaignId === null ? query.is('campaign_id', null) : query.eq('campaign_id', campaignId);
-    if (briefId !== undefined) query = briefId === null ? query.is('brief_id', null) : query.eq('brief_id', briefId);
-    if (generationId !== undefined) query = generationId === null ? query.is('generation_job_id', null) : query.eq('generation_job_id', generationId);
-    if (contentItemId !== undefined) query = contentItemId === null ? query.is('content_item_id', null) : query.eq('content_item_id', contentItemId);
+    query = campaignId === null ? query.is('campaign_id', null) : query.eq('campaign_id', campaignId);
+    query = briefId === null ? query.is('brief_id', null) : query.eq('brief_id', briefId);
+    query = generationId === null ? query.is('generation_job_id', null) : query.eq('generation_job_id', generationId);
+    query = contentItemId === null ? query.is('content_item_id', null) : query.eq('content_item_id', contentItemId);
+    query = assetCollectionId === null ? query.is('asset_collection_id', null) : query.eq('asset_collection_id', assetCollectionId);
 
     const { data, error } = await query.select().single();
     if (error) {
