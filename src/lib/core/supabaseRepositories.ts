@@ -10,9 +10,9 @@
 // =============================================================================
 
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { Client, Brand, Campaign, CampaignBrief, ContentPlanJob, ContentPlanItem, ContentApprovalRequest, ContentApprovalEvent, ContentApprovalComment } from '../../types/core';
-import type { ClientRepository, BrandRepository, CampaignRepository, CampaignListParams, CampaignGetParams, CampaignScopedParams, BriefRepository, BriefListParams, BriefScopedParams, BriefUpdatePatch, GenerationRepository, GenerationListParams, GenerationScopedParams, GenerationCreateInput, GenerationListResult, GenerationDetailResult, GenerationUpdatePatch, ApprovalRepository, ApprovalListParams, ApprovalScopedParams, ApprovalListResult, ApprovalDetailResult, ApprovalCreateInput, ApprovalSubmitResult, ApprovalActionResult, ApprovalCommentResult, ResolvingApprovalAction } from './coreRepository';
-import { sanitizeBriefPatch, sanitizeGenerationPatch } from './coreRepository';
+import type { Client, Brand, Campaign, CampaignBrief, ContentPlanJob, ContentPlanItem, ContentApprovalRequest, ContentApprovalEvent, ContentApprovalComment, AssetItem, LocalAssetCollection } from '../../types/core';
+import type { ClientRepository, BrandRepository, CampaignRepository, CampaignListParams, CampaignGetParams, CampaignScopedParams, BriefRepository, BriefListParams, BriefScopedParams, BriefUpdatePatch, GenerationRepository, GenerationListParams, GenerationScopedParams, GenerationCreateInput, GenerationListResult, GenerationDetailResult, GenerationUpdatePatch, ApprovalRepository, ApprovalListParams, ApprovalScopedParams, ApprovalListResult, ApprovalDetailResult, ApprovalCreateInput, ApprovalSubmitResult, ApprovalActionResult, ApprovalCommentResult, ResolvingApprovalAction, AssetRepository, AssetListParams, AssetScopedParams, AssetCreateInput, AssetUpdatePatch, AssetCollectionRepository, AssetCollectionListParams, AssetCollectionCreateInput } from './coreRepository';
+import { sanitizeBriefPatch, sanitizeGenerationPatch, sanitizeAssetPatch } from './coreRepository';
 import type { ClientFormData, BrandFormData, CampaignFormData, BriefFormData } from './coreData';
 import { calculateCampaignDurationDays, parseLines, parseComma, ACTION_TO_APPROVAL_STATUS, ACTION_TO_ITEM_STATUS } from './coreData';
 import { generateContentPlan } from './contentGenerator';
@@ -803,5 +803,147 @@ export class SupabaseApprovalRepository implements ApprovalRepository {
       comment: createdComment as ContentApprovalComment,
       event: createdEvent as ContentApprovalEvent,
     };
+  }
+}
+
+// ---------------------------------------------------------------------------
+// G. SupabaseAssetRepository (Phase 16D)
+//
+// content_assets — client_id/brand_id are NOT NULL; campaign_id/brief_id/
+// generation_job_id/content_item_id are nullable and only filtered when the
+// caller provides them (undefined = "don't filter on this level"). RLS
+// (content_asset_user_has_scope / content_asset_user_can_write) enforces
+// hierarchy + role on every row.
+// ---------------------------------------------------------------------------
+
+export class SupabaseAssetRepository implements AssetRepository {
+  constructor(private readonly sb: SupabaseClient) {}
+
+  async list({ clientId, brandId, campaignId, briefId, generationId, contentItemId }: AssetListParams): Promise<AssetItem[]> {
+    let query = this.sb
+      .from('content_assets')
+      .select('*')
+      .eq('client_id', clientId)
+      .eq('brand_id', brandId);
+
+    if (campaignId !== undefined) query = campaignId === null ? query.is('campaign_id', null) : query.eq('campaign_id', campaignId);
+    if (briefId !== undefined) query = briefId === null ? query.is('brief_id', null) : query.eq('brief_id', briefId);
+    if (generationId !== undefined) query = generationId === null ? query.is('generation_job_id', null) : query.eq('generation_job_id', generationId);
+    if (contentItemId !== undefined) query = contentItemId === null ? query.is('content_item_id', null) : query.eq('content_item_id', contentItemId);
+
+    const { data, error } = await query.order('created_at', { ascending: false });
+    if (error) throw error;
+    return (data ?? []) as AssetItem[];
+  }
+
+  async get({ assetId, clientId, brandId, campaignId, briefId, generationId, contentItemId }: AssetScopedParams): Promise<AssetItem | null> {
+    let query = this.sb
+      .from('content_assets')
+      .select('*')
+      .eq('id', assetId)
+      .eq('client_id', clientId)
+      .eq('brand_id', brandId);
+
+    if (campaignId !== undefined) query = campaignId === null ? query.is('campaign_id', null) : query.eq('campaign_id', campaignId);
+    if (briefId !== undefined) query = briefId === null ? query.is('brief_id', null) : query.eq('brief_id', briefId);
+    if (generationId !== undefined) query = generationId === null ? query.is('generation_job_id', null) : query.eq('generation_job_id', generationId);
+    if (contentItemId !== undefined) query = contentItemId === null ? query.is('content_item_id', null) : query.eq('content_item_id', contentItemId);
+
+    const { data, error } = await query.single();
+    if (error) {
+      if (error.code === PGRST_NOT_FOUND) return null;
+      throw error;
+    }
+    return data as AssetItem;
+  }
+
+  async create(input: AssetCreateInput): Promise<AssetItem> {
+    const row = {
+      ...input.data,
+      client_id: input.clientId,
+      brand_id: input.brandId,
+      campaign_id: input.campaignId,
+      brief_id: input.briefId,
+      generation_job_id: input.generationId,
+      content_item_id: input.contentItemId,
+    };
+    const { data, error } = await this.sb
+      .from('content_assets')
+      .insert(row)
+      .select()
+      .single();
+    if (error) throw error;
+    return data as AssetItem;
+  }
+
+  async update(params: AssetScopedParams, patch: AssetUpdatePatch): Promise<AssetItem> {
+    const { assetId, clientId, brandId, campaignId, briefId, generationId, contentItemId } = params;
+    const safePatch = sanitizeAssetPatch(patch);
+
+    let query = this.sb
+      .from('content_assets')
+      .update({ ...safePatch, updated_at: new Date().toISOString() })
+      .eq('id', assetId)
+      .eq('client_id', clientId)
+      .eq('brand_id', brandId);
+
+    if (campaignId !== undefined) query = campaignId === null ? query.is('campaign_id', null) : query.eq('campaign_id', campaignId);
+    if (briefId !== undefined) query = briefId === null ? query.is('brief_id', null) : query.eq('brief_id', briefId);
+    if (generationId !== undefined) query = generationId === null ? query.is('generation_job_id', null) : query.eq('generation_job_id', generationId);
+    if (contentItemId !== undefined) query = contentItemId === null ? query.is('content_item_id', null) : query.eq('content_item_id', contentItemId);
+
+    const { data, error } = await query.select().single();
+    if (error) {
+      if (error.code === PGRST_NOT_FOUND) throw new Error(`Asset ${assetId} not found in scope`);
+      throw error;
+    }
+    return data as AssetItem;
+  }
+
+  async archive(params: AssetScopedParams): Promise<void> {
+    await this.update(params, { approval_status: 'archived' });
+  }
+}
+
+// ---------------------------------------------------------------------------
+// H. SupabaseAssetCollectionRepository (Phase 16D)
+//
+// content_asset_collections — brand-level (client_id + brand_id, optional
+// campaign_id).
+// ---------------------------------------------------------------------------
+
+export class SupabaseAssetCollectionRepository implements AssetCollectionRepository {
+  constructor(private readonly sb: SupabaseClient) {}
+
+  async list({ clientId, brandId, campaignId }: AssetCollectionListParams): Promise<LocalAssetCollection[]> {
+    let query = this.sb
+      .from('content_asset_collections')
+      .select('*')
+      .eq('client_id', clientId)
+      .eq('brand_id', brandId);
+
+    if (campaignId !== undefined) query = campaignId === null ? query.is('campaign_id', null) : query.eq('campaign_id', campaignId);
+
+    const { data, error } = await query.order('created_at', { ascending: false });
+    if (error) throw error;
+    return (data ?? []) as LocalAssetCollection[];
+  }
+
+  async create(input: AssetCollectionCreateInput): Promise<LocalAssetCollection> {
+    const row = {
+      client_id: input.clientId,
+      brand_id: input.brandId,
+      campaign_id: input.campaignId,
+      name: input.name,
+      description: input.description,
+      created_by: input.createdBy,
+    };
+    const { data, error } = await this.sb
+      .from('content_asset_collections')
+      .insert(row)
+      .select()
+      .single();
+    if (error) throw error;
+    return data as LocalAssetCollection;
   }
 }

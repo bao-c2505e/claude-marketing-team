@@ -37,9 +37,9 @@ import { useAuth } from './lib/auth/AuthContext';
 import { ROLE_LABELS, ROLE_COLORS } from './lib/auth/permissions';
 import { isSupabaseConfigured, supabase } from './lib/supabaseClient';
 import { createPhase16aRepositories } from './lib/core/repositoryFactory';
-import { LocalStorageApprovalRepository } from './lib/core/localStorageRepositories';
-import type { BriefUpdatePatch, GenerationDetailResult, ResolvingApprovalAction, ApprovalRepository } from './lib/core/coreRepository';
-import type { Client, Brand, Campaign as CoreCampaign, CampaignBrief as CoreCampaignBrief, PlanLengthDays, ContentPlanItem, ContentApprovalRequest } from './types/core';
+import { LocalStorageApprovalRepository, LocalStorageAssetRepository } from './lib/core/localStorageRepositories';
+import type { BriefUpdatePatch, GenerationDetailResult, ResolvingApprovalAction, ApprovalRepository, AssetRepository, AssetCreateInput, AssetUpdatePatch } from './lib/core/coreRepository';
+import type { Client, Brand, Campaign as CoreCampaign, CampaignBrief as CoreCampaignBrief, PlanLengthDays, ContentPlanItem, ContentApprovalRequest, AssetItem } from './types/core';
 import LoginScreen from './components/auth/LoginScreen';
 import ClientsTab from './components/core/ClientsTab';
 import BrandsTab from './components/core/BrandsTab';
@@ -267,6 +267,10 @@ export default function App() {
   // per-operation fallback when scope IDs are not valid UUIDs (local/demo data).
   const localApprovals = useMemo(() => new LocalStorageApprovalRepository(), []);
 
+  // Phase 16D — Always-available localStorage asset repo, used as the
+  // per-operation fallback when scope IDs are not valid UUIDs (local/demo data).
+  const localAssets = useMemo(() => new LocalStorageAssetRepository(), []);
+
   // Phase 16A — Non-blocking error state for Supabase data load failures
   const [supabaseLoadError, setSupabaseLoadError] = useState<string | null>(null);
 
@@ -315,6 +319,17 @@ export default function App() {
       const loadedApprovalRequests = approvalArrays.flatMap(r => r.requests);
       const loadedApprovalEvents = approvalArrays.flatMap(r => r.events);
       const loadedApprovalComments = approvalArrays.flatMap(r => r.comments);
+      // Load assets/collections scoped per client+brand — never by assetId
+      // alone (Phase 16D). campaign/brief/generation/content-item scope is
+      // left unfiltered here to load every asset under each brand.
+      const assetArrays = await Promise.all(
+        brands.map(b => repos.assets.list({ clientId: b.client_id, brandId: b.id })),
+      );
+      const loadedAssets = assetArrays.flat();
+      const collectionArrays = await Promise.all(
+        brands.map(b => repos.assetCollections.list({ clientId: b.client_id, brandId: b.id })),
+      );
+      const loadedCollections = collectionArrays.flat();
       if (cancelled) return;
       setCoreData(prev => {
         const next = { ...prev, clients, brands, campaigns: loadedCampaigns, briefs: loadedBriefs };
@@ -333,6 +348,11 @@ export default function App() {
           approvalComments: loadedApprovalComments,
         };
         saveApprovalData(next);
+        return next;
+      });
+      setAssetData(() => {
+        const next: AssetDataStore = { assets: loadedAssets, collections: loadedCollections };
+        saveAssetData(next);
         return next;
       });
     };
@@ -471,9 +491,85 @@ export default function App() {
   // Phase 10 — Asset Library data (separate store)
   const [assetData, setAssetData] = useState<AssetDataStore>(() => loadAssetData());
 
-  const handleAssetUpdate = (data: AssetDataStore) => {
-    setAssetData(data);
-    saveAssetData(data);
+  // Phase 16D — Asset Library CRUD: per-operation repo selection. client_id/
+  // brand_id are required for Supabase routing (content_assets.client_id/
+  // brand_id are NOT NULL); campaign_id/brief_id/generation_job_id/
+  // content_item_id are optional — null or undefined skip the UUID check and
+  // only validated when present. Local-format ids (asset-*/ast-*/col-*/
+  // campaign-*/brand-*/client-*/brief-*/generation-*/job-*/item-*/
+  // content-item-*) always fall back to localStorage.
+  const assetRepoFor = (ids: {
+    clientId: string | null;
+    brandId: string | null;
+    campaignId?: string | null;
+    briefId?: string | null;
+    generationId?: string | null;
+    contentItemId?: string | null;
+    assetId?: string;
+  }): AssetRepository => {
+    const okOrAbsent = (v?: string | null) => v === undefined || v === null || isUuid(v);
+    if (
+      isSupabaseConfigured
+      && isUuid(ids.clientId)
+      && isUuid(ids.brandId)
+      && okOrAbsent(ids.campaignId)
+      && okOrAbsent(ids.briefId)
+      && okOrAbsent(ids.generationId)
+      && okOrAbsent(ids.contentItemId)
+      && (ids.assetId === undefined || isUuid(ids.assetId))
+    ) {
+      return repos.assets;
+    }
+    return localAssets;
+  };
+
+  // Phase 16D — Create an asset, scoped by the client/brand/campaign chosen in
+  // the form. The Asset Library UI does not expose brief/generation/
+  // content-item linkage, so new assets always have those set to null.
+  const handleAssetCreate = async (input: AssetCreateInput): Promise<void> => {
+    const repo = assetRepoFor({
+      clientId: input.clientId,
+      brandId: input.brandId,
+      campaignId: input.campaignId,
+      briefId: input.briefId,
+      generationId: input.generationId,
+      contentItemId: input.contentItemId,
+    });
+    const created = await repo.create(input);
+    setAssetData(prev => {
+      const next: AssetDataStore = { ...prev, assets: [created, ...prev.assets] };
+      saveAssetData(next);
+      return next;
+    });
+  };
+
+  // Phase 16D — Update an asset, scoped by its own full tenant chain (never by
+  // assetId alone). Tenant/audit/identity fields are stripped from the patch
+  // by the repository (sanitizeAssetPatch).
+  const handleAssetEdit = async (asset: AssetItem, patch: AssetUpdatePatch): Promise<void> => {
+    const scope = {
+      clientId: asset.client_id,
+      brandId: asset.brand_id,
+      campaignId: asset.campaign_id,
+      briefId: asset.brief_id,
+      generationId: asset.generation_job_id,
+      contentItemId: asset.content_item_id,
+      assetId: asset.id,
+    };
+    const repo = assetRepoFor(scope);
+    const updated = await repo.update(scope, patch);
+    setAssetData(prev => {
+      const next: AssetDataStore = { ...prev, assets: prev.assets.map(a => a.id === updated.id ? updated : a) };
+      saveAssetData(next);
+      return next;
+    });
+  };
+
+  // Phase 16D — Archive an asset (approval_status -> 'archived'), scoped by
+  // its own full tenant chain (never by assetId alone). Non-destructive — no
+  // hard delete (no DELETE policy on content_assets).
+  const handleAssetArchive = async (asset: AssetItem): Promise<void> => {
+    await handleAssetEdit(asset, { approval_status: 'archived' });
   };
 
   // Phase 14 — Automation Logs
@@ -1401,7 +1497,9 @@ export default function App() {
                   brands={coreData.brands}
                   campaigns={coreData.campaigns}
                   assetData={assetData}
-                  onAssetUpdate={handleAssetUpdate}
+                  onAssetCreate={handleAssetCreate}
+                  onAssetEdit={handleAssetEdit}
+                  onAssetArchive={handleAssetArchive}
                   userRole={user?.role ?? null}
                   actorLabel={actorLabel}
                   isSupabaseConfigured={isSupabaseConfigured}

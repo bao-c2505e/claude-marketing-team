@@ -5,11 +5,11 @@ import {
 } from 'lucide-react';
 import type { Client, Brand, Campaign, AssetItem, LocalAssetCollection, AssetType, AssetApprovalStatus, RoleName } from '../../types/core';
 import type { AssetDataStore } from '../../lib/core/coreData';
+import type { AssetCreateInput, AssetUpdatePatch } from '../../lib/core/coreRepository';
 import {
   ASSET_TYPE_LABEL, ASSET_TYPE_COLOR,
   ASSET_SOURCE_LABEL, ASSET_APPROVAL_LABEL, ASSET_APPROVAL_COLOR,
   ASSET_TYPES, ASSET_APPROVAL_STATUSES,
-  createAsset, updateAsset,
 } from '../../lib/core/coreData';
 import { can, isInternalRole } from '../../lib/auth/permissions';
 
@@ -22,7 +22,9 @@ interface Props {
   brands: Brand[];
   campaigns: Campaign[];
   assetData: AssetDataStore;
-  onAssetUpdate: (data: AssetDataStore) => void;
+  onAssetCreate: (input: AssetCreateInput) => Promise<void>;
+  onAssetEdit: (asset: AssetItem, patch: AssetUpdatePatch) => Promise<void>;
+  onAssetArchive: (asset: AssetItem) => Promise<void>;
   userRole: RoleName | null;
   actorLabel: string;
   isSupabaseConfigured: boolean;
@@ -106,7 +108,7 @@ function AssetSafetyBanner() {
 
 function AssetForm({
   initial, clients, brands, campaigns, collections,
-  onSave, onCancel, canSetStatus,
+  onSave, onCancel, canSetStatus, mode, saving, error,
 }: {
   initial: AssetFormState;
   clients: Client[];
@@ -116,6 +118,9 @@ function AssetForm({
   onSave: (form: AssetFormState) => void;
   onCancel: () => void;
   canSetStatus: boolean;
+  mode: 'create' | 'edit';
+  saving: boolean;
+  error: string | null;
 }) {
   const [form, setForm] = useState<AssetFormState>(initial);
   const set = (k: keyof AssetFormState) => (v: string) => setForm(f => ({ ...f, [k]: v }));
@@ -138,6 +143,11 @@ function AssetForm({
 
   return (
     <div className="glass-panel" style={{ padding: '24px' }}>
+      {error && (
+        <div style={{ padding: '10px 14px', marginBottom: '16px', background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.3)', borderRadius: '8px', fontSize: '0.8rem', color: '#f87171' }}>
+          {error}
+        </div>
+      )}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
 
         {/* Name */}
@@ -170,10 +180,19 @@ function AssetForm({
           </div>
         ) : <div />}
 
+        {/* Tenant scope is fixed after creation (Phase 16D) */}
+        {mode === 'edit' && (
+          <div style={{ gridColumn: 'span 2' }}>
+            <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', margin: 0 }}>
+              Client / Brand / Campaign are set when an asset is created and cannot be changed afterwards.
+            </p>
+          </div>
+        )}
+
         {/* Client */}
         <div>
           {label('Client')}
-          <select className="form-control" style={inputStyle} value={form.client_id}
+          <select className="form-control" style={inputStyle} value={form.client_id} disabled={mode === 'edit'}
             onChange={e => { set('client_id')(e.target.value); set('brand_id')(''); set('campaign_id')(''); }}>
             <option value="">— All Clients —</option>
             {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
@@ -183,7 +202,7 @@ function AssetForm({
         {/* Brand */}
         <div>
           {label('Brand')}
-          <select className="form-control" style={inputStyle} value={form.brand_id}
+          <select className="form-control" style={inputStyle} value={form.brand_id} disabled={mode === 'edit'}
             onChange={e => { set('brand_id')(e.target.value); set('campaign_id')(''); }}>
             <option value="">— All Brands —</option>
             {filteredBrands.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
@@ -193,7 +212,7 @@ function AssetForm({
         {/* Campaign (optional) */}
         <div>
           {label('Campaign (optional)')}
-          <select className="form-control" style={inputStyle} value={form.campaign_id}
+          <select className="form-control" style={inputStyle} value={form.campaign_id} disabled={mode === 'edit'}
             onChange={e => set('campaign_id')(e.target.value)}>
             <option value="">— Not campaign-specific —</option>
             {filteredCampaigns.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
@@ -281,11 +300,11 @@ function AssetForm({
           Cancel
         </button>
         <button
-          onClick={() => valid && onSave(form)}
-          disabled={!valid}
-          style={{ background: valid ? 'rgba(99,102,241,0.2)' : 'rgba(255,255,255,0.04)', border: `1px solid ${valid ? 'rgba(99,102,241,0.5)' : 'var(--border-color)'}`, color: valid ? '#818cf8' : 'var(--text-muted)', borderRadius: '7px', padding: '8px 20px', cursor: valid ? 'pointer' : 'not-allowed', fontSize: '0.85rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}
+          onClick={() => valid && !saving && onSave(form)}
+          disabled={!valid || saving}
+          style={{ background: (valid && !saving) ? 'rgba(99,102,241,0.2)' : 'rgba(255,255,255,0.04)', border: `1px solid ${(valid && !saving) ? 'rgba(99,102,241,0.5)' : 'var(--border-color)'}`, color: (valid && !saving) ? '#818cf8' : 'var(--text-muted)', borderRadius: '7px', padding: '8px 20px', cursor: (valid && !saving) ? 'pointer' : 'not-allowed', fontSize: '0.85rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}
         >
-          <Check size={14} /> Save Asset
+          <Check size={14} /> {saving ? 'Saving…' : 'Save Asset'}
         </button>
       </div>
     </div>
@@ -455,7 +474,7 @@ function AssetCard({
 // ---------------------------------------------------------------------------
 
 export default function AssetLibraryTab({
-  clients, brands, campaigns, assetData, onAssetUpdate,
+  clients, brands, campaigns, assetData, onAssetCreate, onAssetEdit, onAssetArchive,
   userRole, actorLabel, isSupabaseConfigured,
 }: Props) {
   const [filterClientId,  setFilterClientId]  = useState('');
@@ -467,6 +486,8 @@ export default function AssetLibraryTab({
   const [view, setView] = useState<'list' | 'create' | 'edit'>('list');
   const [editingAsset, setEditingAsset] = useState<AssetItem | null>(null);
   const [showCollections, setShowCollections] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const canManage = can.manageAssets(userRole);
   const canView   = can.viewAssets(userRole);
@@ -492,61 +513,83 @@ export default function AssetLibraryTab({
 
   // ---------- handlers ----------
 
-  const handleCreateSave = (form: AssetFormState) => {
-    const updated = createAsset(assetData, {
-      client_id:           form.client_id  || null,
-      brand_id:            form.brand_id   || null,
-      campaign_id:         form.campaign_id || null,
-      content_item_id:     null,
-      asset_collection_id: form.asset_collection_id || null,
-      name:                form.name.trim(),
-      asset_type:          form.asset_type,
-      source_type:         form.url.trim() ? 'external_url' : 'local_placeholder',
-      url:                 form.url.trim() || null,
-      thumbnail_url:       null,
-      file_name:           form.file_name.trim() || null,
-      file_size_note:      form.file_size_note.trim() || null,
-      mime_type:           null,
-      tags:                form.tags.split(',').map(t => t.trim()).filter(Boolean),
-      usage_rights_note:   form.usage_rights_note.trim() || null,
-      approval_status:     canManage ? form.approval_status : 'draft',
-      notes:               form.notes.trim() || null,
-      created_by:          actorLabel,
-    });
-    onAssetUpdate(updated);
-    setView('list');
+  const handleCreateSave = async (form: AssetFormState) => {
+    setError(null);
+    setSaving(true);
+    try {
+      await onAssetCreate({
+        clientId:     form.client_id  || null,
+        brandId:      form.brand_id   || null,
+        campaignId:   form.campaign_id || null,
+        briefId:      null,
+        generationId: null,
+        contentItemId: null,
+        data: {
+          asset_collection_id: form.asset_collection_id || null,
+          name:                form.name.trim(),
+          asset_type:          form.asset_type,
+          source_type:         form.url.trim() ? 'external_url' : 'local_placeholder',
+          url:                 form.url.trim() || null,
+          thumbnail_url:       null,
+          file_name:           form.file_name.trim() || null,
+          file_size_note:      form.file_size_note.trim() || null,
+          mime_type:           null,
+          tags:                form.tags.split(',').map(t => t.trim()).filter(Boolean),
+          usage_rights_note:   form.usage_rights_note.trim() || null,
+          approval_status:     canManage ? form.approval_status : 'draft',
+          notes:               form.notes.trim() || null,
+          created_by:          actorLabel,
+        },
+      });
+      setView('list');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to create asset.');
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handleEditSave = (form: AssetFormState) => {
+  const handleEditSave = async (form: AssetFormState) => {
     if (!editingAsset) return;
-    const updated = updateAsset(assetData, editingAsset.id, {
-      name:                form.name.trim(),
-      asset_type:          form.asset_type,
-      client_id:           form.client_id  || null,
-      brand_id:            form.brand_id   || null,
-      campaign_id:         form.campaign_id || null,
-      asset_collection_id: form.asset_collection_id || null,
-      source_type:         form.url.trim() ? 'external_url' : 'local_placeholder',
-      url:                 form.url.trim() || null,
-      file_name:           form.file_name.trim() || null,
-      file_size_note:      form.file_size_note.trim() || null,
-      tags:                form.tags.split(',').map(t => t.trim()).filter(Boolean),
-      usage_rights_note:   form.usage_rights_note.trim() || null,
-      approval_status:     canManage ? form.approval_status : editingAsset.approval_status,
-      notes:               form.notes.trim() || null,
-    });
-    onAssetUpdate(updated);
-    setEditingAsset(null);
-    setView('list');
+    setError(null);
+    setSaving(true);
+    try {
+      await onAssetEdit(editingAsset, {
+        name:                form.name.trim(),
+        asset_type:          form.asset_type,
+        asset_collection_id: form.asset_collection_id || null,
+        source_type:         form.url.trim() ? 'external_url' : 'local_placeholder',
+        url:                 form.url.trim() || null,
+        file_name:           form.file_name.trim() || null,
+        file_size_note:      form.file_size_note.trim() || null,
+        tags:                form.tags.split(',').map(t => t.trim()).filter(Boolean),
+        usage_rights_note:   form.usage_rights_note.trim() || null,
+        approval_status:     canManage ? form.approval_status : editingAsset.approval_status,
+        notes:               form.notes.trim() || null,
+      });
+      setEditingAsset(null);
+      setView('list');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update asset.');
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handleArchive = (id: string) => {
-    const updated = updateAsset(assetData, id, { approval_status: 'archived' });
-    onAssetUpdate(updated);
-    setExpandedId(null);
+  const handleArchive = async (id: string) => {
+    const asset = assetData.assets.find(a => a.id === id);
+    if (!asset) return;
+    setError(null);
+    try {
+      await onAssetArchive(asset);
+      setExpandedId(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to archive asset.');
+    }
   };
 
   const openEdit = (asset: AssetItem) => {
+    setError(null);
     setEditingAsset(asset);
     setView('edit');
   };
@@ -593,6 +636,7 @@ export default function AssetLibraryTab({
           initial={EMPTY_FORM} clients={clients} brands={brands}
           campaigns={campaigns} collections={assetData.collections}
           onSave={handleCreateSave} onCancel={() => setView('list')} canSetStatus={canManage}
+          mode="create" saving={saving} error={error}
         />
       </div>
     );
@@ -610,6 +654,7 @@ export default function AssetLibraryTab({
           initial={editInitial(editingAsset)} clients={clients} brands={brands}
           campaigns={campaigns} collections={assetData.collections}
           onSave={handleEditSave} onCancel={() => { setView('list'); setEditingAsset(null); }} canSetStatus={canManage}
+          mode="edit" saving={saving} error={error}
         />
       </div>
     );
@@ -651,6 +696,12 @@ export default function AssetLibraryTab({
       </div>
 
       <AssetSafetyBanner />
+
+      {error && (
+        <div style={{ padding: '10px 14px', background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.3)', borderRadius: '8px', fontSize: '0.8rem', color: '#f87171' }}>
+          {error}
+        </div>
+      )}
 
       {/* Stats row */}
       <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>

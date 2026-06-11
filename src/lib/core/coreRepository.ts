@@ -355,23 +355,136 @@ export interface ApprovalRepository {
 }
 
 // ---------------------------------------------------------------------------
-// G. Asset Library
+// G. Asset Library (Phase 16D)
+//
+// Scoped repository for AssetItem / LocalAssetCollection (Phase 10 Asset
+// Library). Unlike Generation/Approval, an asset's tenant chain is partial:
+// every asset carries client_id + brand_id, but campaign_id/brief_id/
+// generation_job_id/content_item_id are only set when the asset is actually
+// scoped that deep (e.g. a brand-level logo has campaign_id..content_item_id
+// all null). Every operation is validated against whichever of these ids the
+// asset actually carries — never by assetId alone. Replaces the unscoped
+// AssetRepository / AssetCollectionRepository placeholders that previously
+// lived in this section (unused dead code).
 // ---------------------------------------------------------------------------
 
+// client_id/brand_id mirror AssetItem's own (string | null) typing — an asset
+// with no client/brand scope (client_id/brand_id both null) can never be
+// routed to Supabase (its hierarchy can't be validated against
+// clients/brands), so it always falls back to localStorage. campaign_id/
+// brief_id/generation_job_id/content_item_id are optional and only present
+// when the asset is scoped that deep.
+export interface AssetListParams {
+  clientId: string | null;
+  brandId: string | null;
+  campaignId?: string | null;
+  briefId?: string | null;
+  generationId?: string | null;
+  contentItemId?: string | null;
+}
+
+// Adds the asset's own id — prevents unscoped get/update/archive by assetId
+// alone.
+export interface AssetScopedParams extends AssetListParams {
+  assetId: string;
+}
+
+// Tenant scope is supplied explicitly (verified by the caller against the
+// selected client/brand/campaign, or against an existing asset's own scope
+// for update/archive) — never trusted from a raw form value alone.
+export interface AssetCreateInput {
+  clientId: string | null;
+  brandId: string | null;
+  campaignId: string | null;
+  briefId: string | null;
+  generationId: string | null;
+  contentItemId: string | null;
+  data: Omit<
+    AssetItem,
+    'id' | 'created_at' | 'updated_at'
+    | 'client_id' | 'brand_id' | 'campaign_id' | 'brief_id' | 'generation_job_id' | 'content_item_id'
+  >;
+}
+
+// Identity, tenant-scope (FK), and audit/ownership fields — never settable
+// via update(). Both snake_case (DB column names) and camelCase (TS/JS object
+// aliases) variants are listed so a dynamically-built patch can't smuggle a
+// reassignment through under an alternate casing. asset_collection_id is NOT
+// listed — moving an asset between collections within the same brand is a
+// normal edit. approval_request_id/uploaded_by/owner_id/etc. are not current
+// AssetItem columns, but are blocked defensively in case future columns or
+// generic patch sources introduce them.
+const ASSET_IMMUTABLE_PATCH_FIELDS = [
+  'id',
+  'client_id', 'clientId',
+  'brand_id', 'brandId',
+  'campaign_id', 'campaignId',
+  'brief_id', 'briefId',
+  'generation_job_id', 'generationJobId', 'generationId',
+  'content_item_id', 'contentItemId',
+  'created_at', 'createdAt',
+  'updated_at', 'updatedAt',
+  'created_by', 'createdBy',
+  'uploaded_by', 'uploadedBy',
+  'approval_request_id', 'approvalRequestId',
+  'archived_at', 'archivedAt',
+  'archive_at', 'archiveAt',
+  'deleted_at', 'deletedAt',
+  'owner_id', 'ownerId',
+  'tenant_id', 'tenantId',
+  'organization_id', 'organizationId',
+  'user_id', 'userId',
+] as const;
+
+export type AssetImmutableField = typeof ASSET_IMMUTABLE_PATCH_FIELDS[number];
+
+export type AssetUpdatePatch = Partial<Omit<AssetItem, AssetImmutableField>>;
+
+export function sanitizeAssetPatch(patch: Partial<AssetItem> & Record<string, unknown>): AssetUpdatePatch {
+  const safe = { ...patch } as Record<string, unknown>;
+  for (const field of ASSET_IMMUTABLE_PATCH_FIELDS) {
+    delete safe[field];
+  }
+  return safe as AssetUpdatePatch;
+}
+
 export interface AssetRepository {
-  list(brandId?: string, campaignId?: string): Promise<AssetItem[]>;
-  get(id: string): Promise<AssetItem | null>;
-  create(data: Omit<AssetItem, 'id' | 'created_at' | 'updated_at'>): Promise<AssetItem>;
-  update(id: string, patch: Partial<AssetItem>): Promise<AssetItem>;
+  list(params: AssetListParams): Promise<AssetItem[]>;
+  get(params: AssetScopedParams): Promise<AssetItem | null>;
+  create(data: AssetCreateInput): Promise<AssetItem>;
+  update(params: AssetScopedParams, patch: AssetUpdatePatch): Promise<AssetItem>;
+  archive(params: AssetScopedParams): Promise<void>;
+}
+
+// ---------------------------------------------------------------------------
+// G2. Asset Collections (Phase 16D)
+//
+// LocalAssetCollection is brand-level (client_id + brand_id, optional
+// campaign_id) — no brief/generation/content_item scope.
+// ---------------------------------------------------------------------------
+
+export interface AssetCollectionListParams {
+  clientId: string | null;
+  brandId: string | null;
+  campaignId?: string | null;
+}
+
+export interface AssetCollectionCreateInput {
+  clientId: string | null;
+  brandId: string | null;
+  campaignId: string | null;
+  name: string;
+  description: string | null;
+  createdBy: string | null;
 }
 
 export interface AssetCollectionRepository {
-  list(brandId?: string): Promise<LocalAssetCollection[]>;
-  create(data: Omit<LocalAssetCollection, 'id' | 'created_at' | 'updated_at'>): Promise<LocalAssetCollection>;
+  list(params: AssetCollectionListParams): Promise<LocalAssetCollection[]>;
+  create(data: AssetCollectionCreateInput): Promise<LocalAssetCollection>;
 }
 
 // ---------------------------------------------------------------------------
-// G2. Reports + Report Metrics (schema: reports, report_metrics)
+// G3. Reports + Report Metrics (schema: reports, report_metrics)
 // ---------------------------------------------------------------------------
 
 export interface ReportRepository {

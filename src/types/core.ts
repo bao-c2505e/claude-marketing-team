@@ -663,6 +663,8 @@ export interface AssetItem {
   client_id: string | null;
   brand_id: string | null;
   campaign_id: string | null;
+  brief_id: string | null;
+  generation_job_id: string | null;
   content_item_id: string | null;
   asset_collection_id: string | null;
   name: string;

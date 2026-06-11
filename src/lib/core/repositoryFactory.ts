@@ -4,16 +4,18 @@
 // Phase 16B-1 — Supabase CRUD Wiring: Campaigns
 // Phase 16B-2 — Supabase CRUD Wiring: Campaign Briefs
 // Phase 16C-1 — Supabase CRUD Wiring: Content Plan Generation
+// Phase 16C-2 — Supabase CRUD Wiring: Approval
+// Phase 16D — Supabase CRUD Wiring: Asset Library
 //
 // Returns Supabase-backed repositories when configured,
 // localStorage repositories otherwise (demo mode / no env vars).
 //
-// Calendar / Approval / Reports / Asset Library / etc. wiring is deferred to
-// later phases.
+// Calendar / Reports / Connector Inbox / Automation Logs / Publishing wiring
+// is deferred to later phases.
 // =============================================================================
 
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { ClientRepository, BrandRepository, CampaignRepository, BriefRepository, GenerationRepository, ApprovalRepository } from './coreRepository';
+import type { ClientRepository, BrandRepository, CampaignRepository, BriefRepository, GenerationRepository, ApprovalRepository, AssetRepository, AssetCollectionRepository } from './coreRepository';
 import {
   LocalStorageClientRepository,
   LocalStorageBrandRepository,
@@ -21,6 +23,8 @@ import {
   LocalStorageBriefRepository,
   LocalStorageGenerationRepository,
   LocalStorageApprovalRepository,
+  LocalStorageAssetRepository,
+  LocalStorageAssetCollectionRepository,
 } from './localStorageRepositories';
 import {
   SupabaseClientRepository,
@@ -29,6 +33,8 @@ import {
   SupabaseBriefRepository,
   SupabaseGenerationRepository,
   SupabaseApprovalRepository,
+  SupabaseAssetRepository,
+  SupabaseAssetCollectionRepository,
 } from './supabaseRepositories';
 
 export interface Phase16aRepositories {
@@ -38,6 +44,8 @@ export interface Phase16aRepositories {
   briefs: BriefRepository;
   generations: GenerationRepository;
   approvals: ApprovalRepository;
+  assets: AssetRepository;
+  assetCollections: AssetCollectionRepository;
 }
 
 /**
@@ -62,6 +70,8 @@ export function createPhase16aRepositories(
       briefs: new SupabaseBriefRepository(supabase),
       generations: new SupabaseGenerationRepository(supabase),
       approvals: new SupabaseApprovalRepository(supabase),
+      assets: new SupabaseAssetRepository(supabase),
+      assetCollections: new SupabaseAssetCollectionRepository(supabase),
     };
   }
   // Fallback — localStorage / demo mode
@@ -72,5 +82,7 @@ export function createPhase16aRepositories(
     briefs: new LocalStorageBriefRepository(),
     generations: new LocalStorageGenerationRepository(),
     approvals: new LocalStorageApprovalRepository(),
+    assets: new LocalStorageAssetRepository(),
+    assetCollections: new LocalStorageAssetCollectionRepository(),
   };
 }

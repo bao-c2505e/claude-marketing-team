@@ -9,11 +9,11 @@
 // These implementations are the default — Demo Sign In + localhost always lands here.
 // =============================================================================
 
-import type { Client, Brand, Campaign, CampaignBrief, ContentPlanJob, ContentPlanItem } from '../../types/core';
-import type { ClientRepository, BrandRepository, CampaignRepository, CampaignListParams, CampaignGetParams, CampaignScopedParams, BriefRepository, BriefListParams, BriefScopedParams, BriefUpdatePatch, GenerationRepository, GenerationListParams, GenerationScopedParams, GenerationCreateInput, GenerationListResult, GenerationDetailResult, GenerationUpdatePatch, ApprovalRepository, ApprovalListParams, ApprovalScopedParams, ApprovalListResult, ApprovalDetailResult, ApprovalCreateInput, ApprovalSubmitResult, ApprovalActionResult, ApprovalCommentResult, ResolvingApprovalAction } from './coreRepository';
-import { sanitizeBriefPatch, sanitizeGenerationPatch } from './coreRepository';
+import type { Client, Brand, Campaign, CampaignBrief, ContentPlanJob, ContentPlanItem, AssetItem, LocalAssetCollection } from '../../types/core';
+import type { ClientRepository, BrandRepository, CampaignRepository, CampaignListParams, CampaignGetParams, CampaignScopedParams, BriefRepository, BriefListParams, BriefScopedParams, BriefUpdatePatch, GenerationRepository, GenerationListParams, GenerationScopedParams, GenerationCreateInput, GenerationListResult, GenerationDetailResult, GenerationUpdatePatch, ApprovalRepository, ApprovalListParams, ApprovalScopedParams, ApprovalListResult, ApprovalDetailResult, ApprovalCreateInput, ApprovalSubmitResult, ApprovalActionResult, ApprovalCommentResult, ResolvingApprovalAction, AssetRepository, AssetListParams, AssetScopedParams, AssetCreateInput, AssetUpdatePatch, AssetCollectionRepository, AssetCollectionListParams, AssetCollectionCreateInput } from './coreRepository';
+import { sanitizeBriefPatch, sanitizeGenerationPatch, sanitizeAssetPatch } from './coreRepository';
 import type { ClientFormData, BrandFormData, CampaignFormData, BriefFormData } from './coreData';
-import { loadCoreData, saveCoreData, generateId, calculateCampaignDurationDays, parseLines, parseComma, loadGenerationData, saveGenerationData, loadApprovalData, saveApprovalData, submitForApproval, executeApprovalAction, addApprovalComment } from './coreData';
+import { loadCoreData, saveCoreData, generateId, calculateCampaignDurationDays, parseLines, parseComma, loadGenerationData, saveGenerationData, loadApprovalData, saveApprovalData, submitForApproval, executeApprovalAction, addApprovalComment, loadAssetData, saveAssetData } from './coreData';
 import { generateContentPlan } from './contentGenerator';
 
 // ---------------------------------------------------------------------------
@@ -448,5 +448,107 @@ export class LocalStorageApprovalRepository implements ApprovalRepository {
       comment: updated.approvalComments[0],
       event: updated.approvalEvents[0],
     };
+  }
+}
+
+// ---------------------------------------------------------------------------
+// G. LocalStorageAssetRepository (Phase 16D)
+//
+// Operates on AssetDataStore (separate localStorage key). An asset's tenant
+// chain is partial — campaign_id/brief_id/generation_job_id/content_item_id
+// may be null. list() filters by whichever scope ids are provided (undefined
+// = "don't filter on this level"); get/update/archive additionally re-check
+// the stored asset's full chain against params before reading or mutating —
+// never by assetId alone.
+// ---------------------------------------------------------------------------
+
+function assetMatchesScope(asset: AssetItem, params: AssetListParams): boolean {
+  if (asset.client_id !== params.clientId || asset.brand_id !== params.brandId) return false;
+  if (params.campaignId !== undefined && asset.campaign_id !== params.campaignId) return false;
+  if (params.briefId !== undefined && asset.brief_id !== params.briefId) return false;
+  if (params.generationId !== undefined && asset.generation_job_id !== params.generationId) return false;
+  if (params.contentItemId !== undefined && asset.content_item_id !== params.contentItemId) return false;
+  return true;
+}
+
+export class LocalStorageAssetRepository implements AssetRepository {
+  async list(params: AssetListParams): Promise<AssetItem[]> {
+    return loadAssetData().assets.filter(a => assetMatchesScope(a, params));
+  }
+
+  async get(params: AssetScopedParams): Promise<AssetItem | null> {
+    const asset = loadAssetData().assets.find(a => a.id === params.assetId);
+    if (!asset || !assetMatchesScope(asset, params)) return null;
+    return asset;
+  }
+
+  async create(data: AssetCreateInput): Promise<AssetItem> {
+    const store = loadAssetData();
+    const now = new Date().toISOString();
+    const asset: AssetItem = {
+      ...data.data,
+      id: generateId('ast'),
+      client_id: data.clientId,
+      brand_id: data.brandId,
+      campaign_id: data.campaignId,
+      brief_id: data.briefId,
+      generation_job_id: data.generationId,
+      content_item_id: data.contentItemId,
+      created_at: now,
+      updated_at: now,
+    };
+    saveAssetData({ ...store, assets: [asset, ...store.assets] });
+    return asset;
+  }
+
+  async update(params: AssetScopedParams, patch: AssetUpdatePatch): Promise<AssetItem> {
+    const store = loadAssetData();
+    const existing = store.assets.find(a => a.id === params.assetId);
+    if (!existing || !assetMatchesScope(existing, params)) {
+      throw new Error(`Asset ${params.assetId} not found in scope`);
+    }
+    const safePatch = sanitizeAssetPatch(patch);
+    const updated: AssetItem = { ...existing, ...safePatch, updated_at: new Date().toISOString() };
+    saveAssetData({ ...store, assets: store.assets.map(a => a.id === params.assetId ? updated : a) });
+    return updated;
+  }
+
+  async archive(params: AssetScopedParams): Promise<void> {
+    await this.update(params, { approval_status: 'archived' });
+  }
+}
+
+// ---------------------------------------------------------------------------
+// H. LocalStorageAssetCollectionRepository (Phase 16D)
+//
+// LocalAssetCollection is brand-level (client_id + brand_id, optional
+// campaign_id) — no brief/generation/content_item scope.
+// ---------------------------------------------------------------------------
+
+export class LocalStorageAssetCollectionRepository implements AssetCollectionRepository {
+  async list({ clientId, brandId, campaignId }: AssetCollectionListParams): Promise<LocalAssetCollection[]> {
+    return loadAssetData().collections.filter(c => {
+      if (c.client_id !== clientId || c.brand_id !== brandId) return false;
+      if (campaignId !== undefined && c.campaign_id !== campaignId) return false;
+      return true;
+    });
+  }
+
+  async create(data: AssetCollectionCreateInput): Promise<LocalAssetCollection> {
+    const store = loadAssetData();
+    const now = new Date().toISOString();
+    const collection: LocalAssetCollection = {
+      id: generateId('col'),
+      client_id: data.clientId,
+      brand_id: data.brandId,
+      campaign_id: data.campaignId,
+      name: data.name,
+      description: data.description,
+      created_by: data.createdBy,
+      created_at: now,
+      updated_at: now,
+    };
+    saveAssetData({ ...store, collections: [collection, ...store.collections] });
+    return collection;
   }
 }

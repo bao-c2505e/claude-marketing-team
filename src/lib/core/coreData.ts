@@ -912,6 +912,8 @@ export const SEED_ASSETS: AssetItem[] = [
     client_id: 'client-vi-cuon',
     brand_id: 'brand-vi-cuon',
     campaign_id: null,
+    brief_id: null,
+    generation_job_id: null,
     content_item_id: null,
     asset_collection_id: 'col-vc-brand',
     name: 'Vị Cuốn — Logo Chính',
@@ -935,6 +937,8 @@ export const SEED_ASSETS: AssetItem[] = [
     client_id: 'client-vi-cuon',
     brand_id: 'brand-vi-cuon',
     campaign_id: 'campaign-vi-cuon-he',
+    brief_id: null,
+    generation_job_id: null,
     content_item_id: null,
     asset_collection_id: 'col-vc-brand',
     name: 'Heo Quay Giòn — Hero Shot #1',
@@ -958,6 +962,8 @@ export const SEED_ASSETS: AssetItem[] = [
     client_id: 'client-vi-cuon',
     brand_id: 'brand-vi-cuon',
     campaign_id: 'campaign-vi-cuon-he',
+    brief_id: null,
+    generation_job_id: null,
     content_item_id: null,
     asset_collection_id: null,
     name: 'Raw Footage — Bếp Nướng Lu Đất',
@@ -981,6 +987,8 @@ export const SEED_ASSETS: AssetItem[] = [
     client_id: 'client-com-tam',
     brand_id: 'brand-com-tam',
     campaign_id: 'campaign-com-tam-menu',
+    brief_id: null,
+    generation_job_id: null,
     content_item_id: null,
     asset_collection_id: 'col-ct-brand',
     name: 'Design Reference — Brand Palette Màu Q3/2026',
@@ -1004,6 +1012,8 @@ export const SEED_ASSETS: AssetItem[] = [
     client_id: 'client-forme',
     brand_id: 'brand-forme',
     campaign_id: null,
+    brief_id: null,
+    generation_job_id: null,
     content_item_id: null,
     asset_collection_id: 'col-forme-brand',
     name: 'Forme Brand Guideline 2026',
@@ -1027,6 +1037,8 @@ export const SEED_ASSETS: AssetItem[] = [
     client_id: 'client-forme',
     brand_id: 'brand-forme',
     campaign_id: 'campaign-forme-f1',
+    brief_id: null,
+    generation_job_id: null,
     content_item_id: null,
     asset_collection_id: 'col-forme-brand',
     name: 'Sofa F-1 — Lifestyle Photography Brief',
@@ -1055,7 +1067,13 @@ export function loadAssetData(): AssetDataStore {
     if (stored) {
       const parsed = JSON.parse(stored) as Partial<AssetDataStore>;
       return {
-        assets:      parsed.assets      ?? SEED_ASSETS,
+        // brief_id/generation_job_id are additive (Phase 16D) — default to
+        // null for assets persisted before this phase.
+        assets: (parsed.assets ?? SEED_ASSETS).map(a => ({
+          ...a,
+          brief_id: a.brief_id ?? null,
+          generation_job_id: a.generation_job_id ?? null,
+        })),
         collections: parsed.collections ?? SEED_COLLECTIONS,
       };
     }
@@ -1067,38 +1085,6 @@ export function saveAssetData(data: AssetDataStore): void {
   try {
     localStorage.setItem(ASSET_STORAGE_KEY, JSON.stringify(data));
   } catch (_) { /* ignore */ }
-}
-
-// ── CRUD helpers ──────────────────────────────────────────────────────────
-
-export function createAsset(
-  store: AssetDataStore,
-  data: Omit<AssetItem, 'id' | 'created_at' | 'updated_at'>,
-): AssetDataStore {
-  const now = new Date().toISOString();
-  const asset: AssetItem = { ...data, id: generateId('ast'), created_at: now, updated_at: now };
-  return { ...store, assets: [asset, ...store.assets] };
-}
-
-export function updateAsset(
-  store: AssetDataStore,
-  assetId: string,
-  patch: Partial<Omit<AssetItem, 'id' | 'created_at'>>,
-): AssetDataStore {
-  const now = new Date().toISOString();
-  return {
-    ...store,
-    assets: store.assets.map(a => a.id === assetId ? { ...a, ...patch, updated_at: now } : a),
-  };
-}
-
-export function createCollection(
-  store: AssetDataStore,
-  data: Omit<LocalAssetCollection, 'id' | 'created_at' | 'updated_at'>,
-): AssetDataStore {
-  const now = new Date().toISOString();
-  const col: LocalAssetCollection = { ...data, id: generateId('col'), created_at: now, updated_at: now };
-  return { ...store, collections: [col, ...store.collections] };
 }
 
 // ── Display helpers ───────────────────────────────────────────────────────
