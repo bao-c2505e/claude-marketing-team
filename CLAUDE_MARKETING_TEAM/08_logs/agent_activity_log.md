@@ -6,13 +6,14 @@ Nhật ký ghi lại các hành động mô phỏng của các AI Agent khi vậ
 
 ## 🗓️ Nhật Ký Hoạt Động (Simulated Activity Logs)
 
-### 🗓️ Ngày 12/06/2026 — V2-A — Manual Browser E2E Checklist + Demo Script ✅ DONE
-- **[PC1 Claude Code Builder]:** Authored `CLAUDE_MARKETING_TEAM/V2A_MANUAL_BROWSER_E2E_AND_DEMO_SCRIPT.md` — the V2-A work package deliverable (documentation only, zero product/code change).
+### 🗓️ Ngày 12/06/2026 — V2-A — Manual Browser E2E + Demo Script 🟡 CHECKLIST READY / E2E PENDING
+- **[PC1 Claude Code Builder]:** Authored `CLAUDE_MARKETING_TEAM/V2A_MANUAL_BROWSER_E2E_AND_DEMO_SCRIPT.md` — the V2-A deliverable docs (documentation only, zero product/code change). **V2-A itself is NOT done:** the manual browser pass has not been executed yet.
 - **[PC1]:** §1 — 28-item manual browser E2E checklist (A1–A28) covering every sidebar tab plus app load/branding, Demo Sign In, Owner/Client view toggle, and a cross-cutting console/network sweep; each item specifies what to click, expected result, blocker definition, visual QA notes, and safety notes. Checklist written against the real UI in `src/App.tsx` (24 tab ids, owner-only gating for `new-campaign`/`team-board`/`manual-export`/`client-demo`/`automation-logs`, header badges, data-mode badge, LoginScreen demo credentials).
 - **[PC1]:** §2 — 5–10 minute demo script with speaker lines and timing: opening pitch, problem, solution, owner workspace tour, brand/campaign flow, AI team output, approval safety (locked checklist items), client presentation/export (live Client View switch + pack copy), why no auto-posting/ads yet (Connector Registry registered-but-disabled, gate-by-gate activation story), closing CTA (2-week pilot).
 - **[PC1]:** §3 — UI QA report template (blockers / visual polish / wording / responsive / deferred + verdict); §4 — sign-off flow (tester → PC1 fixes → Codex → Owner accept → unlocks V2-D and roadmap-V2-B).
 - **[PC1]:** Docs-only diff — no repository/Supabase/auth/UUID-gating/tenant-scope/sanitizer/RLS/connector/test changes; no live automation/real ads/posting/messaging/secrets.
 - **[PC1]:** `npm run build` PASS (0 TS errors); `npm run test` 45/45 PASS.
+- **[Codex Reviewer → PC1, required fix applied]:** Status corrected from DONE to **CHECKLIST READY / E2E PENDING** across CURRENT_PHASE.md / SESSION_SUMMARY.md / both logs / the V2-A doc itself. Per the Ver2 roadmap, V2-A is DONE only after all four closure conditions: (1) checklist executed by Owner or browser automation, (2) results recorded in a §3 QA report, (3) demo script verified in a real run-through, (4) Owner approval recorded.
 
 ---
 

@@ -22,7 +22,14 @@ Chúng ta đang xây dựng **The Core Agency — Real Operations MVP**. Đây l
 
 ---
 
-## 🏁 V2-A — Manual Browser E2E Checklist + Demo Script — DONE (2026-06-12)
+## 🟡 V2-A — Manual Browser E2E + Demo Script — CHECKLIST READY / E2E PENDING (2026-06-12)
+
+> **Status (Codex required fix):** V2-A **CHƯA DONE** — mới sẵn sàng phần
+> checklist/demo-script docs. Manual browser E2E pass CHƯA được thực thi.
+> V2-A chỉ được đánh DONE khi đủ cả 4 điều kiện: (1) Owner hoặc browser
+> automation thực thi checklist §1; (2) kết quả được ghi lại (§3 QA
+> report); (3) demo script §2 được verify bằng một lần chạy thật;
+> (4) Owner approval được ghi nhận.
 
 **Documentation only — KHÔNG đổi product code/behavior/repository/Supabase/
 auth/UUID gating/tenant scope/sanitizers/RLS/connectors/tests. Không live
@@ -49,7 +56,9 @@ automation/real ads/posting/messaging/secrets.**
   - **§4 — Sign-off flow:** tester → PC1 fix → Codex → Owner accept →
     unlocks V2-D + roadmap-V2-B.
 - **Build:** PASS — 0 TS errors. **Tests:** 45/45 PASS (docs-only diff).
-- **Next:** Owner/tester chạy browser pass thật theo §1 và nộp QA report.
+- **Next (đủ cả 4 mới đóng V2-A):** (1) thực thi browser pass §1 →
+  (2) ghi QA report §3 → (3) verify demo script §2 chạy thật →
+  (4) Owner approval ghi nhận → V2-A DONE, mở khóa V2-D + roadmap-V2-B.
 
 ---
 

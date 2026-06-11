@@ -2,7 +2,7 @@
 
 **Workstream:** Post-MVP / Ver2 — work package **V2-A** (Manual Browser E2E Pass + Demo Script Verification)
 **Date:** 2026-06-12
-**Status:** Checklist + demo script DELIVERED (this doc). The browser pass itself is executed manually by the Owner/tester using this checklist.
+**Status:** 🟡 **CHECKLIST READY / E2E PENDING** — checklist + demo script are delivered (this doc), but the manual browser pass has NOT been executed yet. **V2-A may be marked DONE only after all four closure conditions are met:** (1) Owner or browser automation executes the §1 checklist, (2) results are recorded in a §3 QA report, (3) the §2 demo script is verified in a real run-through, (4) Owner approval is recorded.
 **Product baseline:** Core MVP closed at 18/18 phases (`fd86ead`), UI polish through commit `bb8cb9e`. Build PASS, tests 45/45.
 
 > **Scope guard:** This package is documentation only. No product features, no logic changes, no repository/Supabase/auth/UUID-gating/tenant-scope/sanitizer/RLS/connector/test changes, no live automation, no real ads/posting/messaging, no secrets.

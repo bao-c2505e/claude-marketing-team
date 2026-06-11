@@ -1,16 +1,18 @@
-# CURRENT PHASE — 🏁 CORE MVP CLOSED — 18/18 PHASES COMPLETE (2026-06-11) | Ver2: V2-A Manual Browser E2E Checklist + Demo Script ✅ DONE (2026-06-12) | Ver2: V2-B UI Polish (Owner-directed) ✅ DONE (2026-06-11) | Ver2 roadmap ✅ DONE (2026-06-11) | Phase 18 ✅ CLOSED (Codex PASS — 2026-06-11) | Phase 17 ✅ CLOSED (Codex PASS — 2026-06-11) | Phase 16D ✅ CLOSED (Codex PASS — 2026-06-11) | Phase 16C-2 ✅ CLOSED (Codex PASS — 2026-06-11) | Phase 16C-1 ✅ CLOSED (Codex PASS — 2026-06-11) | Phase 16B-2 ✅ CLOSED (Codex PASS — 2026-06-10) | Phase 16B-1 ✅ CLOSED (Codex PASS — 2026-06-10) | Phase 16A ✅ CLOSED (Codex PASS — 2026-06-09)
+# CURRENT PHASE — 🏁 CORE MVP CLOSED — 18/18 PHASES COMPLETE (2026-06-11) | Ver2: V2-A Manual Browser E2E + Demo Script 🟡 CHECKLIST READY / E2E PENDING (2026-06-12) | Ver2: V2-B UI Polish (Owner-directed) ✅ DONE (2026-06-11) | Ver2 roadmap ✅ DONE (2026-06-11) | Phase 18 ✅ CLOSED (Codex PASS — 2026-06-11) | Phase 17 ✅ CLOSED (Codex PASS — 2026-06-11) | Phase 16D ✅ CLOSED (Codex PASS — 2026-06-11) | Phase 16C-2 ✅ CLOSED (Codex PASS — 2026-06-11) | Phase 16C-1 ✅ CLOSED (Codex PASS — 2026-06-11) | Phase 16B-2 ✅ CLOSED (Codex PASS — 2026-06-10) | Phase 16B-1 ✅ CLOSED (Codex PASS — 2026-06-10) | Phase 16A ✅ CLOSED (Codex PASS — 2026-06-09)
 
 ## 📌 Thông tin chung
 - **Core MVP:** 🏁 **CLOSED — 18/18 phases complete** (2026-06-11, closure commit `e3f1ed7`; see `CORE_MVP_CLOSURE_REPORT.md`). Phase 18 was the final Core MVP phase. **No further MVP phases exist or will be added.**
 - **Workstream hiện tại:** **Post-MVP / Ver2 Planning** — roadmap ✅ DONE (2026-06-11). **Documentation/planning only** — no product code, no connectors, no secrets, no live automation. Deliverable: `CLAUDE_MARKETING_TEAM/PHASE_19_VER2_ROADMAP.md` (filename keeps its historical prefix; content is the **Ver2 roadmap**, NOT an MVP Phase 19) — Ver2 scope options + priority order + breakdown into work packages **V2-A … V2-F**, each with goal / deliverables / files / safety rules / checks / Codex review focus / Owner approval checkpoint. Build PASS (0 TS errors, 1575 modules), `npm run test` 45/45 PASS.
-- **Mới hoàn tất:** **V2-A — Manual Browser E2E Checklist + Demo Script** ✅ DONE (2026-06-12) — documentation only, xem section bên dưới. Trước đó: **V2-B (Owner-directed) — Premium Dark SaaS UI Polish** ✅ DONE (2026-06-11). *(Naming note: Owner gọi task UI polish là V2-B; trong roadmap, UI polish vốn là V2-E còn roadmap-V2-B là Supabase staging.)*
-- **Tiếp theo:** **Owner/tester thực thi browser pass** theo `V2A_MANUAL_BROWSER_E2E_AND_DEMO_SCRIPT.md` §1 và nộp QA report (§3 template). Sau khi verdict PASS → mở khóa V2-D (client demo package) và V2-B roadmap (Supabase staging — cần Owner approval trước khi bắt đầu).
+- **Workstream đang mở:** **V2-A — Manual Browser E2E + Demo Script** 🟡 **CHECKLIST READY / E2E PENDING** (2026-06-12) — checklist + demo script đã sẵn sàng (docs only, xem section bên dưới); **manual browser E2E pass CHƯA được thực thi — V2-A CHƯA DONE.** Trước đó: **V2-B (Owner-directed) — Premium Dark SaaS UI Polish** ✅ DONE (2026-06-11). *(Naming note: Owner gọi task UI polish là V2-B; trong roadmap, UI polish vốn là V2-E còn roadmap-V2-B là Supabase staging.)*
+- **Điều kiện đóng V2-A (cả 4 bắt buộc):** (1) Owner hoặc browser automation thực thi checklist §1; (2) kết quả được ghi lại (§3 QA report → `08_logs/v2a_qa_report_YYYYMMDD.md`); (3) demo script §2 được verify bằng một lần chạy thật; (4) Owner approval được ghi nhận. Sau verdict PASS + Owner approval → mở khóa V2-D (client demo package) và roadmap-V2-B (Supabase staging — cần Owner approval trước khi bắt đầu).
 
 ---
 
-## 🏁 V2-A — Manual Browser E2E Checklist + Demo Script (DONE — 2026-06-12)
+## 🟡 V2-A — Manual Browser E2E + Demo Script (CHECKLIST READY / E2E PENDING — 2026-06-12)
 
-### Scope completed (documentation only — zero product/code change):
+> **Status (Codex required fix applied):** V2-A is **NOT DONE**. Only the checklist/demo-script **deliverable docs** are ready. Per the Ver2 roadmap, V2-A closes only when: (1) the checklist is executed (Owner or browser automation), (2) results are recorded in a QA report, (3) the demo script is verified in a real run-through, (4) Owner approval is recorded. None of these four have happened yet.
+
+### Deliverables ready (documentation only — zero product/code change):
 - **New doc `CLAUDE_MARKETING_TEAM/V2A_MANUAL_BROWSER_E2E_AND_DEMO_SCRIPT.md`** gồm 4 phần:
   - **§1 Manual Browser E2E checklist — 28 items (A1–A28)** phủ toàn bộ flows: app load/title/favicon/branding, login/auth (Demo Sign In), header/Owner View, Client View toggle (owner-only tabs ẩn + redirect về Dashboard), Dashboard, Clients, Brands, Campaigns, Brief Intake, Content Generation, Content Calendar (verify overflow fix `bb8cb9e`), Approvals, Reports, Export Pack, Connector Registry, Automation Logs (owner/manager only), Client Portal, Asset Library (immutable scope fields khi edit), Brand Workspace, New Campaign Brief, AI Team Board, Campaign Outputs, Approval Checklist (3 fixed safety items locked), Client Presentation Pack, Client Workspace View, Manual Export Pack, Presentation & Export, cross-cutting console/network sweep. Mỗi item: what to click / expected result / blocker definition / visual QA notes / safety notes.
   - **§2 Demo script 5–10 phút** (10 beats có timing + lời thoại): opening pitch → problem → solution → owner workspace → brand/campaign flow → AI team output → approval safety (locked checklist) → client presentation/export (Client View switch + copy pack live) → why no auto-posting/ads yet (Connector Registry: registered-but-disabled, gate-by-gate) → closing CTA (2-week pilot).
@@ -29,8 +31,11 @@
 | `CLAUDE_MARKETING_TEAM/V2A_MANUAL_BROWSER_E2E_AND_DEMO_SCRIPT.md` | NEW — E2E checklist (28 items) + demo script + QA report template + sign-off |
 | `CLAUDE_MARKETING_TEAM/CURRENT_PHASE.md` / `SESSION_SUMMARY.md` / `08_logs/phase_log.md` / `08_logs/agent_activity_log.md` | V2-A documentation |
 
-### Next:
-- Owner/tester chạy browser pass thật theo §1, nộp QA report theo §3 → blockers (nếu có) fix theo từng diff riêng → verdict PASS mở khóa V2-D và roadmap-V2-B.
+### Next (V2-A closure conditions — all 4 required before marking DONE):
+1. Owner hoặc browser automation thực thi browser pass theo §1.
+2. Kết quả ghi vào QA report theo §3 (`08_logs/v2a_qa_report_YYYYMMDD.md`); blockers (nếu có) fix theo từng diff riêng.
+3. Demo script §2 được verify bằng một lần chạy thật.
+4. Owner approval được ghi nhận → V2-A DONE → mở khóa V2-D và roadmap-V2-B.
 
 ---
 
