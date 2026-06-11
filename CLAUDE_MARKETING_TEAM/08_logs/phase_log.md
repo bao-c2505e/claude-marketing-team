@@ -6,12 +6,12 @@ Nhật ký theo dõi các mốc hoàn thành kỹ thuật qua các Phase.
 
 ## 📅 Nhật Ký Sự Kiện (Event Logs)
 
-### 🗓️ Ngày 12/06/2026 — V2-C (Owner naming) — Client Demo Package ✅ DONE
+### 🗓️ Ngày 12/06/2026 — V2-C (Owner naming) — Client Demo Package 🟡 PACKAGE READY / REHEARSAL & OWNER APPROVAL PENDING
 *(Naming note: trong `PHASE_19_VER2_ROADMAP.md`, client demo package vốn là V2-D còn roadmap-V2-C là PC2 n8n dry-run — entry này theo naming của Owner, giống tiền lệ V2-B.)*
-- **Sự kiện:** Hoàn tất **Client Demo Package** cho The Core Agency Core MVP. **Documentation/demo-material only — KHÔNG đổi product code/UI/runtime/repository/Supabase/auth/UUID gating/tenant scope/sanitizers/RLS/connectors/tests; không live automation/real ads/posting/messaging/secrets.**
+- **Sự kiện:** Hoàn tất **phần materials** của Client Demo Package cho The Core Agency Core MVP. **V2-C CHƯA DONE/DELIVERED** — package đã sẵn sàng nhưng client-facing use chưa được approve. **Documentation/demo-material only — KHÔNG đổi product code/UI/runtime/repository/Supabase/auth/UUID gating/tenant scope/sanitizers/RLS/connectors/tests; không live automation/real ads/posting/messaging/secrets.**
 - **Deliverable:** `CLAUDE_MARKETING_TEAM/V2C_CLIENT_DEMO_PACKAGE.md` — 14 sections: §1 pre-demo checklist (P1–P10 + "never debug live"); §2 demo data/brand order (Cơm Tấm Bản Khói primary → Forme → Vị Cuốn; demo 1 brand sâu; không nhập real data của prospect); §3 script 5 phút (6 beats); §4 script 10 phút (10 beats, ~9:15, mở rộng từ V2-A §2); §5 screen-by-screen flow (17 steps, mỗi step có one-liner + "don't"); §6 positioning talking points; §7 giải thích sandbox/local data quanh badge "Local Data Only"; §8 bảng 5 safety boundaries (no auto-posting / no real ads / no real messaging / no live connectors / approval before external use); §9 FAQ 10 câu (trung thực về demo generation = simulation); §10 risks/limitations disclose honestly (9 items); §11 post-demo follow-up F1–F8; §12 next-step offer (2-week 1-brand pilot + 3 fallbacks); §13 one-page sales summary; §14 sign-off (Codex review accuracy → Owner rehearse + approve).
 - **Build:** PASS — 0 TS errors. `npm run test`: 45/45 PASS.
-- **Trạng thái:** ✅ DONE. Next: Owner rehearse + approve cho client use.
+- **Trạng thái:** 🟡 **PACKAGE READY / REHEARSAL & OWNER APPROVAL PENDING** (Codex required fix: không đánh DONE/DELIVERED khi chưa rehearse + approve). V2-C chỉ DONE/DELIVERED khi đủ cả 4: (1) Owner rehearse script §3/§4 trên live demo, (2) rehearsal notes/results ghi lại, (3) Owner approve cho controlled client/internal use, (4) approval được log. Trước đó KHÔNG dùng package trước mặt client.
 
 ---
 

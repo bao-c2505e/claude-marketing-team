@@ -1,19 +1,21 @@
-# CURRENT PHASE — 🏁 CORE MVP CLOSED — 18/18 PHASES COMPLETE (2026-06-11) | Ver2: V2-C Client Demo Package ✅ DONE (2026-06-12) | Ver2: V2-A Manual Browser E2E + Demo Script ✅ DONE / PASS (Owner-executed — 2026-06-12) | Ver2: V2-B UI Polish (Owner-directed) ✅ DONE (2026-06-11) | Ver2 roadmap ✅ DONE (2026-06-11) | Phase 18 ✅ CLOSED (Codex PASS — 2026-06-11) | Phase 17 ✅ CLOSED (Codex PASS — 2026-06-11) | Phase 16D ✅ CLOSED (Codex PASS — 2026-06-11) | Phase 16C-2 ✅ CLOSED (Codex PASS — 2026-06-11) | Phase 16C-1 ✅ CLOSED (Codex PASS — 2026-06-11) | Phase 16B-2 ✅ CLOSED (Codex PASS — 2026-06-10) | Phase 16B-1 ✅ CLOSED (Codex PASS — 2026-06-10) | Phase 16A ✅ CLOSED (Codex PASS — 2026-06-09)
+# CURRENT PHASE — 🏁 CORE MVP CLOSED — 18/18 PHASES COMPLETE (2026-06-11) | Ver2: V2-C Client Demo Package 🟡 PACKAGE READY / REHEARSAL & OWNER APPROVAL PENDING (2026-06-12) | Ver2: V2-A Manual Browser E2E + Demo Script ✅ DONE / PASS (Owner-executed — 2026-06-12) | Ver2: V2-B UI Polish (Owner-directed) ✅ DONE (2026-06-11) | Ver2 roadmap ✅ DONE (2026-06-11) | Phase 18 ✅ CLOSED (Codex PASS — 2026-06-11) | Phase 17 ✅ CLOSED (Codex PASS — 2026-06-11) | Phase 16D ✅ CLOSED (Codex PASS — 2026-06-11) | Phase 16C-2 ✅ CLOSED (Codex PASS — 2026-06-11) | Phase 16C-1 ✅ CLOSED (Codex PASS — 2026-06-11) | Phase 16B-2 ✅ CLOSED (Codex PASS — 2026-06-10) | Phase 16B-1 ✅ CLOSED (Codex PASS — 2026-06-10) | Phase 16A ✅ CLOSED (Codex PASS — 2026-06-09)
 
 ## 📌 Thông tin chung
 - **Core MVP:** 🏁 **CLOSED — 18/18 phases complete** (2026-06-11, closure commit `e3f1ed7`; see `CORE_MVP_CLOSURE_REPORT.md`). Phase 18 was the final Core MVP phase. **No further MVP phases exist or will be added.**
 - **Workstream hiện tại:** **Post-MVP / Ver2 Planning** — roadmap ✅ DONE (2026-06-11). **Documentation/planning only** — no product code, no connectors, no secrets, no live automation. Deliverable: `CLAUDE_MARKETING_TEAM/PHASE_19_VER2_ROADMAP.md` (filename keeps its historical prefix; content is the **Ver2 roadmap**, NOT an MVP Phase 19) — Ver2 scope options + priority order + breakdown into work packages **V2-A … V2-F**, each with goal / deliverables / files / safety rules / checks / Codex review focus / Owner approval checkpoint. Build PASS (0 TS errors, 1575 modules), `npm run test` 45/45 PASS.
 - **Mới hoàn tất:** **V2-A — Manual Browser E2E + Demo Script** ✅ **DONE / PASS** (2026-06-12) — **Owner đã thực thi manual browser pass, kết quả PASS, không có blocking UI issue.** Cả 4 điều kiện đóng đã đạt: (1) checklist §1 executed by Owner ✅; (2) kết quả ghi tại `08_logs/v2a_qa_report_20260612.md` ✅; (3) demo script §2 verified trong run-through của Owner ✅; (4) Owner approval ghi nhận (DONE / PASS) ✅. Trước đó: **V2-B (Owner-directed) — Premium Dark SaaS UI Polish** ✅ DONE (2026-06-11). *(Naming note: Owner gọi task UI polish là V2-B; trong roadmap, UI polish vốn là V2-E còn roadmap-V2-B là Supabase staging.)*
-- **Mới nhất:** **V2-C (Owner naming) — Client Demo Package** ✅ DONE (2026-06-12) — docs/demo-material only, xem section bên dưới. *(Naming note: trong roadmap, client demo package vốn là V2-D còn roadmap-V2-C là PC2 n8n dry-run — section này theo naming của Owner, giống tiền lệ V2-B.)*
-- **Tiếp theo:** Owner rehearse demo theo `V2C_CLIENT_DEMO_PACKAGE.md` §3/§4 + approve package cho client use. Các work package còn mở: **roadmap-V2-B (Supabase staging — cần Owner approval riêng TRƯỚC khi bắt đầu)**, V2-E (UI polish/code-splitting), roadmap-V2-C n8n dry-run + V2-F connector plan (Owner-gated). Chờ Owner chọn.
+- **Workstream đang mở:** **V2-C (Owner naming) — Client Demo Package** 🟡 **PACKAGE READY / REHEARSAL & OWNER APPROVAL PENDING** (2026-06-12) — package materials đã sẵn sàng (docs only, xem section bên dưới); **client-facing use CHƯA được approve — V2-C CHƯA DONE/DELIVERED.** *(Naming note: trong roadmap, client demo package vốn là V2-D còn roadmap-V2-C là PC2 n8n dry-run — section này theo naming của Owner, giống tiền lệ V2-B.)*
+- **Điều kiện đóng V2-C (cả 4 bắt buộc):** (1) Owner rehearse script §3 (5-min) và/hoặc §4 (10-min) trên live demo; (2) rehearsal notes/results được ghi lại; (3) Owner approve package cho controlled client/internal use; (4) approval được log (CURRENT_PHASE.md + phase_log.md). Các work package còn mở khác: **roadmap-V2-B (Supabase staging — cần Owner approval riêng TRƯỚC khi bắt đầu)**, V2-E (UI polish/code-splitting), roadmap-V2-C n8n dry-run + V2-F connector plan (Owner-gated).
 
 ---
 
-## 🏁 V2-C (Owner naming) — Client Demo Package (DONE — 2026-06-12)
+## 🟡 V2-C (Owner naming) — Client Demo Package (PACKAGE READY / REHEARSAL & OWNER APPROVAL PENDING — 2026-06-12)
 
 > **Naming note:** Owner gọi package này là **V2-C — Client Demo Package**. Trong `PHASE_19_VER2_ROADMAP.md`, client demo package được liệt kê là **V2-D** (roadmap-V2-C = PC2 n8n dry-run, CHƯA bắt đầu, Owner-gated). Section này theo naming của Owner — giống tiền lệ V2-B UI polish.
 
-### Scope completed (documentation/demo-material only — zero product/code/UI/runtime change):
+> **Status (Codex required fix applied):** V2-C is **NOT DONE/DELIVERED**. Only the package **materials** are ready — **client-facing use is not approved yet**. V2-C closes only when: (1) Owner rehearses the §3/§4 script against the live demo, (2) rehearsal notes/results are recorded, (3) Owner approves the package for controlled client/internal use, (4) the approval is logged. None of these four have happened yet. **Until then the package must not be used in front of a client.**
+
+### Deliverables ready (documentation/demo-material only — zero product/code/UI/runtime change):
 - **New doc `CLAUDE_MARKETING_TEAM/V2C_CLIENT_DEMO_PACKAGE.md`** — gói demo client/internal hoàn chỉnh, 14 sections:
   - **§1 Pre-demo checklist** (10 items P1–P10: Vercel load, Demo Sign In, badges, seed data, route dry-run, presentation hygiene, screenshot backup) + quy tắc "never debug live".
   - **§2 Recommended demo data/brand order:** Cơm Tấm Bản Khói (primary — brief đầy đủ, status ready_for_generation) → Forme (premium/non-F&B proof) → Vị Cuốn (process example, brief draft); rules: demo 1 brand sâu, match industry của prospect, KHÔNG nhập real brand data của prospect vào live demo.
@@ -41,8 +43,12 @@
 | `CLAUDE_MARKETING_TEAM/V2C_CLIENT_DEMO_PACKAGE.md` | NEW — client demo package (scripts, flow, checklists, positioning, FAQ, sales summary) |
 | `CLAUDE_MARKETING_TEAM/CURRENT_PHASE.md` / `SESSION_SUMMARY.md` / `08_logs/phase_log.md` / `08_logs/agent_activity_log.md` | V2-C documentation |
 
-### Next:
-- Owner rehearse §3/§4 against live demo, chỉnh wording offer (F4/§12), approve package cho client use. Codex review accuracy của §7–§10 claims.
+### Next (V2-C closure conditions — all 4 required before marking DONE / DELIVERED):
+1. Owner rehearse script §3 (5-min) và/hoặc §4 (10-min) trên live demo (chỉnh wording offer F4/§12 nếu cần).
+2. Rehearsal notes/results được ghi lại (timing fit, lines landed/flopped, screens cần chỉnh).
+3. Owner approve package cho controlled client/internal use.
+4. Approval được log vào CURRENT_PHASE.md + phase_log.md → V2-C DONE / DELIVERED.
+- Song song: Codex review accuracy của §7–§10 claims.
 
 ---
 

@@ -6,13 +6,14 @@ Nhật ký ghi lại các hành động mô phỏng của các AI Agent khi vậ
 
 ## 🗓️ Nhật Ký Hoạt Động (Simulated Activity Logs)
 
-### 🗓️ Ngày 12/06/2026 — V2-C (Owner naming) — Client Demo Package ✅ DONE
+### 🗓️ Ngày 12/06/2026 — V2-C (Owner naming) — Client Demo Package 🟡 PACKAGE READY / REHEARSAL & OWNER APPROVAL PENDING
 *(Naming note: Owner labels this package "V2-C — Client Demo Package"; in the roadmap the demo package was V2-D and roadmap-V2-C is the PC2 n8n dry-run. This entry follows the Owner's naming, per the V2-B precedent.)*
 - **[PC1 Claude Code Builder]:** Authored `CLAUDE_MARKETING_TEAM/V2C_CLIENT_DEMO_PACKAGE.md` — complete client/internal demo package (documentation/demo material only, zero product/code/UI/runtime change).
 - **[PC1]:** Package contents: pre-demo checklist (10 items + screenshot-backup fallback rule), recommended demo brand order grounded in the actual seed data (Cơm Tấm Bản Khói → Forme → Vị Cuốn, with do/don't rules), 5-minute and 10-minute demo scripts with timing + speaker lines, 17-step screen-by-screen presenter cheat sheet, positioning talking points, sandbox/local-data explanation script around the "Local Data Only" badge, 5-boundary safety table (no auto-posting / no real ads / no real messaging / no live connectors / approval before external use), 10-question FAQ (honest about simulated demo generation), 9 honestly-disclosed risks/limitations, 24h post-demo follow-up checklist, next-step offer (2-week 1-brand pilot + fallback ladder), and a one-page sales summary (Problem / Solution / What / Why-safer / Who / Status / Roadmap).
 - **[PC1]:** Docs-only diff — no repository/Supabase/auth/UUID-gating/tenant-scope/sanitizer/RLS/connector/test changes; package explicitly trains the presenter to state the safety boundaries and limitations truthfully.
 - **[PC1]:** `npm run build` PASS (0 TS errors); `npm run test` 45/45 PASS — unchanged green.
 - **[PC1]:** Handoff: Codex to review §7–§10 claims for accuracy vs product reality; Owner to rehearse §3/§4 against the live demo and approve for client use.
+- **[Codex Reviewer → PC1, required fix applied]:** Status corrected from DONE/DELIVERED to **PACKAGE READY / REHEARSAL & OWNER APPROVAL PENDING** across the V2-C doc / CURRENT_PHASE.md / SESSION_SUMMARY.md / both logs. Per the roadmap, V2-C closes only after all four conditions: (1) Owner rehearses the §3 (5-min) and/or §4 (10-min) script, (2) rehearsal notes/results are recorded, (3) Owner approves the package for controlled client/internal use, (4) the approval is logged. The package's §14 sign-off now tracks these four conditions explicitly, and the doc states it must not be used in front of a client until they are met.
 
 ---
 
