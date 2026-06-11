@@ -6,6 +6,16 @@ Nhật ký ghi lại các hành động mô phỏng của các AI Agent khi vậ
 
 ## 🗓️ Nhật Ký Hoạt Động (Simulated Activity Logs)
 
+### 🗓️ Ngày 11/06/2026 — V2-B (Owner-directed) — Premium Dark SaaS UI Polish ✅ DONE
+*(Naming note: Owner labels this task "V2-B — Premium Dark SaaS UI Polish"; in `PHASE_19_VER2_ROADMAP.md` the UI-polish package was listed as V2-E. This entry follows the Owner's naming.)*
+- **[PC1 Claude Code Builder]:** Implemented The Core Agency premium dark SaaS theme. Rewrote `src/index.css` token layer (deep navy/black backgrounds, glass surfaces, Brand Orange #F47A1F accent, semantic colors, Inter typography) keeping legacy CSS var names as aliases so all existing inline styles inherit the new theme with zero logic changes.
+- **[PC1]:** Swept hardcoded indigo color literals to orange across 19 src files (`#818cf8`→`#fb923c`, `rgba(99,102,241,*)`→`rgba(244,122,31,*)`, `rgba(129,140,248,*)`→`rgba(251,146,60,*)`); left category/data-viz colors (violet hashtags/Instagram, info blues, emerald, amber) untouched.
+- **[PC1]:** Polished shared components: primary button orange gradient + hover/active/disabled/focus-visible states, form focus ring with orange glow, glass cards (18px radius, blur, hover glow), tabs/scrollbar/selection in brand orange, new `.spinner`/`.skeleton` loading utilities. Header title gradient white→soft orange; auth loading screen now uses branded spinner; LoginScreen upgraded (glass card, top orange glow, solid orange submit button); `badge-indigo` class renamed `badge-brand`.
+- **[PC1]:** Strictly presentation-only diff — no repository/Supabase/RLS/UUID-gating/auth/test changes; Phase 16D/17/18 safeguards untouched. Visible UI naming verified clean ("The Core Agency"; no "FnB OS V1"/"CLAUDE_MARKETING_TEAM" in UI).
+- **[PC1]:** `npm run build` PASS (0 TS errors, 1575 modules); `npm run test` 45/45 PASS.
+
+---
+
 ### 🗓️ Ngày 11/06/2026 — Naming cleanup: "Phase 19" → Post-MVP / Ver2 Planning workstream
 - **[PC1 Claude Code Builder]:** Reframed the "Phase 19" work as the **Post-MVP / Ver2 Planning workstream** per Owner clarification: Core MVP = 18/18 phases, CLOSED; Phase 18 was the final MVP phase; no MVP phases are being added. Work packages "19A–19F" renamed **V2-A…V2-F**.
 - **[PC1]:** Updated `PHASE_19_VER2_ROADMAP.md` (naming clarification block + V2-A…V2-F throughout; filename kept to preserve links), `CURRENT_PHASE.md` (header now "CORE MVP CLOSED — 18/18 PHASES COMPLETE | Next workstream: Post-MVP / Ver2 Planning"), `SESSION_SUMMARY.md`, both logs.

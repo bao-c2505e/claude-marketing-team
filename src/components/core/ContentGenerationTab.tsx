@@ -149,7 +149,7 @@ export default function ContentGenerationTab({
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                <Wand2 size={16} style={{ color: '#818cf8' }} />
+                <Wand2 size={16} style={{ color: '#fb923c' }} />
                 <h2 style={{ fontSize: '1.1rem', fontWeight: 700 }}>
                   {brief?.brief_title || 'Content Plan'}
                 </h2>
@@ -210,14 +210,14 @@ export default function ContentGenerationTab({
                     onClick={() => setExpandedItemId(isExpanded ? null : item.id)}
                     style={{
                       display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 14px',
-                      cursor: 'pointer', background: isExpanded ? 'rgba(99,102,241,0.05)' : 'transparent',
+                      cursor: 'pointer', background: isExpanded ? 'rgba(244, 122, 31,0.05)' : 'transparent',
                       transition: 'background 0.15s',
                     }}
                   >
                     {/* Day badge */}
                     <span style={{
                       fontSize: '0.7rem', fontWeight: 700, minWidth: '40px', textAlign: 'center',
-                      color: '#818cf8', background: 'rgba(99,102,241,0.12)', borderRadius: '5px', padding: '2px 6px',
+                      color: '#fb923c', background: 'rgba(244, 122, 31,0.12)', borderRadius: '5px', padding: '2px 6px',
                     }}>
                       D{item.day_number}
                     </span>
@@ -269,7 +269,7 @@ export default function ContentGenerationTab({
 
                       {/* Hook */}
                       <div>
-                        <p style={{ fontSize: '0.7rem', fontWeight: 700, color: '#818cf8', marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Hook</p>
+                        <p style={{ fontSize: '0.7rem', fontWeight: 700, color: '#fb923c', marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Hook</p>
                         <p style={{ fontSize: '0.88rem', lineHeight: 1.6, background: 'rgba(255,255,255,0.03)', borderRadius: '6px', padding: '8px 12px', border: '1px solid rgba(255,255,255,0.06)' }}>{item.hook}</p>
                       </div>
 
@@ -340,9 +340,9 @@ export default function ContentGenerationTab({
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <Wand2 size={20} style={{ color: '#818cf8' }} />
+          <Wand2 size={20} style={{ color: '#fb923c' }} />
           <h2 style={{ fontSize: '1.3rem', fontWeight: 700 }}>Content Generation</h2>
-          <span style={{ fontSize: '0.72rem', fontWeight: 600, color: '#818cf8', background: 'rgba(99,102,241,0.12)', borderRadius: '5px', padding: '2px 8px' }}>
+          <span style={{ fontSize: '0.72rem', fontWeight: 600, color: '#fb923c', background: 'rgba(244, 122, 31,0.12)', borderRadius: '5px', padding: '2px 8px' }}>
             {generationJobs.length} {generationJobs.length === 1 ? 'job' : 'jobs'}
           </span>
           {!isSupabaseConfigured && (
@@ -364,7 +364,7 @@ export default function ContentGenerationTab({
 
       {/* Generate form */}
       {canGenerate && (
-        <div className="glass-panel" style={{ padding: '20px', border: approvedBriefs.length > 0 ? '1px solid rgba(99,102,241,0.3)' : '1px solid var(--border-color)' }}>
+        <div className="glass-panel" style={{ padding: '20px', border: approvedBriefs.length > 0 ? '1px solid rgba(244, 122, 31,0.3)' : '1px solid var(--border-color)' }}>
           <h3 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: '16px', color: 'var(--accent-indigo)' }}>
             Generate New Content Plan
           </h3>
@@ -421,9 +421,9 @@ export default function ContentGenerationTab({
                       onClick={() => setPlanLength(len)}
                       style={{
                         padding: '7px 20px', borderRadius: '6px', fontSize: '0.85rem', fontWeight: 600,
-                        border: planLength === len ? '1px solid rgba(99,102,241,0.6)' : '1px solid var(--border-color)',
-                        background: planLength === len ? 'rgba(99,102,241,0.15)' : 'rgba(255,255,255,0.02)',
-                        color: planLength === len ? '#818cf8' : 'var(--text-secondary)',
+                        border: planLength === len ? '1px solid rgba(244, 122, 31,0.6)' : '1px solid var(--border-color)',
+                        background: planLength === len ? 'rgba(244, 122, 31,0.15)' : 'rgba(255,255,255,0.02)',
+                        color: planLength === len ? '#fb923c' : 'var(--text-secondary)',
                         cursor: 'pointer', transition: 'all 0.15s',
                       }}
                     >

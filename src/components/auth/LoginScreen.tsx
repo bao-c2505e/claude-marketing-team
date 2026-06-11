@@ -24,13 +24,14 @@ export default function LoginScreen() {
   return (
     <div style={{
       minHeight: '100vh',
-      background: 'var(--bg-primary, #0a0a0f)',
+      background: 'var(--bg-app, #070a0f)',
+      backgroundImage: 'radial-gradient(at 50% 0%, rgba(244, 122, 31, 0.08) 0px, transparent 55%)',
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
       justifyContent: 'center',
       padding: '24px',
-      fontFamily: '"Plus Jakarta Sans", "Outfit", sans-serif',
+      fontFamily: '"Inter", "Plus Jakarta Sans", sans-serif',
     }}>
 
       {/* Logo */}
@@ -38,7 +39,7 @@ export default function LoginScreen() {
         <h1 style={{
           fontSize: '2rem',
           fontWeight: 800,
-          background: 'linear-gradient(135deg, #fff 30%, #a1a1aa)',
+          background: 'linear-gradient(135deg, #fff 40%, #fdba74)',
           WebkitBackgroundClip: 'text',
           WebkitTextFillColor: 'transparent',
           letterSpacing: '-0.02em',
@@ -55,10 +56,13 @@ export default function LoginScreen() {
       <div style={{
         width: '100%',
         maxWidth: '400px',
-        background: 'rgba(255,255,255,0.04)',
+        background: 'rgba(15, 23, 42, 0.62)',
         border: '1px solid rgba(255,255,255,0.08)',
-        borderRadius: '16px',
+        borderRadius: '18px',
         padding: '32px',
+        backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
+        boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37)',
       }}>
 
         {/* Unconfigured banner */}
@@ -118,7 +122,7 @@ export default function LoginScreen() {
                 outline: 'none',
                 transition: 'border-color 0.15s',
               }}
-              onFocus={e => { e.target.style.borderColor = 'rgba(99,102,241,0.6)'; }}
+              onFocus={e => { e.target.style.borderColor = 'rgba(244, 122, 31,0.6)'; }}
               onBlur={e => { e.target.style.borderColor = 'rgba(255,255,255,0.12)'; }}
             />
           </div>
@@ -145,7 +149,7 @@ export default function LoginScreen() {
                 outline: 'none',
                 transition: 'border-color 0.15s',
               }}
-              onFocus={e => { e.target.style.borderColor = 'rgba(99,102,241,0.6)'; }}
+              onFocus={e => { e.target.style.borderColor = 'rgba(244, 122, 31,0.6)'; }}
               onBlur={e => { e.target.style.borderColor = 'rgba(255,255,255,0.12)'; }}
             />
           </div>
@@ -170,10 +174,11 @@ export default function LoginScreen() {
             disabled={submitting || loading}
             style={{
               background: submitting || loading
-                ? 'rgba(99,102,241,0.4)'
-                : 'rgba(99,102,241,0.8)',
+                ? 'rgba(244, 122, 31, 0.4)'
+                : 'linear-gradient(135deg, #f47a1f, #e7680b)',
               border: 'none',
-              borderRadius: '8px',
+              borderRadius: '10px',
+              boxShadow: submitting || loading ? 'none' : '0 4px 14px rgba(244, 122, 31, 0.35)',
               padding: '12px',
               color: '#fff',
               fontSize: '0.9rem',

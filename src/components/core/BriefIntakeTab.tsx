@@ -268,12 +268,12 @@ export default function BriefIntakeTab({ clients, brands, campaigns, briefs, onB
               {brief.status === 'approved_for_generation' && canEdit && onNavigateToGenerate ? (
                 <button
                   onClick={() => onNavigateToGenerate(brief.id)}
-                  style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '5px 14px', borderRadius: '6px', fontSize: '0.82rem', fontWeight: 600, border: '1px solid rgba(99,102,241,0.5)', background: 'rgba(99,102,241,0.15)', color: '#818cf8', cursor: 'pointer' }}
+                  style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '5px 14px', borderRadius: '6px', fontSize: '0.82rem', fontWeight: 600, border: '1px solid rgba(244, 122, 31,0.5)', background: 'rgba(244, 122, 31,0.15)', color: '#fb923c', cursor: 'pointer' }}
                 >
                   <Zap size={13} /> Generate Content
                 </button>
               ) : (
-                <button disabled style={{ opacity: 0.45, cursor: 'not-allowed', display: 'flex', alignItems: 'center', gap: '5px', padding: '5px 14px', borderRadius: '6px', fontSize: '0.82rem', fontWeight: 600, border: '1px solid rgba(99,102,241,0.3)', background: 'rgba(99,102,241,0.08)', color: '#818cf8' }}>
+                <button disabled style={{ opacity: 0.45, cursor: 'not-allowed', display: 'flex', alignItems: 'center', gap: '5px', padding: '5px 14px', borderRadius: '6px', fontSize: '0.82rem', fontWeight: 600, border: '1px solid rgba(244, 122, 31,0.3)', background: 'rgba(244, 122, 31,0.08)', color: '#fb923c' }}>
                   <Zap size={13} /> Generate Content
                 </button>
               )}
@@ -449,7 +449,7 @@ export default function BriefIntakeTab({ clients, brands, campaigns, briefs, onB
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <ClipboardList size={20} style={{ color: 'var(--accent-indigo)' }} />
           <h2 style={{ fontSize: '1.3rem', fontWeight: 700 }}>Brief Intake</h2>
-          <span style={{ fontSize: '0.72rem', fontWeight: 600, color: '#818cf8', background: 'rgba(99,102,241,0.12)', borderRadius: '5px', padding: '2px 8px' }}>
+          <span style={{ fontSize: '0.72rem', fontWeight: 600, color: '#fb923c', background: 'rgba(244, 122, 31,0.12)', borderRadius: '5px', padding: '2px 8px' }}>
             {filteredBriefs.length}
           </span>
           {!isSupabaseConfigured && (
@@ -514,7 +514,7 @@ export default function BriefIntakeTab({ clients, brands, campaigns, briefs, onB
                   {b.channels && b.channels.length > 0 && (
                     <div style={{ display: 'flex', gap: '5px', marginTop: '6px', flexWrap: 'wrap' }}>
                       {b.channels.map(ch => (
-                        <span key={ch} style={{ fontSize: '0.68rem', color: '#818cf8', background: 'rgba(99,102,241,0.1)', borderRadius: '4px', padding: '1px 6px' }}>{ch}</span>
+                        <span key={ch} style={{ fontSize: '0.68rem', color: '#fb923c', background: 'rgba(244, 122, 31,0.1)', borderRadius: '4px', padding: '1px 6px' }}>{ch}</span>
                       ))}
                     </div>
                   )}
@@ -542,13 +542,13 @@ export default function BriefIntakeTab({ clients, brands, campaigns, briefs, onB
         const campaignsWithoutBrief = campaigns.filter(c => !briefForCampaign(c.id));
         if (campaignsWithoutBrief.length === 0) return null;
         return (
-          <div className="glass-panel" style={{ padding: '16px 20px', borderLeft: '3px solid rgba(99,102,241,0.4)' }}>
+          <div className="glass-panel" style={{ padding: '16px 20px', borderLeft: '3px solid rgba(244, 122, 31,0.4)' }}>
             <p style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--accent-indigo)', marginBottom: '10px' }}>
               Campaigns without a brief ({campaignsWithoutBrief.length})
             </p>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
               {campaignsWithoutBrief.map(c => (
-                <button key={c.id} className="btn btn-secondary" style={{ fontSize: '0.78rem', padding: '4px 10px', color: '#818cf8' }}
+                <button key={c.id} className="btn btn-secondary" style={{ fontSize: '0.78rem', padding: '4px 10px', color: '#fb923c' }}
                   onClick={() => openCreate(c.id)}>
                   + Brief for {c.name}
                 </button>

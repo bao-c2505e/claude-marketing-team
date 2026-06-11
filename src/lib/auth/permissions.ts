@@ -122,7 +122,7 @@ export const ROLE_LABELS: Record<RoleName, string> = {
 };
 
 export const ROLE_COLORS: Record<RoleName, string> = {
-  owner:   '#818cf8',   // indigo
+  owner:   '#fb923c',   // indigo
   manager: '#34d399',   // emerald
   client:  '#f59e0b',   // amber
   viewer:  '#94a3b8',   // slate

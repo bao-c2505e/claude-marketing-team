@@ -58,7 +58,7 @@ export const LOG_STATUS_LABEL: Record<AutomationLogStatus, string> = {
 
 export const LOG_STATUS_COLOR: Record<AutomationLogStatus, string> = {
   recorded: '#60a5fa',
-  reviewed: '#818cf8',
+  reviewed: '#fb923c',
   ignored:  '#71717a',
   resolved: '#34d399',
   failed:   '#f87171',

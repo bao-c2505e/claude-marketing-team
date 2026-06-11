@@ -984,8 +984,9 @@ export default function App() {
   // Auth gate — must be after all hooks
   if (authLoading) {
     return (
-      <div style={{ minHeight: '100vh', background: '#0a0a0f', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ color: '#52525b', fontSize: '0.875rem' }}>Loading…</div>
+      <div style={{ minHeight: '100vh', background: '#070a0f', display: 'flex', flexDirection: 'column', gap: '14px', alignItems: 'center', justifyContent: 'center' }}>
+        <div className="spinner" />
+        <div style={{ color: '#6b7280', fontSize: '0.875rem' }}>Loading The Core Agency…</div>
       </div>
     );
   }
@@ -1001,7 +1002,7 @@ export default function App() {
         <div className="logo-section">
           <div className="logo-glow"></div>
           <div>
-            <h1 style={{ fontSize: '1.5rem', fontWeight: 700, background: 'linear-gradient(135deg, #fff, #a1a1aa)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+            <h1 style={{ fontSize: '1.5rem', fontWeight: 700, letterSpacing: '0.02em', background: 'linear-gradient(135deg, #fff 40%, #fdba74)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
               THE CORE AGENCY
             </h1>
             <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>AI Marketing Team Workspace</p>
@@ -1009,7 +1010,7 @@ export default function App() {
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-end' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span className="badge badge-indigo" style={{ background: 'rgba(99, 102, 241, 0.15)', color: '#818cf8', borderColor: 'rgba(99, 102, 241, 0.3)', border: '1px solid' }}>
+            <span className="badge badge-brand" style={{ background: 'rgba(244, 122, 31, 0.15)', color: '#fb923c', borderColor: 'rgba(244, 122, 31, 0.3)', border: '1px solid' }}>
               Core MVP — Internal Demo
             </span>
             <span
@@ -1032,7 +1033,7 @@ export default function App() {
                 <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', maxWidth: '140px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {user.email}
                 </span>
-                <span style={{ fontSize: '0.68rem', fontWeight: 600, color: ROLE_COLORS[user.role] ?? '#818cf8', background: `${ROLE_COLORS[user.role] ?? '#818cf8'}18`, borderRadius: '4px', padding: '1px 6px' }}>
+                <span style={{ fontSize: '0.68rem', fontWeight: 600, color: ROLE_COLORS[user.role] ?? '#fb923c', background: `${ROLE_COLORS[user.role] ?? '#fb923c'}18`, borderRadius: '4px', padding: '1px 6px' }}>
                   {ROLE_LABELS[user.role] ?? user.role}
                 </span>
                 {mode === 'demo' && (
@@ -1055,8 +1056,8 @@ export default function App() {
                 display: 'flex', alignItems: 'center', gap: '5px',
                 padding: '5px 14px', borderRadius: '6px', fontSize: '0.78rem', fontWeight: 600,
                 border: 'none', cursor: 'pointer',
-                background: viewMode === 'owner' ? 'rgba(99,102,241,0.25)' : 'transparent',
-                color: viewMode === 'owner' ? '#818cf8' : 'var(--text-muted)',
+                background: viewMode === 'owner' ? 'rgba(244, 122, 31,0.25)' : 'transparent',
+                color: viewMode === 'owner' ? '#fb923c' : 'var(--text-muted)',
                 transition: 'all 0.15s',
               }}
             >
@@ -1088,7 +1089,7 @@ export default function App() {
             
             <button
               className={`btn btn-secondary ${activeTab === 'dashboard' ? 'active' : ''}`}
-              style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'dashboard' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'dashboard' ? 'rgba(99, 102, 241, 0.1)' : '' }}
+              style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'dashboard' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'dashboard' ? 'rgba(244, 122, 31, 0.1)' : '' }}
               onClick={() => setActiveTab('dashboard')}
             >
               <LayoutDashboard size={18} /> Dashboard
@@ -1099,7 +1100,7 @@ export default function App() {
 
             <button
               className={`btn btn-secondary ${activeTab === 'clients' ? 'active' : ''}`}
-              style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'clients' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'clients' ? 'rgba(99, 102, 241, 0.1)' : '' }}
+              style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'clients' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'clients' ? 'rgba(244, 122, 31, 0.1)' : '' }}
               onClick={() => setActiveTab('clients')}
             >
               <Users size={18} /> Clients
@@ -1107,7 +1108,7 @@ export default function App() {
 
             <button
               className={`btn btn-secondary ${activeTab === 'brands' ? 'active' : ''}`}
-              style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'brands' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'brands' ? 'rgba(99, 102, 241, 0.1)' : '' }}
+              style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'brands' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'brands' ? 'rgba(244, 122, 31, 0.1)' : '' }}
               onClick={() => setActiveTab('brands')}
             >
               <Store size={18} /> Brands
@@ -1115,7 +1116,7 @@ export default function App() {
 
             <button
               className={`btn btn-secondary ${activeTab === 'campaigns' ? 'active' : ''}`}
-              style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'campaigns' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'campaigns' ? 'rgba(99, 102, 241, 0.1)' : '' }}
+              style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'campaigns' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'campaigns' ? 'rgba(244, 122, 31, 0.1)' : '' }}
               onClick={() => setActiveTab('campaigns')}
             >
               <Zap size={18} /> Campaigns
@@ -1123,7 +1124,7 @@ export default function App() {
 
             <button
               className={`btn btn-secondary ${activeTab === 'brief-intake' ? 'active' : ''}`}
-              style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'brief-intake' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'brief-intake' ? 'rgba(99, 102, 241, 0.1)' : '' }}
+              style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'brief-intake' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'brief-intake' ? 'rgba(244, 122, 31, 0.1)' : '' }}
               onClick={() => setActiveTab('brief-intake')}
             >
               <ClipboardList size={18} /> Brief Intake
@@ -1131,7 +1132,7 @@ export default function App() {
 
             <button
               className={`btn btn-secondary ${activeTab === 'content-gen' ? 'active' : ''}`}
-              style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'content-gen' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'content-gen' ? 'rgba(99, 102, 241, 0.1)' : '' }}
+              style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'content-gen' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'content-gen' ? 'rgba(244, 122, 31, 0.1)' : '' }}
               onClick={() => { setGenNavBriefId(undefined); setActiveTab('content-gen'); }}
             >
               <Wand2 size={18} /> Content Generation
@@ -1139,7 +1140,7 @@ export default function App() {
 
             <button
               className={`btn btn-secondary ${activeTab === 'content-calendar' ? 'active' : ''}`}
-              style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'content-calendar' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'content-calendar' ? 'rgba(99, 102, 241, 0.1)' : '' }}
+              style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'content-calendar' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'content-calendar' ? 'rgba(244, 122, 31, 0.1)' : '' }}
               onClick={() => setActiveTab('content-calendar')}
             >
               <CalendarDays size={18} /> Content Calendar
@@ -1147,7 +1148,7 @@ export default function App() {
 
             <button
               className={`btn btn-secondary ${activeTab === 'approvals' ? 'active' : ''}`}
-              style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'approvals' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'approvals' ? 'rgba(99, 102, 241, 0.1)' : '', position: 'relative' }}
+              style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'approvals' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'approvals' ? 'rgba(244, 122, 31, 0.1)' : '', position: 'relative' }}
               onClick={() => setActiveTab('approvals')}
             >
               <ClipboardCheck size={18} /> Approvals
@@ -1160,7 +1161,7 @@ export default function App() {
 
             <button
               className={`btn btn-secondary ${activeTab === 'reports' ? 'active' : ''}`}
-              style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'reports' ? '1px solid rgba(129,140,248,0.5)' : '', background: activeTab === 'reports' ? 'rgba(99,102,241,0.1)' : '' }}
+              style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'reports' ? '1px solid rgba(251, 146, 60,0.5)' : '', background: activeTab === 'reports' ? 'rgba(244, 122, 31,0.1)' : '' }}
               onClick={() => setActiveTab('reports')}
             >
               <BarChart2 size={18} /> Reports
@@ -1168,7 +1169,7 @@ export default function App() {
 
             <button
               className={`btn btn-secondary ${activeTab === 'export-pack' ? 'active' : ''}`}
-              style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'export-pack' ? '1px solid rgba(129,140,248,0.5)' : '', background: activeTab === 'export-pack' ? 'rgba(99,102,241,0.1)' : '' }}
+              style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'export-pack' ? '1px solid rgba(251, 146, 60,0.5)' : '', background: activeTab === 'export-pack' ? 'rgba(244, 122, 31,0.1)' : '' }}
               onClick={() => setActiveTab('export-pack')}
             >
               <Package size={18} /> Export Pack
@@ -1176,7 +1177,7 @@ export default function App() {
 
             <button
               className={`btn btn-secondary ${activeTab === 'connector-registry' ? 'active' : ''}`}
-              style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'connector-registry' ? '1px solid rgba(129,140,248,0.5)' : '', background: activeTab === 'connector-registry' ? 'rgba(99,102,241,0.1)' : '' }}
+              style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'connector-registry' ? '1px solid rgba(251, 146, 60,0.5)' : '', background: activeTab === 'connector-registry' ? 'rgba(244, 122, 31,0.1)' : '' }}
               onClick={() => setActiveTab('connector-registry')}
             >
               <Network size={18} /> Connector Registry
@@ -1185,7 +1186,7 @@ export default function App() {
             {viewMode === 'owner' && (user?.role === 'owner' || user?.role === 'manager') && (
               <button
                 className={`btn btn-secondary ${activeTab === 'automation-logs' ? 'active' : ''}`}
-                style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'automation-logs' ? '1px solid rgba(129,140,248,0.5)' : '', background: activeTab === 'automation-logs' ? 'rgba(99,102,241,0.1)' : '', position: 'relative' }}
+                style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'automation-logs' ? '1px solid rgba(251, 146, 60,0.5)' : '', background: activeTab === 'automation-logs' ? 'rgba(244, 122, 31,0.1)' : '', position: 'relative' }}
                 onClick={() => setActiveTab('automation-logs')}
               >
                 <Activity size={18} /> Automation Logs
@@ -1220,7 +1221,7 @@ export default function App() {
 
             <button
               className={`btn btn-secondary ${activeTab === 'brand-gallery' ? 'active' : ''}`}
-              style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'brand-gallery' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'brand-gallery' ? 'rgba(99, 102, 241, 0.1)' : '' }}
+              style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'brand-gallery' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'brand-gallery' ? 'rgba(244, 122, 31, 0.1)' : '' }}
               onClick={() => setActiveTab('brand-gallery')}
             >
               <Store size={18} /> Brand Workspace
@@ -1229,7 +1230,7 @@ export default function App() {
             {viewMode === 'owner' && (
               <button
                 className={`btn btn-secondary ${activeTab === 'new-campaign' ? 'active' : ''}`}
-                style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'new-campaign' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'new-campaign' ? 'rgba(99, 102, 241, 0.1)' : '' }}
+                style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'new-campaign' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'new-campaign' ? 'rgba(244, 122, 31, 0.1)' : '' }}
                 onClick={() => setActiveTab('new-campaign')}
               >
                 <Plus size={18} /> New Campaign Brief
@@ -1239,7 +1240,7 @@ export default function App() {
             {viewMode === 'owner' && (
               <button
                 className={`btn btn-secondary ${activeTab === 'team-board' ? 'active' : ''}`}
-                style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'team-board' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'team-board' ? 'rgba(99, 102, 241, 0.1)' : '' }}
+                style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'team-board' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'team-board' ? 'rgba(244, 122, 31, 0.1)' : '' }}
                 onClick={() => setActiveTab('team-board')}
               >
                 <Users size={18} /> AI Team Board
@@ -1248,7 +1249,7 @@ export default function App() {
 
             <button 
               className={`btn btn-secondary ${activeTab === 'outputs' ? 'active' : ''}`} 
-              style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'outputs' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'outputs' ? 'rgba(99, 102, 241, 0.1)' : '' }}
+              style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'outputs' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'outputs' ? 'rgba(244, 122, 31, 0.1)' : '' }}
               onClick={() => setActiveTab('outputs')}
             >
               <Layers size={18} /> Campaign Outputs
@@ -1256,7 +1257,7 @@ export default function App() {
 
             <button 
               className={`btn btn-secondary ${activeTab === 'approval' ? 'active' : ''}`} 
-              style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'approval' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'approval' ? 'rgba(99, 102, 241, 0.1)' : '' }}
+              style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'approval' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'approval' ? 'rgba(244, 122, 31, 0.1)' : '' }}
               onClick={() => setActiveTab('approval')}
             >
               <CheckSquare size={18} /> Approval Checklist
@@ -1264,7 +1265,7 @@ export default function App() {
 
             <button 
               className={`btn btn-secondary ${activeTab === 'demo-pack' ? 'active' : ''}`} 
-              style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'demo-pack' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'demo-pack' ? 'rgba(99, 102, 241, 0.1)' : '' }}
+              style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'demo-pack' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'demo-pack' ? 'rgba(244, 122, 31, 0.1)' : '' }}
               onClick={() => setActiveTab('demo-pack')}
             >
               <FileText size={18} /> Client Presentation Pack
@@ -1273,7 +1274,7 @@ export default function App() {
             {viewMode === 'owner' && (
               <button
                 className={`btn btn-secondary ${activeTab === 'client-demo' ? 'active' : ''}`}
-                style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'client-demo' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'client-demo' ? 'rgba(99, 102, 241, 0.1)' : '' }}
+                style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'client-demo' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'client-demo' ? 'rgba(244, 122, 31, 0.1)' : '' }}
                 onClick={() => setActiveTab('client-demo')}
               >
                 <Monitor size={18} /> Client Workspace View
@@ -1283,7 +1284,7 @@ export default function App() {
             {viewMode === 'owner' && (
               <button
                 className={`btn btn-secondary ${activeTab === 'manual-export' ? 'active' : ''}`}
-                style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'manual-export' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'manual-export' ? 'rgba(99, 102, 241, 0.1)' : '' }}
+                style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'manual-export' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'manual-export' ? 'rgba(244, 122, 31, 0.1)' : '' }}
                 onClick={() => setActiveTab('manual-export')}
               >
                 <Copy size={18} /> Manual Export Pack
@@ -1292,7 +1293,7 @@ export default function App() {
 
             <button
               className={`btn btn-secondary ${activeTab === 'presentation-export' ? 'active' : ''}`}
-              style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'presentation-export' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'presentation-export' ? 'rgba(99, 102, 241, 0.1)' : '' }}
+              style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'presentation-export' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'presentation-export' ? 'rgba(244, 122, 31, 0.1)' : '' }}
               onClick={() => setActiveTab('presentation-export')}
             >
               <BookOpen size={18} /> Presentation & Export
@@ -1578,11 +1579,11 @@ export default function App() {
 
                   {/* ── View Mode Context Card — Phase H.7 ── */}
                   {viewMode === 'owner' ? (
-                    <div style={{ padding: '14px 18px', background: 'rgba(99,102,241,0.06)', border: '1px solid rgba(99,102,241,0.25)', borderRadius: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ padding: '14px 18px', background: 'rgba(244, 122, 31,0.06)', border: '1px solid rgba(244, 122, 31,0.25)', borderRadius: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <span style={{ fontSize: '1.1rem' }}>🔧</span>
                         <div>
-                          <span style={{ fontSize: '0.88rem', fontWeight: 700, color: '#818cf8' }}>Owner View — Internal Workspace</span>
+                          <span style={{ fontSize: '0.88rem', fontWeight: 700, color: '#fb923c' }}>Owner View — Internal Workspace</span>
                           <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: '2px 0 0' }}>Manage brands, review AI outputs, run approval, configure campaigns. Switch to Client View before presenting.</p>
                         </div>
                       </div>
@@ -1599,7 +1600,7 @@ export default function App() {
                           <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: '2px 0 0' }}>Present campaign plan and outputs to your client. Internal tools hidden. Sample data — approval required before export.</p>
                         </div>
                       </div>
-                      <button onClick={() => handleViewModeSwitch('owner')} style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '5px 12px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 600, border: '1px solid rgba(99,102,241,0.3)', cursor: 'pointer', background: 'rgba(99,102,241,0.08)', color: '#818cf8' }}>
+                      <button onClick={() => handleViewModeSwitch('owner')} style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '5px 12px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 600, border: '1px solid rgba(244, 122, 31,0.3)', cursor: 'pointer', background: 'rgba(244, 122, 31,0.08)', color: '#fb923c' }}>
                         🔧 Back to Owner View
                       </button>
                     </div>
@@ -1617,7 +1618,7 @@ export default function App() {
                         </p>
                       </div>
                       <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                        <span className="badge badge-indigo" style={{ fontSize: '0.68rem', background: 'rgba(99,102,241,0.12)', color: '#818cf8', border: '1px solid rgba(99,102,241,0.3)' }}>
+                        <span className="badge badge-brand" style={{ fontSize: '0.68rem', background: 'rgba(244, 122, 31,0.12)', color: '#fb923c', border: '1px solid rgba(244, 122, 31,0.3)' }}>
                           {campaigns.length} Brand{campaigns.length !== 1 ? 's' : ''}
                         </span>
                         <span className="badge badge-emerald" style={{ fontSize: '0.68rem', background: 'rgba(16,185,129,0.1)', color: '#34d399', border: '1px solid rgba(16,185,129,0.25)' }}>
@@ -1633,8 +1634,8 @@ export default function App() {
                             key={c.id}
                             onClick={() => setActiveCampaignId(c.id)}
                             style={{
-                              background: isActive ? 'rgba(99,102,241,0.1)' : 'rgba(255,255,255,0.02)',
-                              border: `1px solid ${isActive ? 'rgba(99,102,241,0.5)' : 'var(--border-color)'}`,
+                              background: isActive ? 'rgba(244, 122, 31,0.1)' : 'rgba(255,255,255,0.02)',
+                              border: `1px solid ${isActive ? 'rgba(244, 122, 31,0.5)' : 'var(--border-color)'}`,
                               borderRadius: '10px',
                               padding: '12px 14px',
                               textAlign: 'left',
@@ -1644,15 +1645,15 @@ export default function App() {
                               gap: '6px',
                               transition: 'all 0.2s',
                             }}
-                            onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = 'rgba(99,102,241,0.06)'; }}
+                            onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = 'rgba(244, 122, 31,0.06)'; }}
                             onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = 'rgba(255,255,255,0.02)'; }}
                           >
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                              <span style={{ fontSize: '0.9rem', fontWeight: 700, color: isActive ? '#818cf8' : 'var(--text-primary)' }}>
+                              <span style={{ fontSize: '0.9rem', fontWeight: 700, color: isActive ? '#fb923c' : 'var(--text-primary)' }}>
                                 {c.brief.brandName}
                               </span>
                               {isActive && (
-                                <span className="badge badge-indigo" style={{ fontSize: '0.6rem', background: 'rgba(99,102,241,0.2)', color: '#818cf8', border: '1px solid rgba(99,102,241,0.4)', padding: '2px 6px' }}>
+                                <span className="badge badge-brand" style={{ fontSize: '0.6rem', background: 'rgba(244, 122, 31,0.2)', color: '#fb923c', border: '1px solid rgba(244, 122, 31,0.4)', padding: '2px 6px' }}>
                                   Active
                                 </span>
                               )}
@@ -1866,9 +1867,9 @@ export default function App() {
                         <button
                           key={item.step}
                           onClick={() => setActiveTab(item.tab)}
-                          style={{ background: 'rgba(99, 102, 241, 0.04)', border: '1px solid rgba(99, 102, 241, 0.2)', borderRadius: '10px', padding: '14px', textAlign: 'left', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '8px', transition: 'background 0.2s' }}
-                          onMouseEnter={e => (e.currentTarget.style.background = 'rgba(99, 102, 241, 0.1)')}
-                          onMouseLeave={e => (e.currentTarget.style.background = 'rgba(99, 102, 241, 0.04)')}
+                          style={{ background: 'rgba(244, 122, 31, 0.04)', border: '1px solid rgba(244, 122, 31, 0.2)', borderRadius: '10px', padding: '14px', textAlign: 'left', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '8px', transition: 'background 0.2s' }}
+                          onMouseEnter={e => (e.currentTarget.style.background = 'rgba(244, 122, 31, 0.1)')}
+                          onMouseLeave={e => (e.currentTarget.style.background = 'rgba(244, 122, 31, 0.04)')}
                         >
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                             <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '24px', height: '24px', background: 'var(--accent-indigo)', color: '#fff', borderRadius: '50%', fontSize: '0.7rem', fontWeight: 'bold', flexShrink: 0 }}>{item.step}</span>
@@ -2121,7 +2122,7 @@ export default function App() {
                       </p>
                     </div>
                     <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                      <span className="badge badge-indigo" style={{ background: 'rgba(99, 102, 241, 0.15)', color: '#818cf8', borderColor: 'rgba(99, 102, 241, 0.3)', border: '1px solid' }}>Sample Data Only</span>
+                      <span className="badge badge-brand" style={{ background: 'rgba(244, 122, 31, 0.15)', color: '#fb923c', borderColor: 'rgba(244, 122, 31, 0.3)', border: '1px solid' }}>Sample Data Only</span>
                       <span className="badge badge-emerald" style={{ background: 'rgba(16, 185, 129, 0.15)', color: '#34d399', borderColor: 'rgba(16, 185, 129, 0.3)', border: '1px solid' }}>🛡️ Safety Guard</span>
                       <span className={`badge ${
                         activeCampaign.status === 'Approved' ? 'badge-emerald' : 
@@ -2251,7 +2252,7 @@ export default function App() {
                           </div>
                           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                             {activeCampaign.outputs.copywriter.ctas.map((c, idx) => (
-                              <code key={idx} style={{ background: 'rgba(99, 102, 241, 0.1)', padding: '6px 12px', borderRadius: '4px', border: '1px solid rgba(99, 102, 241, 0.2)', fontSize: '0.85rem' }}>{c}</code>
+                              <code key={idx} style={{ background: 'rgba(244, 122, 31, 0.1)', padding: '6px 12px', borderRadius: '4px', border: '1px solid rgba(244, 122, 31, 0.2)', fontSize: '0.85rem' }}>{c}</code>
                             ))}
                           </div>
                         </div>
@@ -2531,7 +2532,7 @@ export default function App() {
                   {/* Final pack tab */}
                   {outputSubTab === 'final' && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                      <div style={{ background: 'rgba(99,102,241,0.05)', padding: '24px', borderRadius: '12px', border: '1px solid var(--border-glow)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div style={{ background: 'rgba(244, 122, 31,0.05)', padding: '24px', borderRadius: '12px', border: '1px solid var(--border-glow)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <div>
                           <h3 style={{ fontSize: '1.2rem', marginBottom: '8px', color: 'var(--accent-indigo)' }}>Gói Chiến Dịch Đóng Gói (Final Campaign Pack)</h3>
                           <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
@@ -2594,7 +2595,7 @@ export default function App() {
                       </p>
                     </div>
                     <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                      <span className="badge badge-indigo" style={{ background: 'rgba(99, 102, 241, 0.15)', color: '#818cf8', borderColor: 'rgba(99, 102, 241, 0.3)', border: '1px solid' }}>Human Approval Required</span>
+                      <span className="badge badge-brand" style={{ background: 'rgba(244, 122, 31, 0.15)', color: '#fb923c', borderColor: 'rgba(244, 122, 31, 0.3)', border: '1px solid' }}>Human Approval Required</span>
                     </div>
                   </div>
 
@@ -2691,7 +2692,7 @@ export default function App() {
                   </div>
 
                   {/* Review rules help alert */}
-                  <div style={{ display: 'flex', gap: '12px', padding: '16px', background: 'rgba(99, 102, 241, 0.05)', borderRadius: '8px', border: '1px solid var(--border-glow)' }}>
+                  <div style={{ display: 'flex', gap: '12px', padding: '16px', background: 'rgba(244, 122, 31, 0.05)', borderRadius: '8px', border: '1px solid var(--border-glow)' }}>
                     <AlertCircle style={{ color: 'var(--accent-indigo)', flexShrink: 0 }} />
                     <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.5, textAlign: 'left' }}>
                       <strong>Lời khuyên khi duyệt:</strong> Đảm bảo thông tin về <em>{activeCampaign.brief.heroProduct}</em> đã khớp với định vị thương hiệu của <em>{activeCampaign.brief.brandName}</em>. Hãy copy prompt hình ảnh mang sang Canva/Fal.ai để tự thiết kế nếu bạn đã duyệt nội dung.
@@ -2807,7 +2808,7 @@ export default function App() {
                   </div>
 
                   {/* Service Packages Teaser — Phase H.3 */}
-                  <div style={{ marginTop: '8px', padding: '28px', background: 'rgba(99, 102, 241, 0.04)', border: '1px solid rgba(99, 102, 241, 0.2)', borderRadius: '16px' }}>
+                  <div style={{ marginTop: '8px', padding: '28px', background: 'rgba(244, 122, 31, 0.04)', border: '1px solid rgba(244, 122, 31, 0.2)', borderRadius: '16px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                       <div>
                         <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--accent-indigo)', marginBottom: '4px' }}>Gói dịch vụ AI Marketing Team</h3>
@@ -2831,8 +2832,8 @@ export default function App() {
                           name: 'Growth',
                           tag: 'Phổ biến nhất',
                           color: 'var(--accent-indigo)',
-                          borderColor: 'rgba(99, 102, 241, 0.5)',
-                          bg: 'rgba(99, 102, 241, 0.08)',
+                          borderColor: 'rgba(244, 122, 31, 0.5)',
+                          bg: 'rgba(244, 122, 31, 0.08)',
                           items: ['3 thương hiệu', '4 campaigns/tháng', 'Full campaign pack', 'Client Workspace View', 'Priority support'],
                           cta: 'Liên hệ báo giá',
                           highlight: true,
@@ -2910,7 +2911,7 @@ export default function App() {
                   </div>
 
                   {/* Recommended Usage Order */}
-                  <div style={{ background: 'rgba(99, 102, 241, 0.03)', border: '1px solid rgba(99, 102, 241, 0.15)', padding: '20px', borderRadius: '12px', marginBottom: '32px', textAlign: 'left' }}>
+                  <div style={{ background: 'rgba(244, 122, 31, 0.03)', border: '1px solid rgba(244, 122, 31, 0.15)', padding: '20px', borderRadius: '12px', marginBottom: '32px', textAlign: 'left' }}>
                     <h3 style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                       📋 Quy trình khuyên dùng (Recommended usage order):
                     </h3>
@@ -2982,7 +2983,7 @@ export default function App() {
                     <div>
                       <h2 style={{ fontSize: '1.6rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '12px' }}>
                         Client Workspace View
-                        <span className="badge badge-indigo" style={{ fontSize: '0.75rem', padding: '4px 10px', background: 'rgba(99, 102, 241, 0.15)', color: '#818cf8', borderColor: 'rgba(99, 102, 241, 0.3)', border: '1px solid', borderRadius: '9999px', fontWeight: 600 }}>
+                        <span className="badge badge-brand" style={{ fontSize: '0.75rem', padding: '4px 10px', background: 'rgba(244, 122, 31, 0.15)', color: '#fb923c', borderColor: 'rgba(244, 122, 31, 0.3)', border: '1px solid', borderRadius: '9999px', fontWeight: 600 }}>
                           Client-Ready
                         </span>
                       </h2>
@@ -3008,8 +3009,8 @@ export default function App() {
                         label: 'Giải pháp AI Team',
                         body: 'Nhập brief một lần → 5 AI Agents song song tạo full campaign pack: captions, video scripts, design prompts, ads plan.',
                         color: 'var(--accent-indigo)',
-                        borderColor: 'rgba(99,102,241,0.25)',
-                        bg: 'rgba(99,102,241,0.04)',
+                        borderColor: 'rgba(244, 122, 31,0.25)',
+                        bg: 'rgba(244, 122, 31,0.04)',
                       },
                       {
                         icon: '📦',
@@ -3141,7 +3142,7 @@ export default function App() {
                   <div className="glass-panel" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px', borderLeft: '4px solid var(--accent-indigo)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <h3 style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--accent-indigo)' }}>Tại sao chọn AI Marketing Team?</h3>
-                      <span className="badge badge-indigo" style={{ fontSize: '0.7rem', background: 'rgba(99,102,241,0.12)', color: '#818cf8', border: '1px solid rgba(99,102,241,0.3)' }}>Value Proposition</span>
+                      <span className="badge badge-brand" style={{ fontSize: '0.7rem', background: 'rgba(244, 122, 31,0.12)', color: '#fb923c', border: '1px solid rgba(244, 122, 31,0.3)' }}>Value Proposition</span>
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
                       {[
@@ -3329,7 +3330,7 @@ export default function App() {
                   </div>
 
                   {/* CTA Block — Phase H.3 */}
-                  <div style={{ background: 'linear-gradient(135deg, rgba(99,102,241,0.08), rgba(16,185,129,0.05))', border: '1px solid rgba(99,102,241,0.25)', borderRadius: '16px', padding: '28px' }}>
+                  <div style={{ background: 'linear-gradient(135deg, rgba(244, 122, 31,0.08), rgba(16,185,129,0.05))', border: '1px solid rgba(244, 122, 31,0.25)', borderRadius: '16px', padding: '28px' }}>
                     <div style={{ textAlign: 'center', marginBottom: '20px' }}>
                       <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '6px' }}>Bước tiếp theo</h3>
                       <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Chọn hành động phù hợp với giai đoạn hiện tại của chiến dịch</p>
@@ -3355,7 +3356,7 @@ export default function App() {
                       </button>
                       <button
                         className="btn btn-secondary"
-                        style={{ flexDirection: 'column', gap: '8px', padding: '18px', height: 'auto', border: '1px solid rgba(99,102,241,0.3)', background: 'rgba(99,102,241,0.06)' }}
+                        style={{ flexDirection: 'column', gap: '8px', padding: '18px', height: 'auto', border: '1px solid rgba(244, 122, 31,0.3)', background: 'rgba(244, 122, 31,0.06)' }}
                         onClick={() => { setActiveTab('new-campaign'); }}
                       >
                         <span style={{ fontSize: '1.4rem' }}>✍️</span>
@@ -3377,7 +3378,7 @@ export default function App() {
                     <div>
                       <h2 style={{ fontSize: '1.6rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '12px' }}>
                         Brand Workspace Gallery
-                        <span className="badge badge-indigo" style={{ fontSize: '0.72rem', padding: '4px 10px', background: 'rgba(99,102,241,0.15)', color: '#818cf8', borderColor: 'rgba(99,102,241,0.3)', border: '1px solid', borderRadius: '9999px', fontWeight: 600 }}>
+                        <span className="badge badge-brand" style={{ fontSize: '0.72rem', padding: '4px 10px', background: 'rgba(244, 122, 31,0.15)', color: '#fb923c', borderColor: 'rgba(244, 122, 31,0.3)', border: '1px solid', borderRadius: '9999px', fontWeight: 600 }}>
                           {campaigns.length} Brands
                         </span>
                         <span className="badge badge-emerald" style={{ fontSize: '0.72rem', padding: '4px 10px', background: 'rgba(16,185,129,0.1)', color: '#34d399', border: '1px solid rgba(16,185,129,0.25)', borderRadius: '9999px', fontWeight: 600 }}>
@@ -3403,14 +3404,14 @@ export default function App() {
                             display: 'flex',
                             flexDirection: 'column',
                             gap: '14px',
-                            border: isActive ? '1px solid rgba(99,102,241,0.5)' : '1px solid var(--border-color)',
+                            border: isActive ? '1px solid rgba(244, 122, 31,0.5)' : '1px solid var(--border-color)',
                             borderLeft: isActive ? '4px solid var(--accent-indigo)' : '4px solid rgba(255,255,255,0.08)',
                           }}
                         >
                           {/* Brand header */}
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                             <div>
-                              <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: isActive ? '#818cf8' : 'var(--text-primary)', margin: 0 }}>
+                              <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: isActive ? '#fb923c' : 'var(--text-primary)', margin: 0 }}>
                                 {c.brief.brandName}
                               </h3>
                               <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '4px' }}>
@@ -3419,7 +3420,7 @@ export default function App() {
                             </div>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'flex-end' }}>
                               {isActive && (
-                                <span className="badge badge-indigo" style={{ fontSize: '0.62rem', background: 'rgba(99,102,241,0.2)', color: '#818cf8', border: '1px solid rgba(99,102,241,0.4)' }}>
+                                <span className="badge badge-brand" style={{ fontSize: '0.62rem', background: 'rgba(244, 122, 31,0.2)', color: '#fb923c', border: '1px solid rgba(244, 122, 31,0.4)' }}>
                                   ● Active
                                 </span>
                               )}
@@ -3485,7 +3486,7 @@ export default function App() {
                           {isActive ? (
                             <button
                               className="btn btn-secondary"
-                              style={{ border: '1px solid rgba(99,102,241,0.4)', color: '#818cf8', background: 'rgba(99,102,241,0.08)', cursor: 'default' }}
+                              style={{ border: '1px solid rgba(244, 122, 31,0.4)', color: '#fb923c', background: 'rgba(244, 122, 31,0.08)', cursor: 'default' }}
                               disabled
                             >
                               ● Currently Active Workspace
@@ -3505,7 +3506,7 @@ export default function App() {
 
                   {/* Phase I connector boundary note — conditional by view mode */}
                   {viewMode === 'owner' ? (
-                    <div style={{ padding: '20px', background: 'rgba(99,102,241,0.04)', border: '1px solid rgba(99,102,241,0.2)', borderRadius: '12px' }}>
+                    <div style={{ padding: '20px', background: 'rgba(244, 122, 31,0.04)', border: '1px solid rgba(244, 122, 31,0.2)', borderRadius: '12px' }}>
                       <h4 style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--accent-indigo)', marginBottom: '10px' }}>
                         ⚡ Workspace Architecture — Phase I Connector Boundary
                       </h4>
@@ -3548,7 +3549,7 @@ export default function App() {
                       <div>
                         <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '12px' }}>
                           Presentation View
-                          <span className="badge badge-indigo" style={{ fontSize: '0.72rem', padding: '4px 10px', background: 'rgba(99,102,241,0.12)', color: '#818cf8', border: '1px solid rgba(99,102,241,0.3)', borderRadius: '9999px' }}>Client-Ready</span>
+                          <span className="badge badge-brand" style={{ fontSize: '0.72rem', padding: '4px 10px', background: 'rgba(244, 122, 31,0.12)', color: '#fb923c', border: '1px solid rgba(244, 122, 31,0.3)', borderRadius: '9999px' }}>Client-Ready</span>
                         </h2>
                         <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginTop: '6px' }}>
                           A step-by-step walkthrough: problem, AI solution, outputs, approval flow, manual publishing, and safety.
@@ -3558,7 +3559,7 @@ export default function App() {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                       {[
                         { step: '01', icon: '❓', title: 'Client Problem', color: 'var(--accent-rose)', borderColor: 'rgba(244,63,94,0.25)', bg: 'rgba(244,63,94,0.04)', body: 'SME owners spend 10–15 hours per week planning content, briefing teams, and reviewing posts — before any actual publishing. Manual marketing is slow, inconsistent, and hard to scale.' },
-                        { step: '02', icon: '🤖', title: 'AI Marketing Team Solution', color: 'var(--accent-indigo)', borderColor: 'rgba(99,102,241,0.25)', bg: 'rgba(99,102,241,0.04)', body: 'Enter one brand brief → 5 specialized AI Agents run in parallel: Copywriter, Video Editor, Designer, Ads Manager, Data Reporter. Full campaign pack delivered in minutes.' },
+                        { step: '02', icon: '🤖', title: 'AI Marketing Team Solution', color: 'var(--accent-indigo)', borderColor: 'rgba(244, 122, 31,0.25)', bg: 'rgba(244, 122, 31,0.04)', body: 'Enter one brand brief → 5 specialized AI Agents run in parallel: Copywriter, Video Editor, Designer, Ads Manager, Data Reporter. Full campaign pack delivered in minutes.' },
                         { step: '03', icon: '📦', title: 'Campaign Outputs', color: 'var(--accent-blue)', borderColor: 'rgba(59,130,246,0.25)', bg: 'rgba(59,130,246,0.04)', body: '7-day content calendar, 7 Facebook captions, 3 TikTok/Reels scripts, 3 AI design prompts (Fal.ai/Midjourney), local ads targeting plan, and simulated performance report — all in one exportable pack.' },
                         { step: '04', icon: '✍️', title: 'Approval Process', color: 'var(--accent-amber)', borderColor: 'rgba(245,158,11,0.25)', bg: 'rgba(245,158,11,0.04)', body: 'Owner reviews every piece of content via the Approval Checklist tab before anything leaves this workspace. No post, no ad, no message is sent without explicit human sign-off.' },
                         { step: '05', icon: '📤', title: 'Manual Publishing & Manual Ads Execution', color: '#a78bfa', borderColor: 'rgba(167,139,250,0.25)', bg: 'rgba(167,139,250,0.04)', body: 'After Owner approves, all content is copy-pasted manually to Facebook, TikTok, or the Ads Manager platform. No auto-scheduler, no API connection, no direct publishing from this workspace.' },
@@ -3715,7 +3716,7 @@ export default function App() {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
                       {([
                         { time: '0:00–0:30', title: 'Introduce the Problem',     color: 'var(--accent-rose)',    borderColor: 'rgba(244,63,94,0.3)',   bg: 'rgba(244,63,94,0.04)',   say: '"Most F&B/SME owners spend 10–15 hours per week on marketing — writing posts, briefing teams, reviewing content, configuring ads. It\'s repetitive, expensive, and slow. And it still doesn\'t guarantee results."', action: null },
-                        { time: '0:30–1:30', title: 'Show AI Team Roles',        color: 'var(--accent-indigo)', borderColor: 'rgba(99,102,241,0.3)',  bg: 'rgba(99,102,241,0.04)',  say: '"This workspace gives you a full AI Marketing Team — 5 specialists running in parallel. Let me show you the AI Team Board."', action: '→ Click: AI Team Board → show all 5 role cards (Copywriter, Video Editor, Designer, Ads Manager, Data Reporter)' },
+                        { time: '0:30–1:30', title: 'Show AI Team Roles',        color: 'var(--accent-indigo)', borderColor: 'rgba(244, 122, 31,0.3)',  bg: 'rgba(244, 122, 31,0.04)',  say: '"This workspace gives you a full AI Marketing Team — 5 specialists running in parallel. Let me show you the AI Team Board."', action: '→ Click: AI Team Board → show all 5 role cards (Copywriter, Video Editor, Designer, Ads Manager, Data Reporter)' },
                         { time: '1:30–3:00', title: 'Show the Campaign Pack',    color: 'var(--accent-blue)',   borderColor: 'rgba(59,130,246,0.3)',  bg: 'rgba(59,130,246,0.04)',  say: '"Let me enter a quick brief. Just brand name, product, audience, and location." … "Watch the AI run — about 3 seconds in this workspace." … "Here\'s the full campaign pack — 7-day calendar, captions, video scripts, design prompts, ads plan. Copy-paste ready."', action: '→ Click: New Campaign Brief → fill sample data → Activate AI → Campaign Outputs → cycle sub-tabs' },
                         { time: '3:00–4:00', title: 'Show Approval & Safety',   color: 'var(--accent-amber)',  borderColor: 'rgba(245,158,11,0.3)', bg: 'rgba(245,158,11,0.04)', say: '"Nothing leaves this workspace without your signature. This is a 10-point safety checklist. Auto-post: NO. Real Ads: NO. No messaging to customers. You control everything."', action: '→ Click: Approval Checklist → show progress bar + items → Safety Guard panel on Dashboard' },
                         { time: '4:00–5:00', title: 'Explain Next Step',         color: '#a78bfa',              borderColor: 'rgba(167,139,250,0.3)', bg: 'rgba(167,139,250,0.04)', say: '"After you approve, all content is copy-pasted manually to Facebook or TikTok. We never touch your accounts, your passwords, or your ad budget."', action: '→ Click: Manual Export Pack → show the 6 copy blocks' },

@@ -258,12 +258,12 @@ function EditPanel({
     <div style={{
       marginTop: '12px',
       padding: '16px',
-      background: 'rgba(99,102,241,0.05)',
-      border: '1px solid rgba(99,102,241,0.25)',
+      background: 'rgba(244, 122, 31,0.05)',
+      border: '1px solid rgba(244, 122, 31,0.25)',
       borderRadius: '8px',
       display: 'flex', flexDirection: 'column', gap: '12px',
     }}>
-      <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#818cf8', marginBottom: '4px' }}>
+      <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#fb923c', marginBottom: '4px' }}>
         Edit Calendar Metadata
       </div>
 
@@ -324,7 +324,7 @@ function EditPanel({
         </button>
         <button
           onClick={handleSave}
-          style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '6px 14px', borderRadius: '6px', fontSize: '0.78rem', background: 'rgba(99,102,241,0.2)', border: '1px solid rgba(99,102,241,0.4)', color: '#818cf8', cursor: 'pointer', fontWeight: 600 }}
+          style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '6px 14px', borderRadius: '6px', fontSize: '0.78rem', background: 'rgba(244, 122, 31,0.2)', border: '1px solid rgba(244, 122, 31,0.4)', color: '#fb923c', cursor: 'pointer', fontWeight: 600 }}
         >
           <Check size={13} /> Save
         </button>
@@ -425,7 +425,7 @@ function ItemCard({
   const statusLabel = CONTENT_ITEM_STATUS_LABEL[item.status] ?? item.status;
 
   const channelColor: Record<string, string> = {
-    Facebook: '#818cf8',
+    Facebook: '#fb923c',
     Instagram: '#f472b6',
     TikTok: '#34d399',
     YouTube: '#f87171',
@@ -434,9 +434,9 @@ function ItemCard({
 
   return (
     <div style={{
-      border: `1px solid ${expanded ? 'rgba(99,102,241,0.3)' : 'var(--border-color)'}`,
+      border: `1px solid ${expanded ? 'rgba(244, 122, 31,0.3)' : 'var(--border-color)'}`,
       borderRadius: '8px',
-      background: expanded ? 'rgba(99,102,241,0.04)' : 'rgba(255,255,255,0.02)',
+      background: expanded ? 'rgba(244, 122, 31,0.04)' : 'rgba(255,255,255,0.02)',
       overflow: 'hidden',
       transition: 'border-color 0.15s',
     }}>
@@ -452,10 +452,10 @@ function ItemCard({
         <div style={{
           flexShrink: 0,
           width: '36px', height: '36px',
-          background: 'rgba(99,102,241,0.15)',
+          background: 'rgba(244, 122, 31,0.15)',
           borderRadius: '8px',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: '0.8rem', fontWeight: 700, color: '#818cf8',
+          fontSize: '0.8rem', fontWeight: 700, color: '#fb923c',
         }}>
           D{item.day_number}
         </div>
@@ -513,7 +513,7 @@ function ItemCard({
             <button
               onClick={e => { e.stopPropagation(); onEdit(); }}
               title="Edit metadata"
-              style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: editing ? '#818cf8' : 'var(--text-muted)', display: 'flex', alignItems: 'center', padding: '2px' }}
+              style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: editing ? '#fb923c' : 'var(--text-muted)', display: 'flex', alignItems: 'center', padding: '2px' }}
             >
               <Pencil size={13} />
             </button>
@@ -725,7 +725,7 @@ export default function ContentCalendarTab({
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div>
           <h2 style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <CalendarDays size={20} style={{ color: '#818cf8' }} />
+            <CalendarDays size={20} style={{ color: '#fb923c' }} />
             Content Calendar
           </h2>
           <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: '4px 0 0' }}>
@@ -787,7 +787,7 @@ export default function ContentCalendarTab({
           <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>No items match the current filters.</div>
           <button
             onClick={() => setFilters({ clientId: '', brandId: '', campaignId: '', channel: '', status: '' })}
-            style={{ fontSize: '0.78rem', color: '#818cf8', background: 'transparent', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
+            style={{ fontSize: '0.78rem', color: '#fb923c', background: 'transparent', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
           >
             Clear filters
           </button>

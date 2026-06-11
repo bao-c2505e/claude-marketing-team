@@ -22,6 +22,36 @@ Chúng ta đang xây dựng **The Core Agency — Real Operations MVP**. Đây l
 
 ---
 
+## 🏁 V2-B (Owner-directed) — Premium Dark SaaS UI Polish — DONE (2026-06-11)
+
+> **Naming:** Owner gọi task này là "V2-B — Premium Dark SaaS UI Polish";
+> trong roadmap, UI polish vốn là V2-E (roadmap-V2-B = Supabase staging,
+> CHƯA bắt đầu). Section này theo naming của Owner.
+
+**Presentation-only — KHÔNG đổi behavior/data flow/repository/Supabase/UUID
+gating/tenant scope/sanitizers/RLS/auth/tests.**
+
+- **Theme:** `src/index.css` viết lại token layer — nền `#070A0F`/`#0B1120`,
+  surface `#0F172A`/`#111827`/`#151F32`, border `rgba(255,255,255,0.08)`,
+  **Brand Orange `#F47A1F`** (hover `#E7680B`, glow `rgba(244,122,31,0.22)`)
+  thay indigo làm brand accent; semantic success/warning/error/info. Legacy
+  var names giữ làm alias → toàn bộ inline styles tự ăn theme mới.
+- **Color sweep 19 files:** `#818cf8`→`#fb923c`, `#6366f1`→`#f47a1f`,
+  `rgba(99,102,241,*)`→`rgba(244,122,31,*)`, `rgba(129,140,248,*)`→
+  `rgba(251,146,60,*)`. Category/data-viz colors giữ nguyên.
+- **Polish:** Inter font; primary button orange gradient (hover/active/
+  disabled/focus-visible); form focus ring orange glow; glass cards 18px +
+  hover glow; tabs/scrollbar/selection orange; `.spinner`/`.skeleton`
+  utilities; header title gradient trắng→cam; branded auth loading screen;
+  LoginScreen glass card + orange glow + solid orange submit.
+- **Naming:** visible UI = "The Core Agency"; không còn "FnB OS V1"/
+  "CLAUDE_MARKETING_TEAM" trong UI (localStorage keys/internal docs giữ).
+- **Build:** PASS — 0 TS errors (1575 modules). **Tests:** 45/45 PASS.
+- **Còn lại (future):** code-splitting 920 kB bundle, ESLint + a11y pass,
+  responsive sidebar, branded favicon, empty-state illustrations.
+
+---
+
 ## 🏁 Ver2 Planning (Post-MVP) — Roadmap DONE (2026-06-11)
 
 > **Naming:** Core MVP = **18/18 phases complete and CLOSED** (Phase 18 was

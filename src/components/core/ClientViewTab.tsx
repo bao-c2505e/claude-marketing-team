@@ -199,8 +199,8 @@ export default function ClientViewTab({
           )}
           {isPreview && (
             <span style={{
-              fontSize: '0.72rem', fontWeight: 600, color: '#818cf8',
-              background: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.35)',
+              fontSize: '0.72rem', fontWeight: 600, color: '#fb923c',
+              background: 'rgba(244, 122, 31,0.15)', border: '1px solid rgba(244, 122, 31,0.35)',
               borderRadius: '6px', padding: '3px 10px',
               display: 'flex', alignItems: 'center', gap: '5px',
             }}>
@@ -308,8 +308,8 @@ export default function ClientViewTab({
                     {selectedBrief.channels.slice(0, 4).map(ch => (
                       <span key={ch} style={{
                         fontSize: '0.65rem', fontWeight: 600, padding: '2px 6px', borderRadius: '8px',
-                        background: 'rgba(99,102,241,0.12)', color: '#818cf8',
-                        border: '1px solid rgba(99,102,241,0.25)',
+                        background: 'rgba(244, 122, 31,0.12)', color: '#fb923c',
+                        border: '1px solid rgba(244, 122, 31,0.25)',
                       }}>
                         {ch}
                       </span>
@@ -375,9 +375,9 @@ export default function ClientViewTab({
                       {/* Day badge */}
                       <div style={{
                         minWidth: '36px', height: '36px', borderRadius: '8px',
-                        background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.25)',
+                        background: 'rgba(244, 122, 31,0.12)', border: '1px solid rgba(244, 122, 31,0.25)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontSize: '0.75rem', fontWeight: 700, color: '#818cf8', flexShrink: 0,
+                        fontSize: '0.75rem', fontWeight: 700, color: '#fb923c', flexShrink: 0,
                       }}>
                         D{item.day_number}
                       </div>

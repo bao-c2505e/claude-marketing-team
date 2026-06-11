@@ -241,7 +241,7 @@ export default function ConnectorRegistryTab({
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px', gap: '8px', flexWrap: 'wrap' }}>
               <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{conn.name}</div>
               <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
-                <StatusBadge label={CONNECTOR_TYPE_LABEL[conn.connector_type]} color="#818cf8" />
+                <StatusBadge label={CONNECTOR_TYPE_LABEL[conn.connector_type]} color="#fb923c" />
                 <StatusBadge label={CONNECTOR_STATUS_LABEL[conn.status]} color={CONNECTOR_STATUS_COLOR[conn.status]} />
                 <StatusBadge label={CONNECTOR_MODE_LABEL[conn.mode]} color={CONNECTOR_MODE_COLOR[conn.mode]} />
               </div>
@@ -344,7 +344,7 @@ export default function ConnectorRegistryTab({
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px', gap: '8px', flexWrap: 'wrap' }}>
               <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{MODULE_NAME_LABEL[mod.module_name]}</div>
               <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
-                <StatusBadge label={mod.module_type} color="#818cf8" />
+                <StatusBadge label={mod.module_type} color="#fb923c" />
                 <StatusBadge label={MODULE_STATUS_LABEL[mod.status]} color={MODULE_STATUS_COLOR[mod.status]} />
               </div>
             </div>
@@ -494,7 +494,7 @@ export default function ConnectorRegistryTab({
         {canManage && (
           <button
             onClick={() => setShowCreateForm(!showCreateForm)}
-            style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '5px 12px', borderRadius: '7px', fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer', background: showCreateForm ? 'rgba(99,102,241,0.15)' : 'rgba(255,255,255,0.04)', border: `1px solid ${showCreateForm ? 'rgba(99,102,241,0.4)' : 'var(--border-color)'}`, color: showCreateForm ? '#818cf8' : 'var(--text-secondary)' }}
+            style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '5px 12px', borderRadius: '7px', fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer', background: showCreateForm ? 'rgba(244, 122, 31,0.15)' : 'rgba(255,255,255,0.04)', border: `1px solid ${showCreateForm ? 'rgba(244, 122, 31,0.4)' : 'var(--border-color)'}`, color: showCreateForm ? '#fb923c' : 'var(--text-secondary)' }}
           >
             <Plus size={13} /> Create Mock Event
           </button>
@@ -503,8 +503,8 @@ export default function ConnectorRegistryTab({
 
       {/* Create mock event form */}
       {showCreateForm && canManage && (
-        <div style={{ ...CARD, background: 'rgba(99,102,241,0.05)', border: '1px solid rgba(99,102,241,0.25)' }}>
-          <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#818cf8', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+        <div style={{ ...CARD, background: 'rgba(244, 122, 31,0.05)', border: '1px solid rgba(244, 122, 31,0.25)' }}>
+          <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#fb923c', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
             <Plus size={14} /> Create Mock Event (local only — no real webhook sent)
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '10px', marginBottom: '12px' }}>
@@ -557,7 +557,7 @@ export default function ConnectorRegistryTab({
           <div style={{ display: 'flex', gap: '8px' }}>
             <button
               onClick={handleCreateEvent}
-              style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '7px 16px', borderRadius: '7px', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer', background: 'rgba(99,102,241,0.2)', border: '1px solid rgba(99,102,241,0.45)', color: '#818cf8' }}
+              style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '7px 16px', borderRadius: '7px', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer', background: 'rgba(244, 122, 31,0.2)', border: '1px solid rgba(244, 122, 31,0.45)', color: '#fb923c' }}
             >
               <Plus size={13} /> Create Event
             </button>
@@ -688,7 +688,7 @@ export default function ConnectorRegistryTab({
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <Network size={20} style={{ color: '#818cf8' }} />
+          <Network size={20} style={{ color: '#fb923c' }} />
           <h2 style={{ fontSize: '1.2rem', fontWeight: 700, margin: 0 }}>Connector Registry</h2>
           <StatusBadge label="Registry only" color="#f59e0b" />
           {!isSupabaseConfigured && <StatusBadge label="Demo mode" color="#71717a" />}
@@ -712,8 +712,8 @@ export default function ConnectorRegistryTab({
               display: 'flex', alignItems: 'center', gap: '6px',
               padding: '7px 16px', borderRadius: '7px', fontSize: '0.82rem', fontWeight: 600,
               cursor: 'pointer', border: 'none',
-              background: activeSubTab === tab.id ? 'rgba(99,102,241,0.2)' : 'transparent',
-              color: activeSubTab === tab.id ? '#818cf8' : 'var(--text-muted)',
+              background: activeSubTab === tab.id ? 'rgba(244, 122, 31,0.2)' : 'transparent',
+              color: activeSubTab === tab.id ? '#fb923c' : 'var(--text-muted)',
               transition: 'all 0.15s',
             }}
           >
@@ -721,8 +721,8 @@ export default function ConnectorRegistryTab({
             {tab.label}
             <span style={{
               fontSize: '0.65rem', fontWeight: 700,
-              color: tab.badge ? '#f87171' : (activeSubTab === tab.id ? '#818cf8' : 'var(--text-muted)'),
-              background: tab.badge ? 'rgba(248,113,113,0.2)' : (activeSubTab === tab.id ? 'rgba(99,102,241,0.2)' : 'rgba(255,255,255,0.06)'),
+              color: tab.badge ? '#f87171' : (activeSubTab === tab.id ? '#fb923c' : 'var(--text-muted)'),
+              background: tab.badge ? 'rgba(248,113,113,0.2)' : (activeSubTab === tab.id ? 'rgba(244, 122, 31,0.2)' : 'rgba(255,255,255,0.06)'),
               borderRadius: '10px', padding: '1px 6px',
             }}>
               {tab.count}

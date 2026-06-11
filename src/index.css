@@ -1,29 +1,54 @@
-/* index.css - Premium Sleek Dark Theme System */
+/* index.css — The Core Agency · Premium Dark SaaS Theme System (V2-B) */
 
 :root {
-  --bg-main: #030712; /* Rich dark indigo-black */
-  --bg-card: rgba(17, 24, 39, 0.6); /* Translucent slate-900 */
-  --bg-card-hover: rgba(31, 41, 55, 0.7); /* Translucent slate-800 */
-  --border-color: rgba(55, 65, 81, 0.4); /* Subtle gray border */
-  --border-glow: rgba(99, 102, 241, 0.25); /* Glowing indigo border */
-  
-  --text-primary: #f9fafb; /* Off-white */
-  --text-secondary: #9ca3af; /* Cool gray */
-  --text-muted: #6b7280; /* Muted gray */
-  
-  --accent-blue: #3b82f6; /* Electric blue */
-  --accent-indigo: #6366f1; /* Neon indigo */
-  --accent-emerald: #10b981; /* Fresh emerald */
-  --accent-rose: #f43f5e; /* Rose red */
-  --accent-amber: #f59e0b; /* Warm amber */
+  /* ── Core surfaces ── */
+  --bg-app: #070a0f;            /* App background — deep black/navy */
+  --bg-gradient-dark: #0b1120;  /* Background gradient dark stop */
+  --surface: #0f172a;           /* Card surface */
+  --surface-soft: #111827;      /* Soft surface (inputs, wells) */
+  --surface-elevated: #151f32;  /* Elevated surface (popovers, hover) */
+  --border-subtle: rgba(255, 255, 255, 0.08);
 
-  --font-title: 'Outfit', 'Plus Jakarta Sans', system-ui, sans-serif;
-  --font-body: 'Plus Jakarta Sans', system-ui, sans-serif;
+  /* ── Text ── */
+  --text-primary: #f9fafb;
+  --text-secondary: #9ca3af;
+  --text-muted: #6b7280;
 
-  --neon-glow: 0 0 20px rgba(99, 102, 241, 0.15);
-  --neon-glow-emerald: 0 0 20px rgba(16, 185, 129, 0.15);
-  --neon-glow-rose: 0 0 20px rgba(244, 63, 94, 0.15);
-  
+  /* ── Brand ── */
+  --brand: #f47a1f;             /* The Core Agency orange */
+  --brand-hover: #e7680b;
+  --brand-soft: #fff1e6;
+  --brand-glow: rgba(244, 122, 31, 0.22);
+
+  /* ── Semantic ── */
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --error: #ef4444;
+  --info: #38bdf8;
+
+  /* ── Legacy aliases (kept so existing inline styles inherit the theme) ── */
+  --bg-main: var(--bg-app);
+  --bg-primary: var(--bg-app);
+  --bg-card: rgba(15, 23, 42, 0.62);        /* Translucent --surface */
+  --bg-card-hover: rgba(21, 31, 50, 0.72);  /* Translucent --surface-elevated */
+  --border-color: var(--border-subtle);
+  --border-glow: var(--brand-glow);
+  --accent-indigo: var(--brand);            /* Brand accent — was indigo, now orange */
+  --accent-blue: var(--info);
+  --accent-emerald: var(--success);
+  --accent-rose: var(--error);
+  --accent-amber: var(--warning);
+
+  /* ── Typography ── */
+  --font-title: 'Inter', 'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-body: 'Inter', 'Plus Jakarta Sans', system-ui, sans-serif;
+
+  /* ── Effects ── */
+  --neon-glow: 0 0 24px var(--brand-glow);
+  --neon-glow-emerald: 0 0 20px rgba(34, 197, 94, 0.15);
+  --neon-glow-rose: 0 0 20px rgba(239, 68, 68, 0.15);
+  --shadow-card: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+
   --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -35,15 +60,18 @@
 }
 
 body {
-  background-color: var(--bg-main);
+  background-color: var(--bg-app);
   color: var(--text-primary);
   font-family: var(--font-body);
+  font-feature-settings: 'cv02', 'cv03', 'cv04';
+  -webkit-font-smoothing: antialiased;
   min-height: 100vh;
   overflow-x: hidden;
   position: relative;
-  background-image: 
-    radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.08) 0px, transparent 50%),
-    radial-gradient(at 100% 100%, rgba(59, 130, 246, 0.08) 0px, transparent 50%);
+  background-image:
+    radial-gradient(at 0% 0%, rgba(244, 122, 31, 0.07) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(11, 17, 32, 0.9) 0px, transparent 60%),
+    radial-gradient(at 100% 100%, rgba(56, 189, 248, 0.05) 0px, transparent 50%);
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -55,16 +83,16 @@ h1, h2, h3, h4, h5, h6 {
 /* Glassmorphism Classes */
 .glass-panel {
   background: var(--bg-card);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-subtle);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border-radius: 16px;
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  border-radius: 18px;
+  box-shadow: var(--shadow-card);
   transition: var(--transition-smooth);
 }
 
 .glass-panel:hover {
-  border-color: rgba(99, 102, 241, 0.3);
+  border-color: rgba(244, 122, 31, 0.28);
   box-shadow: var(--neon-glow), 0 8px 32px 0 rgba(0, 0, 0, 0.45);
 }
 
@@ -81,7 +109,7 @@ h1, h2, h3, h4, h5, h6 {
   align-items: center;
   margin-bottom: 32px;
   padding-bottom: 16px;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .logo-section {
@@ -94,8 +122,8 @@ h1, h2, h3, h4, h5, h6 {
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background-color: var(--accent-indigo);
-  box-shadow: 0 0 12px var(--accent-indigo);
+  background-color: var(--brand);
+  box-shadow: 0 0 12px var(--brand);
   animation: pulse 2s infinite;
 }
 
@@ -103,7 +131,7 @@ h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-title);
   font-weight: 500;
   padding: 10px 20px;
-  border-radius: 8px;
+  border-radius: 10px;
   border: none;
   cursor: pointer;
   transition: var(--transition-smooth);
@@ -113,36 +141,53 @@ h1, h2, h3, h4, h5, h6 {
   font-size: 0.95rem;
 }
 
-.btn-primary {
-  background: linear-gradient(135deg, var(--accent-indigo), var(--accent-blue));
-  color: #fff;
-  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);
+.btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--brand-glow);
 }
 
-.btn-primary:hover {
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--brand), var(--brand-hover));
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(244, 122, 31, 0.35);
+}
+
+.btn-primary:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.6);
+  box-shadow: 0 6px 20px rgba(244, 122, 31, 0.5);
+}
+
+.btn-primary:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 10px rgba(244, 122, 31, 0.4);
 }
 
 .btn-secondary {
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid var(--border-color);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border-subtle);
   color: var(--text-primary);
 }
 
-.btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.15);
-  border-color: var(--accent-indigo);
+.btn-secondary:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(244, 122, 31, 0.45);
 }
 
 .btn-danger {
-  background: rgba(244, 63, 94, 0.15);
-  border: 1px solid var(--accent-rose);
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid var(--error);
   color: #fff;
 }
 
-.btn-danger:hover {
-  background: var(--accent-rose);
+.btn-danger:hover:not(:disabled) {
+  background: var(--error);
   box-shadow: var(--neon-glow-rose);
   transform: translateY(-2px);
 }
@@ -159,10 +204,11 @@ h1, h2, h3, h4, h5, h6 {
   gap: 4px;
 }
 
-.badge-blue { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); }
-.badge-emerald { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
-.badge-rose { background: rgba(244, 63, 94, 0.15); color: #fb7185; border: 1px solid rgba(244, 63, 94, 0.3); }
+.badge-blue { background: rgba(56, 189, 248, 0.15); color: #7dd3fc; border: 1px solid rgba(56, 189, 248, 0.3); }
+.badge-emerald { background: rgba(34, 197, 94, 0.15); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); }
+.badge-rose { background: rgba(239, 68, 68, 0.15); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); }
 .badge-amber { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+.badge-brand { background: rgba(244, 122, 31, 0.15); color: #fb923c; border: 1px solid rgba(244, 122, 31, 0.3); }
 
 /* Form Elements */
 .form-group {
@@ -180,18 +226,22 @@ h1, h2, h3, h4, h5, h6 {
 .form-control {
   width: 100%;
   background: rgba(17, 24, 39, 0.8);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
   padding: 12px;
   color: #fff;
   font-family: var(--font-body);
   transition: var(--transition-smooth);
 }
 
+.form-control::placeholder {
+  color: var(--text-muted);
+}
+
 .form-control:focus {
   outline: none;
-  border-color: var(--accent-indigo);
-  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px var(--brand-glow);
 }
 
 /* Animations */
@@ -201,11 +251,37 @@ h1, h2, h3, h4, h5, h6 {
   100% { transform: scale(1); opacity: 0.6; }
 }
 
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+
+/* Loading utilities */
+.spinner {
+  width: 28px;
+  height: 28px;
+  border: 3px solid rgba(255, 255, 255, 0.1);
+  border-top-color: var(--brand);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.skeleton {
+  border-radius: 8px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.04) 25%, rgba(255, 255, 255, 0.09) 50%, rgba(255, 255, 255, 0.04) 75%);
+  background-size: 800px 100%;
+  animation: shimmer 1.4s linear infinite;
+}
+
 /* Tabs styles */
 .tabs-header {
   display: flex;
   gap: 8px;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-subtle);
   margin-bottom: 24px;
   overflow-x: auto;
 }
@@ -228,8 +304,8 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .tab-btn.active {
-  color: var(--accent-indigo);
-  border-bottom-color: var(--accent-indigo);
+  color: var(--brand);
+  border-bottom-color: var(--brand);
 }
 
 /* Scrollbar customization */
@@ -239,14 +315,20 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--bg-main);
+  background: var(--bg-app);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--border-color);
+  background: rgba(255, 255, 255, 0.12);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--accent-indigo);
+  background: var(--brand);
+}
+
+/* Selection */
+::selection {
+  background: var(--brand-glow);
+  color: var(--text-primary);
 }

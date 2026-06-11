@@ -16,7 +16,7 @@ export const REPORT_TYPE_LABEL: Record<LocalReportType, string> = {
 };
 
 export const REPORT_TYPE_COLOR: Record<LocalReportType, string> = {
-  internal_summary:  '#818cf8',
+  internal_summary:  '#fb923c',
   client_summary:    '#34d399',
   campaign_progress: '#60a5fa',
   content_status:    '#f59e0b',
@@ -58,7 +58,7 @@ export const CONTENT_STATUS_COLOR: Record<string, string> = {
   needs_review:       '#f59e0b',
   revision_requested: '#fb923c',
   approved:           '#34d399',
-  scheduled:          '#818cf8',
+  scheduled:          '#fb923c',
   published:          '#10b981',
   rejected:           '#f87171',
   archived:           '#71717a',

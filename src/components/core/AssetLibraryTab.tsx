@@ -302,7 +302,7 @@ function AssetForm({
         <button
           onClick={() => valid && !saving && onSave(form)}
           disabled={!valid || saving}
-          style={{ background: (valid && !saving) ? 'rgba(99,102,241,0.2)' : 'rgba(255,255,255,0.04)', border: `1px solid ${(valid && !saving) ? 'rgba(99,102,241,0.5)' : 'var(--border-color)'}`, color: (valid && !saving) ? '#818cf8' : 'var(--text-muted)', borderRadius: '7px', padding: '8px 20px', cursor: (valid && !saving) ? 'pointer' : 'not-allowed', fontSize: '0.85rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}
+          style={{ background: (valid && !saving) ? 'rgba(244, 122, 31,0.2)' : 'rgba(255,255,255,0.04)', border: `1px solid ${(valid && !saving) ? 'rgba(244, 122, 31,0.5)' : 'var(--border-color)'}`, color: (valid && !saving) ? '#fb923c' : 'var(--text-muted)', borderRadius: '7px', padding: '8px 20px', cursor: (valid && !saving) ? 'pointer' : 'not-allowed', fontSize: '0.85rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}
         >
           <Check size={14} /> {saving ? 'Saving…' : 'Save Asset'}
         </button>
@@ -358,7 +358,7 @@ function AssetCard({
         {/* Tags (3 max) */}
         <div style={{ display: 'flex', gap: '4px', flexShrink: 0 }}>
           {asset.tags.slice(0, 2).map(tag => (
-            <span key={tag} style={{ fontSize: '0.62rem', fontWeight: 600, padding: '2px 6px', borderRadius: '8px', background: 'rgba(99,102,241,0.1)', color: '#818cf8', border: '1px solid rgba(99,102,241,0.2)' }}>
+            <span key={tag} style={{ fontSize: '0.62rem', fontWeight: 600, padding: '2px 6px', borderRadius: '8px', background: 'rgba(244, 122, 31,0.1)', color: '#fb923c', border: '1px solid rgba(244, 122, 31,0.2)' }}>
               {tag}
             </span>
           ))}
@@ -431,7 +431,7 @@ function AssetCard({
                 <p style={{ fontSize: '0.7rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px' }}>Tags</p>
                 <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                   {asset.tags.map(tag => (
-                    <span key={tag} style={{ fontSize: '0.72rem', fontWeight: 600, padding: '3px 8px', borderRadius: '10px', background: 'rgba(99,102,241,0.1)', color: '#818cf8', border: '1px solid rgba(99,102,241,0.2)' }}>
+                    <span key={tag} style={{ fontSize: '0.72rem', fontWeight: 600, padding: '3px 8px', borderRadius: '10px', background: 'rgba(244, 122, 31,0.1)', color: '#fb923c', border: '1px solid rgba(244, 122, 31,0.2)' }}>
                       {tag}
                     </span>
                   ))}
@@ -451,7 +451,7 @@ function AssetCard({
             <div style={{ display: 'flex', gap: '8px' }}>
               <button
                 onClick={() => onEdit(asset)}
-                style={{ display: 'flex', alignItems: 'center', gap: '5px', background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.3)', color: '#818cf8', borderRadius: '7px', padding: '6px 14px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600 }}
+                style={{ display: 'flex', alignItems: 'center', gap: '5px', background: 'rgba(244, 122, 31,0.1)', border: '1px solid rgba(244, 122, 31,0.3)', color: '#fb923c', borderRadius: '7px', padding: '6px 14px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600 }}
               >
                 <Edit2 size={12} /> Edit Metadata
               </button>
@@ -628,7 +628,7 @@ export default function AssetLibraryTab({
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <button onClick={() => setView('list')} style={{ background: 'transparent', border: 'none', color: '#818cf8', cursor: 'pointer', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '5px' }}>← Back to Library</button>
+          <button onClick={() => setView('list')} style={{ background: 'transparent', border: 'none', color: '#fb923c', cursor: 'pointer', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '5px' }}>← Back to Library</button>
           <h2 style={{ fontSize: '1.2rem', fontWeight: 700 }}>New Asset Metadata</h2>
         </div>
         <AssetSafetyBanner />
@@ -646,7 +646,7 @@ export default function AssetLibraryTab({
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <button onClick={() => { setView('list'); setEditingAsset(null); }} style={{ background: 'transparent', border: 'none', color: '#818cf8', cursor: 'pointer', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '5px' }}>← Back to Library</button>
+          <button onClick={() => { setView('list'); setEditingAsset(null); }} style={{ background: 'transparent', border: 'none', color: '#fb923c', cursor: 'pointer', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '5px' }}>← Back to Library</button>
           <h2 style={{ fontSize: '1.2rem', fontWeight: 700 }}>Edit Asset — {editingAsset.name}</h2>
         </div>
         <AssetSafetyBanner />
@@ -687,7 +687,7 @@ export default function AssetLibraryTab({
           {canManage && (
             <button
               onClick={() => setView('create')}
-              style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.4)', color: '#818cf8', borderRadius: '8px', padding: '8px 16px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600 }}
+              style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(244, 122, 31,0.15)', border: '1px solid rgba(244, 122, 31,0.4)', color: '#fb923c', borderRadius: '8px', padding: '8px 16px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600 }}
             >
               <Plus size={14} /> New Asset
             </button>

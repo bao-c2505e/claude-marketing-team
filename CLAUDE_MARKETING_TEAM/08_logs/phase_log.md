@@ -6,6 +6,17 @@ Nhật ký theo dõi các mốc hoàn thành kỹ thuật qua các Phase.
 
 ## 📅 Nhật Ký Sự Kiện (Event Logs)
 
+### 🗓️ Ngày 11/06/2026 — V2-B (Owner-directed) — Premium Dark SaaS UI Polish ✅ DONE
+*(Naming note: Owner gọi task này là "V2-B — Premium Dark SaaS UI Polish". Trong `PHASE_19_VER2_ROADMAP.md`, UI polish vốn được liệt kê là V2-E còn V2-B là Supabase staging — entry này theo naming của Owner.)*
+- **Sự kiện:** Hoàn tất UI polish theo phong cách premium dark AI SaaS cho The Core Agency. **UI/CSS/theme/label only — KHÔNG đổi product behavior, data flow, repository logic, Supabase, UUID gating, tenant scope, sanitizers, RLS, auth, tests.**
+- **Theme mới:** token system trong `src/index.css` — nền #070A0F, surface #0F172A/#111827/#151F32, border rgba(255,255,255,0.08), **Brand Orange #F47A1F** (hover #E7680B, glow rgba(244,122,31,0.22)) thay thế indigo; semantic success/warning/error/info. Legacy var names (`--accent-indigo`…) giữ làm alias trỏ sang token mới nên toàn bộ ~1.950 inline styles tự ăn theme.
+- **Color sweep:** toàn bộ literal indigo trong src (`#818cf8`→`#fb923c`, `#6366f1`→`#f47a1f`, `rgba(99,102,241,*)`→`rgba(244,122,31,*)`, `rgba(129,140,248,*)`→`rgba(251,146,60,*)`) — 19 files. Category/data-viz colors (`#a78bfa` hashtags/Instagram, blues, emerald, amber) giữ nguyên semantics.
+- **Polish:** Inter font (Google Fonts + font stack); buttons (primary orange gradient + hover/active/disabled/focus-visible), form focus ring orange glow, glass cards radius 18px, tabs/scrollbar/selection orange, spinner + skeleton utilities; header title gradient trắng→cam; auth loading screen có spinner; LoginScreen glass card + orange glow + solid orange submit; badge `badge-indigo`→`badge-brand`.
+- **Build:** PASS — 0 TS errors (`tsc && vite build`, 1575 modules). `npm run test`: 45/45 PASS.
+- **Trạng thái:** ✅ DONE.
+
+---
+
 ### 🗓️ Ngày 11/06/2026 — Naming cleanup: "Phase 19" → Post-MVP / Ver2 Planning workstream
 - **Sự kiện:** Làm rõ naming sau khi đóng Core MVP. **Core MVP = 18/18 phases, CLOSED — Phase 18 là phase MVP cuối cùng; không thêm MVP phase nào nữa.** Công việc "Phase 19" trước đó được reframe thành **Post-MVP / Ver2 Planning workstream**; work packages "19A–19F" đổi tên thành **V2-A…V2-F**.
 - **Docs cập nhật:** `PHASE_19_VER2_ROADMAP.md` (thêm naming clarification + đổi 19A–19F → V2-A…V2-F; giữ filename để không vỡ link), `CURRENT_PHASE.md` (header: "CORE MVP CLOSED — 18/18 PHASES COMPLETE | Next workstream: Post-MVP / Ver2 Planning"), `SESSION_SUMMARY.md`, hai log files.

@@ -525,7 +525,7 @@ export const CONTENT_ITEM_STATUS_COLOR: Record<string, string> = {
   needs_review:       '#f59e0b',
   revision_requested: '#fb923c',
   approved:           '#34d399',
-  scheduled:          '#818cf8',
+  scheduled:          '#fb923c',
   published:          '#10b981',
   rejected:           '#f87171',
   archived:           '#71717a',
@@ -1102,7 +1102,7 @@ export const ASSET_TYPE_LABEL: Record<AssetType, string> = {
 
 export const ASSET_TYPE_COLOR: Record<AssetType, string> = {
   image:        '#60a5fa',
-  video:        '#818cf8',
+  video:        '#fb923c',
   design:       '#f59e0b',
   document:     '#94a3b8',
   logo:         '#34d399',

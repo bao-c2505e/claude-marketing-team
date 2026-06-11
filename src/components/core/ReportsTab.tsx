@@ -40,11 +40,11 @@ function ReportSafetyBanner() {
   return (
     <div style={{
       padding: '10px 16px', borderRadius: '8px',
-      background: 'rgba(99,102,241,0.07)', border: '1px solid rgba(99,102,241,0.28)',
+      background: 'rgba(244, 122, 31,0.07)', border: '1px solid rgba(244, 122, 31,0.28)',
       display: 'flex', alignItems: 'center', gap: '10px',
     }}>
-      <Shield size={14} style={{ color: '#818cf8', flexShrink: 0 }} />
-      <span style={{ fontSize: '0.8rem', color: '#818cf8', lineHeight: 1.5 }}>
+      <Shield size={14} style={{ color: '#fb923c', flexShrink: 0 }} />
+      <span style={{ fontSize: '0.8rem', color: '#fb923c', lineHeight: 1.5 }}>
         <strong>Reports use Core workspace data only.</strong>{' '}
         No real platform analytics (Meta, Google, TikTok) are connected in this MVP.
         No ads spend data. Report figures are workspace progress metrics, not real campaign performance.
@@ -234,7 +234,7 @@ export default function ReportsTab({
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
           <h2 style={{ fontSize: '1.4rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <BarChart2 size={22} style={{ color: '#818cf8' }} /> Reports
+            <BarChart2 size={22} style={{ color: '#fb923c' }} /> Reports
           </h2>
           <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '2px' }}>
             Campaign progress, content status, and approval summaries.
@@ -296,7 +296,7 @@ export default function ReportsTab({
           {canGenerate ? (
             <button
               onClick={handleGenerate}
-              style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.4)', color: '#818cf8', borderRadius: '8px', padding: '8px 20px', cursor: 'pointer', fontSize: '0.88rem', fontWeight: 600 }}
+              style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(244, 122, 31,0.15)', border: '1px solid rgba(244, 122, 31,0.4)', color: '#fb923c', borderRadius: '8px', padding: '8px 20px', cursor: 'pointer', fontSize: '0.88rem', fontWeight: 600 }}
             >
               <RefreshCw size={14} /> Generate Report
             </button>
@@ -401,8 +401,8 @@ export default function ReportsTab({
               label="Campaign Progress"
               value={`${m.campaign_progress_percent}%`}
               sub="Content approved / total"
-              color="#818cf8"
-              icon={<TrendingUp size={16} style={{ color: '#818cf8' }} />}
+              color="#fb923c"
+              icon={<TrendingUp size={16} style={{ color: '#fb923c' }} />}
             />
           </div>
 
@@ -410,10 +410,10 @@ export default function ReportsTab({
           <div className="glass-panel" style={{ padding: '16px 20px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
               <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Campaign Approval Progress</span>
-              <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#818cf8' }}>{m.campaign_progress_percent}%</span>
+              <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#fb923c' }}>{m.campaign_progress_percent}%</span>
             </div>
             <div style={{ height: '10px', borderRadius: '5px', background: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
-              <div style={{ width: `${m.campaign_progress_percent}%`, height: '100%', background: 'linear-gradient(90deg, #818cf8, #34d399)', borderRadius: '5px', transition: 'width 0.5s ease' }} />
+              <div style={{ width: `${m.campaign_progress_percent}%`, height: '100%', background: 'linear-gradient(90deg, #fb923c, #34d399)', borderRadius: '5px', transition: 'width 0.5s ease' }} />
             </div>
             <div style={{ display: 'flex', gap: '16px', marginTop: '10px', flexWrap: 'wrap' }}>
               {[

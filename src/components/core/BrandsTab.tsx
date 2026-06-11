@@ -122,7 +122,7 @@ export default function BrandsTab({
               <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: '8px' }}>Channels</p>
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                 {brand.primary_channels.map(ch => (
-                  <span key={ch} style={{ fontSize: '0.78rem', color: '#818cf8', background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.25)', borderRadius: '5px', padding: '2px 10px' }}>{ch}</span>
+                  <span key={ch} style={{ fontSize: '0.78rem', color: '#fb923c', background: 'rgba(244, 122, 31,0.1)', border: '1px solid rgba(244, 122, 31,0.25)', borderRadius: '5px', padding: '2px 10px' }}>{ch}</span>
                 ))}
               </div>
             </div>
@@ -168,7 +168,7 @@ export default function BrandsTab({
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <Store size={20} style={{ color: 'var(--accent-indigo)' }} />
           <h2 style={{ fontSize: '1.3rem', fontWeight: 700 }}>Brands</h2>
-          <span style={{ fontSize: '0.72rem', fontWeight: 600, color: '#818cf8', background: 'rgba(99,102,241,0.12)', borderRadius: '5px', padding: '2px 8px' }}>
+          <span style={{ fontSize: '0.72rem', fontWeight: 600, color: '#fb923c', background: 'rgba(244, 122, 31,0.12)', borderRadius: '5px', padding: '2px 8px' }}>
             {filteredBrands.length}
           </span>
           {!isSupabaseConfigured && (
@@ -197,7 +197,7 @@ export default function BrandsTab({
 
       {/* Create form */}
       {showForm && canManage && (
-        <div className="glass-panel" style={{ padding: '20px', border: '1px solid rgba(99,102,241,0.3)' }}>
+        <div className="glass-panel" style={{ padding: '20px', border: '1px solid rgba(244, 122, 31,0.3)' }}>
           <h3 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: '16px', color: 'var(--accent-indigo)' }}>New Brand</h3>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
             <div>
@@ -266,7 +266,7 @@ export default function BrandsTab({
                 {b.primary_channels && b.primary_channels.length > 0 && (
                   <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
                     {b.primary_channels.map(ch => (
-                      <span key={ch} style={{ fontSize: '0.7rem', color: '#818cf8', background: 'rgba(99,102,241,0.1)', borderRadius: '4px', padding: '1px 7px' }}>{ch}</span>
+                      <span key={ch} style={{ fontSize: '0.7rem', color: '#fb923c', background: 'rgba(244, 122, 31,0.1)', borderRadius: '4px', padding: '1px 7px' }}>{ch}</span>
                     ))}
                   </div>
                 )}

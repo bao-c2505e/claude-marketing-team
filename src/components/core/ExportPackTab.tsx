@@ -203,7 +203,7 @@ export default function ExportPackTab({
       {/* ── Header ── */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <Package size={20} style={{ color: '#818cf8' }} />
+          <Package size={20} style={{ color: '#fb923c' }} />
           <h2 style={{ fontSize: '1.2rem', fontWeight: 700, margin: 0 }}>Export Pack</h2>
           <StatusBadge label="Local export only" color="#f59e0b" />
           {!isSupabaseConfigured && <StatusBadge label="Demo mode" color="#71717a" />}
@@ -214,9 +214,9 @@ export default function ExportPackTab({
             style={{
               display: 'flex', alignItems: 'center', gap: '6px',
               padding: '6px 14px', borderRadius: '7px', fontSize: '0.8rem',
-              background: showHistory ? 'rgba(99,102,241,0.15)' : 'rgba(255,255,255,0.04)',
-              border: `1px solid ${showHistory ? 'rgba(99,102,241,0.4)' : 'var(--border-color)'}`,
-              color: showHistory ? '#818cf8' : 'var(--text-secondary)',
+              background: showHistory ? 'rgba(244, 122, 31,0.15)' : 'rgba(255,255,255,0.04)',
+              border: `1px solid ${showHistory ? 'rgba(244, 122, 31,0.4)' : 'var(--border-color)'}`,
+              color: showHistory ? '#fb923c' : 'var(--text-secondary)',
               cursor: 'pointer',
             }}
           >
@@ -341,12 +341,12 @@ export default function ExportPackTab({
                   style={{
                     display: 'flex', flexDirection: 'column', alignItems: 'flex-start',
                     padding: '10px 12px', borderRadius: '8px', textAlign: 'left',
-                    background: selectedExportType === type ? 'rgba(99,102,241,0.12)' : 'rgba(255,255,255,0.02)',
-                    border: `1px solid ${selectedExportType === type ? 'rgba(99,102,241,0.45)' : 'var(--border-color)'}`,
+                    background: selectedExportType === type ? 'rgba(244, 122, 31,0.12)' : 'rgba(255,255,255,0.02)',
+                    border: `1px solid ${selectedExportType === type ? 'rgba(244, 122, 31,0.45)' : 'var(--border-color)'}`,
                     cursor: 'pointer',
                   }}
                 >
-                  <span style={{ fontSize: '0.82rem', fontWeight: 600, color: selectedExportType === type ? '#818cf8' : 'var(--text-primary)' }}>
+                  <span style={{ fontSize: '0.82rem', fontWeight: 600, color: selectedExportType === type ? '#fb923c' : 'var(--text-primary)' }}>
                     {EXPORT_PACK_TYPE_LABEL[type]}
                   </span>
                   <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '2px' }}>
@@ -371,9 +371,9 @@ export default function ExportPackTab({
                   onClick={() => setSelectedFormat(fmt)}
                   style={{
                     flex: 1, padding: '7px 6px', borderRadius: '7px', fontSize: '0.75rem', fontWeight: 600,
-                    background: selectedFormat === fmt ? 'rgba(99,102,241,0.15)' : 'rgba(255,255,255,0.03)',
-                    border: `1px solid ${selectedFormat === fmt ? 'rgba(99,102,241,0.5)' : 'var(--border-color)'}`,
-                    color: selectedFormat === fmt ? '#818cf8' : 'var(--text-secondary)',
+                    background: selectedFormat === fmt ? 'rgba(244, 122, 31,0.15)' : 'rgba(255,255,255,0.03)',
+                    border: `1px solid ${selectedFormat === fmt ? 'rgba(244, 122, 31,0.5)' : 'var(--border-color)'}`,
+                    color: selectedFormat === fmt ? '#fb923c' : 'var(--text-secondary)',
                     cursor: 'pointer',
                   }}
                 >
@@ -391,9 +391,9 @@ export default function ExportPackTab({
               style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
                 padding: '12px', borderRadius: '9px', fontSize: '0.9rem', fontWeight: 700,
-                background: isGenerating ? 'rgba(99,102,241,0.3)' : 'rgba(99,102,241,0.2)',
-                border: '1px solid rgba(99,102,241,0.5)',
-                color: '#818cf8', cursor: isGenerating ? 'not-allowed' : 'pointer',
+                background: isGenerating ? 'rgba(244, 122, 31,0.3)' : 'rgba(244, 122, 31,0.2)',
+                border: '1px solid rgba(244, 122, 31,0.5)',
+                color: '#fb923c', cursor: isGenerating ? 'not-allowed' : 'pointer',
                 transition: 'all 0.15s',
               }}
             >
@@ -449,9 +449,9 @@ export default function ExportPackTab({
                     style={{
                       display: 'flex', alignItems: 'center', gap: '6px',
                       padding: '7px 14px', borderRadius: '7px', fontSize: '0.8rem', fontWeight: 600,
-                      background: copied ? 'rgba(52,211,153,0.15)' : 'rgba(99,102,241,0.15)',
-                      border: `1px solid ${copied ? 'rgba(52,211,153,0.4)' : 'rgba(99,102,241,0.4)'}`,
-                      color: copied ? '#34d399' : '#818cf8', cursor: 'pointer',
+                      background: copied ? 'rgba(52,211,153,0.15)' : 'rgba(244, 122, 31,0.15)',
+                      border: `1px solid ${copied ? 'rgba(52,211,153,0.4)' : 'rgba(244, 122, 31,0.4)'}`,
+                      color: copied ? '#34d399' : '#fb923c', cursor: 'pointer',
                       transition: 'all 0.15s',
                     }}
                   >

@@ -191,7 +191,7 @@ export default function CampaignsTab({ clients, brands, campaigns, onCampaignCre
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <Zap size={20} style={{ color: 'var(--accent-indigo)' }} />
           <h2 style={{ fontSize: '1.3rem', fontWeight: 700 }}>Campaigns</h2>
-          <span style={{ fontSize: '0.72rem', fontWeight: 600, color: '#818cf8', background: 'rgba(99,102,241,0.12)', borderRadius: '5px', padding: '2px 8px' }}>
+          <span style={{ fontSize: '0.72rem', fontWeight: 600, color: '#fb923c', background: 'rgba(244, 122, 31,0.12)', borderRadius: '5px', padding: '2px 8px' }}>
             {filteredCampaigns.length}
           </span>
           {!isSupabaseConfigured && (
@@ -229,7 +229,7 @@ export default function CampaignsTab({ clients, brands, campaigns, onCampaignCre
 
       {/* Create form */}
       {showForm && canCreate && (
-        <div className="glass-panel" style={{ padding: '20px', border: '1px solid rgba(99,102,241,0.3)' }}>
+        <div className="glass-panel" style={{ padding: '20px', border: '1px solid rgba(244, 122, 31,0.3)' }}>
           <h3 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: '16px', color: 'var(--accent-indigo)' }}>New Campaign</h3>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
             <div>

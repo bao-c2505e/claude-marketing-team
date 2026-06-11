@@ -166,7 +166,7 @@ export default function ClientsTab({
                 {clientBrands.map(b => (
                   <button key={b.id}
                     onClick={() => onNavigate('brands', { clientId: client.id })}
-                    style={{ background: 'rgba(99,102,241,0.07)', border: '1px solid rgba(99,102,241,0.25)', borderRadius: '8px', padding: '8px 14px', cursor: 'pointer', fontSize: '0.85rem', color: '#818cf8', fontWeight: 600 }}>
+                    style={{ background: 'rgba(244, 122, 31,0.07)', border: '1px solid rgba(244, 122, 31,0.25)', borderRadius: '8px', padding: '8px 14px', cursor: 'pointer', fontSize: '0.85rem', color: '#fb923c', fontWeight: 600 }}>
                     {b.name}
                   </button>
                 ))}
@@ -188,7 +188,7 @@ export default function ClientsTab({
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <Users size={20} style={{ color: 'var(--accent-indigo)' }} />
           <h2 style={{ fontSize: '1.3rem', fontWeight: 700 }}>Clients</h2>
-          <span style={{ fontSize: '0.72rem', fontWeight: 600, color: '#818cf8', background: 'rgba(99,102,241,0.12)', borderRadius: '5px', padding: '2px 8px' }}>
+          <span style={{ fontSize: '0.72rem', fontWeight: 600, color: '#fb923c', background: 'rgba(244, 122, 31,0.12)', borderRadius: '5px', padding: '2px 8px' }}>
             {clients.length}
           </span>
           {!isSupabaseConfigured && (
@@ -214,7 +214,7 @@ export default function ClientsTab({
 
       {/* Create form */}
       {showForm && canManage && (
-        <div className="glass-panel" style={{ padding: '20px', border: '1px solid rgba(99,102,241,0.3)' }}>
+        <div className="glass-panel" style={{ padding: '20px', border: '1px solid rgba(244, 122, 31,0.3)' }}>
           <h3 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: '16px', color: 'var(--accent-indigo)' }}>New Client</h3>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
             {([

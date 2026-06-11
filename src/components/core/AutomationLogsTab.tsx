@@ -204,11 +204,11 @@ export default function AutomationLogsTab({
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
 
       {/* Header */}
-      <div className="glass-panel" style={{ padding: '20px 24px', borderLeft: '4px solid #818cf8' }}>
+      <div className="glass-panel" style={{ padding: '20px 24px', borderLeft: '4px solid #fb923c' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
-              <Activity size={20} style={{ color: '#818cf8' }} />
+              <Activity size={20} style={{ color: '#fb923c' }} />
               <h2 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
                 Automation Logs
               </h2>
@@ -240,16 +240,16 @@ export default function AutomationLogsTab({
       </div>
 
       {/* Safety disclaimer */}
-      <div style={{ padding: '10px 16px', background: 'rgba(99,102,241,0.06)', border: '1px solid rgba(99,102,241,0.2)', borderRadius: '8px', display: 'flex', flexWrap: 'wrap', gap: '14px', alignItems: 'center' }}>
-        <Shield size={14} style={{ color: '#818cf8', flexShrink: 0 }} />
+      <div style={{ padding: '10px 16px', background: 'rgba(244, 122, 31,0.06)', border: '1px solid rgba(244, 122, 31,0.2)', borderRadius: '8px', display: 'flex', flexWrap: 'wrap', gap: '14px', alignItems: 'center' }}>
+        <Shield size={14} style={{ color: '#fb923c', flexShrink: 0 }} />
         <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-          <strong style={{ color: '#818cf8' }}>Safety:</strong> Logs are local/mock only &nbsp;·&nbsp; No real workflow execution &nbsp;·&nbsp; No real webhook retry &nbsp;·&nbsp; No external API calls &nbsp;·&nbsp; No auto-post &nbsp;·&nbsp; No real ads &nbsp;·&nbsp; No customer messaging &nbsp;·&nbsp; Production automation requires owner approval.
+          <strong style={{ color: '#fb923c' }}>Safety:</strong> Logs are local/mock only &nbsp;·&nbsp; No real workflow execution &nbsp;·&nbsp; No real webhook retry &nbsp;·&nbsp; No external API calls &nbsp;·&nbsp; No auto-post &nbsp;·&nbsp; No real ads &nbsp;·&nbsp; No customer messaging &nbsp;·&nbsp; Production automation requires owner approval.
         </span>
       </div>
 
       {/* Create mock log form */}
       {showMockForm && canManage && (
-        <div className="glass-panel" style={{ padding: '18px 20px', border: '1px solid rgba(99,102,241,0.25)' }}>
+        <div className="glass-panel" style={{ padding: '18px 20px', border: '1px solid rgba(244, 122, 31,0.25)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
             <span style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-primary)' }}>Create Mock Log</span>
             <button onClick={() => setShowMockForm(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}>
@@ -283,7 +283,7 @@ export default function AutomationLogsTab({
       {/* Stats row */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '12px' }}>
         {[
-          { label: 'Total Logs',    value: stats.total,      color: '#818cf8', icon: <Activity size={16} /> },
+          { label: 'Total Logs',    value: stats.total,      color: '#fb923c', icon: <Activity size={16} /> },
           { label: 'Warnings',      value: stats.warnings,   color: '#f59e0b', icon: <AlertTriangle size={16} /> },
           { label: 'Errors',        value: stats.errors,     color: '#f87171', icon: <XCircle size={16} /> },
           { label: 'Unresolved',    value: stats.unresolved, color: '#fb923c', icon: <Eye size={16} /> },
@@ -307,7 +307,7 @@ export default function AutomationLogsTab({
           {hasFilters && (
             <button
               onClick={clearFilters}
-              style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.75rem', color: '#818cf8' }}
+              style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.75rem', color: '#fb923c' }}
             >
               Clear filters
             </button>
@@ -471,7 +471,7 @@ export default function AutomationLogsTab({
                           {log.status !== 'reviewed' && (
                             <button
                               onClick={() => handleStatusUpdate(log.id, 'reviewed')}
-                              style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '5px 12px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 600, border: '1px solid rgba(129,140,248,0.4)', cursor: 'pointer', background: 'rgba(99,102,241,0.1)', color: '#818cf8' }}
+                              style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '5px 12px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 600, border: '1px solid rgba(251, 146, 60,0.4)', cursor: 'pointer', background: 'rgba(244, 122, 31,0.1)', color: '#fb923c' }}
                             >
                               <Eye size={12} /> Mark Reviewed
                             </button>
@@ -513,7 +513,7 @@ function RelatedChip({ label, value }: { label: string; value: string }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border-color)', borderRadius: '4px', padding: '2px 8px' }}>
       <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 600 }}>{label}:</span>
-      <span style={{ fontSize: '0.68rem', color: '#818cf8', fontFamily: 'monospace' }}>{value}</span>
+      <span style={{ fontSize: '0.68rem', color: '#fb923c', fontFamily: 'monospace' }}>{value}</span>
     </div>
   );
 }

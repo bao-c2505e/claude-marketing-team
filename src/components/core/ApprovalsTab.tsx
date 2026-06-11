@@ -297,8 +297,8 @@ function RequestCard({
       style={{
         display: 'flex', alignItems: 'center', gap: '10px',
         padding: '12px 14px',
-        background: isSelected ? 'rgba(99,102,241,0.08)' : 'rgba(255,255,255,0.02)',
-        border: `1px solid ${isSelected ? 'rgba(99,102,241,0.4)' : 'var(--border-color)'}`,
+        background: isSelected ? 'rgba(244, 122, 31,0.08)' : 'rgba(255,255,255,0.02)',
+        border: `1px solid ${isSelected ? 'rgba(244, 122, 31,0.4)' : 'var(--border-color)'}`,
         borderRadius: '8px',
         cursor: 'pointer',
         transition: 'all 0.15s',
@@ -439,7 +439,7 @@ function DetailView({
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-              <ClipboardCheck size={16} style={{ color: '#818cf8' }} />
+              <ClipboardCheck size={16} style={{ color: '#fb923c' }} />
               <h2 style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0 }}>Approval Request</h2>
             </div>
             <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: 0 }}>
@@ -472,7 +472,7 @@ function DetailView({
       {/* Content preview */}
       {item && (
         <div className="glass-panel" style={{ padding: '20px' }}>
-          <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#818cf8', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#fb923c', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
             Content Preview — Day {item.day_number} · {item.channel} · {formatDate(item.planned_date)}
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -579,7 +579,7 @@ function DetailView({
       {/* Comment form */}
       <div className="glass-panel" style={{ padding: '16px' }}>
         <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <MessageSquare size={14} style={{ color: '#818cf8' }} /> Add Comment
+          <MessageSquare size={14} style={{ color: '#fb923c' }} /> Add Comment
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>
           <textarea
@@ -591,7 +591,7 @@ function DetailView({
           <button
             onClick={handleComment}
             disabled={!commentText.trim() || commentLoading}
-            style={{ ...btnBase, alignSelf: 'flex-end', background: commentText.trim() ? 'rgba(99,102,241,0.2)' : 'rgba(255,255,255,0.04)', border: `1px solid ${commentText.trim() ? 'rgba(99,102,241,0.4)' : 'var(--border-color)'}`, color: commentText.trim() ? '#818cf8' : 'var(--text-muted)', cursor: commentText.trim() && !commentLoading ? 'pointer' : 'not-allowed', opacity: commentLoading ? 0.6 : 1 }}
+            style={{ ...btnBase, alignSelf: 'flex-end', background: commentText.trim() ? 'rgba(244, 122, 31,0.2)' : 'rgba(255,255,255,0.04)', border: `1px solid ${commentText.trim() ? 'rgba(244, 122, 31,0.4)' : 'var(--border-color)'}`, color: commentText.trim() ? '#fb923c' : 'var(--text-muted)', cursor: commentText.trim() && !commentLoading ? 'pointer' : 'not-allowed', opacity: commentLoading ? 0.6 : 1 }}
           >
             <Send size={13} /> {commentLoading ? 'Sending…' : 'Send'}
           </button>
@@ -611,7 +611,7 @@ function DetailView({
             {comments.map(c => (
               <div key={c.id} style={{ padding: '10px 12px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-color)', borderRadius: '7px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.72rem', fontWeight: 700, color: '#818cf8' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.72rem', fontWeight: 700, color: '#fb923c' }}>
                     <User size={11} /> {c.actor_label}
                   </div>
                   <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>{formatDateTime(c.created_at)}</span>
@@ -626,7 +626,7 @@ function DetailView({
       {/* History timeline */}
       <div className="glass-panel" style={{ padding: '16px' }}>
         <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <Clock size={14} style={{ color: '#818cf8' }} /> Approval History
+          <Clock size={14} style={{ color: '#fb923c' }} /> Approval History
         </div>
         {events.length === 0 ? (
           <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>No events yet.</div>
@@ -752,7 +752,7 @@ export default function ApprovalsTab({
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div>
           <h2 style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <ClipboardCheck size={20} style={{ color: '#818cf8' }} />
+            <ClipboardCheck size={20} style={{ color: '#fb923c' }} />
             Approvals
           </h2>
           <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: '4px 0 0' }}>
@@ -819,7 +819,7 @@ export default function ApprovalsTab({
         <div className="glass-panel" style={{ padding: '40px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
           <Filter size={28} style={{ color: 'var(--text-muted)' }} />
           <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>No requests match the current filters.</div>
-          <button onClick={() => setFilters({ clientId: '', brandId: '', campaignId: '', status: '', priority: '' })} style={{ fontSize: '0.78rem', color: '#818cf8', background: 'transparent', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>
+          <button onClick={() => setFilters({ clientId: '', brandId: '', campaignId: '', status: '', priority: '' })} style={{ fontSize: '0.78rem', color: '#fb923c', background: 'transparent', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>
             Clear filters
           </button>
         </div>

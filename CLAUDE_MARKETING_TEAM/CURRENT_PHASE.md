@@ -1,9 +1,46 @@
-# CURRENT PHASE — 🏁 CORE MVP CLOSED — 18/18 PHASES COMPLETE (2026-06-11) | Next workstream: Post-MVP / Ver2 Planning (roadmap ✅ DONE — 2026-06-11) | Phase 18 ✅ CLOSED (Codex PASS — 2026-06-11) | Phase 17 ✅ CLOSED (Codex PASS — 2026-06-11) | Phase 16D ✅ CLOSED (Codex PASS — 2026-06-11) | Phase 16C-2 ✅ CLOSED (Codex PASS — 2026-06-11) | Phase 16C-1 ✅ CLOSED (Codex PASS — 2026-06-11) | Phase 16B-2 ✅ CLOSED (Codex PASS — 2026-06-10) | Phase 16B-1 ✅ CLOSED (Codex PASS — 2026-06-10) | Phase 16A ✅ CLOSED (Codex PASS — 2026-06-09)
+# CURRENT PHASE — 🏁 CORE MVP CLOSED — 18/18 PHASES COMPLETE (2026-06-11) | Ver2: V2-B UI Polish (Owner-directed) ✅ DONE (2026-06-11) | Ver2 roadmap ✅ DONE (2026-06-11) | Phase 18 ✅ CLOSED (Codex PASS — 2026-06-11) | Phase 17 ✅ CLOSED (Codex PASS — 2026-06-11) | Phase 16D ✅ CLOSED (Codex PASS — 2026-06-11) | Phase 16C-2 ✅ CLOSED (Codex PASS — 2026-06-11) | Phase 16C-1 ✅ CLOSED (Codex PASS — 2026-06-11) | Phase 16B-2 ✅ CLOSED (Codex PASS — 2026-06-10) | Phase 16B-1 ✅ CLOSED (Codex PASS — 2026-06-10) | Phase 16A ✅ CLOSED (Codex PASS — 2026-06-09)
 
 ## 📌 Thông tin chung
 - **Core MVP:** 🏁 **CLOSED — 18/18 phases complete** (2026-06-11, closure commit `e3f1ed7`; see `CORE_MVP_CLOSURE_REPORT.md`). Phase 18 was the final Core MVP phase. **No further MVP phases exist or will be added.**
 - **Workstream hiện tại:** **Post-MVP / Ver2 Planning** — roadmap ✅ DONE (2026-06-11). **Documentation/planning only** — no product code, no connectors, no secrets, no live automation. Deliverable: `CLAUDE_MARKETING_TEAM/PHASE_19_VER2_ROADMAP.md` (filename keeps its historical prefix; content is the **Ver2 roadmap**, NOT an MVP Phase 19) — Ver2 scope options + priority order + breakdown into work packages **V2-A … V2-F**, each with goal / deliverables / files / safety rules / checks / Codex review focus / Owner approval checkpoint. Build PASS (0 TS errors, 1575 modules), `npm run test` 45/45 PASS.
-- **Tiếp theo:** **V2-A — Manual Browser E2E Pass + Demo Script Verification** (recommended first Ver2 work package — zero risk, no approvals needed to start, closes the MVP's only open verification gap, gates V2-B/V2-D). Pending Owner go-ahead.
+- **Mới hoàn tất:** **V2-B (Owner-directed) — Premium Dark SaaS UI Polish** ✅ DONE (2026-06-11) — theme/CSS/label only, xem section bên dưới. *(Naming note: Owner gọi task này là V2-B; trong roadmap, UI polish vốn là V2-E còn V2-B là Supabase staging.)*
+- **Tiếp theo:** **V2-A — Manual Browser E2E Pass + Demo Script Verification** (recommended first Ver2 work package — zero risk, no approvals needed to start, closes the MVP's only open verification gap, gates Supabase-staging/V2-D). Pending Owner go-ahead.
+
+---
+
+## 🏁 V2-B (Owner-directed) — Premium Dark SaaS UI Polish (DONE — 2026-06-11)
+
+> **Naming note:** Owner labels this task **"V2-B — Premium Dark SaaS UI Polish"**. In `PHASE_19_VER2_ROADMAP.md` the UI-polish package was listed as V2-E (roadmap-V2-B = Supabase staging hardening, NOT started). This section follows the Owner's naming.
+
+### Scope completed (presentation only — zero behavior change):
+- **New theme token system** in `src/index.css` — The Core Agency premium dark SaaS palette: App Background `#070A0F`, Gradient Dark `#0B1120`, Surface `#0F172A` / Soft `#111827` / Elevated `#151F32`, Border `rgba(255,255,255,0.08)`, **Brand Orange `#F47A1F`** (hover `#E7680B`, soft `#FFF1E6`, glow `rgba(244,122,31,0.22)`), semantic Success `#22C55E` / Warning `#F59E0B` / Error `#EF4444` / Info `#38BDF8`. **Legacy CSS var names (`--accent-indigo`, `--bg-main`, `--border-color`…) kept as aliases pointing at the new tokens**, so all ~1,950 existing inline styles inherit the new theme without logic edits.
+- **Color sweep** (19 src files): hardcoded indigo literals → orange (`#818cf8`→`#fb923c`, `#6366f1`→`#f47a1f`, `rgba(99,102,241,*)`→`rgba(244,122,31,*)`, `rgba(129,140,248,*)`→`rgba(251,146,60,*)`), including presentation color maps in `permissions.ts` (owner role color), `coreData.ts`, `reportGenerator.ts`, `automationLogs.ts`. Category/data-viz colors intentionally untouched (`#a78bfa` hashtags/Instagram/asset-status, info blues, emerald, amber, rose).
+- **Typography:** Inter added to the Google Fonts link and set as primary font (`--font-title`/`--font-body`), Plus Jakarta Sans fallback retained.
+- **Component polish (index.css):** primary button = orange gradient with hover-lift/active/disabled/focus-visible states; secondary/danger buttons refined; form `:focus` ring = orange glow; glass cards radius 18px + hover orange border glow; tabs active state orange; scrollbar hover + text selection orange; background = layered radial orange/navy glows (not flat black); new `.spinner` + `.skeleton` loading utilities; new `.badge-brand`.
+- **Shell/Login polish:** header title gradient white→soft orange (`#fdba74`); auth loading screen now branded spinner + "Loading The Core Agency…"; LoginScreen — dark glass card (blur + shadow), top orange radial glow, solid orange gradient submit button, Inter font; `badge-indigo` class renamed `badge-brand` (10 uses).
+- **Naming consistency verified:** visible UI says "The Core Agency"; no "FnB OS V1" / "CLAUDE_MARKETING_TEAM" strings in visible UI (localStorage keys + internal docs/filenames unchanged by design).
+
+### Safety record:
+- Product behavior / data flow / repository logic / Supabase / UUID gating / tenant scope / sanitizers / RLS / auth / tests: **UNCHANGED** — diff is CSS, color literals, class names, font link, and 5 small JSX presentation edits (header h1, loading screen, LoginScreen card/submit/background).
+- Phase 16D/17/18 safeguards: **INTACT** (no edits to `repoRouting.ts`, repositories, sanitizers, migrations, or tests).
+- Build: PASS — 0 TS errors (`tsc && vite build`, 1575 modules). Tests: 45/45 PASS.
+
+### Files changed:
+| File | Change |
+|---|---|
+| `src/index.css` | Rewritten token system + component polish (orange brand, glass, spinner/skeleton) |
+| `index.html` | Inter added to Google Fonts link |
+| `src/App.tsx` | Color sweep; header title gradient; branded loading screen; `badge-brand` |
+| `src/components/auth/LoginScreen.tsx` | Glass card, orange glow background, solid orange submit, Inter |
+| `src/components/core/*.tsx` (13 tabs) | Color sweep only (indigo→orange literals) |
+| `src/lib/auth/permissions.ts`, `src/lib/core/coreData.ts`, `src/lib/core/reportGenerator.ts`, `src/lib/core/automationLogs.ts` | Presentation color maps: indigo→orange |
+| `CLAUDE_MARKETING_TEAM/CURRENT_PHASE.md` / `SESSION_SUMMARY.md` / `08_logs/phase_log.md` / `08_logs/agent_activity_log.md` | V2-B UI polish documentation |
+
+### Manual review pages (Owner visual QA):
+- Login screen; Dashboard; sidebar active states (all tabs); Clients/Brands/Campaigns forms (focus ring); Content Generation cards; Approvals badges; Reports charts (category colors vs orange accent); Client View; Connector Registry; Automation Logs; Manual Export pack blocks; Client Demo script blocks.
+
+### Remaining UI polish opportunities (future):
+- Code-splitting the 920 kB bundle (<500 kB main chunk), ESLint + a11y pass (the roadmap's original UI work package), responsive/mobile pass for the 260px sidebar grid, replacing remaining per-component inline style duplication with shared classes, dark-theme empty-state illustrations, favicon to a branded SVG (currently ⚡ emoji).
 
 ---
 
