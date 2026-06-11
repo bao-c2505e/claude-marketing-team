@@ -1,10 +1,123 @@
-# CURRENT PHASE — Phase 16C-2 ✅ CLOSED (Codex PASS — 2026-06-11) | Phase 16C-1 ✅ CLOSED (Codex PASS — 2026-06-11) | Phase 16B-2 ✅ CLOSED (Codex PASS — 2026-06-10) | Phase 16B-1 ✅ CLOSED (Codex PASS — 2026-06-10) | Phase 16A ✅ CLOSED (Codex PASS — 2026-06-09)
+# CURRENT PHASE — Phase 16D ✅ CLOSED (Codex PASS — 2026-06-11) | Phase 16C-2 ✅ CLOSED (Codex PASS — 2026-06-11) | Phase 16C-1 ✅ CLOSED (Codex PASS — 2026-06-11) | Phase 16B-2 ✅ CLOSED (Codex PASS — 2026-06-10) | Phase 16B-1 ✅ CLOSED (Codex PASS — 2026-06-10) | Phase 16A ✅ CLOSED (Codex PASS — 2026-06-09)
 
 ## 📌 Thông tin chung
-- **Phase trước:** Phase 16C-1 — Content Plan Generation CRUD Wiring
-- **Trạng thái Phase 16C-1:** ✅ CLOSED — repository + App.tsx wired, build PASS (0 TS errors). Two Codex required-fix rounds applied (scoped item reads/archive/sanitizer, then RLS role+hierarchy hardening). Codex result: PASS.
-- **Phase hiện tại:** Phase 16C-2 — Approval CRUD Wiring — ✅ CLOSED (Codex PASS — 2026-06-11). Build PASS (0 TS errors), `git diff --check` PASS. One Codex required-fix round applied: per-operation UUID-gated routing (approvalId/contentItemId), full client→brand→campaign→brief→generation→content_item RLS hierarchy validation, and owner/manager-only INSERT on approval comments/events.
+- **Phase trước:** Phase 16C-2 — Approval CRUD Wiring
+- **Trạng thái Phase 16C-2:** ✅ CLOSED — repository + App.tsx wired, build PASS (0 TS errors). One Codex required-fix round applied (per-operation UUID-gated routing for approvalId/contentItemId, full RLS hierarchy validation, owner/manager-only INSERT on approval comments/events). Codex result: PASS.
+- **Phase hiện tại:** Phase 16D — Asset Library CRUD Wiring — ✅ CLOSED (Codex PASS — 2026-06-11). Build PASS (0 TS errors, 1574 modules). Two Codex required-fix rounds applied: (1) UUID-gate `asset_collection_id` + standalone fully-required `AssetScopedParams` + RLS collection-hierarchy check (7th param), (2) gate BOTH current and next `asset_collection_id` on edit.
 - **Phase tiếp theo:** TBD (pending Owner direction)
+
+---
+
+## 🏁 Phase 16D — Asset Library CRUD Wiring (CLOSED — Codex PASS — 2026-06-11)
+
+### Scope completed:
+- Supabase CRUD repository wiring for **Asset Library** only (Calendar/Reports/Connector Inbox/Automation Logs untouched, deferred to later phases)
+- New **additive** migration `CLAUDE_MARKETING_TEAM/03_core/database/schema_v1_phase16d_asset_extension.sql` creates `content_assets`/`content_asset_collections` tables matching the Phase 10 `AssetItem`/`LocalAssetCollection` TS types. `AssetItem` extended with nullable `brief_id`/`generation_job_id` (additive — old localStorage data normalized via `loadAssetData()`). RLS enabled with hierarchy-validated policies. All `CREATE TABLE/TYPE/INDEX/TRIGGER/POLICY/FUNCTION IF NOT EXISTS` / `DROP ... IF EXISTS` before `CREATE OR REPLACE` — safe to re-run, **not applied to any live DB**.
+- `AssetRepository` (list/get/create/update/archive) scoped by clientId+brandId (required) + optional campaignId/briefId/generationId/contentItemId/assetCollectionId(+assetId for get/update/archive)
+- `AssetCollectionRepository` (list/create) scoped by clientId+brandId+optional campaignId
+- `sanitizeAssetPatch()` strips all tenant/identity/audit fields from update patches
+- Supabase implementation: `SupabaseAssetRepository` / `SupabaseAssetCollectionRepository`
+- localStorage fallback: `LocalStorageAssetRepository` / `LocalStorageAssetCollectionRepository`
+- `createPhase16aRepositories` factory extended — bundle now returns `assets`/`assetCollections` repos
+- App.tsx wired: `assetRepoFor()` per-operation repo selection; `handleAssetCreate`/`handleAssetEdit`/`handleAssetArchive` route through it
+- `AssetLibraryTab.tsx`: Client/Brand/Campaign fields disabled in edit mode (immutable after create); async create/edit/archive with error banner + "Saving…" state
+- Removed now-dead `createAsset`/`updateAsset`/`createCollection` helpers from `coreData.ts`
+
+### Tenant-scope contract (final):
+- `AssetRepository.list({ clientId, brandId, campaignId?, briefId?, generationId?, contentItemId?, assetCollectionId? })` — `clientId`+`brandId` required, all other levels optional
+- `AssetRepository.get/update/archive(params: AssetScopedParams)` — `AssetScopedParams` is a standalone, fully-required-but-nullable interface (`clientId`, `brandId`, `campaignId`, `briefId`, `generationId`, `contentItemId`, `assetCollectionId`, `assetId`) — callers must state the asset's FULL scope (explicit `null` for levels that don't apply)
+- `AssetCollectionRepository.list/create({ clientId, brandId, campaignId? })`
+- `assetRepoFor()` in App.tsx selects the repository **per operation**: requires `clientId`+`brandId` as valid UUIDs, treats null/undefined optional scope ids as "absent" (always safe via `okOrAbsent`), validates `assetId`/`currentAssetCollectionId`/`assetCollectionId` when used by that operation — falls back to `LocalStorageAssetRepository` otherwise so local-format ids (`asset-*`/`col-*`/`collection-*`/`asset-collection-*`) are never sent into a Supabase UUID column
+- `SupabaseAssetRepository` (list/get/create/update) calls `assertUuid`/`assertUuidOrNull` on every id it writes/filters (defense-in-depth on top of `assetRepoFor()`'s routing gate); `get`/`update` always filter on all 5 optional-hierarchy columns via `.is()`/`.eq()`
+
+### Safety record:
+- Production Supabase env: **OFF** (env vars unset)
+- Secrets / service role key in frontend: **NO**
+- Demo Sign In: **PRESERVED**
+- localStorage fallback: **PRESERVED**
+- Calendar / Reports / Connector Inbox / Automation Logs: **UNCHANGED** (untouched, deferred to later phases)
+- `asset_collection_id`/`assetCollectionId` UUID-gated everywhere it could reach Supabase, including both the asset's CURRENT collection and the patch's NEXT collection (`handleAssetEdit` gates both via `okOrAbsent`)
+- RLS: `content_asset_hierarchy_is_valid()` is NULL-tolerant (each deeper level — campaign/brief/generation/content_item — requires its parent non-null and validates against real FK tables, reusing `content_plan_hierarchy_is_valid()` from 16C-1 for the brief level); extended to a 7th param `p_asset_collection_id` — when present, the referenced `content_asset_collections` row must share the asset's `client_id`+`brand_id`, and if the collection has a `campaign_id`, it must match the asset's `campaign_id`
+- `content_asset_user_has_scope()`/`_user_can_write()` and brand-level `content_asset_collection_*` equivalents follow the same active/unexpired-assignment + owner/manager-write pattern as 16C-1/16C-2 — read-only/client/viewer roles cannot write/archive/delete
+- Build: PASS — 0 TS errors (`tsc && vite build`, 1574 modules)
+- Secrets grep: clean (only `.env.example` placeholders + doc mentions)
+
+### Files changed:
+| File | Change |
+|---|---|
+| `CLAUDE_MARKETING_TEAM/03_core/database/schema_v1_phase16d_asset_extension.sql` | NEW — additive migration: `content_assets`/`content_asset_collections` tables, RLS hierarchy-validated policies |
+| `src/types/core.ts` | `AssetItem` extended with nullable `brief_id`/`generation_job_id` |
+| `src/lib/core/coreData.ts` | `loadAssetData()` normalizes old localStorage data; removed dead `createAsset`/`updateAsset`/`createCollection` |
+| `src/lib/core/coreRepository.ts` | `AssetRepository`/`AssetCollectionRepository` + `AssetListParams`/`AssetScopedParams`/`AssetCreateInput`/sanitizer types |
+| `src/lib/core/localStorageRepositories.ts` | `LocalStorageAssetRepository`/`LocalStorageAssetCollectionRepository` (scoped) |
+| `src/lib/core/supabaseRepositories.ts` | `SupabaseAssetRepository`/`SupabaseAssetCollectionRepository` (scoped, UUID-asserted) |
+| `src/lib/core/repositoryFactory.ts` | Added `assets`/`assetCollections` to `Phase16aRepositories` bundle |
+| `src/App.tsx` | `assetRepoFor()` per-operation repo selection; `handleAssetCreate`/`handleAssetEdit`/`handleAssetArchive` |
+| `src/components/core/AssetLibraryTab.tsx` | Client/Brand/Campaign immutable in edit mode; async create/edit/archive with error banner + "Saving…" state |
+
+### Known future consideration:
+- Real file storage/upload is not enabled yet — this phase only wires safe asset metadata CRUD.
+
+---
+
+## ✅ Phase 16D Codex Fix Round 1 — UUID-gate asset_collection_id + Hardened Scoped Params + RLS Collection Check (Applied — 2026-06-11)
+
+**Issue 1 (asset_collection_id not UUID-gated):** `asset_collection_id`/`assetCollectionId` could be a local id (`col-*`/`collection-*`/`asset-collection-*`) and still be sent to Supabase on create/update/get/archive.
+
+**Fix 1:** `assetRepoFor()` in App.tsx now checks `assetCollectionId` (via `okOrAbsent`) for create/update/get/archive; `handleAssetEdit` computes `nextCollectionId` (patch's new collection if changing, else the asset's current one) and routes to `LocalStorageAssetRepository` if either the asset's current collection or the target collection is a local id.
+
+**Issue 2 (AssetScopedParams allowed omitted hierarchy levels):** `AssetScopedParams` extended `AssetListParams`, so get/update/archive could omit hierarchy levels instead of stating the asset's full scope.
+
+**Fix 2:** `AssetScopedParams` is now a standalone, fully-required-but-nullable interface (`clientId`, `brandId`, `campaignId`, `briefId`, `generationId`, `contentItemId`, `assetCollectionId`, `assetId`) — get/update/archive must state the FULL scope (explicit `null` for levels that don't apply). `AssetListParams` gained optional `assetCollectionId` so `AssetScopedParams` remains structurally assignable to it (reused by `assetMatchesScope()`). `SupabaseAssetRepository` (list/get/create/update) now calls `assertUuid`/`assertUuidOrNull` on every id it writes/filters; `get`/`update` always filter on all 5 optional-hierarchy columns via `.is()`/`.eq()` instead of conditionally.
+
+**Issue 3 (RLS — asset_collection_id not validated against tenant):** `content_asset_hierarchy_is_valid()`/`_user_has_scope()`/`_user_can_write()` did not validate that a referenced `asset_collection_id` belonged to the same client/brand/campaign.
+
+**Fix 3:** Extended all three to a 7th param `p_asset_collection_id` — when present, the referenced `content_asset_collections` row must share the asset's `client_id`+`brand_id`, and if the collection has a `campaign_id`, it must match the asset's `campaign_id`. INSERT/UPDATE policies pass `asset_collection_id` as the 7th arg. `DROP FUNCTION IF EXISTS` added for both old (6-arg) and new (7-arg) signatures for idempotent re-runs.
+
+**Migration safety:** additive, idempotent. No anon/broad access, no secrets/service role key, production Supabase env remains OFF. Diff scoped to exactly: `coreRepository.ts`, `supabaseRepositories.ts`, `localStorageRepositories.ts`, `App.tsx`, `schema_v1_phase16d_asset_extension.sql`.
+
+**Build:** PASS — 0 TS errors (`tsc && vite build`, 1574 modules). Secrets grep clean.
+
+**Commit:** `a9c6644` (fix: harden asset collection uuid routing and scope)
+
+---
+
+## ✅ Phase 16D Codex Fix Round 2 — Gate Current asset_collection_id on Edit (Applied — 2026-06-11)
+
+**Issue:** `handleAssetEdit()` in App.tsx gated only `nextCollectionId` (the patch's target collection), overwriting the check on the asset's EXISTING `asset_collection_id`. If the asset's CURRENT `asset_collection_id` was a local id (`col-*`/`collection-*`/`asset-collection-*`) and the patch changed it to `null` or a valid UUID, the op was incorrectly routed to Supabase (which has no row to match by that local id) and threw.
+
+**Fix:** `assetRepoFor()` gained a `currentAssetCollectionId?: string | null` field, gated via the same `okOrAbsent` (null/undefined/UUID) check as the other ids; `handleAssetEdit()` now passes `currentAssetCollectionId: asset.asset_collection_id` alongside `assetCollectionId: nextCollectionId` — Supabase is selected only when BOTH the current and next collection ids are null/undefined or valid UUIDs. `handleAssetCreate` is unaffected (no `currentAssetCollectionId` passed → `okOrAbsent(undefined)` is always true).
+
+**Diff:** `src/App.tsx` only, 12 insertions / 3 deletions.
+
+**Build:** PASS — 0 TS errors (`tsc && vite build`, 1574 modules).
+
+**Codex result:** PASS.
+
+**Commits:** `b598844` (feat: wire asset library crud with scoped fallback) → `a9c6644` (fix: harden asset collection uuid routing and scope) → `ec0178b` (fix: gate current asset collection id on edit)
+
+---
+
+## 🏁 Phase 16D — CLOSED (Codex PASS — 2026-06-11)
+
+**Summary:**
+- Asset Library CRUD wired to Supabase with localStorage fallback.
+- Asset operations are scoped by clientId, brandId, campaignId, briefId, generationId/contentItemId/assetCollectionId where applicable.
+- assetId and assetCollectionId are UUID-gated before Supabase routing.
+- Local `col-*`/`collection-*`/`asset-collection-*` IDs route to localStorage.
+- `handleAssetEdit` gates both current and next `assetCollectionId`.
+- RLS validates `asset_collection_id` hierarchy.
+- Read-only/client/viewer roles cannot write/archive/delete.
+- Production Supabase env remains OFF.
+- Demo Sign In remains.
+- No secrets or service role key.
+- **Known future consideration:** real file storage/upload is not enabled yet — this phase only wires safe asset metadata CRUD.
+
+- **Codex result:** PASS — no further required fixes.
+- **Commits:** `b598844` (feat: wire asset library crud with scoped fallback) → `a9c6644` (fix: harden asset collection uuid routing and scope) → `ec0178b` (fix: gate current asset collection id on edit)
+- **git status:** working tree clean. main = origin/main.
+- **Trạng thái:** ✅ CLOSED.
+- **Next phase:** TBD.
 
 ---
 

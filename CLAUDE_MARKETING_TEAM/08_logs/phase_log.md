@@ -6,6 +6,27 @@ Nhật ký theo dõi các mốc hoàn thành kỹ thuật qua các Phase.
 
 ## 📅 Nhật Ký Sự Kiện (Event Logs)
 
+### 🗓️ Ngày 11/06/2026 — Phase 16D CLOSED: Codex PASS
+- **Sự kiện:** Phase 16D chính thức đóng sau Codex PASS (2 vòng Codex required-fix).
+- **Scope hoàn thành:** Supabase CRUD repository wiring cho Asset Library only (Calendar/Reports/Connector Inbox/Automation Logs không đổi).
+- **Tổng kết:**
+  - Asset Library CRUD wired to Supabase with localStorage fallback.
+  - Asset operations scoped by clientId, brandId, campaignId, briefId, generationId/contentItemId/assetCollectionId where applicable.
+  - assetId and assetCollectionId UUID-gated before Supabase routing — local col-*/collection-*/asset-collection-* IDs route to localStorage.
+  - handleAssetEdit gates both current and next assetCollectionId.
+  - RLS validates content_asset_hierarchy_is_valid() including asset_collection_id (7th param).
+  - Read-only/client/viewer roles cannot write/archive/delete.
+  - Production Supabase env remains OFF.
+  - Demo Sign In remains.
+  - No secrets or service role key.
+- **Build:** PASS — 0 TS errors (`tsc && vite build`, 1574 modules). Secrets grep clean.
+- **Codex result:** PASS.
+- **Commits:** `b598844` (feat: wire asset library crud with scoped fallback) → `a9c6644` (fix: harden asset collection uuid routing and scope) → `ec0178b` (fix: gate current asset collection id on edit)
+- **Known future consideration:** real file storage/upload chưa enable — phase này chỉ wire asset metadata CRUD an toàn.
+- **Trạng thái:** ✅ CLOSED.
+
+---
+
 ### 🗓️ Ngày 11/06/2026 — Phase 16C-2 CLOSED: Codex PASS
 - **Sự kiện:** Phase 16C-2 chính thức đóng sau Codex PASS (1 vòng Codex required-fix).
 - **Scope hoàn thành:** Supabase CRUD repository wiring cho Approval only (Calendar/Reports/Asset Library/Connector Inbox/Automation Logs không đổi).
