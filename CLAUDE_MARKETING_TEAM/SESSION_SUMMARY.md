@@ -22,6 +22,34 @@ Chúng ta đang xây dựng **The Core Agency — Real Operations MVP**. Đây l
 
 ---
 
+## 🏁 V2-C (Owner naming) — Client Demo Package — DONE (2026-06-12)
+
+> **Naming:** Owner gọi package này là "V2-C — Client Demo Package"; trong
+> roadmap, client demo package vốn là V2-D (roadmap-V2-C = PC2 n8n dry-run,
+> CHƯA bắt đầu). Theo naming của Owner, giống tiền lệ V2-B.
+
+**Documentation/demo-material only — KHÔNG đổi product code/UI/runtime/
+repository/Supabase/auth/UUID gating/tenant scope/sanitizers/RLS/
+connectors/tests. Không live automation/real ads/posting/messaging/secrets.**
+
+- **Deliverable:** `CLAUDE_MARKETING_TEAM/V2C_CLIENT_DEMO_PACKAGE.md` (14
+  sections): §1 pre-demo checklist (P1–P10); §2 demo data/brand order
+  (Cơm Tấm Bản Khói primary → Forme → Vị Cuốn + rules); §3 5-min script;
+  §4 10-min script (10 beats, ~9:15); §5 screen-by-screen flow (17 steps
+  với one-liner + "don't" mỗi bước); §6 positioning talking points;
+  §7 cách giải thích sandbox/local data; §8 bảng 5 safety boundaries
+  (no auto-posting / no real ads / no real messaging / no live connectors /
+  approval required); §9 FAQ 10 câu; §10 risks/limitations disclose trung
+  thực (9 items); §11 post-demo follow-up (F1–F8); §12 next-step offer
+  (2-week 1-brand pilot + fallbacks); §13 one-page sales summary
+  (Problem/Solution/What/Why-safer/Who/Status/Roadmap); §14 sign-off.
+- **Build:** PASS — 0 TS errors. **Tests:** 45/45 PASS (docs-only diff).
+- **Next:** Owner rehearse §3/§4 + approve cho client use; Codex review
+  accuracy §7–§10. Còn mở: roadmap-V2-B Supabase staging (Owner-gated),
+  V2-E polish, n8n dry-run + V2-F (Owner-gated).
+
+---
+
 ## 🏁 V2-A — Manual Browser E2E + Demo Script — DONE / PASS (2026-06-12)
 
 > **Closure:** Owner đã **thực thi manual browser E2E pass** (2026-06-12),

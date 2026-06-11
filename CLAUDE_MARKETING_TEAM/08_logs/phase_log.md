@@ -6,6 +6,15 @@ Nhật ký theo dõi các mốc hoàn thành kỹ thuật qua các Phase.
 
 ## 📅 Nhật Ký Sự Kiện (Event Logs)
 
+### 🗓️ Ngày 12/06/2026 — V2-C (Owner naming) — Client Demo Package ✅ DONE
+*(Naming note: trong `PHASE_19_VER2_ROADMAP.md`, client demo package vốn là V2-D còn roadmap-V2-C là PC2 n8n dry-run — entry này theo naming của Owner, giống tiền lệ V2-B.)*
+- **Sự kiện:** Hoàn tất **Client Demo Package** cho The Core Agency Core MVP. **Documentation/demo-material only — KHÔNG đổi product code/UI/runtime/repository/Supabase/auth/UUID gating/tenant scope/sanitizers/RLS/connectors/tests; không live automation/real ads/posting/messaging/secrets.**
+- **Deliverable:** `CLAUDE_MARKETING_TEAM/V2C_CLIENT_DEMO_PACKAGE.md` — 14 sections: §1 pre-demo checklist (P1–P10 + "never debug live"); §2 demo data/brand order (Cơm Tấm Bản Khói primary → Forme → Vị Cuốn; demo 1 brand sâu; không nhập real data của prospect); §3 script 5 phút (6 beats); §4 script 10 phút (10 beats, ~9:15, mở rộng từ V2-A §2); §5 screen-by-screen flow (17 steps, mỗi step có one-liner + "don't"); §6 positioning talking points; §7 giải thích sandbox/local data quanh badge "Local Data Only"; §8 bảng 5 safety boundaries (no auto-posting / no real ads / no real messaging / no live connectors / approval before external use); §9 FAQ 10 câu (trung thực về demo generation = simulation); §10 risks/limitations disclose honestly (9 items); §11 post-demo follow-up F1–F8; §12 next-step offer (2-week 1-brand pilot + 3 fallbacks); §13 one-page sales summary; §14 sign-off (Codex review accuracy → Owner rehearse + approve).
+- **Build:** PASS — 0 TS errors. `npm run test`: 45/45 PASS.
+- **Trạng thái:** ✅ DONE. Next: Owner rehearse + approve cho client use.
+
+---
+
 ### 🗓️ Ngày 12/06/2026 — V2-A — Manual Browser E2E EXECUTED by Owner ✅ DONE / PASS
 - **Sự kiện:** Owner đã **thực thi manual browser E2E pass** theo checklist §1 (A1–A28) trong `V2A_MANUAL_BROWSER_E2E_AND_DEMO_SCRIPT.md`. **Kết quả: PASS — không có blocking UI issue nào được báo cáo.** Demo script §2 được verify trong run-through của Owner.
 - **Closure conditions (cả 4 đã đạt):** (1) checklist executed by Owner ✅; (2) kết quả ghi tại `08_logs/v2a_qa_report_20260612.md` (verdict PASS — demo-ready, no blockers) ✅; (3) demo script verified ✅; (4) Owner approval ghi nhận (Owner báo DONE / PASS) ✅.
