@@ -408,7 +408,7 @@ export default function ExportPackTab({
         </div>
 
         {/* ── Right: Preview Panel ── */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', minWidth: 0 }}>
 
           {!generatedPack ? (
             <div style={{ ...CARD_STYLE, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '60px 20px', gap: '14px', minHeight: '400px' }}>

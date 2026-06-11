@@ -6,6 +6,16 @@ Nhật ký theo dõi các mốc hoàn thành kỹ thuật qua các Phase.
 
 ## 📅 Nhật Ký Sự Kiện (Event Logs)
 
+### 🗓️ Ngày 12/06/2026 — V2-B follow-up — Fix Content Calendar Horizontal Overflow ✅ DONE
+- **Sự kiện:** Layout/presentation-only fix — Content Calendar rows tràn ngang ra ngoài content container. **KHÔNG đổi logic/data flow/repository/Supabase/auth/UUID gating/tenant scope/sanitizers/RLS/tests/connectors.**
+- **Root cause:** `<main>` là grid item `1fr` trong layout `260px 1fr` (App.tsx) với default `min-width: auto` — nội dung nowrap/unbroken text đẩy track vượt viewport.
+- **Fix:** (1) `<main>` thêm `minWidth: 0, maxWidth: '100%'` — fix gốc, áp dụng cho MỌI tab; (2) ContentCalendarTab: `ItemDetail` fieldStyle thêm `wordBreak: 'break-word'` (caption/hashtags/visual brief dài không phá layout), breadcrumb expanded thêm ellipsis; (3) ApprovalsTab fieldStyle thêm `wordBreak: 'break-word'` (cùng pattern thiếu); (4) ExportPackTab preview column thêm `minWidth: 0` (defensive).
+- **Đã rà soát:** Content Generation / Reports / Export Pack / Asset Library — các pattern còn lại đều an toàn (nowrap luôn kèm ellipsis+overflow hidden, pre có overflowX auto + break-word, grid auto-fill/minmax).
+- **Build:** PASS — 0 TS errors (1575 modules). `npm run test`: 45/45 PASS.
+- **Trạng thái:** ✅ DONE.
+
+---
+
 ### 🗓️ Ngày 12/06/2026 — V2-B follow-up — Core Logo Branding + Favicon + Sidebar Alignment ✅ DONE
 - **Sự kiện:** Presentation-only branding polish — đưa logo The Core Agency mới vào UI + favicon, fix sidebar nav alignment. **KHÔNG đổi logic/behavior/repository/Supabase/auth/UUID gating/tenant scope/sanitizers/RLS/tests/connectors.**
 - **Brand assets (mới):** `public/brand/core-logo-horizontal.png` (logo ngang đã trim margins), `public/brand/core-icon.png` (hexagon C mark crop vuông), `public/favicon.png` (128px) — generate từ logo asset Owner cung cấp bằng script crop/resize cục bộ.

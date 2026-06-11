@@ -339,7 +339,7 @@ function EditPanel({
 
 function ItemDetail({ item }: { item: ContentPlanItem }) {
   const fieldStyle: React.CSSProperties = {
-    fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.6, whiteSpace: 'pre-wrap',
+    fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.6, whiteSpace: 'pre-wrap', wordBreak: 'break-word',
   };
   const labelStyle: React.CSSProperties = {
     fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 700,
@@ -526,7 +526,7 @@ function ItemCard({
       {expanded && (
         <div style={{ padding: '0 14px 14px' }}>
           {/* Context breadcrumb */}
-          <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', marginBottom: '8px' }}>
+          <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', marginBottom: '8px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {clientName} → {brandName} → {campaignName} · Pillar: {item.pillar} · Type: {item.content_type}
           </div>
 

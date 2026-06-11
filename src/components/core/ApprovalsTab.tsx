@@ -368,7 +368,7 @@ function DetailView({
   const statusLabel = APPROVAL_STATUS_LABEL[request.status];
 
   const fieldStyle: React.CSSProperties = {
-    fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.6, whiteSpace: 'pre-wrap',
+    fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.6, whiteSpace: 'pre-wrap', wordBreak: 'break-word',
   };
   const labelStyle: React.CSSProperties = {
     fontSize: '0.67rem', color: 'var(--text-muted)', fontWeight: 700,

@@ -6,6 +6,15 @@ Nhật ký ghi lại các hành động mô phỏng của các AI Agent khi vậ
 
 ## 🗓️ Nhật Ký Hoạt Động (Simulated Activity Logs)
 
+### 🗓️ Ngày 12/06/2026 — V2-B follow-up — Fix Content Calendar Horizontal Overflow ✅ DONE
+- **[PC1 Claude Code Builder]:** Diagnosed the Content Calendar horizontal overflow: the `<main>` content area is the `1fr` item of the `260px 1fr` app grid and had no `min-width: 0`, so nowrap chips/unbroken generated text expanded the track past the viewport (CSS grid `min-width: auto` default).
+- **[PC1]:** Root fix in App.tsx: `<main>` now has `minWidth: 0, maxWidth: '100%'` — contains every tab, not just the calendar. ContentCalendarTab: `wordBreak: 'break-word'` on expanded detail fields (caption/hashtags/visual brief), ellipsis on the expanded breadcrumb. ApprovalsTab: same `wordBreak` fix on its detail field style. ExportPackTab: defensive `minWidth: 0` on the preview column.
+- **[PC1]:** Audited Content Generation / Reports / Export Pack / Asset Library for the same risk — remaining patterns are safe (nowrap always paired with ellipsis + hidden overflow; `<pre>` blocks already use `overflowX: auto` + `break-word`; auto-fill/minmax grids).
+- **[PC1]:** Layout/presentation-only diff — no logic/data-flow/repository/Supabase/auth/UUID-gating/sanitizer/RLS/test/connector changes.
+- **[PC1]:** `npm run build` PASS (0 TS errors, 1575 modules); `npm run test` 45/45 PASS.
+
+---
+
 ### 🗓️ Ngày 12/06/2026 — V2-B follow-up — Core Logo Branding + Favicon + Sidebar Alignment ✅ DONE
 - **[PC1 Claude Code Builder]:** Generated brand assets from the Owner-provided Core logo (local crop/resize script): `public/brand/core-logo-horizontal.png` (trimmed), `public/brand/core-icon.png` (square hexagon-C mark), `public/favicon.png` (128px).
 - **[PC1]:** Header: replaced the pulsing dot with a 42px logo chip (`.brand-mark` — 10px radius, orange glow shadow); LoginScreen: 64px icon above the title; `index.html`: favicon ⚡ emoji → `/favicon.png`; title stays "The Core Agency"; visible naming stays "THE CORE AGENCY" / "AI Marketing Team Workspace". Re-verified no legacy names in visible UI (only internal localStorage keys remain — renaming would wipe user data, out of scope).

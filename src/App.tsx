@@ -1347,7 +1347,7 @@ export default function App() {
         </aside>
 
         {/* Content Area */}
-        <main style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+        <main style={{ display: 'flex', flexDirection: 'column', gap: '24px', minWidth: 0, maxWidth: '100%' }}>
           
           {/* Simulation Loading overlay overlay */}
           {isSimulating && (
