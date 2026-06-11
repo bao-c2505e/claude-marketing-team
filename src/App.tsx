@@ -54,7 +54,9 @@ import ReportsTab from './components/core/ReportsTab';
 import ExportPackTab from './components/core/ExportPackTab';
 import ConnectorRegistryTab from './components/core/ConnectorRegistryTab';
 import AutomationLogsTab from './components/core/AutomationLogsTab';
-import { loadCoreData, saveCoreData, loadGenerationData, saveGenerationData, loadApprovalData, saveApprovalData, loadAssetData, saveAssetData, canSubmitItem, isUuid } from './lib/core/coreData';
+import { loadCoreData, saveCoreData, loadGenerationData, saveGenerationData, loadApprovalData, saveApprovalData, loadAssetData, saveAssetData, canSubmitItem } from './lib/core/coreData';
+import { assetScopeIsSupabaseSafe, approvalScopeIsSupabaseSafe } from './lib/core/repoRouting';
+import type { AssetRouteIds, ApprovalRouteIds } from './lib/core/repoRouting';
 import type { CoreDataStore, GenerationDataStore, ApprovalDataStore, AssetDataStore, ClientFormData, BrandFormData, CampaignFormData, BriefFormData } from './lib/core/coreData';
 import { loadAutomationLogData, saveAutomationLogData } from './lib/core/automationLogs';
 import type { AutomationLogStore } from './lib/core/automationLogs';
@@ -505,30 +507,11 @@ export default function App() {
   // content_asset_collections — a local collection id (col-*/collection-*/
   // asset-collection-*) must never be sent there, so any operation touching
   // such a collection id falls back to localStorage too.
-  const assetRepoFor = (ids: {
-    clientId: string | null;
-    brandId: string | null;
-    campaignId?: string | null;
-    briefId?: string | null;
-    generationId?: string | null;
-    contentItemId?: string | null;
-    assetCollectionId?: string | null;
-    currentAssetCollectionId?: string | null;
-    assetId?: string;
-  }): AssetRepository => {
-    const okOrAbsent = (v?: string | null) => v === undefined || v === null || isUuid(v);
-    if (
-      isSupabaseConfigured
-      && isUuid(ids.clientId)
-      && isUuid(ids.brandId)
-      && okOrAbsent(ids.campaignId)
-      && okOrAbsent(ids.briefId)
-      && okOrAbsent(ids.generationId)
-      && okOrAbsent(ids.contentItemId)
-      && okOrAbsent(ids.assetCollectionId)
-      && okOrAbsent(ids.currentAssetCollectionId)
-      && (ids.assetId === undefined || isUuid(ids.assetId))
-    ) {
+  //
+  // Phase 17: the gate predicate is extracted verbatim into
+  // repoRouting.ts (assetScopeIsSupabaseSafe) so it is unit-testable.
+  const assetRepoFor = (ids: AssetRouteIds): AssetRepository => {
+    if (isSupabaseConfigured && assetScopeIsSupabaseSafe(ids)) {
       return repos.assets;
     }
     return localAssets;
@@ -617,25 +600,11 @@ export default function App() {
   // approvalId, and/or contentItemId — is not a valid UUID (local/demo data),
   // so local-format ids (approval-*/item-*/generation-*/job-*) are never sent
   // into a Supabase UUID column, even if Supabase is configured.
-  const approvalRepoFor = (ids: {
-    clientId: string | null;
-    brandId: string | null;
-    campaignId: string | null;
-    briefId: string | null;
-    generationId: string | null;
-    approvalId?: string | null;
-    contentItemId?: string | null;
-  }): ApprovalRepository => {
-    if (
-      isSupabaseConfigured
-      && isUuid(ids.clientId)
-      && isUuid(ids.brandId)
-      && isUuid(ids.campaignId)
-      && isUuid(ids.briefId)
-      && isUuid(ids.generationId)
-      && (ids.approvalId === undefined || isUuid(ids.approvalId))
-      && (ids.contentItemId === undefined || isUuid(ids.contentItemId))
-    ) {
+  //
+  // Phase 17: the gate predicate is extracted verbatim into
+  // repoRouting.ts (approvalScopeIsSupabaseSafe) so it is unit-testable.
+  const approvalRepoFor = (ids: ApprovalRouteIds): ApprovalRepository => {
+    if (isSupabaseConfigured && approvalScopeIsSupabaseSafe(ids)) {
       return repos.approvals;
     }
     return localApprovals;

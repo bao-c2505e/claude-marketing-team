@@ -6,6 +6,19 @@ Nhật ký theo dõi các mốc hoàn thành kỹ thuật qua các Phase.
 
 ## 📅 Nhật Ký Sự Kiện (Event Logs)
 
+### 🗓️ Ngày 11/06/2026 — Phase 17 CLOSED: End-to-end Workflow Test
+- **Sự kiện:** Phase 17 hoàn tất — thêm vitest unit tests cho repository routing gates + patch sanitizers, và manual MVP E2E workflow checklist.
+- **Scope hoàn thành:**
+  - `vitest` thêm vào devDependencies, `npm run test` / `npm run test:watch` (zero config — chạy trên `node` environment mặc định của vitest 3.x).
+  - Trích xuất nguyên văn UUID-gating predicates từ `assetRepoFor()`/`approvalRepoFor()` trong `App.tsx` sang `src/lib/core/repoRouting.ts` (`assetScopeIsSupabaseSafe`, `approvalScopeIsSupabaseSafe`, `okOrAbsentUuid`) — `App.tsx` chỉ còn import + gọi, behavior không đổi.
+  - `src/lib/core/repoRouting.test.ts` (34 tests): full UUID chain → true, mọi local-format id ở từng cấp scope → false, optional ids absent (undefined/null) → true, và case Codex Fix Round 2 (current `asset_collection_id` local + next collection null/UUID → vẫn false, ở lại localStorage).
+  - `src/lib/core/coreRepository.test.ts` (11 tests): `sanitizeAssetPatch`/`sanitizeGenerationPatch`/`sanitizeBriefPatch` strip toàn bộ immutable fields (snake_case + camelCase) nhưng giữ field editable (gồm `asset_collection_id`); `isUuid`/`generateId`.
+  - Manual E2E checklist mới: `CLAUDE_MARKETING_TEAM/08_logs/phase_17_e2e_checklist.md` — full workflow Client→Brand→Campaign→Brief→Generation→Approval→Asset Library + UUID-gating fallback ở cả 2 mode (Local/Demo và Supabase-configured). Phần UI/browser deferred — không có browser tool trong session này.
+- **Build:** PASS — 0 TS errors (`tsc && vite build`, 1575 modules). `npm run test`: 45/45 PASS. Secrets grep clean.
+- **Trạng thái:** ✅ CLOSED. Pure refactor + test addition, không đổi behavior.
+
+---
+
 ### 🗓️ Ngày 11/06/2026 — Phase 16D CLOSED: Codex PASS
 - **Sự kiện:** Phase 16D chính thức đóng sau Codex PASS (2 vòng Codex required-fix).
 - **Scope hoàn thành:** Supabase CRUD repository wiring cho Asset Library only (Calendar/Reports/Connector Inbox/Automation Logs không đổi).

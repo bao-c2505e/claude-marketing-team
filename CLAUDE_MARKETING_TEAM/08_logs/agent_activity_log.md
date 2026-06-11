@@ -6,6 +6,17 @@ Nhật ký ghi lại các hành động mô phỏng của các AI Agent khi vậ
 
 ## 🗓️ Nhật Ký Hoạt Động (Simulated Activity Logs)
 
+### 🗓️ Ngày 11/06/2026 — Phase 17 CLOSED: End-to-end Workflow Test
+- **[PC1 Claude Code Builder]:** Phase 17 implemented and closed in one pass — added `vitest` devDependency + `npm run test`/`npm run test:watch` (zero extra config, default `node` environment).
+- **[PC1]:** Extracted `assetRepoFor()`/`approvalRepoFor()`'s inline UUID-gating predicates verbatim into new `src/lib/core/repoRouting.ts` (`assetScopeIsSupabaseSafe`, `approvalScopeIsSupabaseSafe`, `okOrAbsentUuid`); `App.tsx` now imports and calls them — no behavior change.
+- **[PC1]:** Added `src/lib/core/repoRouting.test.ts` (34 tests) covering full UUID chains, local-format ids at every scope level, optional-absent ids, and the Codex Fix Round 2 current-vs-next `asset_collection_id` gating case.
+- **[PC1]:** Added `src/lib/core/coreRepository.test.ts` (11 tests) covering `sanitizeAssetPatch`/`sanitizeGenerationPatch`/`sanitizeBriefPatch` immutable-field stripping (snake_case + camelCase) and `isUuid`/`generateId`.
+- **[PC1]:** Added manual MVP E2E workflow checklist `CLAUDE_MARKETING_TEAM/08_logs/phase_17_e2e_checklist.md` (Client→Brand→Campaign→Brief→Generation→Approval→Asset Library + UUID-gating fallback in Local/Demo and Supabase modes); UI sections deferred — no browser tool available this session.
+- **[PC1]:** Build PASS — 0 TS errors (`tsc && vite build`, 1575 modules). `npm run test`: 45/45 PASS. Secrets grep clean.
+- **[PC1]:** Phase 17 CLOSED.
+
+---
+
 ### 🗓️ Ngày 11/06/2026 — Phase 16D CLOSED: Codex PASS
 - **[PC1 Claude Code Builder]:** Phase 16D officially closed after Codex PASS (2 Codex required-fix rounds applied).
 - **[PC1]:** Final summary — Asset Library CRUD wired to Supabase with localStorage fallback. Asset operations scoped by clientId, brandId, campaignId, briefId, generationId/contentItemId/assetCollectionId where applicable. assetId and assetCollectionId UUID-gated before Supabase routing — local col-*/collection-*/asset-collection-* IDs route to localStorage. handleAssetEdit gates both current and next assetCollectionId. RLS validates content_asset_hierarchy_is_valid() including asset_collection_id (7th param). Read-only/client/viewer roles cannot write/archive/delete. Production Supabase env remains OFF. Demo Sign In remains. No secrets or service role key.

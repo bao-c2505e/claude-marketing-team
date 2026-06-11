@@ -1,10 +1,75 @@
-# CURRENT PHASE — Phase 16D ✅ CLOSED (Codex PASS — 2026-06-11) | Phase 16C-2 ✅ CLOSED (Codex PASS — 2026-06-11) | Phase 16C-1 ✅ CLOSED (Codex PASS — 2026-06-11) | Phase 16B-2 ✅ CLOSED (Codex PASS — 2026-06-10) | Phase 16B-1 ✅ CLOSED (Codex PASS — 2026-06-10) | Phase 16A ✅ CLOSED (Codex PASS — 2026-06-09)
+# CURRENT PHASE — Phase 17 ✅ CLOSED (2026-06-11) | Phase 16D ✅ CLOSED (Codex PASS — 2026-06-11) | Phase 16C-2 ✅ CLOSED (Codex PASS — 2026-06-11) | Phase 16C-1 ✅ CLOSED (Codex PASS — 2026-06-11) | Phase 16B-2 ✅ CLOSED (Codex PASS — 2026-06-10) | Phase 16B-1 ✅ CLOSED (Codex PASS — 2026-06-10) | Phase 16A ✅ CLOSED (Codex PASS — 2026-06-09)
 
 ## 📌 Thông tin chung
-- **Phase trước:** Phase 16C-2 — Approval CRUD Wiring
-- **Trạng thái Phase 16C-2:** ✅ CLOSED — repository + App.tsx wired, build PASS (0 TS errors). One Codex required-fix round applied (per-operation UUID-gated routing for approvalId/contentItemId, full RLS hierarchy validation, owner/manager-only INSERT on approval comments/events). Codex result: PASS.
-- **Phase hiện tại:** Phase 16D — Asset Library CRUD Wiring — ✅ CLOSED (Codex PASS — 2026-06-11). Build PASS (0 TS errors, 1574 modules). Two Codex required-fix rounds applied: (1) UUID-gate `asset_collection_id` + standalone fully-required `AssetScopedParams` + RLS collection-hierarchy check (7th param), (2) gate BOTH current and next `asset_collection_id` on edit.
+- **Phase trước:** Phase 16D — Asset Library CRUD Wiring (CLOSED — Codex PASS — 2026-06-11)
+- **Phase hiện tại:** Phase 17 — End-to-end Workflow Test — ✅ CLOSED (2026-06-11). `vitest` added as a devDependency (zero extra config — runs in vitest's default `node` environment via `npm run test`); `assetRepoFor()`/`approvalRepoFor()`'s inline UUID-gating predicates extracted verbatim into `src/lib/core/repoRouting.ts` (`assetScopeIsSupabaseSafe`, `approvalScopeIsSupabaseSafe`, `okOrAbsentUuid`) and unit-tested (34 tests); `sanitizeAssetPatch`/`sanitizeGenerationPatch`/`sanitizeBriefPatch` + `isUuid`/`generateId` unit-tested (11 tests) in `src/lib/core/coreRepository.test.ts`. Manual MVP E2E workflow checklist added at `CLAUDE_MARKETING_TEAM/08_logs/phase_17_e2e_checklist.md`. Build PASS (0 TS errors, 1575 modules), `npm run test` 45/45 PASS.
 - **Phase tiếp theo:** TBD (pending Owner direction)
+
+---
+
+## 🏁 Phase 17 — End-to-end Workflow Test (CLOSED — 2026-06-11)
+
+### Scope completed:
+- Test runner: `vitest` (already a transitive dep, now an explicit
+  devDependency) + `npm run test` / `npm run test:watch` scripts in
+  `package.json`. No `vite.config.ts` test block needed — vitest 3.x runs
+  pure-function tests against its default `node` environment with zero
+  config.
+- New `src/lib/core/repoRouting.ts`: the inline UUID-gating predicates from
+  `App.tsx`'s `assetRepoFor()`/`approvalRepoFor()` (Phases 16C-2/16D + both
+  Codex fix rounds) extracted **verbatim** as pure, exported functions —
+  `assetScopeIsSupabaseSafe(ids: AssetRouteIds)`,
+  `approvalScopeIsSupabaseSafe(ids: ApprovalRouteIds)`,
+  `okOrAbsentUuid(v?: string | null)`. `App.tsx` now imports and calls these
+  directly — behavior unchanged, routing logic now unit-testable in
+  isolation.
+- New `src/lib/core/repoRouting.test.ts` (34 tests): full valid-UUID chains
+  → true; local-format `clientId`/`brandId` → false; every optional scope id
+  (`campaignId`/`briefId`/`generationId`/`contentItemId`/
+  `assetCollectionId`/`currentAssetCollectionId`) absent (undefined/null) →
+  true, present-but-local-format → false; `assetId`/`approvalId`/
+  `contentItemId` local-format → false; **Codex Fix Round 2 case** — local
+  CURRENT `asset_collection_id` with NEXT collection id `null` or a valid
+  UUID → still false (stays on localStorage).
+- New `src/lib/core/coreRepository.test.ts` (11 tests): `sanitizeAssetPatch`
+  strips all `ASSET_IMMUTABLE_PATCH_FIELDS` (snake_case + camelCase) while
+  preserving editable fields including `asset_collection_id`;
+  `sanitizeGenerationPatch`/`sanitizeBriefPatch` strip their respective
+  immutable field sets while preserving `status`/`brief_title`; `isUuid`
+  true/false cases; `generateId` produces a prefixed id that never passes
+  `isUuid`.
+- New `CLAUDE_MARKETING_TEAM/08_logs/phase_17_e2e_checklist.md`: manual MVP
+  E2E workflow checklist (Client → Brand → Campaign → Brief → Generation →
+  Approval → Asset Library, plus UUID-gating fallback verification in both
+  Local/Demo and Supabase-configured modes) — companion to the unit tests
+  above; UI sections deferred (no browser-automation tool available this
+  session).
+
+### Safety record:
+- Production Supabase env: **OFF** (env vars unset)
+- Secrets / service role key in frontend: **NO** — secrets grep clean
+- Demo Sign In: **PRESERVED**
+- localStorage fallback: **PRESERVED**
+- Routing/sanitization behavior: **UNCHANGED** — pure refactor (extraction +
+  tests only), `App.tsx` diff is import + call-site only
+- Build: PASS — 0 TS errors (`tsc && vite build`, 1575 modules)
+- Tests: PASS — `npm run test` → 45/45 (2 files)
+- `git diff --check`: PASS (CRLF warnings only, not errors)
+
+### Files changed:
+| File | Change |
+|---|---|
+| `package.json` / `package-lock.json` | Added `vitest` devDependency + `test`/`test:watch` scripts |
+| `src/lib/core/repoRouting.ts` | NEW — `assetScopeIsSupabaseSafe`/`approvalScopeIsSupabaseSafe`/`okOrAbsentUuid` extracted from `App.tsx` |
+| `src/lib/core/repoRouting.test.ts` | NEW — 34 unit tests for the routing gates |
+| `src/lib/core/coreRepository.test.ts` | NEW — 11 unit tests for patch sanitizers + `isUuid`/`generateId` |
+| `src/App.tsx` | `assetRepoFor()`/`approvalRepoFor()` now call the extracted predicates instead of inlining them |
+| `CLAUDE_MARKETING_TEAM/08_logs/phase_17_e2e_checklist.md` | NEW — manual MVP E2E workflow checklist |
+
+### Known future consideration:
+- Manual UI/E2E sections (B–G) of the Phase 17 checklist still need a
+  browser-automation pass (e.g. Playwright) or an Owner manual run —
+  deferred, no browser tool available this session.
 
 ---
 

@@ -22,6 +22,40 @@ Chúng ta đang xây dựng **The Core Agency — Real Operations MVP**. Đây l
 
 ---
 
+## 🏁 Phase 17 — End-to-end Workflow Test (CLOSED — 2026-06-11)
+
+**Scope completed:** Added `vitest` as a devDependency (`npm run test` /
+`npm run test:watch`, zero extra config — runs in vitest's default `node`
+environment). Extracted the inline UUID-gating predicates from `App.tsx`'s
+`assetRepoFor()`/`approvalRepoFor()` verbatim into new
+`src/lib/core/repoRouting.ts` (`assetScopeIsSupabaseSafe`,
+`approvalScopeIsSupabaseSafe`, `okOrAbsentUuid`) — `App.tsx` now calls these,
+behavior unchanged. Added `src/lib/core/repoRouting.test.ts` (34 tests,
+covering full UUID chains, every local-format id, optional-absent ids, and
+the Codex Fix Round 2 current-vs-next `asset_collection_id` gating case) and
+`src/lib/core/coreRepository.test.ts` (11 tests, covering
+`sanitizeAssetPatch`/`sanitizeGenerationPatch`/`sanitizeBriefPatch` immutable
+field stripping plus `isUuid`/`generateId`).
+
+**Manual E2E checklist:** New
+`CLAUDE_MARKETING_TEAM/08_logs/phase_17_e2e_checklist.md` — full MVP workflow
+(Client → Brand → Campaign → Brief → Generation → Approval → Asset Library)
+plus UUID-gating fallback verification in Local/Demo and Supabase-configured
+modes. UI sections deferred — no browser-automation tool available this
+session; the routing/sanitization logic they exercise is fully covered by the
+new unit tests.
+
+**Safety:** Supabase env OFF · no secrets · no service role key · Demo Sign
+In preserved · localStorage fallback preserved · pure refactor (extraction +
+tests only), no behavior change.
+
+**Build:** PASS — 0 TS errors (`tsc && vite build`, 1575 modules). `npm run
+test`: 45/45 PASS. Secrets grep clean.
+
+**Trạng thái Phase 17:** ✅ CLOSED. **Next:** TBD.
+
+---
+
 ## 🏁 Phase 16D — Asset Library CRUD Wiring (CLOSED — Codex PASS — 2026-06-11)
 
 **Scope completed:** Supabase CRUD repository wiring for Asset Library only (Calendar/Reports/Connector Inbox/Automation Logs untouched). Same repository pattern as Phase 16A/16B-1/16B-2/16C-1/16C-2.
