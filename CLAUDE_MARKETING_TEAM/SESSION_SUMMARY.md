@@ -22,6 +22,33 @@ Chúng ta đang xây dựng **The Core Agency — Real Operations MVP**. Đây l
 
 ---
 
+## 🏁 CORE MVP CLOSED (2026-06-11)
+
+**Closure:** The Core MVP build cycle (Phases 1–18) is formally closed.
+Final closure report: `CORE_MVP_CLOSURE_REPORT.md` — covers what the MVP
+includes, what is intentionally not enabled (no real ads/posting/messaging/
+connectors/AI/file storage/production Supabase/secrets), safety status at
+closure, build/test status (build PASS 0 TS errors, tests 45/45), known
+limitations, and the recommended next roadmap.
+
+**Closure was documentation only** — no product code, runtime behavior, or
+connector state changed. Final reviewed product commit: `fd86ead` (Phase 18,
+Codex PASS).
+
+**Approved scope:** controlled internal testing / controlled client demo.
+Anything beyond (live data, live connectors, real client accounts) requires
+a new phase with Owner approval.
+
+**Recommended next roadmap (closure report §6):**
+1. Phase 19 / Ver2 planning (Owner + AI Coordinator — decide Ver2 scope)
+2. Client demo preparation (manual E2E pass B–G, demo script rehearsal)
+3. Supabase production hardening (staging first, RLS verification per role)
+4. PC2 n8n/modules integration (separate workstream, registry-only until approved)
+5. UI/brand polish (code-splitting, ESLint, accessibility)
+6. Real connector plan with approval gates (one connector at a time, n8n first)
+
+---
+
 ## 🏁 Phase 18 — Final MVP Polish + Production Readiness (CLOSED — 2026-06-11)
 
 **Scope completed:** Low-risk UI label polish only — no logic, routing,

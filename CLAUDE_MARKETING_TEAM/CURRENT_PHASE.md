@@ -1,9 +1,20 @@
-# CURRENT PHASE — Phase 18 ✅ CLOSED (2026-06-11) | Phase 17 ✅ CLOSED (2026-06-11) | Phase 16D ✅ CLOSED (Codex PASS — 2026-06-11) | Phase 16C-2 ✅ CLOSED (Codex PASS — 2026-06-11) | Phase 16C-1 ✅ CLOSED (Codex PASS — 2026-06-11) | Phase 16B-2 ✅ CLOSED (Codex PASS — 2026-06-10) | Phase 16B-1 ✅ CLOSED (Codex PASS — 2026-06-10) | Phase 16A ✅ CLOSED (Codex PASS — 2026-06-09)
+# CURRENT PHASE — 🏁 CORE MVP CLOSED (2026-06-11) | Phase 18 ✅ CLOSED (Codex PASS — 2026-06-11) | Phase 17 ✅ CLOSED (Codex PASS — 2026-06-11) | Phase 16D ✅ CLOSED (Codex PASS — 2026-06-11) | Phase 16C-2 ✅ CLOSED (Codex PASS — 2026-06-11) | Phase 16C-1 ✅ CLOSED (Codex PASS — 2026-06-11) | Phase 16B-2 ✅ CLOSED (Codex PASS — 2026-06-10) | Phase 16B-1 ✅ CLOSED (Codex PASS — 2026-06-10) | Phase 16A ✅ CLOSED (Codex PASS — 2026-06-09)
 
 ## 📌 Thông tin chung
-- **Phase trước:** Phase 17 — End-to-end Workflow Test (CLOSED — 2026-06-11)
-- **Phase hiện tại:** Phase 18 — Final MVP Polish + Production Readiness — ✅ CLOSED (2026-06-11). Low-risk UI label polish only (no logic/routing/SQL changes): removed "FnB OS V1" rows from both safety panels, replaced stale internal phase numbers in user-visible labels, header badge updated to "Core MVP — Internal Demo" + new data-mode badge ("Local Data Only" / "Supabase Data"). Production safety re-verified (no real connectors/posting/ads/messaging, secrets grep clean, `.env*` untracked). New `CLAUDE_MARKETING_TEAM/07_docs/MVP_READINESS_CHECKLIST.md`. Build PASS (0 TS errors, 1575 modules), `npm run test` 45/45 PASS. **Verdict: Core MVP READY for controlled internal/demo use.**
-- **Phase tiếp theo:** TBD (pending Owner direction)
+- **Phase trước:** Phase 18 — Final MVP Polish + Production Readiness (CLOSED — Codex PASS — 2026-06-11, commit `fd86ead`)
+- **Trạng thái hiện tại:** 🏁 **CORE MVP CLOSED (2026-06-11)** — Phases 1–18 complete, reviewed, built, tested, pushed. Final closure report: `CLAUDE_MARKETING_TEAM/CORE_MVP_CLOSURE_REPORT.md` (what's included, what's intentionally off, safety status, build/test status, known limitations, recommended next roadmap). Core MVP is approved for **controlled internal testing / controlled client demo** only — live data, live connectors, and real client accounts require a new phase with Owner approval.
+- **Phase tiếp theo:** Phase 19 / Ver2 planning (pending Owner direction — see roadmap §6 of the closure report: Ver2 scope decision → client demo prep → Supabase staging hardening → PC2 n8n/modules workstream → UI/brand polish → gated real-connector plan)
+
+---
+
+## 🏁 CORE MVP CLOSURE (2026-06-11)
+
+- **Closure doc:** `CLAUDE_MARKETING_TEAM/CORE_MVP_CLOSURE_REPORT.md` — formal closure of the Core MVP build cycle (Phases 1–18). Documentation only: no product code, runtime behavior, or connector state changed.
+- **Final reviewed commit before closure:** `fd86ead` (Phase 18).
+- **Build:** PASS — 0 TS errors (`tsc && vite build`, 1575 modules). **Tests:** 45/45 PASS.
+- **Safety at closure:** no secrets, no live connectors, no real ads/posting/messaging; Phase 16D UUID gating, Phase 17 tests, tenant scoping, sanitizers, and RLS migrations all intact; production Supabase env OFF; FnB OS V1 untouched.
+- **Known limitations carried into Ver2:** manual browser E2E pass (Phase 17 checklist B–G) pending; client-role feedback RLS decision pending; Calendar/Reports/Connector Inbox/Automation Logs still localStorage-only; 920 kB single bundle; stale `08_logs/CURRENT_PHASE.md` (canonical tracker is this file).
+- **Recommended next:** Phase 19 / Ver2 planning with Owner + AI Coordinator.
 
 ---
 

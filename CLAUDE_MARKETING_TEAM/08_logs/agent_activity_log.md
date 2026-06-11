@@ -6,6 +6,16 @@ Nhật ký ghi lại các hành động mô phỏng của các AI Agent khi vậ
 
 ## 🗓️ Nhật Ký Hoạt Động (Simulated Activity Logs)
 
+### 🗓️ Ngày 11/06/2026 — 🏁 CORE MVP CLOSED (Phases 1–18)
+- **[PC1 Claude Code Builder]:** Created `CLAUDE_MARKETING_TEAM/CORE_MVP_CLOSURE_REPORT.md` — formal Core MVP closure report (includes/not-enabled/safety/build-test/limitations/next-roadmap). Documentation only; no product code or runtime behavior changed.
+- **[PC1]:** Updated CURRENT_PHASE.md (header → CORE MVP CLOSED, closure section added), SESSION_SUMMARY.md (closure section), 08_logs/phase_log.md, 08_logs/agent_activity_log.md.
+- **[PC1]:** Re-ran `npm run build` (PASS — 0 TS errors, 1575 modules) and `npm run test` (45/45 PASS) to confirm no behavior change at closure.
+- **[PC1]:** Final reviewed product commit: `fd86ead`. Approved scope: controlled internal testing / controlled client demo only.
+- **[PC1]:** Recommended next: Phase 19 / Ver2 planning with Owner + AI Coordinator (then demo prep → Supabase staging hardening → PC2 n8n/modules → UI polish → gated connector plan).
+- **[PC1]:** 🏁 CORE MVP CLOSED.
+
+---
+
 ### 🗓️ Ngày 11/06/2026 — Phase 18 CLOSED: Final MVP Polish + Production Readiness
 - **[PC1 Claude Code Builder]:** Phase 18 implemented and closed in one pass — low-risk UI label polish + production readiness verification. Diff is UI label strings + docs only; routing/repos/sanitizers/RLS untouched.
 - **[PC1]:** Removed "FnB OS V1" rows from sidebar Safety Guard + Dashboard sandbox safety grid; header badge → "Core MVP — Internal Demo"; added data-mode badge ("Local Data Only" / "Supabase Data") driven by `isSupabaseConfigured`.

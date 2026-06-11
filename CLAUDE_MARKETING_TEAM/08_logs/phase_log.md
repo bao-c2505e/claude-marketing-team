@@ -6,6 +6,17 @@ Nhật ký theo dõi các mốc hoàn thành kỹ thuật qua các Phase.
 
 ## 📅 Nhật Ký Sự Kiện (Event Logs)
 
+### 🗓️ Ngày 11/06/2026 — 🏁 CORE MVP CLOSED (Phases 1–18)
+- **Sự kiện:** Đóng chính thức chu kỳ build Core MVP (Phase 1–18). Documentation only — không đổi product code, runtime behavior, hay connector state.
+- **Closure report:** `CLAUDE_MARKETING_TEAM/CORE_MVP_CLOSURE_REPORT.md` — tổng hợp: MVP bao gồm gì; những gì cố ý CHƯA bật (real ads/posting/messaging/connectors/AI/file storage/production Supabase/secrets); safety status; build/test status; known limitations; recommended next roadmap.
+- **Final reviewed product commit:** `fd86ead` (Phase 18 — Codex PASS).
+- **Build:** PASS — 0 TS errors (`tsc && vite build`, 1575 modules). `npm run test`: 45/45 PASS.
+- **Approved scope:** controlled internal testing / controlled client demo. Mọi thứ vượt scope này (live data, live connectors, real client accounts) yêu cầu phase mới + Owner approval.
+- **Recommended next:** (1) Phase 19 / Ver2 planning → (2) client demo prep → (3) Supabase staging hardening → (4) PC2 n8n/modules workstream → (5) UI/brand polish → (6) gated real-connector plan.
+- **Trạng thái:** 🏁 CORE MVP CLOSED.
+
+---
+
 ### 🗓️ Ngày 11/06/2026 — Phase 18 CLOSED: Final MVP Polish + Production Readiness
 - **Sự kiện:** Phase 18 hoàn tất — polish UI label mức rủi ro thấp + xác minh production readiness. Không đổi logic/routing/repository/sanitizer/SQL.
 - **Scope hoàn thành:**
