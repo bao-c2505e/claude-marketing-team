@@ -6,6 +6,20 @@ Nhật ký theo dõi các mốc hoàn thành kỹ thuật qua các Phase.
 
 ## 📅 Nhật Ký Sự Kiện (Event Logs)
 
+### 🗓️ Ngày 11/06/2026 — Phase 18 CLOSED: Final MVP Polish + Production Readiness
+- **Sự kiện:** Phase 18 hoàn tất — polish UI label mức rủi ro thấp + xác minh production readiness. Không đổi logic/routing/repository/sanitizer/SQL.
+- **Scope hoàn thành:**
+  - Gỡ "FnB OS V1: NO" khỏi sidebar Safety Guard và "FnB OS V1 Touched: NO" khỏi Dashboard sandbox grid (gây nhầm lẫn cho demo viewer; FnB OS V1 không bị đụng tới).
+  - Header badge "Real Operations MVP — Phase 14" → "Core MVP — Internal Demo"; thêm data-mode badge mới "Local Data Only" / "Supabase Data" (dựa trên `isSupabaseConfigured` có sẵn, kèm tooltip giải thích).
+  - Gỡ số phase nội bộ cũ khỏi label hiển thị: ApprovalsTab, ContentCalendarTab, AssetLibraryTab, AutomationLogsTab, ConnectorRegistryTab, ReportsTab, ExportPackTab, BriefIntakeTab. Code comment và sample log `[Mock]` giữ nguyên.
+  - Xác minh lại an toàn: secrets grep clean; chỉ `.env.example` được track; 0 direct network call trong `src/` (Supabase SDK là network client duy nhất, `null` khi không có env); không real ads/posting/messaging/connectors.
+  - Doc mới: `07_docs/MVP_READINESS_CHECKLIST.md` — verdict + bảng bằng chứng an toàn + bảng safeguard intact + remaining risks.
+- **Build:** PASS — 0 TS errors (`tsc && vite build`, 1575 modules). `npm run test`: 45/45 PASS.
+- **Verdict:** ✅ Core MVP READY cho internal testing / controlled client demo. ❌ CHƯA ready cho live automation, real publishing/ads/messaging, real client data trên Supabase, file upload.
+- **Trạng thái:** ✅ CLOSED.
+
+---
+
 ### 🗓️ Ngày 11/06/2026 — Phase 17 CLOSED: End-to-end Workflow Test
 - **Sự kiện:** Phase 17 hoàn tất — thêm vitest unit tests cho repository routing gates + patch sanitizers, và manual MVP E2E workflow checklist.
 - **Scope hoàn thành:**

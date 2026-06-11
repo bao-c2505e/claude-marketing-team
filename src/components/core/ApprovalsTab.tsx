@@ -571,7 +571,7 @@ function DetailView({
           )}
 
           <div style={{ marginTop: '10px', padding: '8px 12px', background: 'rgba(248,113,113,0.06)', border: '1px solid rgba(248,113,113,0.2)', borderRadius: '6px', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-            <strong style={{ color: '#f87171' }}>Approved ≠ Published.</strong> Approval here only unlocks the next workflow stage. Publishing requires a separate final step (Phase 9+).
+            <strong style={{ color: '#f87171' }}>Approved ≠ Published.</strong> Approval here only unlocks the next workflow stage. Publishing requires a separate final step (not enabled in this MVP).
           </div>
         </div>
       )}
@@ -756,7 +756,7 @@ export default function ApprovalsTab({
             Approvals
           </h2>
           <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: '4px 0 0' }}>
-            Phase 8 — Submit content for review and record approval decisions.
+            Submit content for review and record approval decisions.
           </p>
         </div>
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>

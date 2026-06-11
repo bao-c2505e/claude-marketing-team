@@ -205,7 +205,6 @@ export default function ExportPackTab({
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <Package size={20} style={{ color: '#818cf8' }} />
           <h2 style={{ fontSize: '1.2rem', fontWeight: 700, margin: 0 }}>Export Pack</h2>
-          <StatusBadge label="Phase 12" color="#818cf8" />
           <StatusBadge label="Local export only" color="#f59e0b" />
           {!isSupabaseConfigured && <StatusBadge label="Demo mode" color="#71717a" />}
         </div>

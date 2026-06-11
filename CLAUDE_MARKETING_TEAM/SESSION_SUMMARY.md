@@ -22,6 +22,38 @@ Chúng ta đang xây dựng **The Core Agency — Real Operations MVP**. Đây l
 
 ---
 
+## 🏁 Phase 18 — Final MVP Polish + Production Readiness (CLOSED — 2026-06-11)
+
+**Scope completed:** Low-risk UI label polish only — no logic, routing,
+repository, sanitizer, type, or SQL changes. Removed "FnB OS V1" rows from
+both safety panels (sidebar Safety Guard + Dashboard sandbox grid); header
+badge "Real Operations MVP — Phase 14" → "Core MVP — Internal Demo"; new
+header data-mode badge ("Local Data Only" / "Supabase Data", driven by the
+existing `isSupabaseConfigured`); stale internal phase numbers removed from
+user-visible labels across ApprovalsTab, ContentCalendarTab, AssetLibraryTab,
+AutomationLogsTab, ConnectorRegistryTab, ReportsTab, ExportPackTab,
+BriefIntakeTab. Code comments and `[Mock]`-labeled sample log bodies keep
+their phase references.
+
+**Production safety re-verified:** secrets grep clean (placeholders only);
+only `.env.example` tracked; zero direct network calls in `src/` (the
+Supabase SDK is the only network client, `null` without env vars); no real
+ads/posting/messaging/connectors. Phase 16D/17 safeguards (UUID gates,
+current+next `asset_collection_id` gating, scoped repos, sanitizers, RLS
+migrations) fully intact.
+
+**New doc:** `07_docs/MVP_READINESS_CHECKLIST.md` — readiness verdict +
+evidence tables + remaining risks.
+
+**Build:** PASS — 0 TS errors (1575 modules). **Tests:** 45/45 PASS.
+
+**Verdict:** ✅ Core MVP READY for controlled internal testing / controlled
+client demo. NOT ready for live automation, real publishing, real client
+data in Supabase, or file uploads. Owner should run the manual browser pass
+of the Phase 17 E2E checklist (sections B–G) before the first external demo.
+
+---
+
 ## 🏁 Phase 17 — End-to-end Workflow Test (CLOSED — 2026-06-11)
 
 **Scope completed:** Added `vitest` as a devDependency (`npm run test` /

@@ -290,7 +290,7 @@ function EditPanel({
             ))}
           </select>
           <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', marginTop: '3px' }}>
-            Approved / Published not available — use Approval Workflow (Phase 8)
+            Approved / Published not available — use the Approvals tab
           </div>
         </div>
       </div>
@@ -729,7 +729,7 @@ export default function ContentCalendarTab({
             Content Calendar
           </h2>
           <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: '4px 0 0' }}>
-            Phase 7 — Planning view. Review, filter, and adjust content items generated from approved briefs.
+            Planning view. Review, filter, and adjust content items generated from approved briefs.
           </p>
         </div>
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>

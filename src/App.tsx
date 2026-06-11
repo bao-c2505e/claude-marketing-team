@@ -1010,7 +1010,20 @@ export default function App() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-end' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <span className="badge badge-indigo" style={{ background: 'rgba(99, 102, 241, 0.15)', color: '#818cf8', borderColor: 'rgba(99, 102, 241, 0.3)', border: '1px solid' }}>
-              Real Operations MVP — Phase 14
+              Core MVP — Internal Demo
+            </span>
+            <span
+              title={isSupabaseConfigured
+                ? 'Connected to Supabase. Data persists to your Supabase project (local-format records stay in this browser).'
+                : 'Supabase is not configured. All data stays in this browser (localStorage).'}
+              style={{
+                fontSize: '0.68rem', fontWeight: 600, borderRadius: '5px', padding: '2px 8px', cursor: 'default',
+                color: isSupabaseConfigured ? '#34d399' : '#f59e0b',
+                background: isSupabaseConfigured ? 'rgba(16,185,129,0.12)' : 'rgba(245,158,11,0.12)',
+                border: isSupabaseConfigured ? '1px solid rgba(16,185,129,0.3)' : '1px solid rgba(245,158,11,0.3)',
+              }}
+            >
+              {isSupabaseConfigured ? 'Supabase Data' : 'Local Data Only'}
             </span>
             {/* User status */}
             {user && (
@@ -1313,7 +1326,6 @@ export default function App() {
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Real Message:</span> <span style={{ color: 'var(--accent-rose)', fontWeight: 'bold' }}>NO</span></div>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Real Connectors:</span> <span style={{ color: 'var(--accent-rose)', fontWeight: 'bold' }}>NO</span></div>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Secrets Added:</span> <span style={{ color: 'var(--accent-rose)', fontWeight: 'bold' }}>NO</span></div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>FnB OS V1:</span> <span style={{ color: 'var(--accent-rose)', fontWeight: 'bold' }}>NO</span></div>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Sample Data Only:</span> <span style={{ color: 'var(--accent-emerald)', fontWeight: 'bold' }}>YES</span></div>
                 </div>
               </>
@@ -1788,10 +1800,6 @@ export default function App() {
                       </div>
                       <div style={{ background: 'rgba(255,255,255,0.02)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <span style={{ fontSize: '0.85rem' }}>Secrets Added:</span>
-                        <span className="badge badge-rose" style={{ fontWeight: 'bold' }}>NO</span>
-                      </div>
-                      <div style={{ background: 'rgba(255,255,255,0.02)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontSize: '0.85rem' }}>FnB OS V1 Touched:</span>
                         <span className="badge badge-rose" style={{ fontWeight: 'bold' }}>NO</span>
                       </div>
                       <div style={{ background: 'rgba(255,255,255,0.02)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gridColumn: 'span 2' }}>

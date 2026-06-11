@@ -6,6 +6,17 @@ Nhật ký ghi lại các hành động mô phỏng của các AI Agent khi vậ
 
 ## 🗓️ Nhật Ký Hoạt Động (Simulated Activity Logs)
 
+### 🗓️ Ngày 11/06/2026 — Phase 18 CLOSED: Final MVP Polish + Production Readiness
+- **[PC1 Claude Code Builder]:** Phase 18 implemented and closed in one pass — low-risk UI label polish + production readiness verification. Diff is UI label strings + docs only; routing/repos/sanitizers/RLS untouched.
+- **[PC1]:** Removed "FnB OS V1" rows from sidebar Safety Guard + Dashboard sandbox safety grid; header badge → "Core MVP — Internal Demo"; added data-mode badge ("Local Data Only" / "Supabase Data") driven by `isSupabaseConfigured`.
+- **[PC1]:** De-phased user-visible labels in ApprovalsTab, ContentCalendarTab, AssetLibraryTab, AutomationLogsTab, ConnectorRegistryTab, ReportsTab, ExportPackTab, BriefIntakeTab (stale "Phase 6–14" wording → neutral MVP wording). Code comments + `[Mock]` sample log bodies unchanged.
+- **[PC1]:** Safety re-verified — secrets grep clean; only `.env.example` tracked; `fetch`/`axios`/`XMLHttpRequest`/`WebSocket` grep over `src/` → 0 matches; Supabase SDK remains the only network client and is `null` without env vars.
+- **[PC1]:** New doc `CLAUDE_MARKETING_TEAM/07_docs/MVP_READINESS_CHECKLIST.md` with readiness verdict, evidence tables, and remaining risks.
+- **[PC1]:** Build PASS — 0 TS errors (`tsc && vite build`, 1575 modules). `npm run test`: 45/45 PASS.
+- **[PC1]:** Verdict: Core MVP READY for controlled internal/demo use. Phase 18 CLOSED.
+
+---
+
 ### 🗓️ Ngày 11/06/2026 — Phase 17 CLOSED: End-to-end Workflow Test
 - **[PC1 Claude Code Builder]:** Phase 17 implemented and closed in one pass — added `vitest` devDependency + `npm run test`/`npm run test:watch` (zero extra config, default `node` environment).
 - **[PC1]:** Extracted `assetRepoFor()`/`approvalRepoFor()`'s inline UUID-gating predicates verbatim into new `src/lib/core/repoRouting.ts` (`assetScopeIsSupabaseSafe`, `approvalScopeIsSupabaseSafe`, `okOrAbsentUuid`); `App.tsx` now imports and calls them — no behavior change.

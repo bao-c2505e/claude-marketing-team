@@ -1,9 +1,52 @@
-# CURRENT PHASE — Phase 17 ✅ CLOSED (2026-06-11) | Phase 16D ✅ CLOSED (Codex PASS — 2026-06-11) | Phase 16C-2 ✅ CLOSED (Codex PASS — 2026-06-11) | Phase 16C-1 ✅ CLOSED (Codex PASS — 2026-06-11) | Phase 16B-2 ✅ CLOSED (Codex PASS — 2026-06-10) | Phase 16B-1 ✅ CLOSED (Codex PASS — 2026-06-10) | Phase 16A ✅ CLOSED (Codex PASS — 2026-06-09)
+# CURRENT PHASE — Phase 18 ✅ CLOSED (2026-06-11) | Phase 17 ✅ CLOSED (2026-06-11) | Phase 16D ✅ CLOSED (Codex PASS — 2026-06-11) | Phase 16C-2 ✅ CLOSED (Codex PASS — 2026-06-11) | Phase 16C-1 ✅ CLOSED (Codex PASS — 2026-06-11) | Phase 16B-2 ✅ CLOSED (Codex PASS — 2026-06-10) | Phase 16B-1 ✅ CLOSED (Codex PASS — 2026-06-10) | Phase 16A ✅ CLOSED (Codex PASS — 2026-06-09)
 
 ## 📌 Thông tin chung
-- **Phase trước:** Phase 16D — Asset Library CRUD Wiring (CLOSED — Codex PASS — 2026-06-11)
-- **Phase hiện tại:** Phase 17 — End-to-end Workflow Test — ✅ CLOSED (2026-06-11). `vitest` added as a devDependency (zero extra config — runs in vitest's default `node` environment via `npm run test`); `assetRepoFor()`/`approvalRepoFor()`'s inline UUID-gating predicates extracted verbatim into `src/lib/core/repoRouting.ts` (`assetScopeIsSupabaseSafe`, `approvalScopeIsSupabaseSafe`, `okOrAbsentUuid`) and unit-tested (34 tests); `sanitizeAssetPatch`/`sanitizeGenerationPatch`/`sanitizeBriefPatch` + `isUuid`/`generateId` unit-tested (11 tests) in `src/lib/core/coreRepository.test.ts`. Manual MVP E2E workflow checklist added at `CLAUDE_MARKETING_TEAM/08_logs/phase_17_e2e_checklist.md`. Build PASS (0 TS errors, 1575 modules), `npm run test` 45/45 PASS.
+- **Phase trước:** Phase 17 — End-to-end Workflow Test (CLOSED — 2026-06-11)
+- **Phase hiện tại:** Phase 18 — Final MVP Polish + Production Readiness — ✅ CLOSED (2026-06-11). Low-risk UI label polish only (no logic/routing/SQL changes): removed "FnB OS V1" rows from both safety panels, replaced stale internal phase numbers in user-visible labels, header badge updated to "Core MVP — Internal Demo" + new data-mode badge ("Local Data Only" / "Supabase Data"). Production safety re-verified (no real connectors/posting/ads/messaging, secrets grep clean, `.env*` untracked). New `CLAUDE_MARKETING_TEAM/07_docs/MVP_READINESS_CHECKLIST.md`. Build PASS (0 TS errors, 1575 modules), `npm run test` 45/45 PASS. **Verdict: Core MVP READY for controlled internal/demo use.**
 - **Phase tiếp theo:** TBD (pending Owner direction)
+
+---
+
+## 🏁 Phase 18 — Final MVP Polish + Production Readiness (CLOSED — 2026-06-11)
+
+### Scope completed:
+- **UI polish (label strings only — no logic changes):**
+  - Header: stale "Real Operations MVP — Phase 14" badge → "Core MVP — Internal Demo"; new data-mode badge showing "Local Data Only" (amber) vs "Supabase Data" (emerald) with explanatory tooltip, driven by the existing `isSupabaseConfigured` flag.
+  - Removed the confusing "FnB OS V1: NO" row from the sidebar Safety Guard panel and the "FnB OS V1 Touched: NO" card from the Dashboard sandbox safety grid (meaningless to demo viewers; FnB OS V1 itself untouched).
+  - Replaced stale internal phase numbers in user-visible labels: ApprovalsTab subtitle ("Phase 8 —" dropped; "(Phase 9+)" → "(not enabled in this MVP)"), ContentCalendarTab subtitle ("Phase 7 —" dropped; tooltip "(Phase 8)" → "use the Approvals tab"), AssetLibraryTab ("metadata only in Phase 10" → "metadata only (no file storage yet)" / "for now"), AutomationLogsTab ("Phase 14 — Local / Mock" badge → "Local / Mock — No Live Automation"; footer "Phase 14 — Local Mode" → "Local Mode", "planned for Phase 15+" → "a later phase"), ConnectorRegistryTab ("Phase 13" badge removed; banner/governance lines de-phased), ReportsTab ("connected in Phase 11" → "connected in this MVP"), ExportPackTab ("Phase 12" badge removed), BriefIntakeTab ("Generation requires Phase 6" → "Generation runs in the Content Generation tab").
+  - Code comments and clearly-labeled `[Mock]` sample log message bodies retain their phase references (internal/sample data, not UI labels).
+- **Production safety re-verified:** secrets grep clean (only `.env.example` placeholders + 1 safety-note string); only `.env.example` tracked in git; zero direct network calls in `src/` (`fetch`/`axios`/`XMLHttpRequest`/`WebSocket` → 0 matches) — the Supabase SDK is the only network client and stays `null` without env vars; no real ads/posting/messaging/connectors anywhere.
+- **New doc:** `CLAUDE_MARKETING_TEAM/07_docs/MVP_READINESS_CHECKLIST.md` — full readiness verdict, safety evidence table, safeguard-intact table, core-workflow checklist, Supabase/local fallback explanation, and remaining-risks list.
+
+### Safety record:
+- Phase 16D/17 safeguards: **INTACT** — `repoRouting.ts` gates, current+next `asset_collection_id` gating, scoped repositories, sanitizers, RLS migrations all untouched (diff is UI label strings + docs only)
+- Production Supabase env: **OFF** (env vars unset)
+- Secrets / service role key in frontend: **NO** — secrets grep clean
+- Demo Sign In: **PRESERVED**; localStorage fallback: **PRESERVED**
+- No live Meta/Facebook/Canva/Google/n8n connectors, no auto-posting/messaging/ads
+- FnB OS V1: **NOT TOUCHED**
+- Build: PASS — 0 TS errors (`tsc && vite build`, 1575 modules)
+- Tests: PASS — `npm run test` → 45/45 (2 files)
+
+### Files changed:
+| File | Change |
+|---|---|
+| `src/App.tsx` | Header badge "Core MVP — Internal Demo" + data-mode badge; removed 2 "FnB OS V1" safety-panel rows |
+| `src/components/core/ApprovalsTab.tsx` | De-phased subtitle + "Approved ≠ Published" note |
+| `src/components/core/ContentCalendarTab.tsx` | De-phased subtitle + status tooltip |
+| `src/components/core/AssetLibraryTab.tsx` | De-phased metadata-only banners |
+| `src/components/core/AutomationLogsTab.tsx` | De-phased badge, safety strip, local-mode footer |
+| `src/components/core/ConnectorRegistryTab.tsx` | De-phased banner, badge, governance footer |
+| `src/components/core/ReportsTab.tsx` | De-phased analytics disclaimer |
+| `src/components/core/ExportPackTab.tsx` | Removed "Phase 12" badge |
+| `src/components/core/BriefIntakeTab.tsx` | De-phased safety note |
+| `CLAUDE_MARKETING_TEAM/07_docs/MVP_READINESS_CHECKLIST.md` | NEW — MVP readiness checklist + verdict |
+| `CLAUDE_MARKETING_TEAM/CURRENT_PHASE.md` / `SESSION_SUMMARY.md` / `08_logs/phase_log.md` / `08_logs/agent_activity_log.md` | Phase 18 documentation |
+
+### Readiness verdict:
+- ✅ **Core MVP is READY for controlled internal testing / controlled client demo.**
+- ❌ NOT ready for: live automation, real publishing/ads/messaging, real client data in Supabase (client-role feedback RLS decision pending), real file uploads.
+- Remaining risks listed in `07_docs/MVP_READINESS_CHECKLIST.md` §7 (incl. pending manual browser E2E pass of the Phase 17 checklist sections B–G).
 
 ---
 

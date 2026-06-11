@@ -94,7 +94,7 @@ function AssetSafetyBanner() {
     }}>
       <Shield size={14} style={{ color: '#34d399', flexShrink: 0 }} />
       <span style={{ fontSize: '0.8rem', color: '#34d399', lineHeight: 1.5 }}>
-        <strong>Asset Library — metadata only in Phase 10.</strong>{' '}
+        <strong>Asset Library — metadata only (no file storage yet).</strong>{' '}
         No real file upload. No auto-publish. Usage rights must be verified before publishing.
         Approved asset ≠ published content.
       </span>
@@ -443,7 +443,7 @@ function AssetCard({
 
           {/* Storage upload note */}
           <div style={{ padding: '8px 12px', background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.25)', borderRadius: '6px', fontSize: '0.75rem', color: '#f59e0b' }}>
-            Storage upload (Supabase/Drive) deferred to a later phase. Metadata only in Phase 10.
+            Storage upload (Supabase/Drive) deferred to a later phase. Metadata only for now.
           </div>
 
           {/* Actions */}

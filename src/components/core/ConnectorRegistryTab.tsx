@@ -678,7 +678,7 @@ export default function ConnectorRegistryTab({
       <div style={{ padding: '12px 16px', background: 'rgba(251,191,36,0.07)', border: '1px solid rgba(251,191,36,0.25)', borderRadius: '10px', display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
         <AlertCircle size={16} style={{ color: '#fbbf24', marginTop: '2px', flexShrink: 0 }} />
         <div style={{ fontSize: '0.8rem', color: '#fcd34d' }}>
-          <strong>Connector Registry — Phase 13 — Registry only.</strong>{' '}
+          <strong>Connector Registry — registry only, no live connections.</strong>{' '}
           No real API calls. No real webhooks sent. No auto-post. No real ads. No customer messaging.
           Production mode requires manual env setup and owner approval before activation.
           Mock events are simulated locally only.
@@ -690,7 +690,6 @@ export default function ConnectorRegistryTab({
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <Network size={20} style={{ color: '#818cf8' }} />
           <h2 style={{ fontSize: '1.2rem', fontWeight: 700, margin: 0 }}>Connector Registry</h2>
-          <StatusBadge label="Phase 13" color="#818cf8" />
           <StatusBadge label="Registry only" color="#f59e0b" />
           {!isSupabaseConfigured && <StatusBadge label="Demo mode" color="#71717a" />}
         </div>
@@ -743,11 +742,11 @@ export default function ConnectorRegistryTab({
           <Settings size={12} style={{ display: 'inline', marginRight: '4px' }} />
           Governance reminders
         </div>
-        <div>• All connectors are in registry-only state. No real API connection in Phase 13.</div>
+        <div>• All connectors are in registry-only state. No real API connection is made.</div>
         <div>• Production connector activation requires owner approval and .env setup on the backend.</div>
         <div>• API keys and tokens must NEVER appear in frontend code — use backend proxy.</div>
         <div>• No real ads will be created, no real messages sent, no real webhooks dispatched.</div>
-        <div>• Mock events are simulated locally. Real n8n/module callbacks wired in Phase 14+.</div>
+        <div>• Mock events are simulated locally. Real n8n/module callbacks are planned for a later phase.</div>
       </div>
     </div>
   );

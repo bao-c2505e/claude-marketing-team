@@ -300,7 +300,7 @@ export default function BriefIntakeTab({ clients, brands, campaigns, briefs, onB
         </div>
 
         <div style={{ padding: '12px 16px', background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.2)', borderRadius: '8px', fontSize: '0.8rem', color: '#f59e0b' }}>
-          🔒 Safety: Brief = Input only. Generation requires Phase 6. Generated ≠ Approved. Approved ≠ Published. No auto-post.
+          🔒 Safety: Brief = Input only. Generation runs in the Content Generation tab. Generated ≠ Approved. Approved ≠ Published. No auto-post.
         </div>
       </div>
     );

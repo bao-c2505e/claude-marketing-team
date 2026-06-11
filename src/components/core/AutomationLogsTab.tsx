@@ -213,7 +213,7 @@ export default function AutomationLogsTab({
                 Automation Logs
               </h2>
               <span style={{ fontSize: '0.7rem', fontWeight: 700, background: 'rgba(245,158,11,0.15)', color: '#f59e0b', border: '1px solid rgba(245,158,11,0.3)', borderRadius: '4px', padding: '2px 7px' }}>
-                Phase 14 — Local / Mock
+                Local / Mock — No Live Automation
               </span>
             </div>
             <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: 0 }}>
@@ -243,7 +243,7 @@ export default function AutomationLogsTab({
       <div style={{ padding: '10px 16px', background: 'rgba(99,102,241,0.06)', border: '1px solid rgba(99,102,241,0.2)', borderRadius: '8px', display: 'flex', flexWrap: 'wrap', gap: '14px', alignItems: 'center' }}>
         <Shield size={14} style={{ color: '#818cf8', flexShrink: 0 }} />
         <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-          <strong style={{ color: '#818cf8' }}>Safety:</strong> Logs are local/mock only in Phase 14 &nbsp;·&nbsp; No real workflow execution &nbsp;·&nbsp; No real webhook retry &nbsp;·&nbsp; No external API calls &nbsp;·&nbsp; No auto-post &nbsp;·&nbsp; No real ads &nbsp;·&nbsp; No customer messaging &nbsp;·&nbsp; Production automation requires owner approval.
+          <strong style={{ color: '#818cf8' }}>Safety:</strong> Logs are local/mock only &nbsp;·&nbsp; No real workflow execution &nbsp;·&nbsp; No real webhook retry &nbsp;·&nbsp; No external API calls &nbsp;·&nbsp; No auto-post &nbsp;·&nbsp; No real ads &nbsp;·&nbsp; No customer messaging &nbsp;·&nbsp; Production automation requires owner approval.
         </span>
       </div>
 
@@ -502,7 +502,7 @@ export default function AutomationLogsTab({
       {/* Footer note */}
       <div style={{ padding: '10px 14px', background: 'rgba(245,158,11,0.05)', border: '1px solid rgba(245,158,11,0.2)', borderRadius: '8px' }}>
         <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', margin: 0 }}>
-          <strong style={{ color: '#f59e0b' }}>Phase 14 — Local Mode:</strong> All logs are stored locally in localStorage. No Supabase persistence yet. No real automation events. Logs are hidden from client/viewer roles. Production automation wiring planned for Phase 15+.
+          <strong style={{ color: '#f59e0b' }}>Local Mode:</strong> All logs are stored locally in localStorage. No Supabase persistence yet. No real automation events. Logs are hidden from client/viewer roles. Production automation wiring is planned for a later phase.
         </p>
       </div>
     </div>

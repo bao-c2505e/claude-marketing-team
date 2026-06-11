@@ -46,7 +46,7 @@ function ReportSafetyBanner() {
       <Shield size={14} style={{ color: '#818cf8', flexShrink: 0 }} />
       <span style={{ fontSize: '0.8rem', color: '#818cf8', lineHeight: 1.5 }}>
         <strong>Reports use Core workspace data only.</strong>{' '}
-        No real platform analytics (Meta, Google, TikTok) connected in Phase 11.
+        No real platform analytics (Meta, Google, TikTok) are connected in this MVP.
         No ads spend data. Report figures are workspace progress metrics, not real campaign performance.
         Approved content ≠ published content.
       </span>
