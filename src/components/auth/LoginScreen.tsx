@@ -24,8 +24,7 @@ export default function LoginScreen() {
   return (
     <div style={{
       minHeight: '100vh',
-      background: 'var(--bg-app, #070a0f)',
-      backgroundImage: 'radial-gradient(at 50% 0%, rgba(244, 122, 31, 0.08) 0px, transparent 55%)',
+      background: 'transparent',
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',

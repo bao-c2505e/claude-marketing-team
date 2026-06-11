@@ -6,6 +6,14 @@ Nhật ký ghi lại các hành động mô phỏng của các AI Agent khi vậ
 
 ## 🗓️ Nhật Ký Hoạt Động (Simulated Activity Logs)
 
+### 🗓️ Ngày 12/06/2026 — V2-B follow-up — Decorative Background/Light Treatment ✅ DONE
+- **[PC1 Claude Code Builder]:** Added shared CSS-only background decoration to the app shell (`src/index.css`): `body::before` = deep navy→black gradient + brand-orange glows + faint navy/blue glows + edge vignette; `body::after` = 56px grid + static SVG grain at 4% opacity, radially masked to fade toward the lower half. Both fixed, `z-index: -1`, `pointer-events: none` — painted behind all content on every page; no per-page duplication. `.glass-panel` gained a 1px inset top highlight for lift.
+- **[PC1]:** LoginScreen + auth loading screen backgrounds switched to `transparent` so they inherit the shared shell decoration (removed LoginScreen's own duplicate radial glow).
+- **[PC1]:** Static CSS only — no animation, particles, canvas, or runtime visuals. No logic/behavior/repository/Supabase/auth/UUID-gating/tenant-scope/sanitizer/RLS/test changes.
+- **[PC1]:** `npm run build` PASS (0 TS errors, 1575 modules); `npm run test` 45/45 PASS.
+
+---
+
 ### 🗓️ Ngày 11/06/2026 — V2-B (Owner-directed) — Premium Dark SaaS UI Polish ✅ DONE
 *(Naming note: Owner labels this task "V2-B — Premium Dark SaaS UI Polish"; in `PHASE_19_VER2_ROADMAP.md` the UI-polish package was listed as V2-E. This entry follows the Owner's naming.)*
 - **[PC1 Claude Code Builder]:** Implemented The Core Agency premium dark SaaS theme. Rewrote `src/index.css` token layer (deep navy/black backgrounds, glass surfaces, Brand Orange #F47A1F accent, semantic colors, Inter typography) keeping legacy CSS var names as aliases so all existing inline styles inherit the new theme with zero logic changes.

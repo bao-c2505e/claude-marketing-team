@@ -984,7 +984,7 @@ export default function App() {
   // Auth gate — must be after all hooks
   if (authLoading) {
     return (
-      <div style={{ minHeight: '100vh', background: '#070a0f', display: 'flex', flexDirection: 'column', gap: '14px', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ minHeight: '100vh', background: 'transparent', display: 'flex', flexDirection: 'column', gap: '14px', alignItems: 'center', justifyContent: 'center' }}>
         <div className="spinner" />
         <div style={{ color: '#6b7280', fontSize: '0.875rem' }}>Loading The Core Agency…</div>
       </div>

@@ -6,6 +6,15 @@ Nhật ký theo dõi các mốc hoàn thành kỹ thuật qua các Phase.
 
 ## 📅 Nhật Ký Sự Kiện (Event Logs)
 
+### 🗓️ Ngày 12/06/2026 — V2-B follow-up — Decorative Background/Light Treatment ✅ DONE
+- **Sự kiện:** Follow-up presentation-only của V2-B UI Polish — thêm background decoration hiện đại để dark UI bớt phẳng. **CSS-only, static — KHÔNG animation/particles/canvas; KHÔNG đổi logic/behavior/repository/Supabase/auth/UUID gating/tenant scope/sanitizers/RLS/tests.**
+- **Treatment (shared, trong `src/index.css`):** hai fixed pseudo-layers `body::before`/`body::after` (z-index −1, pointer-events none) phía sau toàn bộ content — (1) gradient navy `#0B1120`→`#070A0F` + brand orange glow (trên-trái, echo dưới-phải) + navy/blue glow rất nhạt + vignette viền; (2) grid 56px + grain SVG tĩnh (opacity 4%), mask radial fade về nửa dưới màn hình. `.glass-panel` thêm inset top highlight 1px để panel "nổi" khỏi nền.
+- **Unify:** LoginScreen + auth loading screen chuyển background sang `transparent` để dùng shared shell decoration (bỏ radial glow riêng của LoginScreen — tránh duplicate per-page).
+- **Build:** PASS — 0 TS errors (1575 modules). `npm run test`: 45/45 PASS.
+- **Trạng thái:** ✅ DONE.
+
+---
+
 ### 🗓️ Ngày 11/06/2026 — V2-B (Owner-directed) — Premium Dark SaaS UI Polish ✅ DONE
 *(Naming note: Owner gọi task này là "V2-B — Premium Dark SaaS UI Polish". Trong `PHASE_19_VER2_ROADMAP.md`, UI polish vốn được liệt kê là V2-E còn V2-B là Supabase staging — entry này theo naming của Owner.)*
 - **Sự kiện:** Hoàn tất UI polish theo phong cách premium dark AI SaaS cho The Core Agency. **UI/CSS/theme/label only — KHÔNG đổi product behavior, data flow, repository logic, Supabase, UUID gating, tenant scope, sanitizers, RLS, auth, tests.**
