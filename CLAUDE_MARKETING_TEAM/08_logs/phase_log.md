@@ -6,6 +6,19 @@ Nhật ký theo dõi các mốc hoàn thành kỹ thuật qua các Phase.
 
 ## 📅 Nhật Ký Sự Kiện (Event Logs)
 
+### 🗓️ Ngày 12/06/2026 — V2-A — Manual Browser E2E Checklist + Demo Script ✅ DONE
+- **Sự kiện:** Hoàn tất work package **V2-A** (Ver2 roadmap — recommended first). **Documentation only — KHÔNG đổi product code/behavior/repository/Supabase/auth/UUID gating/tenant scope/sanitizers/RLS/connectors/tests; không live automation/real ads/posting/messaging/secrets.**
+- **Deliverable:** `CLAUDE_MARKETING_TEAM/V2A_MANUAL_BROWSER_E2E_AND_DEMO_SCRIPT.md` — 4 phần:
+  - **§1 Manual Browser E2E checklist (28 items A1–A28):** phủ app load/title/favicon/branding, login (Demo Sign In), Owner View, Client View toggle, Dashboard, Clients, Brands, Campaigns, Brief Intake, Content Generation, Content Calendar (verify overflow fix `bb8cb9e`), Approvals, Reports, Export Pack, Connector Registry, Automation Logs, Client Portal, Asset Library, Brand Workspace, New Campaign Brief, AI Team Board, Campaign Outputs, Approval Checklist, Client Presentation Pack, Client Workspace View, Manual Export Pack, Presentation & Export, cross-cutting console/network sweep. Mỗi item có: what to click / expected result / blocker definition / visual QA notes / safety notes.
+  - **§2 Demo script 5–10 phút:** opening pitch → problem → solution → owner workspace → brand/campaign flow → AI team output → approval safety → client presentation/export → why no auto-posting/ads yet → closing CTA (pilot 2 tuần).
+  - **§3 UI QA report template:** blocker bugs / visual polish / wording / responsive-mobile / deferred improvements + verdict.
+  - **§4 Sign-off:** tester → PC1 fixes → Codex review → Owner accept → unlocks V2-D + roadmap-V2-B.
+- Checklist viết theo UI thực tế (`src/App.tsx`: 24 tab ids; owner-only gating `new-campaign`/`team-board`/`manual-export`/`client-demo`/`automation-logs`; header badges + data-mode badge; LoginScreen demo credentials).
+- **Build:** PASS — 0 TS errors. `npm run test`: 45/45 PASS.
+- **Trạng thái:** ✅ DONE. Next: Owner/tester thực thi browser pass + nộp QA report.
+
+---
+
 ### 🗓️ Ngày 12/06/2026 — V2-B follow-up — Fix Content Calendar Horizontal Overflow ✅ DONE
 - **Sự kiện:** Layout/presentation-only fix — Content Calendar rows tràn ngang ra ngoài content container. **KHÔNG đổi logic/data flow/repository/Supabase/auth/UUID gating/tenant scope/sanitizers/RLS/tests/connectors.**
 - **Root cause:** `<main>` là grid item `1fr` trong layout `260px 1fr` (App.tsx) với default `min-width: auto` — nội dung nowrap/unbroken text đẩy track vượt viewport.

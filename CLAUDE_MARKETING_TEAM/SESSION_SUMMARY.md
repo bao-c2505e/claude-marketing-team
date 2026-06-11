@@ -22,6 +22,37 @@ Chúng ta đang xây dựng **The Core Agency — Real Operations MVP**. Đây l
 
 ---
 
+## 🏁 V2-A — Manual Browser E2E Checklist + Demo Script — DONE (2026-06-12)
+
+**Documentation only — KHÔNG đổi product code/behavior/repository/Supabase/
+auth/UUID gating/tenant scope/sanitizers/RLS/connectors/tests. Không live
+automation/real ads/posting/messaging/secrets.**
+
+- **Deliverable:** `CLAUDE_MARKETING_TEAM/V2A_MANUAL_BROWSER_E2E_AND_DEMO_SCRIPT.md`:
+  - **§1 — Manual Browser E2E checklist, 28 items (A1–A28):** app load/
+    favicon/branding, Demo Sign In, Owner View header, Client View toggle
+    (owner-only tabs ẩn), Dashboard, Clients/Brands/Campaigns, Brief Intake,
+    Content Generation, Content Calendar (verify overflow fix), Approvals,
+    Reports, Export Pack, Connector Registry (highest-attention safety
+    item), Automation Logs, Client Portal, Asset Library, Brand Workspace,
+    New Campaign Brief, AI Team Board, Campaign Outputs, Approval Checklist
+    (3 locked safety items), Client Presentation Pack, Client Workspace
+    View, Manual Export Pack, Presentation & Export, console/network sweep.
+    Mỗi item: click steps / expected / blocker definition / visual QA /
+    safety notes.
+  - **§2 — Demo script 5–10 phút** (10 beats, có lời thoại + timing):
+    pitch → problem → solution → workspace tour → brand/campaign flow →
+    AI team output → approval safety → client presentation/export →
+    why-no-auto-posting (gate-by-gate connector story) → CTA pilot 2 tuần.
+  - **§3 — UI QA report template:** blockers / visual polish / wording /
+    responsive / deferred + verdict.
+  - **§4 — Sign-off flow:** tester → PC1 fix → Codex → Owner accept →
+    unlocks V2-D + roadmap-V2-B.
+- **Build:** PASS — 0 TS errors. **Tests:** 45/45 PASS (docs-only diff).
+- **Next:** Owner/tester chạy browser pass thật theo §1 và nộp QA report.
+
+---
+
 ## 🏁 V2-B (Owner-directed) — Premium Dark SaaS UI Polish — DONE (2026-06-11)
 
 > **Naming:** Owner gọi task này là "V2-B — Premium Dark SaaS UI Polish";

@@ -6,6 +6,16 @@ Nhật ký ghi lại các hành động mô phỏng của các AI Agent khi vậ
 
 ## 🗓️ Nhật Ký Hoạt Động (Simulated Activity Logs)
 
+### 🗓️ Ngày 12/06/2026 — V2-A — Manual Browser E2E Checklist + Demo Script ✅ DONE
+- **[PC1 Claude Code Builder]:** Authored `CLAUDE_MARKETING_TEAM/V2A_MANUAL_BROWSER_E2E_AND_DEMO_SCRIPT.md` — the V2-A work package deliverable (documentation only, zero product/code change).
+- **[PC1]:** §1 — 28-item manual browser E2E checklist (A1–A28) covering every sidebar tab plus app load/branding, Demo Sign In, Owner/Client view toggle, and a cross-cutting console/network sweep; each item specifies what to click, expected result, blocker definition, visual QA notes, and safety notes. Checklist written against the real UI in `src/App.tsx` (24 tab ids, owner-only gating for `new-campaign`/`team-board`/`manual-export`/`client-demo`/`automation-logs`, header badges, data-mode badge, LoginScreen demo credentials).
+- **[PC1]:** §2 — 5–10 minute demo script with speaker lines and timing: opening pitch, problem, solution, owner workspace tour, brand/campaign flow, AI team output, approval safety (locked checklist items), client presentation/export (live Client View switch + pack copy), why no auto-posting/ads yet (Connector Registry registered-but-disabled, gate-by-gate activation story), closing CTA (2-week pilot).
+- **[PC1]:** §3 — UI QA report template (blockers / visual polish / wording / responsive / deferred + verdict); §4 — sign-off flow (tester → PC1 fixes → Codex → Owner accept → unlocks V2-D and roadmap-V2-B).
+- **[PC1]:** Docs-only diff — no repository/Supabase/auth/UUID-gating/tenant-scope/sanitizer/RLS/connector/test changes; no live automation/real ads/posting/messaging/secrets.
+- **[PC1]:** `npm run build` PASS (0 TS errors); `npm run test` 45/45 PASS.
+
+---
+
 ### 🗓️ Ngày 12/06/2026 — V2-B follow-up — Fix Content Calendar Horizontal Overflow ✅ DONE
 - **[PC1 Claude Code Builder]:** Diagnosed the Content Calendar horizontal overflow: the `<main>` content area is the `1fr` item of the `260px 1fr` app grid and had no `min-width: 0`, so nowrap chips/unbroken generated text expanded the track past the viewport (CSS grid `min-width: auto` default).
 - **[PC1]:** Root fix in App.tsx: `<main>` now has `minWidth: 0, maxWidth: '100%'` — contains every tab, not just the calendar. ContentCalendarTab: `wordBreak: 'break-word'` on expanded detail fields (caption/hashtags/visual brief), ellipsis on the expanded breadcrumb. ApprovalsTab: same `wordBreak` fix on its detail field style. ExportPackTab: defensive `minWidth: 0` on the preview column.
