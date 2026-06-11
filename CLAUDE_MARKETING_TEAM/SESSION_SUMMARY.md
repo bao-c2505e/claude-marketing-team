@@ -22,18 +22,23 @@ Chúng ta đang xây dựng **The Core Agency — Real Operations MVP**. Đây l
 
 ---
 
-## 🟡 V2-C (Owner naming) — Client Demo Package — PACKAGE READY / REHEARSAL & OWNER APPROVAL PENDING (2026-06-12)
+## 🏁 V2-C (Owner naming) — Client Demo Package — DONE / PASS (2026-06-12)
 
 > **Naming:** Owner gọi package này là "V2-C — Client Demo Package"; trong
 > roadmap, client demo package vốn là V2-D (roadmap-V2-C = PC2 n8n dry-run,
 > CHƯA bắt đầu). Theo naming của Owner, giống tiền lệ V2-B.
 
-> **Status (Codex required fix):** V2-C **CHƯA DONE/DELIVERED** — mới sẵn
-> sàng phần package materials; **client-facing use CHƯA được approve.**
-> V2-C chỉ đóng khi đủ cả 4 điều kiện: (1) Owner rehearse script §3/§4
-> trên live demo; (2) rehearsal notes/results được ghi lại; (3) Owner
-> approve package cho controlled client/internal use; (4) approval được
-> log. Trước đó KHÔNG dùng package trước mặt client.
+> **Closure:** **Owner đã rehearse script 5 phút (§3) với UI flow thật**
+> (2026-06-12) — kết quả **"ổn" / PASS**, demo flow verified với UI hiện
+> tại, **không có blocking demo issue**. Đủ cả 4 điều kiện đóng:
+> (1) rehearsal executed ✅; (2) kết quả ghi tại
+> `08_logs/v2c_rehearsal_20260612.md` ✅; (3) **Owner approval ghi nhận
+> cho controlled internal/demo use** ✅; (4) approval logged ✅.
+> *(History: từng ở PACKAGE READY / REHEARSAL & OWNER APPROVAL PENDING
+> theo Codex required fix — chỉ nâng DONE sau rehearsal thật.)*
+> **Standing rule:** client-facing use vẫn controlled — mọi demo tôn
+> trọng 5 safety boundaries (no auto-posting / no real ads / no real
+> messaging / no live connectors / approval before external use).
 
 **Documentation/demo-material only — KHÔNG đổi product code/UI/runtime/
 repository/Supabase/auth/UUID gating/tenant scope/sanitizers/RLS/
@@ -51,11 +56,10 @@ connectors/tests. Không live automation/real ads/posting/messaging/secrets.**
   (2-week 1-brand pilot + fallbacks); §13 one-page sales summary
   (Problem/Solution/What/Why-safer/Who/Status/Roadmap); §14 sign-off.
 - **Build:** PASS — 0 TS errors. **Tests:** 45/45 PASS (docs-only diff).
-- **Next (đủ cả 4 mới đóng V2-C):** (1) Owner rehearse §3/§4 trên live
-  demo → (2) ghi rehearsal notes/results → (3) Owner approve cho
-  controlled client/internal use → (4) log approval → V2-C DONE/DELIVERED.
-  Song song: Codex review accuracy §7–§10. Còn mở: roadmap-V2-B Supabase
-  staging (Owner-gated), V2-E polish, n8n dry-run + V2-F (Owner-gated).
+- **Next:** Demo package sẵn sàng cho controlled internal/demo use. Còn
+  mở: roadmap-V2-B Supabase staging (cần Owner approval riêng TRƯỚC khi
+  bắt đầu), V2-E polish (code-splitting/ESLint/a11y), roadmap-V2-C n8n
+  dry-run + V2-F connector plan (Owner-gated). Chờ Owner chọn.
 
 ---
 
