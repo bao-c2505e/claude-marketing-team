@@ -6,6 +6,15 @@ Nhật ký ghi lại các hành động mô phỏng của các AI Agent khi vậ
 
 ## 🗓️ Nhật Ký Hoạt Động (Simulated Activity Logs)
 
+### 🗓️ Ngày 11/06/2026 — Phase 19 CLOSED: Ver2 Scope Planning + Controlled Demo Roadmap
+- **[PC1 Claude Code Builder]:** Created `CLAUDE_MARKETING_TEAM/PHASE_19_VER2_ROADMAP.md` — Ver2 planning package: scope options table (risk + dependencies), recommended priority order, phase breakdown 19A–19F with per-phase goal/deliverables/files/safety/checks/Codex-focus/Owner-checkpoint, suggested sequencing diagram, standing Ver2 safety rules.
+- **[PC1]:** Priorities: 19A (E2E pass + demo script, zero risk) first → 19B Supabase staging (Owner approval required before start) with 19D demo package in parallel → 19E UI polish as filler → 19C n8n dry-run and 19F connector plan last, both Owner-gated. No connector goes live inside Ver2 without written per-connector Owner sign-off.
+- **[PC1]:** Updated CURRENT_PHASE.md (header + Phase 19 section), SESSION_SUMMARY.md, 08_logs/phase_log.md, 08_logs/agent_activity_log.md.
+- **[PC1]:** Documentation only — product code untouched. `npm run build` PASS (0 TS errors, 1575 modules); `npm run test` 45/45 PASS.
+- **[PC1]:** Recommended first Ver2 implementation phase: **19A**. Phase 19 CLOSED.
+
+---
+
 ### 🗓️ Ngày 11/06/2026 — 🏁 CORE MVP CLOSED (Phases 1–18)
 - **[PC1 Claude Code Builder]:** Created `CLAUDE_MARKETING_TEAM/CORE_MVP_CLOSURE_REPORT.md` — formal Core MVP closure report (includes/not-enabled/safety/build-test/limitations/next-roadmap). Documentation only; no product code or runtime behavior changed.
 - **[PC1]:** Updated CURRENT_PHASE.md (header → CORE MVP CLOSED, closure section added), SESSION_SUMMARY.md (closure section), 08_logs/phase_log.md, 08_logs/agent_activity_log.md.

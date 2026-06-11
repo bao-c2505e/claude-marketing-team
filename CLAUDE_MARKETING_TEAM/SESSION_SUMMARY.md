@@ -22,6 +22,43 @@ Chúng ta đang xây dựng **The Core Agency — Real Operations MVP**. Đây l
 
 ---
 
+## 🏁 Phase 19 — Ver2 Scope Planning + Controlled Demo Roadmap (CLOSED — 2026-06-11)
+
+**Documentation/planning only — no product code, connectors, secrets, or
+live automation.** Deliverable: `PHASE_19_VER2_ROADMAP.md`.
+
+**Contents:** Ver2 scope options (with risk levels + dependencies),
+recommended priority order, and a breakdown into six small phases — each
+with goal, exact deliverables, files likely touched, safety rules,
+test/check requirements, Codex review focus, and an Owner approval
+checkpoint:
+- **19A** — Manual browser E2E pass (Phase 17 checklist B–G) + demo script
+  verification. Zero risk; gates everything else. **← recommended first.**
+- **19B** — Supabase staging hardening: migrations applied in order to a
+  disposable staging project, RLS verification matrix (table × role × op),
+  client-feedback policy decision. Owner approval required BEFORE starting.
+- **19C** — PC2 n8n/modules callback dry-run: design doc first, backend-held
+  `WEBHOOK_SHARED_SECRET`, event-insert-only receiver, kill switch.
+  Owner-gated; depends on 19B.
+- **19D** — Client demo package: demo-day runbook + rehearsal + Vercel
+  deploy verification. Parallel-safe with 19B.
+- **19E** — UI/brand polish: code-splitting, ESLint, accessibility. Zero
+  behavior change; parallel filler.
+- **19F** — Real connector readiness plan (**plan only**): 5-gate activation
+  framework (Owner sign-off / backend secrets / dry-run / kill switch /
+  audit log), per-connector one-pagers, activation order n8n → Canva →
+  read-only analytics → outbound-write last.
+
+**Standing Ver2 safety rules:** no real ads/posting/messaging/automation
+anywhere; no secrets; production Supabase OFF; UUID gating/tenant
+scope/sanitizers/RLS untouchable without dedicated review; FnB OS V1
+untouched.
+
+**Build:** PASS — 0 TS errors. **Tests:** 45/45 PASS. (Unchanged — docs-only
+diff.)
+
+---
+
 ## 🏁 CORE MVP CLOSED (2026-06-11)
 
 **Closure:** The Core MVP build cycle (Phases 1–18) is formally closed.

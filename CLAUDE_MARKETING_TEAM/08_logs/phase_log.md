@@ -6,6 +6,19 @@ Nhật ký theo dõi các mốc hoàn thành kỹ thuật qua các Phase.
 
 ## 📅 Nhật Ký Sự Kiện (Event Logs)
 
+### 🗓️ Ngày 11/06/2026 — Phase 19 CLOSED: Ver2 Scope Planning + Controlled Demo Roadmap
+- **Sự kiện:** Phase 19 hoàn tất — lập roadmap Ver2 sau khi đóng Core MVP. **Documentation/planning only** — không đổi product code, không connector, không secrets, không live automation.
+- **Deliverable:** `CLAUDE_MARKETING_TEAM/PHASE_19_VER2_ROADMAP.md`:
+  - Bảng scope options (risk level + dependencies): E2E pass, demo prep, Supabase staging, PC2 n8n dry-run, UI polish, connector readiness plan.
+  - Priority order: 19A trước tiên → 19B (+ 19D song song) → 19E filler → 19C/19F cuối + Owner-gated. Items rủi ro cần Owner approval trước khi bắt đầu: SQL lên live DB (kể cả staging), n8n dry-run, connector activation, real client data.
+  - Phase breakdown 19A–19F — mỗi phase có goal / deliverables / files / safety rules / checks / Codex review focus / Owner checkpoint.
+  - Standing Ver2 safety rules: không real ads/posting/messaging/automation; không secrets; production Supabase OFF; UUID gating/tenant scope/sanitizers/RLS là load-bearing; FnB OS V1 untouched.
+- **Build:** PASS — 0 TS errors (`tsc && vite build`, 1575 modules). `npm run test`: 45/45 PASS (docs-only diff).
+- **Recommended first Ver2 implementation phase:** **19A — Manual Browser E2E Pass + Demo Script Verification** (zero risk, không cần approval để bắt đầu, đóng verification gap cuối của MVP, gate cho 19B/19D).
+- **Trạng thái:** ✅ CLOSED. Chờ Owner go-ahead cho 19A.
+
+---
+
 ### 🗓️ Ngày 11/06/2026 — 🏁 CORE MVP CLOSED (Phases 1–18)
 - **Sự kiện:** Đóng chính thức chu kỳ build Core MVP (Phase 1–18). Documentation only — không đổi product code, runtime behavior, hay connector state.
 - **Closure report:** `CLAUDE_MARKETING_TEAM/CORE_MVP_CLOSURE_REPORT.md` — tổng hợp: MVP bao gồm gì; những gì cố ý CHƯA bật (real ads/posting/messaging/connectors/AI/file storage/production Supabase/secrets); safety status; build/test status; known limitations; recommended next roadmap.

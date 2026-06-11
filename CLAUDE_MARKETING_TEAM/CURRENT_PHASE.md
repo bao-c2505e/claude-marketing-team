@@ -1,9 +1,36 @@
-# CURRENT PHASE — 🏁 CORE MVP CLOSED (2026-06-11) | Phase 18 ✅ CLOSED (Codex PASS — 2026-06-11) | Phase 17 ✅ CLOSED (Codex PASS — 2026-06-11) | Phase 16D ✅ CLOSED (Codex PASS — 2026-06-11) | Phase 16C-2 ✅ CLOSED (Codex PASS — 2026-06-11) | Phase 16C-1 ✅ CLOSED (Codex PASS — 2026-06-11) | Phase 16B-2 ✅ CLOSED (Codex PASS — 2026-06-10) | Phase 16B-1 ✅ CLOSED (Codex PASS — 2026-06-10) | Phase 16A ✅ CLOSED (Codex PASS — 2026-06-09)
+# CURRENT PHASE — Phase 19 (Ver2 Roadmap) ✅ CLOSED (2026-06-11) | 🏁 CORE MVP CLOSED (2026-06-11) | Phase 18 ✅ CLOSED (Codex PASS — 2026-06-11) | Phase 17 ✅ CLOSED (Codex PASS — 2026-06-11) | Phase 16D ✅ CLOSED (Codex PASS — 2026-06-11) | Phase 16C-2 ✅ CLOSED (Codex PASS — 2026-06-11) | Phase 16C-1 ✅ CLOSED (Codex PASS — 2026-06-11) | Phase 16B-2 ✅ CLOSED (Codex PASS — 2026-06-10) | Phase 16B-1 ✅ CLOSED (Codex PASS — 2026-06-10) | Phase 16A ✅ CLOSED (Codex PASS — 2026-06-09)
 
 ## 📌 Thông tin chung
-- **Phase trước:** Phase 18 — Final MVP Polish + Production Readiness (CLOSED — Codex PASS — 2026-06-11, commit `fd86ead`)
-- **Trạng thái hiện tại:** 🏁 **CORE MVP CLOSED (2026-06-11)** — Phases 1–18 complete, reviewed, built, tested, pushed. Final closure report: `CLAUDE_MARKETING_TEAM/CORE_MVP_CLOSURE_REPORT.md` (what's included, what's intentionally off, safety status, build/test status, known limitations, recommended next roadmap). Core MVP is approved for **controlled internal testing / controlled client demo** only — live data, live connectors, and real client accounts require a new phase with Owner approval.
-- **Phase tiếp theo:** Phase 19 / Ver2 planning (pending Owner direction — see roadmap §6 of the closure report: Ver2 scope decision → client demo prep → Supabase staging hardening → PC2 n8n/modules workstream → UI/brand polish → gated real-connector plan)
+- **Phase trước:** 🏁 CORE MVP CLOSED (2026-06-11, closure commit `e3f1ed7`) — Phases 1–18 complete; see `CORE_MVP_CLOSURE_REPORT.md`.
+- **Phase hiện tại:** Phase 19 — Ver2 Scope Planning + Controlled Demo Roadmap — ✅ CLOSED (2026-06-11). **Documentation/planning only** — no product code, no connectors, no secrets, no live automation. Deliverable: `CLAUDE_MARKETING_TEAM/PHASE_19_VER2_ROADMAP.md` — Ver2 scope options + priority order + breakdown into Phases 19A–19F, each with goal / deliverables / files / safety rules / checks / Codex review focus / Owner approval checkpoint. Build PASS (0 TS errors, 1575 modules), `npm run test` 45/45 PASS.
+- **Phase tiếp theo:** **Phase 19A — Manual Browser E2E Pass + Demo Script Verification** (recommended first Ver2 implementation phase — zero risk, no approvals needed to start, closes the MVP's only open verification gap, gates 19B/19D). Pending Owner go-ahead.
+
+---
+
+## 🏁 Phase 19 — Ver2 Scope Planning + Controlled Demo Roadmap (CLOSED — 2026-06-11)
+
+### Scope completed (docs only):
+- New `CLAUDE_MARKETING_TEAM/PHASE_19_VER2_ROADMAP.md` — the Ver2 planning package:
+  - **Scope options table** (E2E pass, demo prep, Supabase staging hardening, PC2 n8n dry-run, UI polish, connector readiness plan) with risk levels and dependencies.
+  - **Priority order:** 19A first (zero risk, gates everything) → 19B (staging) with 19D (demo package) in parallel → 19E as parallel filler → 19C and 19F last + Owner-gated. Risky items needing explicit Owner approval before starting: any SQL on a live DB (even staging), n8n dry-run against Core, any connector activation, any real client data.
+  - **Phase breakdown 19A–19F**, each with goal, exact deliverables, files likely touched, safety rules, test/check requirements, Codex review focus, and Owner approval checkpoint:
+    - **19A** — Manual browser E2E pass (Phase 17 checklist B–G) + demo script verification.
+    - **19B** — Supabase staging hardening (migrations in order, RLS verification matrix per table×role×op, client-feedback policy decision doc).
+    - **19C** — PC2 n8n/modules callback **dry-run** integration (design doc first; backend-held `WEBHOOK_SHARED_SECRET`; event-insert only; kill switch).
+    - **19D** — Client demo package (demo-day runbook, rehearsal, Vercel deploy verification) — parallel-safe with 19B.
+    - **19E** — UI/brand polish (code-splitting <500 kB main chunk, ESLint + `npm run lint`, a11y pass) — zero behavior change.
+    - **19F** — Real connector readiness plan (**plan only**: 5-gate activation framework, per-connector one-pagers, activation order n8n → Canva → read-only analytics → outbound-write last).
+  - **Standing Ver2 safety rules:** no real ads/posting/messaging/live automation at any point; no secrets in repo; production Supabase stays OFF; 16D UUID gating / tenant scope / sanitizers / RLS are load-bearing and untouchable without dedicated review; FnB OS V1 untouched.
+
+### Safety record:
+- Product code: **UNCHANGED** (docs-only diff). Runtime behavior: **UNCHANGED**.
+- Build: PASS — 0 TS errors (`tsc && vite build`, 1575 modules). Tests: 45/45 PASS.
+
+### Files changed:
+| File | Change |
+|---|---|
+| `CLAUDE_MARKETING_TEAM/PHASE_19_VER2_ROADMAP.md` | NEW — Ver2 roadmap (scope options, priorities, Phases 19A–19F) |
+| `CLAUDE_MARKETING_TEAM/CURRENT_PHASE.md` / `SESSION_SUMMARY.md` / `08_logs/phase_log.md` / `08_logs/agent_activity_log.md` | Phase 19 documentation |
 
 ---
 
