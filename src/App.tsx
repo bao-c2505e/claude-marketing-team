@@ -1000,7 +1000,7 @@ export default function App() {
       {/* Header section */}
       <header className="app-header">
         <div className="logo-section">
-          <div className="logo-glow"></div>
+          <img src="/brand/core-icon.png" alt="The Core Agency" className="brand-mark" width={42} height={42} />
           <div>
             <h1 style={{ fontSize: '1.5rem', fontWeight: 700, letterSpacing: '0.02em', background: 'linear-gradient(135deg, #fff 40%, #fdba74)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
               THE CORE AGENCY

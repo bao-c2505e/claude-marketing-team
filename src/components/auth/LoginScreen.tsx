@@ -35,6 +35,13 @@ export default function LoginScreen() {
 
       {/* Logo */}
       <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+        <img
+          src="/brand/core-icon.png"
+          alt="The Core Agency"
+          width={64}
+          height={64}
+          style={{ display: 'block', margin: '0 auto 18px', borderRadius: '16px', boxShadow: '0 0 24px rgba(244, 122, 31, 0.22), 0 4px 14px rgba(0, 0, 0, 0.45)' }}
+        />
         <h1 style={{
           fontSize: '2rem',
           fontWeight: 800,

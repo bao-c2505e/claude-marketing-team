@@ -6,6 +6,15 @@ Nhật ký ghi lại các hành động mô phỏng của các AI Agent khi vậ
 
 ## 🗓️ Nhật Ký Hoạt Động (Simulated Activity Logs)
 
+### 🗓️ Ngày 12/06/2026 — V2-B follow-up — Core Logo Branding + Favicon + Sidebar Alignment ✅ DONE
+- **[PC1 Claude Code Builder]:** Generated brand assets from the Owner-provided Core logo (local crop/resize script): `public/brand/core-logo-horizontal.png` (trimmed), `public/brand/core-icon.png` (square hexagon-C mark), `public/favicon.png` (128px).
+- **[PC1]:** Header: replaced the pulsing dot with a 42px logo chip (`.brand-mark` — 10px radius, orange glow shadow); LoginScreen: 64px icon above the title; `index.html`: favicon ⚡ emoji → `/favicon.png`; title stays "The Core Agency"; visible naming stays "THE CORE AGENCY" / "AI Marketing Team Workspace". Re-verified no legacy names in visible UI (only internal localStorage keys remain — renaming would wipe user data, out of scope).
+- **[PC1]:** Sidebar nav fix via shared CSS (`aside.glass-panel .btn`): `text-align: left` so wrapped labels (Client Presentation Pack, Client Workspace View, Manual Export Pack, Presentation & Export) stop centering, `line-height: 1.3`, `font-size: 0.9rem`, `padding: 10px 14px`, icons `flex-shrink: 0`. Active/hover/orange states and sidebar width unchanged.
+- **[PC1]:** Presentation-only diff — no logic/behavior/repository/Supabase/auth/UUID-gating/tenant-scope/sanitizer/RLS/test/connector changes.
+- **[PC1]:** `npm run build` PASS (0 TS errors, 1575 modules; assets copied to dist); `npm run test` 45/45 PASS.
+
+---
+
 ### 🗓️ Ngày 12/06/2026 — V2-B follow-up — Decorative Background/Light Treatment ✅ DONE
 - **[PC1 Claude Code Builder]:** Added shared CSS-only background decoration to the app shell (`src/index.css`): `body::before` = deep navy→black gradient + brand-orange glows + faint navy/blue glows + edge vignette; `body::after` = 56px grid + static SVG grain at 4% opacity, radially masked to fade toward the lower half. Both fixed, `z-index: -1`, `pointer-events: none` — painted behind all content on every page; no per-page duplication. `.glass-panel` gained a 1px inset top highlight for lift.
 - **[PC1]:** LoginScreen + auth loading screen backgrounds switched to `transparent` so they inherit the shared shell decoration (removed LoginScreen's own duplicate radial glow).

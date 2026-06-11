@@ -6,6 +6,16 @@ Nhật ký theo dõi các mốc hoàn thành kỹ thuật qua các Phase.
 
 ## 📅 Nhật Ký Sự Kiện (Event Logs)
 
+### 🗓️ Ngày 12/06/2026 — V2-B follow-up — Core Logo Branding + Favicon + Sidebar Alignment ✅ DONE
+- **Sự kiện:** Presentation-only branding polish — đưa logo The Core Agency mới vào UI + favicon, fix sidebar nav alignment. **KHÔNG đổi logic/behavior/repository/Supabase/auth/UUID gating/tenant scope/sanitizers/RLS/tests/connectors.**
+- **Brand assets (mới):** `public/brand/core-logo-horizontal.png` (logo ngang đã trim margins), `public/brand/core-icon.png` (hexagon C mark crop vuông), `public/favicon.png` (128px) — generate từ logo asset Owner cung cấp bằng script crop/resize cục bộ.
+- **UI:** header thay pulsing dot bằng logo chip 42px (`.brand-mark` — bo góc 10px + orange glow shadow); LoginScreen thêm icon 64px phía trên title; `index.html` favicon ⚡ emoji → `/favicon.png`; title giữ "The Core Agency"; visible naming giữ "THE CORE AGENCY" + subtitle "AI Marketing Team Workspace". Verified không còn legacy names trong visible UI (chỉ còn localStorage keys nội bộ — đổi sẽ wipe data, ngoài scope).
+- **Sidebar fix:** rule chung `aside.glass-panel .btn` — `text-align: left` (fix wrapped labels bị center do button default), `line-height: 1.3`, `font-size: 0.9rem`, `padding: 10px 14px`; `svg { flex-shrink: 0 }` giữ icon cố định. Active/hover/orange accent giữ nguyên; sidebar không rộng thêm.
+- **Build:** PASS — 0 TS errors (1575 modules); assets copy vào `dist/`. `npm run test`: 45/45 PASS.
+- **Trạng thái:** ✅ DONE.
+
+---
+
 ### 🗓️ Ngày 12/06/2026 — V2-B follow-up — Decorative Background/Light Treatment ✅ DONE
 - **Sự kiện:** Follow-up presentation-only của V2-B UI Polish — thêm background decoration hiện đại để dark UI bớt phẳng. **CSS-only, static — KHÔNG animation/particles/canvas; KHÔNG đổi logic/behavior/repository/Supabase/auth/UUID gating/tenant scope/sanitizers/RLS/tests.**
 - **Treatment (shared, trong `src/index.css`):** hai fixed pseudo-layers `body::before`/`body::after` (z-index −1, pointer-events none) phía sau toàn bộ content — (1) gradient navy `#0B1120`→`#070A0F` + brand orange glow (trên-trái, echo dưới-phải) + navy/blue glow rất nhạt + vignette viền; (2) grid 56px + grain SVG tĩnh (opacity 4%), mask radial fade về nửa dưới màn hình. `.glass-panel` thêm inset top highlight 1px để panel "nổi" khỏi nền.
