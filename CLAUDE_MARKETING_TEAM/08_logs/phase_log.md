@@ -6,7 +6,16 @@ Nhật ký theo dõi các mốc hoàn thành kỹ thuật qua các Phase.
 
 ## 📅 Nhật Ký Sự Kiện (Event Logs)
 
-### 🗓️ Ngày 12/06/2026 — V2-A — Manual Browser E2E + Demo Script 🟡 CHECKLIST READY / E2E PENDING
+### 🗓️ Ngày 12/06/2026 — V2-A — Manual Browser E2E EXECUTED by Owner ✅ DONE / PASS
+- **Sự kiện:** Owner đã **thực thi manual browser E2E pass** theo checklist §1 (A1–A28) trong `V2A_MANUAL_BROWSER_E2E_AND_DEMO_SCRIPT.md`. **Kết quả: PASS — không có blocking UI issue nào được báo cáo.** Demo script §2 được verify trong run-through của Owner.
+- **Closure conditions (cả 4 đã đạt):** (1) checklist executed by Owner ✅; (2) kết quả ghi tại `08_logs/v2a_qa_report_20260612.md` (verdict PASS — demo-ready, no blockers) ✅; (3) demo script verified ✅; (4) Owner approval ghi nhận (Owner báo DONE / PASS) ✅.
+- **Diff:** documentation only (status updates + QA report) — **KHÔNG đổi product code/UI/runtime behavior/tests/repository/Supabase/auth/UUID gating/tenant scope/sanitizers/RLS/connectors.**
+- **Build:** PASS — 0 TS errors. `npm run test`: 45/45 PASS (vẫn green như trước).
+- **Trạng thái:** ✅ **V2-A DONE / PASS.** Mở khóa V2-D (client demo package) và roadmap-V2-B (Supabase staging — vẫn cần Owner approval riêng trước khi bắt đầu).
+
+---
+
+### 🗓️ Ngày 12/06/2026 — V2-A — Manual Browser E2E + Demo Script 🟡 CHECKLIST READY / E2E PENDING *(superseded — closed DONE/PASS cùng ngày, xem entry trên)*
 - **Sự kiện:** Hoàn tất **phần deliverable docs** của work package **V2-A** (Ver2 roadmap — recommended first). **V2-A CHƯA DONE** — checklist + demo script đã sẵn sàng nhưng manual browser E2E pass chưa được thực thi. **Documentation only — KHÔNG đổi product code/behavior/repository/Supabase/auth/UUID gating/tenant scope/sanitizers/RLS/connectors/tests; không live automation/real ads/posting/messaging/secrets.**
 - **Deliverable:** `CLAUDE_MARKETING_TEAM/V2A_MANUAL_BROWSER_E2E_AND_DEMO_SCRIPT.md` — 4 phần:
   - **§1 Manual Browser E2E checklist (28 items A1–A28):** phủ app load/title/favicon/branding, login (Demo Sign In), Owner View, Client View toggle, Dashboard, Clients, Brands, Campaigns, Brief Intake, Content Generation, Content Calendar (verify overflow fix `bb8cb9e`), Approvals, Reports, Export Pack, Connector Registry, Automation Logs, Client Portal, Asset Library, Brand Workspace, New Campaign Brief, AI Team Board, Campaign Outputs, Approval Checklist, Client Presentation Pack, Client Workspace View, Manual Export Pack, Presentation & Export, cross-cutting console/network sweep. Mỗi item có: what to click / expected result / blocker definition / visual QA notes / safety notes.
