@@ -513,6 +513,7 @@ export default function App() {
     generationId?: string | null;
     contentItemId?: string | null;
     assetCollectionId?: string | null;
+    currentAssetCollectionId?: string | null;
     assetId?: string;
   }): AssetRepository => {
     const okOrAbsent = (v?: string | null) => v === undefined || v === null || isUuid(v);
@@ -525,6 +526,7 @@ export default function App() {
       && okOrAbsent(ids.generationId)
       && okOrAbsent(ids.contentItemId)
       && okOrAbsent(ids.assetCollectionId)
+      && okOrAbsent(ids.currentAssetCollectionId)
       && (ids.assetId === undefined || isUuid(ids.assetId))
     ) {
       return repos.assets;
@@ -563,8 +565,15 @@ export default function App() {
   // Codex Fix Round (2026-06-11): scope.assetCollectionId is the asset's
   // CURRENT collection (used to match the existing row); nextCollectionId is
   // whichever collection id the operation will actually write (the patch's
-  // new value if it changes the collection, otherwise the current one). Both
-  // must be UUID-or-null for the operation to be routed to Supabase.
+  // new value if it changes the collection, otherwise the current one).
+  //
+  // Codex Fix Round 2 (2026-06-11): both the CURRENT and NEXT collection ids
+  // must be gated. If the asset's current asset_collection_id is a local id
+  // (col-*/collection-*/asset-collection-*), the operation must stay on
+  // localStorage even when the patch changes the collection to null or a
+  // valid UUID — Supabase has no row to match by that local id. currentAssetCollectionId
+  // covers this; assetCollectionId (set to nextCollectionId) covers the
+  // write-side check as before.
   const handleAssetEdit = async (asset: AssetItem, patch: AssetUpdatePatch): Promise<void> => {
     const scope: AssetScopedParams = {
       clientId: asset.client_id,
@@ -577,7 +586,7 @@ export default function App() {
       assetId: asset.id,
     };
     const nextCollectionId = patch.asset_collection_id !== undefined ? patch.asset_collection_id : asset.asset_collection_id;
-    const repo = assetRepoFor({ ...scope, assetCollectionId: nextCollectionId });
+    const repo = assetRepoFor({ ...scope, assetCollectionId: nextCollectionId, currentAssetCollectionId: asset.asset_collection_id });
     const updated = await repo.update(scope, patch);
     setAssetData(prev => {
       const next: AssetDataStore = { ...prev, assets: prev.assets.map(a => a.id === updated.id ? updated : a) };
