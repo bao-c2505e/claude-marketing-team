@@ -22,6 +22,43 @@ Chúng ta đang xây dựng **The Core Agency — Real Operations MVP**. Đây l
 
 ---
 
+## 🏁 Phase 16C-2 — Approval CRUD Wiring (CLOSED — Codex PASS — 2026-06-11)
+
+**Scope completed:** Supabase CRUD repository wiring for Approval only (Calendar/Reports/Asset Library/Connector Inbox/Automation Logs untouched). Same repository pattern as Phase 16A/16B-1/16B-2/16C-1.
+
+**New tables (additive):** New migration `CLAUDE_MARKETING_TEAM/03_core/database/schema_v1_phase16c2_approval_extension.sql` creates `content_approval_requests` (full client/brand/campaign/brief/generation/content_item scope), `content_approval_events`, `content_approval_comments` (both reference `approval_request_id` + `content_item_id`) matching the Phase 8 `ContentApprovalRequest`/`ContentApprovalEvent`/`ContentApprovalComment` TS types: 3 enums, 11 indexes, `updated_at` trigger, RLS enabled with hierarchy-validated policies. Idempotent (`IF NOT EXISTS`/`DROP ... IF EXISTS`) — **not applied to any live DB**.
+
+**Final tenant-scope contract:**
+- `ApprovalRepository.list({ clientId, brandId, campaignId, briefId, generationId })` — all 5 IDs required
+- `ApprovalRepository.get/executeAction/addComment({ ...same, approvalId })` — all 6 IDs required
+- `ApprovalRepository.create(data: ApprovalCreateInput)` — requires `contentItem` + full 5-ID scope + `actorLabel`; DB generates UUIDs for `content_approval_requests`/`events` — local `approval-*`/`item-*`/`generation-*`/`job-*` IDs never sent to Supabase
+- `approvalRepoFor()` in App.tsx selects Supabase vs `LocalStorageApprovalRepository` **per operation** — Supabase only if `isSupabaseConfigured` AND every UUID id used by that operation (tenant scope + `approvalId`/`contentItemId` when applicable) is a valid UUID
+
+**App.tsx / ApprovalsTab.tsx / ClientViewTab.tsx wiring:**
+- `handleApprovalSubmit`/`handleApprovalAction`/`handleApprovalComment` route through `approvalRepoFor()`, wired into `ApprovalsTab` (submit/action/comment) and `ClientViewTab` (`onComment` — client feedback)
+
+**Safety:** Supabase env OFF · no secrets · no service role key · Demo Sign In preserved · localStorage fallback preserved · Calendar/Reports/Asset Library/Connector Inbox/Automation Logs unchanged · local IDs never sent to Supabase UUID columns.
+
+**Build:** PASS — 0 TS errors (`tsc && vite build`). `git diff --check`: PASS (CRLF warnings only).
+
+---
+
+## ✅ Phase 16C-2 Codex Fix — UUID Routing + RLS Hierarchy + Comment/Event Permissions (2026-06-11)
+
+**Fix 1 (App.tsx UUID gating):** `approvalRepoFor()` previously validated only the 5 tenant-scope ids. Now also validates `approvalId`/`contentItemId` (when used by the operation) — any local-format id (`approval-*`/`content-item-*`/`generation-*`/`job-*`/`item-*`) routes to `LocalStorageApprovalRepository` instead of Supabase.
+
+**Fix 2 (RLS hierarchy):** `content_approval_hierarchy_is_valid()` extended to 6 args (`+ content_item_id`) — now also validates `content_item_id` belongs to the same `client/brand/campaign/brief/generation` chain via `content_plan_items`. `content_approval_request_user_has_scope()`/`..._can_write()` extended to require a child event/comment's `content_item_id` to match its parent request's `content_item_id` — prevents events/comments referencing a different content item than their parent request. All 7 policies updated.
+
+**Fix 3 (role permissions):** `content_approval_events_insert`/`content_approval_comments_insert` are now owner/manager-only (`content_approval_request_user_can_write`) — removed the `client`/`viewer` "commented"/comment exception. Read access unchanged (any in-scope role, including `client`/`viewer`, can still SELECT).
+
+**Known future consideration:** `ClientViewTab`'s "Add Feedback" (`onComment`, is_internal=false) would be rejected by RLS for `client`-role users once Supabase is enabled with client roles — currently moot (Supabase env OFF, localStorage has no RLS); requires an explicit feedback-write role/policy decision in a later phase if real client feedback via Supabase is needed.
+
+**Build:** PASS — 0 TS errors. `git diff --check`: PASS (CRLF warnings only).
+
+**Codex result:** PASS. **Commits:** `871c3d0` → `70f8b8a`. **Trạng thái Phase 16C-2:** ✅ CLOSED. **Next:** TBD.
+
+---
+
 ## 🏁 Phase 16C-1 — Content Plan Generation CRUD Wiring (CLOSED — Codex PASS — 2026-06-11)
 
 **Scope completed:** Supabase CRUD repository wiring for Content Plan Generation only (Calendar/Approval/Reports/Asset Library/Connector Inbox/Automation Logs untouched). Same repository pattern as Phase 16A/16B-1/16B-2.

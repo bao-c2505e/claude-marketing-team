@@ -6,6 +6,17 @@ Nhật ký ghi lại các hành động mô phỏng của các AI Agent khi vậ
 
 ## 🗓️ Nhật Ký Hoạt Động (Simulated Activity Logs)
 
+### 🗓️ Ngày 11/06/2026 — Phase 16C-2 CLOSED: Codex PASS
+- **[PC1 Claude Code Builder]:** Phase 16C-2 officially closed after Codex PASS (1 Codex required-fix round applied).
+- **[PC1]:** Final summary — Approval CRUD wired to Supabase with localStorage fallback. Approval operations fully scoped by clientId + brandId + campaignId + briefId + generationId/contentItemId where applicable. approvalId/contentItemId/local IDs are UUID-gated before Supabase routing — local IDs never sent into Supabase UUID columns. RLS validates full tenant/content hierarchy (client_id → brand_id → campaign_id → brief_id → generation_id → content_item_id). Read-only/client/viewer roles cannot insert approval comments/events (owner/manager only). Production Supabase env remains OFF. Demo Sign In remains. No secrets or service role key.
+- **[PC1]:** Build PASS — 0 TS errors. `git diff --check` PASS (CRLF warnings only).
+- **[PC1]:** Codex result: PASS.
+- **[PC1]:** Commits: `871c3d0` → `70f8b8a`.
+- **[PC1]:** Known future consideration: real client feedback (`ClientViewTab` "Add Feedback") via Supabase will require an explicit feedback-write role/policy in a later phase.
+- **[PC1]:** Phase 16C-2 CLOSED.
+
+---
+
 ### 🗓️ Ngày 11/06/2026 — Phase 16C-1 CLOSED: Codex PASS
 - **[PC1 Claude Code Builder]:** Phase 16C-1 officially closed after Codex PASS (2 Codex required-fix rounds applied).
 - **[PC1]:** Final summary — Generation CRUD wired to Supabase with localStorage fallback. Full scope required: clientId + brandId + campaignId + briefId. No get/update/archive by generationId alone. Local generation/job/item IDs are not sent into Supabase UUID columns. Update patch sanitizes tenant/audit/ownership fields. Archive is fully scoped. RLS policies enforce active/unexpired assignments, role-specific read/write permissions, and full client/brand/campaign/brief hierarchy. Production Supabase env remains OFF. Demo Sign In remains. No secrets or service role key.

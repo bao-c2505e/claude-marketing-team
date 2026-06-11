@@ -6,6 +6,26 @@ Nhật ký theo dõi các mốc hoàn thành kỹ thuật qua các Phase.
 
 ## 📅 Nhật Ký Sự Kiện (Event Logs)
 
+### 🗓️ Ngày 11/06/2026 — Phase 16C-2 CLOSED: Codex PASS
+- **Sự kiện:** Phase 16C-2 chính thức đóng sau Codex PASS (1 vòng Codex required-fix).
+- **Scope hoàn thành:** Supabase CRUD repository wiring cho Approval only (Calendar/Reports/Asset Library/Connector Inbox/Automation Logs không đổi).
+- **Tổng kết:**
+  - Approval CRUD wired to Supabase with localStorage fallback.
+  - Approval operations fully scoped by clientId + brandId + campaignId + briefId + generationId/contentItemId where applicable.
+  - approvalId/contentItemId/local IDs are UUID-gated before Supabase routing — local IDs never sent into Supabase UUID columns.
+  - RLS validates full tenant/content hierarchy: client_id → brand_id → campaign_id → brief_id → generation_id → content_item_id.
+  - Read-only/client/viewer roles cannot insert approval comments/events (owner/manager only).
+  - Production Supabase env remains OFF.
+  - Demo Sign In remains.
+  - No secrets or service role key.
+- **Build:** PASS — 0 TS errors (`tsc && vite build`). `git diff --check`: PASS (chỉ CRLF warnings).
+- **Codex result:** PASS.
+- **Commits:** `871c3d0` (feat: wire approval crud with scoped fallback) → `70f8b8a` (fix: harden approval uuid routing and rls hierarchy)
+- **Known future consideration:** real client feedback (ClientViewTab "Add Feedback") trong Supabase sẽ cần feedback role/policy riêng ở phase sau.
+- **Trạng thái:** ✅ CLOSED.
+
+---
+
 ### 🗓️ Ngày 11/06/2026 — Phase 16C-1 CLOSED: Codex PASS
 - **Sự kiện:** Phase 16C-1 chính thức đóng sau Codex PASS (sau 2 vòng Codex required-fix).
 - **Scope hoàn thành:** Supabase CRUD repository wiring cho Content Plan Generation only (Calendar/Approval/Reports/Asset Library/Connector Inbox/Automation Logs không đổi).
