@@ -1,0 +1,55 @@
+{
+  "workstream": "pc2_n8n_modules_contracts",
+  "status": "stabilized_mock_ready",
+  "branch": "feature/n8n-modules-workstream",
+  "phases": {
+    "N1": "DONE / PASS",
+    "N2": "DONE / PASS",
+    "N3": "DONE / PASS",
+    "N4": "DONE / PASS",
+    "N5": "DONE / PASS",
+    "N6": "DONE / PASS",
+    "N7": "DONE / PASS",
+    "N8": "DONE / PASS",
+    "N9": "DONE / PASS",
+    "N10": "DONE / PASS",
+    "N11": "DONE / PASS",
+    "N12": "IMPLEMENTED / READY FOR REVIEW"
+  },
+  "contracts": [
+    "contracts/core_to_n8n_event.schema.json",
+    "contracts/n8n_to_module_request.schema.json",
+    "contracts/module_to_core_callback.schema.json",
+    "contracts/approval_event.schema.json",
+    "contracts/e2e_dry_run_contract.md",
+    "contracts/module_health_check_contract.md",
+    "contracts/error_handling_retry_logging_contract.md",
+    "contracts/core_pc2_integration_contract_stub.md"
+  ],
+  "workflows": [
+    "n8n-workflows/n4_comfyui_stub_integration_test.workflow.json",
+    "n8n-workflows/n5_multi_module_event_router.workflow.json",
+    "n8n-workflows/n7_full_multi_module_stub_integration.workflow.json",
+    "n8n-workflows/n8_unified_callback_approval_gate.workflow.json",
+    "n8n-workflows/n9_error_retry_logging.workflow.json",
+    "n8n-workflows/n10_module_health_check.workflow.json",
+    "n8n-workflows/n11_e2e_dry_run.workflow.json"
+  ],
+  "modules": [
+    "modules/comfyui-pipeline",
+    "modules/content-pack-generator",
+    "modules/ads-pack-generator",
+    "modules/crm-followup-generator",
+    "modules/analytics-report-generator"
+  ],
+  "safety_flags": {
+    "no_real_secrets": true,
+    "no_production_urls": true,
+    "no_real_api_calls": true,
+    "no_auto_post": true,
+    "no_real_ads": true,
+    "no_real_messaging": true,
+    "core_not_touched": true
+  },
+  "validation_command": "node contracts/tools/validate_contracts.js"
+}

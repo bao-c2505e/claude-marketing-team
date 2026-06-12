@@ -4,8 +4,24 @@ This log tracks the progress, status, and deliverables for the PC2 (n8n & Specia
 
 ---
 
-## Phase N11 — End-to-End Dry Run: Core Mock → Health Check → Module → Approval → Error/Callback Preview
+## Phase N12 — PC2 Stabilization + Handoff to PC1/Core Integration
 - **Status**: IMPLEMENTED / READY FOR REVIEW
+- **Reviewer**: Codex
+- **Date**: 2026-06-12
+- **Deliverables**:
+  - `docs/pc2/pc2_handoff_to_core_integration.md` (PC2 Handoff Package)
+  - `docs/pc2/pc2_local_runbook.md` (PC2 Local Runbook)
+  - `docs/pc2/pc2_final_summary.md` (PC2 Final Summary)
+  - `contracts/core_pc2_integration_contract_stub.md` (Integration Contract Stub)
+  - `contracts/pc2_validation_manifest.json` (PC2 Validation Manifest)
+- **Validation**: `node contracts/tools/validate_contracts.js` successfully PASS.
+- **Scope check**: No database queries, no secrets/APIs, no Core UI modifications. No production URLs. Mock-only execution.
+- **Known limitations**: Stubs and E2E execution are local only. No live external service is connected.
+
+---
+
+## Phase N11 — End-to-End Dry Run: Core Mock → Health Check → Module → Approval → Error/Callback Preview
+- **Status**: DONE / PASS
 - **Reviewer**: Codex
 - **Date**: 2026-06-12
 - **Deliverables**:

@@ -2530,6 +2530,95 @@ try {
     }
   });
 
+  // --- STARTING PHASE N12 VALIDATION CHECKS ---
+  console.log('--- STARTING PHASE N12 VALIDATION CHECKS ---');
+  try {
+    const manifestPath = path.join(baseDir, 'pc2_validation_manifest.json');
+    if (!fs.existsSync(manifestPath)) {
+      console.error(`[FAIL] Manifest file does not exist: contracts/pc2_validation_manifest.json`);
+      failed = true;
+    } else {
+      const manifestContent = fs.readFileSync(manifestPath, 'utf8');
+      const manifest = JSON.parse(manifestContent);
+      console.log(`[PASS] manifest parses as valid JSON`);
+
+      // Verify required fields
+      const requiredManifestFields = [
+        'workstream', 'status', 'branch', 'phases', 'contracts', 'workflows', 'modules', 'safety_flags', 'validation_command'
+      ];
+      requiredManifestFields.forEach(f => {
+        if (manifest[f] === undefined) {
+          console.error(`[FAIL] Manifest is missing required field: ${f}`);
+          failed = true;
+        }
+      });
+
+      // Check phases status
+      if (manifest.phases) {
+        for (let i = 1; i <= 11; i++) {
+          const phaseKey = `N${i}`;
+          if (manifest.phases[phaseKey] !== 'DONE / PASS') {
+            console.error(`[FAIL] Manifest phase ${phaseKey} status must be 'DONE / PASS', found '${manifest.phases[phaseKey]}'`);
+            failed = true;
+          }
+        }
+        if (manifest.phases.N12 !== 'IMPLEMENTED / READY FOR REVIEW') {
+          console.error(`[FAIL] Manifest phase N12 status must be 'IMPLEMENTED / READY FOR REVIEW', found '${manifest.phases.N12}'`);
+          failed = true;
+        }
+      }
+
+      // Check safety flags
+      const requiredSafetyFlags = [
+        'no_real_secrets', 'no_production_urls', 'no_real_api_calls', 'no_auto_post', 'no_real_ads', 'no_real_messaging', 'core_not_touched'
+      ];
+      if (manifest.safety_flags) {
+        requiredSafetyFlags.forEach(sf => {
+          if (manifest.safety_flags[sf] !== true) {
+            console.error(`[FAIL] Manifest safety flag '${sf}' must be true`);
+            failed = true;
+          }
+        });
+      }
+
+      // Check documents exist
+      const expectedDocs = [
+        '../docs/pc2/pc2_handoff_to_core_integration.md',
+        '../docs/pc2/pc2_local_runbook.md',
+        '../docs/pc2/pc2_final_summary.md',
+        'core_pc2_integration_contract_stub.md'
+      ];
+      expectedDocs.forEach(docRel => {
+        const docPath = path.join(baseDir, docRel);
+        if (!fs.existsSync(docPath)) {
+          console.error(`[FAIL] Expected file does not exist: ${docRel}`);
+          failed = true;
+        } else {
+          console.log(`[PASS] File exists: ${docRel}`);
+          // Check for forbidden terms
+          const docContent = fs.readFileSync(docPath, 'utf8');
+          const lowerDocContent = docContent.toLowerCase();
+          
+          if (lowerDocContent.includes('vicuon') || docContent.includes('Vị Cuốn')) {
+            console.error(`[FAIL] File '${docRel}' contains forbidden brand Vị Cuốn / vicuon`);
+            failed = true;
+          }
+          if (docContent.includes('thecoreagency.com')) {
+            console.error(`[FAIL] File '${docRel}' contains production URL reference`);
+            failed = true;
+          }
+          if (lowerDocContent.includes('api_key') || lowerDocContent.includes('secret') || lowerDocContent.includes('password') || lowerDocContent.includes('suspicious token')) {
+            console.error(`[FAIL] File '${docRel}' contains credentials/secret forbidden terms`);
+            failed = true;
+          }
+        }
+      });
+    }
+  } catch (err) {
+    console.error(`[FAIL] Error validating N12 manifests: ${err.message}`);
+    failed = true;
+  }
+
 } catch (err) {
   console.error(`[FAIL] Error validating n11 workflow: ${err.message}`);
   failed = true;
