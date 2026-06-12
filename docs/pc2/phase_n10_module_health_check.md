@@ -58,7 +58,8 @@ The workflow normalize and aggregate stubs health values into one of the followi
 - **Blocking Modules List:** Populated with the failed critical module IDs (e.g. `["creative_asset_comfyui"]`).
 
 ### Important Aggregation Note
-- **Synchronization:** Health aggregation must run only after all 5 module health checks have completed.
+- **Chained Merge Synchronization:** Since n8n Merge nodes are two-input nodes, N10 uses chained Merge nodes to wait for all five health check results before aggregation.
+- **Single Execution:** Health aggregation must run exactly once, only after all 5 module health checks have completed.
 - **Unavailable Modules:** If a module is unavailable, it should be represented in the aggregate report, not cause separate partial aggregate runs.
 
 ---

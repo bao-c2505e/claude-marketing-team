@@ -1912,15 +1912,136 @@ try {
   }
 
   // D. Workflow synchronization checks
-  const syncNodeNames = ["Merge Health Results", "Wait for Health Results", "Synchronize Health Checks", "Join Health Results"];
-  const syncNodes = parsed.nodes.filter(n => syncNodeNames.includes(n.name));
-  if (syncNodes.length === 0) {
-    console.error(`[FAIL] n10 workflow is missing a synchronization node (e.g., "Merge Health Results")`);
+  // Build a map of nodeName -> Array of incoming connections
+  const incoming = {};
+  parsed.nodes.forEach(node => {
+    incoming[node.name] = [];
+  });
+
+  Object.keys(parsed.connections).forEach(srcNode => {
+    const conn = parsed.connections[srcNode];
+    if (conn && conn.main) {
+      conn.main.forEach((port, portIndex) => {
+        port.forEach(target => {
+          if (incoming[target.node]) {
+            incoming[target.node].push({
+              source: srcNode,
+              portIndex: portIndex
+            });
+          }
+        });
+      });
+    }
+  });
+
+  const mergeNodes = parsed.nodes.filter(n => n.type === "n8n-nodes-base.merge");
+  if (mergeNodes.length < 4) {
+    console.error(`[FAIL] n10 workflow must contain at least 4 Merge nodes for 5 health branches, found ${mergeNodes.length}`);
     failed = true;
   } else {
-    console.log(`[PASS] n10 workflow contains synchronization node: ${syncNodes.map(n => n.name).join(', ')}`);
+    console.log(`[PASS] n10 workflow contains ${mergeNodes.length} Merge nodes`);
   }
 
+  // Verify each Merge node has at most 2 incoming connections
+  mergeNodes.forEach(mNode => {
+    const inputs = incoming[mNode.name] || [];
+    if (inputs.length > 2) {
+      console.error(`[FAIL] Merge node '${mNode.name}' has more than 2 incoming branches: ${inputs.map(i => i.source).join(', ')}`);
+      failed = true;
+    } else {
+      console.log(`[PASS] Merge node '${mNode.name}' has at most 2 incoming branches (${inputs.length} inputs)`);
+    }
+  });
+
+  // Verify final sync node exists
+  const finalSyncNodeName = "Merge Health All";
+  let finalSyncNode = parsed.nodes.find(n => n.name === finalSyncNodeName);
+  if (!finalSyncNode) {
+    // Fallback: find any Merge node connected to Code: Normalize Health Results
+    parsed.nodes.forEach(n => {
+      const conn = parsed.connections[n.name];
+      if (conn && conn.main) {
+        conn.main.forEach(port => {
+          port.forEach(target => {
+            if (target.node === "Code: Normalize Health Results" && n.type === "n8n-nodes-base.merge") {
+              finalSyncNode = n;
+            }
+          });
+        });
+      }
+    });
+  }
+
+  if (!finalSyncNode) {
+    console.error(`[FAIL] Could not identify final synchronization/Merge node upstream of 'Code: Normalize Health Results'`);
+    failed = true;
+  } else {
+    console.log(`[PASS] Identified final sync node: '${finalSyncNode.name}'`);
+    
+    // Check reachability: BFS upstream from finalSyncNode
+    const visited = new Set();
+    const queue = [finalSyncNode.name];
+    visited.add(finalSyncNode.name);
+
+    while (queue.length > 0) {
+      const current = queue.shift();
+      const parents = incoming[current] || [];
+      parents.forEach(p => {
+        if (!visited.has(p.source)) {
+          visited.add(p.source);
+          queue.push(p.source);
+        }
+      });
+    }
+
+    const httpNodeNames = [
+      "HTTP: ComfyUI Health",
+      "HTTP: Content Health",
+      "HTTP: Ads Health",
+      "HTTP: CRM Health",
+      "HTTP: Analytics Health"
+    ];
+
+    httpNodeNames.forEach(httpNode => {
+      if (!visited.has(httpNode)) {
+        console.error(`[FAIL] HTTP node '${httpNode}' is not reachable upstream of the final sync node '${finalSyncNode.name}'`);
+        failed = true;
+      } else {
+        console.log(`[PASS] HTTP node '${httpNode}' is reachable upstream of final sync node`);
+      }
+    });
+  }
+
+  // Verify Normalize Health Results is connected only after final sync node
+  if (finalSyncNode) {
+    const normalizeIncoming = incoming["Code: Normalize Health Results"] || [];
+    if (normalizeIncoming.length !== 1 || normalizeIncoming[0].source !== finalSyncNode.name) {
+      console.error(`[FAIL] 'Code: Normalize Health Results' must have exactly one incoming connection from the final sync node '${finalSyncNode.name}', found: ${normalizeIncoming.map(i => i.source).join(', ')}`);
+      failed = true;
+    } else {
+      console.log(`[PASS] 'Code: Normalize Health Results' is connected directly after final sync node`);
+    }
+  }
+
+  // Verify Build Aggregate Readiness Report is downstream of Normalize Health Results
+  const aggregateIncoming = incoming["Code: Build Aggregate Readiness Report"] || [];
+  if (aggregateIncoming.length !== 1 || aggregateIncoming[0].source !== "Code: Normalize Health Results") {
+    console.error(`[FAIL] 'Code: Build Aggregate Readiness Report' must be connected directly after 'Code: Normalize Health Results', found: ${aggregateIncoming.map(i => i.source).join(', ')}`);
+    failed = true;
+  } else {
+    console.log(`[PASS] 'Code: Build Aggregate Readiness Report' is connected after 'Code: Normalize Health Results'`);
+  }
+
+  // Verify Build Dashboard Data is downstream of Build Aggregate Readiness Report
+  const dashboardIncoming = incoming["Code: Build Dashboard Data"] || [];
+  if (dashboardIncoming.length !== 1 || dashboardIncoming[0].source !== "Code: Build Aggregate Readiness Report") {
+    console.error(`[FAIL] 'Code: Build Dashboard Data' must be connected directly after 'Code: Build Aggregate Readiness Report', found: ${dashboardIncoming.map(i => i.source).join(', ')}`);
+    failed = true;
+  } else {
+    console.log(`[PASS] 'Code: Build Dashboard Data' is connected after 'Code: Build Aggregate Readiness Report'`);
+  }
+
+  // Verify no HTTP node directly triggers aggregation nodes
   const httpNodeNames = [
     "HTTP: ComfyUI Health",
     "HTTP: Content Health",
@@ -1945,46 +2066,6 @@ try {
           }
         });
       });
-    }
-  });
-
-  httpNodeNames.forEach(httpNode => {
-    const conn = parsed.connections[httpNode];
-    let connectsToSync = false;
-    if (conn && conn.main) {
-      conn.main.forEach(port => {
-        port.forEach(target => {
-          if (syncNodeNames.includes(target.node)) {
-            connectsToSync = true;
-          }
-        });
-      });
-    }
-    if (!connectsToSync) {
-      console.error(`[FAIL] HTTP node '${httpNode}' does not connect to a synchronization node`);
-      failed = true;
-    } else {
-      console.log(`[PASS] HTTP node '${httpNode}' connects to synchronization node`);
-    }
-  });
-
-  syncNodes.forEach(syncNode => {
-    const conn = parsed.connections[syncNode.name];
-    let connectsToNormalize = false;
-    if (conn && conn.main) {
-      conn.main.forEach(port => {
-        port.forEach(target => {
-          if (target.node === "Code: Normalize Health Results") {
-            connectsToNormalize = true;
-          }
-        });
-      });
-    }
-    if (!connectsToNormalize) {
-      console.error(`[FAIL] Synchronization node '${syncNode.name}' does not connect to 'Code: Normalize Health Results'`);
-      failed = true;
-    } else {
-      console.log(`[PASS] Synchronization node '${syncNode.name}' connects to 'Code: Normalize Health Results'`);
     }
   });
 

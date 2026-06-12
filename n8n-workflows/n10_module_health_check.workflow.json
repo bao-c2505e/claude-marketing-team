@@ -91,14 +91,53 @@
       "parameters": {
         "mode": "wait"
       },
-      "name": "Merge Health Results",
+      "name": "Merge Health 1",
       "type": "n8n-nodes-base.merge",
       "typeVersion": 2,
       "position": [
-        480,
-        300
+        450,
+        150
       ],
-      "id": "merge-health-results"
+      "id": "merge-health-1"
+    },
+    {
+      "parameters": {
+        "mode": "wait"
+      },
+      "name": "Merge Health 2",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 2,
+      "position": [
+        580,
+        220
+      ],
+      "id": "merge-health-2"
+    },
+    {
+      "parameters": {
+        "mode": "wait"
+      },
+      "name": "Merge Health 3",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 2,
+      "position": [
+        710,
+        310
+      ],
+      "id": "merge-health-3"
+    },
+    {
+      "parameters": {
+        "mode": "wait"
+      },
+      "name": "Merge Health All",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 2,
+      "position": [
+        840,
+        400
+      ],
+      "id": "merge-health-all"
     },
     {
       "parameters": {
@@ -108,8 +147,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 1,
       "position": [
-        680,
-        300
+        980,
+        400
       ],
       "id": "code-normalize"
     },
@@ -121,8 +160,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 1,
       "position": [
-        880,
-        300
+        1150,
+        400
       ],
       "id": "code-aggregate"
     },
@@ -134,8 +173,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 1,
       "position": [
-        1080,
-        300
+        1320,
+        400
       ],
       "id": "code-dashboard"
     },
@@ -185,8 +224,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 1,
       "position": [
-        1280,
-        300
+        1490,
+        400
       ],
       "id": "respond-output-result"
     }
@@ -227,7 +266,7 @@
       "main": [
         [
           {
-            "node": "Merge Health Results",
+            "node": "Merge Health 1",
             "type": "main",
             "index": 0
           }
@@ -238,9 +277,20 @@
       "main": [
         [
           {
-            "node": "Merge Health Results",
+            "node": "Merge Health 1",
             "type": "main",
             "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge Health 1": {
+      "main": [
+        [
+          {
+            "node": "Merge Health 2",
+            "type": "main",
+            "index": 0
           }
         ]
       ]
@@ -249,9 +299,20 @@
       "main": [
         [
           {
-            "node": "Merge Health Results",
+            "node": "Merge Health 2",
             "type": "main",
             "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge Health 2": {
+      "main": [
+        [
+          {
+            "node": "Merge Health 3",
+            "type": "main",
+            "index": 0
           }
         ]
       ]
@@ -260,9 +321,20 @@
       "main": [
         [
           {
-            "node": "Merge Health Results",
+            "node": "Merge Health 3",
             "type": "main",
             "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge Health 3": {
+      "main": [
+        [
+          {
+            "node": "Merge Health All",
+            "type": "main",
+            "index": 0
           }
         ]
       ]
@@ -271,14 +343,14 @@
       "main": [
         [
           {
-            "node": "Merge Health Results",
+            "node": "Merge Health All",
             "type": "main",
             "index": 1
           }
         ]
       ]
     },
-    "Merge Health Results": {
+    "Merge Health All": {
       "main": [
         [
           {
