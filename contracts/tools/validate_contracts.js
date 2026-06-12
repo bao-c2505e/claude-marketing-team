@@ -2701,40 +2701,47 @@ function scanDirectory(dir, filter, callback) {
   });
 }
 
-// 1. Check for absolute links file:/// and C:/Users in PC2 directories
-function checkAbsoluteLinks(filePath) {
+// 1. Check for absolute links, forbidden domains, and external URLs in PC2 directories
+function checkHandoffCompliance(filePath) {
   if (filePath.endsWith('validate_contracts.js')) return;
+  const ext = path.extname(filePath).toLowerCase();
+  const allowedExtensions = ['.json', '.js', '.md', '.txt', '.yml', '.yaml', '.html', '.css', '.jsonld', '.json5'];
+  if (!allowedExtensions.includes(ext)) return;
+
   const content = fs.readFileSync(filePath, 'utf8');
-  if (content.includes('file:///')) {
-    console.error(`[FAIL] File '${filePath}' contains absolute file:/// link`);
+
+  // 1.1 file:// check
+  if (content.toLowerCase().includes('file://')) {
+    console.error(`[FAIL] File '${filePath}' contains absolute file:// link`);
     failed = true;
   }
+
+  // 1.2 C:/Users check
   if (/c:\/users/i.test(content)) {
     console.error(`[FAIL] File '${filePath}' contains machine-specific absolute path C:/Users`);
     failed = true;
   }
-}
 
-// Scan PC2-owned directories for absolute paths
-const docsPc2Dir = path.join(baseDir, '../docs/pc2');
-const workflowsDir = path.join(baseDir, '../n8n-workflows');
-const localModulesDir = path.join(baseDir, '../modules');
+  // 1.3 Forbidden domains check (allow only in backticks/code blocks in MD files for documentation)
+  let cleanContent = content;
+  if (ext === '.md') {
+    cleanContent = content.replace(/```[\s\S]*?```/g, '').replace(/`[^`\n]*`/g, '');
+  }
+  if (/thecoreagency\.com/i.test(cleanContent)) {
+    console.error(`[FAIL] File '${filePath}' contains forbidden reference to 'thecoreagency.com'`);
+    failed = true;
+  }
+  if (/facebook\.com/i.test(cleanContent)) {
+    console.error(`[FAIL] File '${filePath}' contains forbidden reference to 'facebook.com'`);
+    failed = true;
+  }
 
-scanDirectory(baseDir, () => true, checkAbsoluteLinks);
-scanDirectory(workflowsDir, () => true, checkAbsoluteLinks);
-scanDirectory(localModulesDir, () => true, checkAbsoluteLinks);
-scanDirectory(docsPc2Dir, () => true, checkAbsoluteLinks);
-
-// 2. Check for external/production URLs
-function checkExternalUrls(filePath) {
-  if (filePath.endsWith('validate_contracts.js')) return;
-  const content = fs.readFileSync(filePath, 'utf8');
-  // Check for http:// or https:// urls
+  // 1.4 http/https external/production URLs check
   const urlRegex = /https?:\/\/[a-zA-Z0-9.\-_]+/g;
   const matches = content.match(urlRegex) || [];
   for (const url of matches) {
     const host = url.replace(/https?:\/\//, '').split('/')[0].split(':')[0].toLowerCase();
-    const safeHosts = ['localhost', '127.0.0.1', 'mock.local', 'host.docker.internal', 'json-schema.org'];
+    const safeHosts = ['localhost', '127.0.0.1', 'mock.local', 'host.docker.internal', 'json-schema.org', 'github.com'];
     if (!safeHosts.includes(host)) {
       console.error(`[FAIL] File '${filePath}' contains forbidden external/production URL: ${url}`);
       failed = true;
@@ -2742,40 +2749,75 @@ function checkExternalUrls(filePath) {
   }
 }
 
-// Scan examples
-const contractsExamplesDir = path.join(baseDir, 'examples');
-scanDirectory(contractsExamplesDir, (p) => p.endsWith('.json'), checkExternalUrls);
+// Scan PC2-owned directories for handoff compliance
+const docsPc2Dir = path.join(baseDir, '../docs/pc2');
+const workflowsDir = path.join(baseDir, '../n8n-workflows');
+const localModulesDir = path.join(baseDir, '../modules');
 
-// Scan workflows
-scanDirectory(workflowsDir, (p) => p.endsWith('.json'), checkExternalUrls);
+scanDirectory(baseDir, () => true, checkHandoffCompliance);
+scanDirectory(workflowsDir, () => true, checkHandoffCompliance);
+scanDirectory(localModulesDir, () => true, checkHandoffCompliance);
+scanDirectory(docsPc2Dir, () => true, checkHandoffCompliance);
 
-// Scan modules
-scanDirectory(localModulesDir, (p) => p.endsWith('.json') || p.endsWith('.js'), checkExternalUrls);
+// 3. Check for workflow dispatch HTTP nodes across all workflows
+function checkWorkflowDispatch() {
+  scanDirectory(workflowsDir, (p) => p.endsWith('.workflow.json') || p.endsWith('.json'), (wfPath) => {
+    const baseName = path.basename(wfPath);
+    const content = fs.readFileSync(wfPath, 'utf8');
+    let wfJson;
+    try {
+      wfJson = JSON.parse(content);
+    } catch (e) {
+      return;
+    }
+    if (!wfJson.nodes || !Array.isArray(wfJson.nodes)) return;
 
-// 3. Check for legacy workflow dispatch HTTP nodes
-function checkLegacyWorkflows() {
-  const legacyWorkflows = [
-    'module_result_callback_to_core.workflow.json',
-    'approved_design_to_comfyui.workflow.json'
-  ];
-  legacyWorkflows.forEach(wfFile => {
-    const wfPath = path.join(workflowsDir, wfFile);
-    if (fs.existsSync(wfPath)) {
-      const content = fs.readFileSync(wfPath, 'utf8');
-      const wfJson = JSON.parse(content);
-      wfJson.nodes.forEach(node => {
-        if (node.type === 'n8n-nodes-base.httpRequest') {
-          const url = node.parameters?.url || '';
-          if (url.includes('callback') || url.includes('webhook') || url.includes('localhost:3000')) {
-            console.error(`[FAIL] Legacy workflow ${wfFile} contains dispatch-capable HTTP Request node '${node.name}' targeting '${url}'`);
+    wfJson.nodes.forEach(node => {
+      if (node.type === 'n8n-nodes-base.httpRequest') {
+        const url = node.parameters?.url || '';
+        const lowerUrl = url.toLowerCase();
+
+        // Check if this is a Core callback dispatch or a dynamic callback URL
+        const isCoreCallbackDispatch = (
+          lowerUrl.includes('callback') ||
+          lowerUrl.includes('webhook') ||
+          lowerUrl.includes('receiver') ||
+          lowerUrl.includes('core') ||
+          lowerUrl.includes('localhost:3000') ||
+          lowerUrl.includes('localhost:5678/mock-callback') ||
+          (lowerUrl.startsWith('={{') && (
+            lowerUrl.includes('callback') ||
+            lowerUrl.includes('webhook') ||
+            lowerUrl.includes('receiver') ||
+            lowerUrl.includes('core') ||
+            (!lowerUrl.includes('health_endpoint') && !lowerUrl.includes('run_endpoint'))
+          ))
+        );
+
+        if (isCoreCallbackDispatch) {
+          console.error(`[FAIL] Workflow ${baseName} contains dispatch-capable HTTP Request node '${node.name}' targeting Core callback or dynamic URL: '${url}'`);
+          failed = true;
+          return;
+        }
+
+        const hostRegex = /https?:\/\/[a-zA-Z0-9.\-_]+/i;
+        const match = url.match(hostRegex);
+        if (match) {
+          const host = match[0].replace(/https?:\/\//i, '').split('/')[0].split(':')[0].toLowerCase();
+          const safeHosts = ['localhost', '127.0.0.1', 'mock.local', 'host.docker.internal', 'json-schema.org', 'github.com'];
+          if (!safeHosts.includes(host)) {
+            console.error(`[FAIL] Workflow ${baseName} contains HTTP Request node '${node.name}' targeting external endpoint: '${url}'`);
             failed = true;
           }
+        } else if (!url.includes('localhost') && !url.includes('127.0.0.1') && !url.includes('mock.local') && !url.includes('host.docker.internal') && !url.startsWith('MODULE_') && !url.startsWith('={{')) {
+          console.error(`[FAIL] Workflow ${baseName} contains HTTP Request node '${node.name}' targeting suspicious URL: '${url}'`);
+          failed = true;
         }
-      });
-    }
+      }
+    });
   });
 }
-checkLegacyWorkflows();
+checkWorkflowDispatch();
 
 // 4. Verify consistent N12 Status
 const expectedN12Status = 'DONE / PASS — integration-ready handoff only, not production connector release.';
