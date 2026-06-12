@@ -269,25 +269,37 @@ When a module fails the health check check before routing:
 
 ## 7. Validator Commands
 
-To verify contract syntax, schema compliance, and workflow structures, run the validator script from the repository root:
+To check static constraints in the repository, run the validator script from the repository root:
 
 ```bash
 node contracts/tools/validate_contracts.js
 ```
 
-The validator performs static checks on all mock payloads under `contracts/examples/` against the JSON schemas, checks workflows for unreachable nodes, and asserts that no forbidden strings are present.
+The validator's coverage is structured as follows:
+* **Payload Validation**: Validates selected contract/example payloads covered by `validate_contracts.js`.
+* **Path & URL Checks**: Checks forbidden production/external URLs and machine-specific paths in configured PC2 files.
+* **Callback Nodes**: Checks workflow files for dispatch-capable Core callback HTTP nodes based on implemented static rules.
+* **Unreachable Nodes**: Performs static node connectivity checks on specific workflow files (e.g., verifying that final/error output nodes are reachable).
+* **Limitations**:
+  * Does not prove full n8n runtime reachability or full schema coverage for every example.
+  * Does not replace manual Codex review.
 
 ---
 
 ## 8. Status Mapping
 
-During the Core system integration, the Core web interface maps n8n states into database entities and UI components:
+During the Core system integration, the Core web interface maps n8n states into database entities and UI components. The approval decision states (N8 approval gate) are separate from the final terminal states of the E2E workflow (N11):
 
-* **pending_approval** &rarr; Maps to `waiting_for_owner_approval`. The generated preview draft is held in a Core review queue.
-* **approved** &rarr; Maps to `completed_mock`. Assets are promoted to approved status. Note: Live posting/dispatch remains disabled in PC2.
+### N8 Approval Gate Mapping
+* **pending** / **pending_approval** &rarr; Maps to `waiting_for_owner_approval`. The generated preview draft is held in a Core review queue.
+* **approved** &rarr; Maps to `ready_for_mock_callback_preview`. This indicates that the asset is approved and is ready to enter the callback preview phase. **Note: `approved` does NOT directly mean `completed_mock`.**
 * **rejected** &rarr; Maps to `stopped_rejected`. Processing halts and the rejection state is recorded along with reviewer notes.
 * **needs_revision** &rarr; Maps to `revision_required`. The draft is returned to the authoring queue for manual modifications.
-* **skipped / error states** &rarr; Maps to `blocked_module_unavailable` or other error statuses. Prevents draft advancement.
+
+### N11 E2E Terminal Status
+* **completed_mock** &rarr; This is the final E2E terminal status. It is **only** reached after the dry-run/mock E2E callback preview path completes successfully (after approval is granted and the callback payload is normalized).
+* **blocked_module_unavailable** &rarr; Reached if health check checks fail and target module is offline.
+* **unsupported_event_type** &rarr; Reached if the event type is unrecognized.
 
 ---
 
