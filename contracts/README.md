@@ -4,10 +4,10 @@ This directory contains the JSON Schema definitions (`draft-07`) defining the st
 
 ## Schema List
 
-1. **[Core to n8n Event](file:///c:/Users/DELL/claude-marketing-team/contracts/core_to_n8n_event.schema.json)**: Trigger events from Core.
-2. **[n8n to Module Request](file:///c:/Users/DELL/claude-marketing-team/contracts/n8n_to_module_request.schema.json)**: Standard request schema sent by n8n to invoke specific modules.
-3. **[Module to Core Callback](file:///c:/Users/DELL/claude-marketing-team/contracts/module_to_core_callback.schema.json)**: Asynchronous status/result payload callback to Core.
-4. **[Approval Event](file:///c:/Users/DELL/claude-marketing-team/contracts/approval_event.schema.json)**: Core event indicating approval state changes from the UI.
+1. **[Core to n8n Event](./core_to_n8n_event.schema.json)**: Trigger events from Core.
+2. **[n8n to Module Request](./n8n_to_module_request.schema.json)**: Standard request schema sent by n8n to invoke specific modules.
+3. **[Module to Core Callback](./module_to_core_callback.schema.json)**: Asynchronous status/result payload callback to Core.
+4. **[Approval Event](./approval_event.schema.json)**: Core event indicating approval state changes from the UI.
 
 ## Validation Guide
 

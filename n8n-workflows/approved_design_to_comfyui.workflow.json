@@ -85,30 +85,50 @@
     },
     {
       "parameters": {
-        "method": "POST",
-        "url": "={{ $json.body.callback_url }}",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
+        "values": {
+          "string": [
             {
-              "name": "Content-Type",
-              "value": "application/json"
+              "name": "event_id",
+              "value": "={{ $uuid }}"
+            },
+            {
+              "name": "correlation_id",
+              "value": "={{ $json.body.correlation_id }}"
+            },
+            {
+              "name": "job_id",
+              "value": "={{ $json.body.job_id }}"
+            },
+            {
+              "name": "module_name",
+              "value": "comfyui-pipeline"
+            },
+            {
+              "name": "status",
+              "value": "REJECTED_BY_SAFETY"
+            }
+          ],
+          "other": [
+            {
+              "name": "payload",
+              "value": "={{ { \"error\": \"Action blocked: Requires approval but final_approval_granted is false.\" } }}"
+            },
+            {
+              "name": "safety",
+              "value": "={{ $json.body.safety }}"
             }
           ]
         },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={\n  \"event_id\": \"{{ $uuid }}\",\n  \"correlation_id\": \"{{ $json.body.correlation_id }}\",\n  \"job_id\": \"{{ $json.body.job_id }}\",\n  \"module_name\": \"comfyui-pipeline\",\n  \"status\": \"REJECTED_BY_SAFETY\",\n  \"payload\": {\n    \"error\": \"Action blocked: Requires approval but final_approval_granted is false.\"\n  },\n  \"safety\": {{ JSON.stringify($json.body.safety) }}\n}",
         "options": {}
       },
-      "name": "HTTP: Callback Safety Rejected",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4,
+      "name": "Set: Callback Safety Rejected Preview",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
       "position": [
         800,
         450
       ],
-      "id": "http-callback-safety-rejected"
+      "id": "set-callback-safety-rejected-preview"
     }
   ],
   "connections": {
@@ -152,7 +172,7 @@
         ],
         [
           {
-            "node": "HTTP: Callback Safety Rejected",
+            "node": "Set: Callback Safety Rejected Preview",
             "type": "main",
             "index": 0
           }

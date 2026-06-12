@@ -95,7 +95,7 @@ This document lists all active specialist modules integrated under the PC2 works
 - Rejection, revision, and pending states are routed to mock endpoints or queues without hitting real customer-facing integrations or firing live callbacks to Core callback URLs.
 
 ## Integration Notes (Phase N9)
-- All module failures must produce a standardized error object and execution log before future Core callback using the specifications in [error_handling_retry_logging_contract.md](file:///c:/Users/DELL/claude-marketing-team/contracts/error_handling_retry_logging_contract.md).
+- All module failures must produce a standardized error object and execution log before future Core callback using the specifications in [error_handling_retry_logging_contract.md](./error_handling_retry_logging_contract.md).
 
 ## Integration Notes (Phase N10)
 - The health checking workflow (`n10_module_health_check.workflow.json`) queries each module's `health_endpoint` (`GET /health`) to build aggregate readiness statuses and dashboard reports.

@@ -14,7 +14,7 @@
     "N9": "DONE / PASS",
     "N10": "DONE / PASS",
     "N11": "DONE / PASS",
-    "N12": "IMPLEMENTED / READY FOR REVIEW"
+    "N12": "DONE / PASS — integration-ready handoff only, not production connector release."
   },
   "contracts": [
     "contracts/core_to_n8n_event.schema.json",

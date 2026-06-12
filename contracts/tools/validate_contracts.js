@@ -2562,8 +2562,9 @@ try {
             failed = true;
           }
         }
-        if (manifest.phases.N12 !== 'IMPLEMENTED / READY FOR REVIEW') {
-          console.error(`[FAIL] Manifest phase N12 status must be 'IMPLEMENTED / READY FOR REVIEW', found '${manifest.phases.N12}'`);
+        const expectedN12Status = 'DONE / PASS — integration-ready handoff only, not production connector release.';
+        if (manifest.phases.N12 !== expectedN12Status) {
+          console.error(`[FAIL] Manifest phase N12 status must be '${expectedN12Status}', found '${manifest.phases.N12}'`);
           failed = true;
         }
       }
@@ -2680,6 +2681,119 @@ try {
 } catch (err) {
   console.error(`[FAIL] Error validating n11 workflow: ${err.message}`);
   failed = true;
+}
+
+// --- STARTING POST-MERGE HANDOFF COMPLIANCE CHECKS ---
+console.log('--- STARTING POST-MERGE HANDOFF COMPLIANCE CHECKS ---');
+
+function scanDirectory(dir, filter, callback) {
+  const list = fs.readdirSync(dir);
+  list.forEach(file => {
+    const fullPath = path.join(dir, file);
+    const stat = fs.statSync(fullPath);
+    if (stat && stat.isDirectory()) {
+      scanDirectory(fullPath, filter, callback);
+    } else {
+      if (filter(fullPath)) {
+        callback(fullPath);
+      }
+    }
+  });
+}
+
+// 1. Check for absolute links file:/// and C:/Users in PC2 directories
+function checkAbsoluteLinks(filePath) {
+  if (filePath.endsWith('validate_contracts.js')) return;
+  const content = fs.readFileSync(filePath, 'utf8');
+  if (content.includes('file:///')) {
+    console.error(`[FAIL] File '${filePath}' contains absolute file:/// link`);
+    failed = true;
+  }
+  if (/c:\/users/i.test(content)) {
+    console.error(`[FAIL] File '${filePath}' contains machine-specific absolute path C:/Users`);
+    failed = true;
+  }
+}
+
+// Scan PC2-owned directories for absolute paths
+const docsPc2Dir = path.join(baseDir, '../docs/pc2');
+const workflowsDir = path.join(baseDir, '../n8n-workflows');
+const localModulesDir = path.join(baseDir, '../modules');
+
+scanDirectory(baseDir, () => true, checkAbsoluteLinks);
+scanDirectory(workflowsDir, () => true, checkAbsoluteLinks);
+scanDirectory(localModulesDir, () => true, checkAbsoluteLinks);
+scanDirectory(docsPc2Dir, () => true, checkAbsoluteLinks);
+
+// 2. Check for external/production URLs
+function checkExternalUrls(filePath) {
+  if (filePath.endsWith('validate_contracts.js')) return;
+  const content = fs.readFileSync(filePath, 'utf8');
+  // Check for http:// or https:// urls
+  const urlRegex = /https?:\/\/[a-zA-Z0-9.\-_]+/g;
+  const matches = content.match(urlRegex) || [];
+  for (const url of matches) {
+    const host = url.replace(/https?:\/\//, '').split('/')[0].split(':')[0].toLowerCase();
+    const safeHosts = ['localhost', '127.0.0.1', 'mock.local', 'host.docker.internal', 'json-schema.org'];
+    if (!safeHosts.includes(host)) {
+      console.error(`[FAIL] File '${filePath}' contains forbidden external/production URL: ${url}`);
+      failed = true;
+    }
+  }
+}
+
+// Scan examples
+const contractsExamplesDir = path.join(baseDir, 'examples');
+scanDirectory(contractsExamplesDir, (p) => p.endsWith('.json'), checkExternalUrls);
+
+// Scan workflows
+scanDirectory(workflowsDir, (p) => p.endsWith('.json'), checkExternalUrls);
+
+// Scan modules
+scanDirectory(localModulesDir, (p) => p.endsWith('.json') || p.endsWith('.js'), checkExternalUrls);
+
+// 3. Check for legacy workflow dispatch HTTP nodes
+function checkLegacyWorkflows() {
+  const legacyWorkflows = [
+    'module_result_callback_to_core.workflow.json',
+    'approved_design_to_comfyui.workflow.json'
+  ];
+  legacyWorkflows.forEach(wfFile => {
+    const wfPath = path.join(workflowsDir, wfFile);
+    if (fs.existsSync(wfPath)) {
+      const content = fs.readFileSync(wfPath, 'utf8');
+      const wfJson = JSON.parse(content);
+      wfJson.nodes.forEach(node => {
+        if (node.type === 'n8n-nodes-base.httpRequest') {
+          const url = node.parameters?.url || '';
+          if (url.includes('callback') || url.includes('webhook') || url.includes('localhost:3000')) {
+            console.error(`[FAIL] Legacy workflow ${wfFile} contains dispatch-capable HTTP Request node '${node.name}' targeting '${url}'`);
+            failed = true;
+          }
+        }
+      });
+    }
+  });
+}
+checkLegacyWorkflows();
+
+// 4. Verify consistent N12 Status
+const expectedN12Status = 'DONE / PASS — integration-ready handoff only, not production connector release.';
+const finalSummaryPath = path.join(baseDir, '../docs/pc2/pc2_final_summary.md');
+if (fs.existsSync(finalSummaryPath)) {
+  const summaryContent = fs.readFileSync(finalSummaryPath, 'utf8');
+  if (!summaryContent.includes(`N12 | Stabilization & Handoff package | ${expectedN12Status}`)) {
+    console.error(`[FAIL] pc2_final_summary.md status for N12 is not '${expectedN12Status}'`);
+    failed = true;
+  }
+}
+const phaseLogPath = path.join(baseDir, '../docs/pc2/phase_log.md');
+if (fs.existsSync(phaseLogPath)) {
+  const logContent = fs.readFileSync(phaseLogPath, 'utf8');
+  if (!logContent.includes(`- **Status**: ${expectedN12Status}`)) {
+    console.error(`[FAIL] phase_log.md status for N12 is not '${expectedN12Status}'`);
+    failed = true;
+  }
 }
 
 if (failed) {

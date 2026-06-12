@@ -5,7 +5,7 @@
   "module_name": "comfyui-pipeline",
   "status": "SUCCESS",
   "payload": {
-    "asset_url": "https://storage.thecoreagency.com/assets/aesthetic_workspace_output_987654.png",
+    "asset_url": "http://localhost:8188/assets/aesthetic_workspace_output_987654.png",
     "asset_type": "image/png",
     "generation_params": {
       "prompt": "Vibrant and aesthetic workspace backdrop with a coffee cup, glassmorphism design, Outfit font overlay saying 'Claude Code'",

@@ -6,13 +6,13 @@ This directory contains the specialized services (Specialist Modules) servicing 
 
 | Module Name | Folder | Phase Status | Description |
 | :--- | :--- | :--- | :--- |
-| **ComfyUI Pipeline** | [comfyui-pipeline](file:///c:/Users/DELL/claude-marketing-team/modules/comfyui-pipeline/) | **Local Stub (N3)** | Background pipeline to generate image/video assets. |
-| **Canva Connector** | [canva-connector](file:///c:/Users/DELL/claude-marketing-team/modules/canva-connector/) | **Contract Only** | Integrates Canva API to generate and modify branding templates. |
-| **Meta Ads Connector** | [meta-ads-connector](file:///c:/Users/DELL/claude-marketing-team/modules/meta-ads-connector/) | **Contract Only** | Automates Meta Graph API campaigns, budget, and targeting. |
-| **Facebook Publisher** | [facebook-publisher](file:///c:/Users/DELL/claude-marketing-team/modules/facebook-publisher/) | **Contract Only** | Publishes posts, stories, and media to target fan pages. |
-| **Analytics Engine** | [analytics-engine](file:///c:/Users/DELL/claude-marketing-team/modules/analytics-engine/) | **Contract Only** | Reads metrics and compiles analytical KPI reports. |
-| **Inbox Assistant** | [inbox-assistant](file:///c:/Users/DELL/claude-marketing-team/modules/inbox-assistant/) | **Contract Only** | Classifies incoming customer queries and drafts AI replies. |
-| **Billing Module** | [billing-module](file:///c:/Users/DELL/claude-marketing-team/modules/billing-module/) | **Contract Only** | Generates billing links and synchronizes invoice data. |
+| **ComfyUI Pipeline** | [comfyui-pipeline](./comfyui-pipeline/) | **Local Stub (N3)** | Background pipeline to generate image/video assets. |
+| **Canva Connector** | [canva-connector](./canva-connector/) | **Contract Only** | Integrates Canva API to generate and modify branding templates. |
+| **Meta Ads Connector** | [meta-ads-connector](./meta-ads-connector/) | **Contract Only** | Automates Meta Graph API campaigns, budget, and targeting. |
+| **Facebook Publisher** | [facebook-publisher](./facebook-publisher/) | **Contract Only** | Publishes posts, stories, and media to target fan pages. |
+| **Analytics Engine** | [analytics-engine](./analytics-engine/) | **Contract Only** | Reads metrics and compiles analytical KPI reports. |
+| **Inbox Assistant** | [inbox-assistant](./inbox-assistant/) | **Contract Only** | Classifies incoming customer queries and drafts AI replies. |
+| **Billing Module** | [billing-module](./billing-module/) | **Contract Only** | Generates billing links and synchronizes invoice data. |
 
 ---
 

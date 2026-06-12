@@ -31,30 +31,50 @@
     },
     {
       "parameters": {
-        "method": "POST",
-        "url": "http://localhost:3000/api/v1/webhooks/module-callback",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
+        "values": {
+          "string": [
             {
-              "name": "Content-Type",
-              "value": "application/json"
+              "name": "event_id",
+              "value": "={{ $json.event_id || $uuid }}"
+            },
+            {
+              "name": "correlation_id",
+              "value": "={{ $json.correlation_id }}"
+            },
+            {
+              "name": "job_id",
+              "value": "={{ $json.job_id }}"
+            },
+            {
+              "name": "module_name",
+              "value": "={{ $json.module_name }}"
+            },
+            {
+              "name": "status",
+              "value": "={{ $json.status }}"
+            }
+          ],
+          "other": [
+            {
+              "name": "payload",
+              "value": "={{ $json.payload }}"
+            },
+            {
+              "name": "safety",
+              "value": "={{ $json.safety }}"
             }
           ]
         },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={\n  \"event_id\": \"{{ $json.event_id || $uuid }}\",\n  \"correlation_id\": \"{{ $json.correlation_id }}\",\n  \"job_id\": \"{{ $json.job_id }}\",\n  \"module_name\": \"{{ $json.module_name }}\",\n  \"status\": \"{{ $json.status }}\",\n  \"payload\": {{ JSON.stringify($json.payload) }},\n  \"safety\": {{ JSON.stringify($json.safety) }}\n}",
         "options": {}
       },
-      "name": "HTTP: Post to Core Callback API",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4,
+      "name": "Set: Preview Callback Output",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
       "position": [
         550,
         300
       ],
-      "id": "http-post-to-core"
+      "id": "set-preview-callback"
     }
   ],
   "connections": {
@@ -73,7 +93,7 @@
       "main": [
         [
           {
-            "node": "HTTP: Post to Core Callback API",
+            "node": "Set: Preview Callback Output",
             "type": "main",
             "index": 0
           }

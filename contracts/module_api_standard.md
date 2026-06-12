@@ -74,7 +74,7 @@ Mỗi module phải triển khai tối thiểu 3 endpoint sau:
     "module_name": "name-of-module",
     "status": "COMPLETED",
     "payload": {
-      "mock_asset_url": "https://storage.thecoreagency.com/assets/mock_asset.png"
+      "mock_asset_url": "http://localhost:8188/assets/mock_asset.png"
     },
     "safety": {
       "requires_approval": true,

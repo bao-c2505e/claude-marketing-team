@@ -11,11 +11,11 @@ This document describes the testing procedure to verify that the n8n workflow su
 ---
 
 ## 2. Files Involved in Phase N4
-- **[n8n-workflows/n4_comfyui_stub_integration_test.workflow.json](file:///c:/Users/DELL/claude-marketing-team/n8n-workflows/n4_comfyui_stub_integration_test.workflow.json)**: The importable n8n workflow for testing.
-- **[contracts/examples/n8n/n4_mock_core_event.json](file:///c:/Users/DELL/claude-marketing-team/contracts/examples/n8n/n4_mock_core_event.json)**: Example Core event source payload.
-- **[contracts/examples/n8n/n4_expected_callback_preview.json](file:///c:/Users/DELL/claude-marketing-team/contracts/examples/n8n/n4_expected_callback_preview.json)**: Example of expected final callback output structure.
-- **[docs/pc2/phase_n4_n8n_comfyui_stub_test.md](file:///c:/Users/DELL/claude-marketing-team/docs/pc2/phase_n4_n8n_comfyui_stub_test.md)**: This manual verification guide.
-- **[docs/pc2/phase_log.md](file:///c:/Users/DELL/claude-marketing-team/docs/pc2/phase_log.md)**: Development log.
+- **[n8n-workflows/n4_comfyui_stub_integration_test.workflow.json](../../n8n-workflows/n4_comfyui_stub_integration_test.workflow.json)**: The importable n8n workflow for testing.
+- **[contracts/examples/n8n/n4_mock_core_event.json](../../contracts/examples/n8n/n4_mock_core_event.json)**: Example Core event source payload.
+- **[contracts/examples/n8n/n4_expected_callback_preview.json](../../contracts/examples/n8n/n4_expected_callback_preview.json)**: Example of expected final callback output structure.
+- **[docs/pc2/phase_n4_n8n_comfyui_stub_test.md](./phase_n4_n8n_comfyui_stub_test.md)**: This manual verification guide.
+- **[docs/pc2/phase_log.md](./phase_log.md)**: Development log.
 
 ---
 
@@ -54,7 +54,7 @@ You should see:
 ---
 
 ## 5. Expected Results
-The output JSON of the final node should conform to the structure in [n4_expected_callback_preview.json](file:///c:/Users/DELL/claude-marketing-team/contracts/examples/n8n/n4_expected_callback_preview.json):
+The output JSON of the final node should conform to the structure in [n4_expected_callback_preview.json](../../contracts/examples/n8n/n4_expected_callback_preview.json):
 ```json
 {
   "request_id": "782f9d5e-ca87-439f-a89c-8eb139f4a088",
