@@ -95,6 +95,26 @@ To verify the features step-by-step, run tests in this order:
 - **Issue**: The contract validation script fails.
 - **Solution**: Run `node contracts/tools/validate_contracts.js` to see detailed error reports. Ensure no forbidden brands, production domains, or real credentials exist in new files.
 
+### Invalid Workflow Import
+- **Issue**: Importing a workflow JSON into n8n fails or shows formatting errors.
+- **Possible Causes**:
+  - Wrong JSON file selected during import.
+  - n8n version or import compatibility issues.
+  - File copied or downloaded incompletely.
+  - Workflow JSON was edited manually and contains syntax/JSON syntax errors.
+- **Recommended Checks**:
+  - Run `node contracts/tools/validate_contracts.js` to verify workflow syntax correctness.
+  - Re-download or re-open the workflow JSON file directly from the `n8n-workflows/` directory.
+  - Import one workflow at a time in n8n.
+
+### Git Branch Mismatch
+- **Issue**: Code or docs are edited on a branch other than the dedicated workstream branch.
+- **Expected Branch**: `feature/n8n-modules-workstream`
+- **Check Command**: `git status`
+- **Recovery If On Wrong Branch**:
+  - Run `git checkout feature/n8n-modules-workstream`
+  - *Note*: Do not commit PC2 work to `main` or any Core integration branch. Stop and ask the repository owner if the branch state is unclear.
+
 ---
 
 ## 6. Safety Reminders

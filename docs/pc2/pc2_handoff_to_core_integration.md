@@ -99,6 +99,38 @@ When the PC1/Core team integrates this backbone into the production environment,
 - **Database Persistence**: Map n8n execution variables to Core tables to store campaign status logs, asset paths, and approval results.
 - **Manual Approval Handlers**: Build Core web panels to handle human-in-the-loop decisions (approved, rejected, needs_revision) and trigger matching callback webhooks back into n8n.
 
+### 6.1 Explicit Callback Endpoint Mapping
+* **Current Status**: PC2 currently prepares callback previews only. No real Core callback is sent in PC2.
+* **Future PC1/Core Integration**: Integration must define and establish:
+  - **Core callback receiver endpoint**: The listener URL on the Core application that ingests n8n callback payloads.
+  - **n8n callback sender workflow**: The workflow node(s) configured to dispatch HTTP requests to the Core receiver.
+  - **Callback auth method**: Secure authentication mechanism (e.g., Bearer tokens, signature verification headers).
+  - **Callback payload schema**: Standard payloads based on `contracts/unified_callback_contract.md`.
+  - **Error callback schema**: Standard error structures based on `contracts/error_handling_retry_logging_contract.md`.
+  - **Retry and dead-letter behavior**: Rules for retrying failed callbacks and logging failures to a dead-letter queue.
+* **Implementation Status**: TBD / future integration only.
+
+### 6.2 Explicit Approval-State Mapping
+* **Current Status**: Simulated gates inside the workflow evaluate decision states.
+* **Approval State Mapping Table**:
+  - `pending_approval` &rarr; The generated preview item awaits owner/client review inside the Core panel.
+  - `approved` &rarr; Core may mark the preview as approved. Note that no auto-post, ads spend, or direct messaging occurs without a separate production approval loop.
+  - `rejected` &rarr; Core should stop processing the item, mark the job as rejected, and record the rejection reason.
+  - `needs_revision` &rarr; Core should return the item to the revision queue for manual adjustments.
+  - `not_applicable` &rarr; Used for error, failure, or safety-bypass paths.
+* **Implementation Status**: TBD / future integration only.
+
+### 6.3 Explicit Module-Output Ingestion Mapping
+* **Current Status**: PC2 module outputs are mock/local files or mock generation metadata only. No Core database write is implemented in PC2.
+* **Future Core Ingestion**: Integration must map specialist module outputs directly into Core entities, database tables, and user interfaces.
+* **Future Mapping Matrix**:
+  - **`creative_asset_comfyui` output** &rarr; Maps to a Core asset / generation preview entity.
+  - **`content_pack_generator` output** &rarr; Maps to a Core content draft pack (social draft posts).
+  - **`ads_pack_generator` output** &rarr; Maps to a Core ads draft pack (not published as live ads).
+  - **`crm_followup_generator` output** &rarr; Maps to Core CRM draft messages (stored for review, not sent to users).
+  - **`analytics_report_generator` output** &rarr; Maps to a Core analytics / report preview dashboard.
+* **Persistence**: Schema mappings and database write layers are TBD.
+
 ---
 
 ## 7. What is NOT Implemented Yet

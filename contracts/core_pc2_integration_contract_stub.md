@@ -91,3 +91,27 @@ If any check fails (unsupported events, offline modules, or execution issues), n
 - **Live Generative Rendering**: No GPUs or generative models are directly integrated at this stage.
 - **Outbound Publishing**: No direct sharing to social media, email, or advertising platforms.
 - **Billing or Subscriptions**: No billing, usage tracking, or financial gateways.
+
+---
+
+## Environment Variables / Configuration TBD
+
+Status: TBD for future PC1/Core integration.
+
+No environment variables, secrets, credentials, or production URLs are defined in PC2.
+
+Future integration must define, review, and owner-approve:
+
+- CORE_TO_N8N_WEBHOOK_URL
+- N8N_TO_CORE_CALLBACK_URL
+- CALLBACK_AUTH_METHOD
+- CALLBACK_SIGNING_SECRET or equivalent secure mechanism
+- N8N_ENVIRONMENT
+- MODULE_BASE_URLS
+- APPROVAL_STATE_MAPPING
+- ERROR_CALLBACK_POLICY
+- RETRY_POLICY_CONFIG
+
+All names above are placeholders only.
+No real values should be committed.
+Secrets must be stored in the approved credential/environment system, not in repo files.
