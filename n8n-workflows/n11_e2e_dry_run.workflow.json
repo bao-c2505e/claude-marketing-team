@@ -79,7 +79,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const body = items[0].json;\nconst event_type = body.event_type || \"\";\nconst request_id = body.request_id || \"782f9d5e-ca87-439f-a89c-8eb139f4a088\";\nconst brand_id = body.brand_id || \"brand_demo_001\";\nconst campaign_id = body.campaign_id || \"campaign_demo_001\";\nconst requested_by = body.requested_by || \"user_demo_001@example.com\";\nconst callback_url = body.callback_url || \"http://localhost:5678/mock-callback\";\nconst payload = body.payload || {};\nconst metadata = body.metadata || {};\n\n// Strictly declare the mapping of supported event types to local endpoints to satisfy validator\nconst routes = {\n  \"creative_asset.requested\": {\n    \"module_id\": \"creative_asset_comfyui\",\n    \"health_endpoint\": \"http://localhost:8188/health\",\n    \"run_endpoint\": \"http://localhost:8188/run\"\n  },\n  \"content_pack.requested\": {\n    \"module_id\": \"content_pack_generator\",\n    \"health_endpoint\": \"http://localhost:8191/health\",\n    \"run_endpoint\": \"http://localhost:8191/run\"\n  },\n  \"ads_pack.requested\": {\n    \"module_id\": \"ads_pack_generator\",\n    \"health_endpoint\": \"http://localhost:8192/health\",\n    \"run_endpoint\": \"http://localhost:8192/run\"\n  },\n  \"crm_followup.requested\": {\n    \"module_id\": \"crm_followup_generator\",\n    \"health_endpoint\": \"http://localhost:8193/health\",\n    \"run_endpoint\": \"http://localhost:8193/run\"\n  },\n  \"analytics_report.requested\": {\n    \"module_id\": \"analytics_report_generator\",\n    \"health_endpoint\": \"http://localhost:8194/health\",\n    \"run_endpoint\": \"http://localhost:8194/run\"\n  }\n};\n\nconst route = routes[event_type];\nconst is_supported = !!route;\nconst run_id = \"run_dry_\" + Math.random().toString(36).substring(2, 15);\n\nreturn [{\n  json: {\n    \"contract_version\": \"e2e_dry_run_v0.1\",\n    \"run_id\": run_id,\n    \"request_id\": request_id,\n    \"event_type\": event_type,\n    \"brand_id\": brand_id,\n    \"campaign_id\": campaign_id,\n    \"requested_by\": requested_by,\n    \"callback_url\": callback_url,\n    \"payload\": payload,\n    \"metadata\": metadata,\n    \"module_id\": is_supported ? route.module_id : \"n8n_event_router\",\n    \"health_endpoint\": is_supported ? route.health_endpoint : null,\n    \"run_endpoint\": is_supported ? route.run_endpoint : null,\n    \"is_supported\": is_supported,\n    \"simulate_outage\": metadata.simulate_outage || false,\n    \"simulate_approval_decision\": metadata.simulate_approval_decision || \"approved\"\n  }\n}];"
+        "jsCode": "const body = items[0].json;\nconst event_type = body.event_type || \"\";\nconst request_id = body.request_id || \"782f9d5e-ca87-439f-a89c-8eb139f4a088\";\nconst brand_id = body.brand_id || \"brand_demo_001\";\nconst campaign_id = body.campaign_id || \"campaign_demo_001\";\nconst requested_by = body.requested_by || \"user_demo_001@example.com\";\nconst callback_url = body.callback_url || \"http://localhost:5678/mock-callback\";\nconst payload = body.payload || {};\nconst metadata = body.metadata || {};\n\n// Strictly declare the mapping of supported event types to local endpoints to satisfy validator\nconst routes = {\n  \"creative_asset.requested\": {\n    \"module_id\": \"creative_asset_comfyui\",\n    \"health_endpoint\": \"http://localhost:8188/health\",\n    \"run_endpoint\": \"http://localhost:8188/run\"\n  },\n  \"content_pack.requested\": {\n    \"module_id\": \"content_pack_generator\",\n    \"health_endpoint\": \"http://localhost:8191/health\",\n    \"run_endpoint\": \"http://localhost:8191/run\"\n  },\n  \"ads_pack.requested\": {\n    \"module_id\": \"ads_pack_generator\",\n    \"health_endpoint\": \"http://localhost:8192/health\",\n    \"run_endpoint\": \"http://localhost:8192/run\"\n  },\n  \"crm_followup.requested\": {\n    \"module_id\": \"crm_followup_generator\",\n    \"health_endpoint\": \"http://localhost:8193/health\",\n    \"run_endpoint\": \"http://localhost:8193/run\"\n  },\n  \"analytics_report.requested\": {\n    \"module_id\": \"analytics_report_generator\",\n    \"health_endpoint\": \"http://localhost:8194/health\",\n    \"run_endpoint\": \"http://localhost:8194/run\"\n  }\n};\n\nconst route = routes[event_type];\nconst is_supported = !!route;\nconst run_id = \"run_dry_\" + Math.random().toString(36).substring(2, 15);\n\nreturn [{\n  json: {\n    \"contract_version\": \"e2e_dry_run_v0.1\",\n    \"run_id\": run_id,\n    \"request_id\": request_id,\n    \"event_type\": event_type,\n    \"brand_id\": brand_id,\n    \"campaign_id\": campaign_id,\n    \"requested_by\": requested_by,\n    \"callback_url\": callback_url,\n    \"payload\": payload,\n    \"metadata\": metadata,\n    \"module_id\": is_supported ? route.module_id : \"n8n_event_router\",\n    \"health_endpoint\": is_supported ? route.health_endpoint : null,\n    \"run_endpoint\": is_supported ? route.run_endpoint : null,\n    \"is_supported\": is_supported,\n    \"simulate_outage\": metadata.simulate_outage || false,\n    \"simulate_run_failure\": metadata.simulate_run_failure || false,\n    \"simulate_approval_decision\": metadata.simulate_approval_decision || \"approved\"\n  }\n}];"
       },
       "name": "Code: Normalize Event",
       "type": "n8n-nodes-base.code",
@@ -214,7 +214,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const original = $node[\"Code: Analyze Health\"].json;\nlet runRes = null;\nlet status = \"failed\";\n\ntry {\n  runRes = items[0].json;\n} catch (e) {}\n\nif (runRes && !runRes.error) {\n  status = \"completed\";\n}\n\n// Normalize response based on module type\nlet output = {};\nif (original.module_id === \"creative_asset_comfyui\") {\n  output = {\n    \"asset_preview\": \"mock://assets/workspace_generated_001.png\",\n    \"mock_asset_url\": \"mock://assets/workspace_generated_001.png\",\n    \"mock_output_path\": \"storage/assets/placeholder_workspace_001.png\"\n  };\n} else if (original.module_id === \"content_pack_generator\") {\n  output = {\n    \"posts\": [\n      {\n        \"post_id\": 1,\n        \"content\": \"Make the switch to our brand new biodegradable cups today! #eco\"\n      }\n    ]\n  };\n} else if (original.module_id === \"ads_pack_generator\") {\n  output = {\n    \"headline\": \"10% Off Early Bird Registrations!\",\n    \"body\": \"Don't miss our tech event. Sign up now and save big.\"\n  };\n} else if (original.module_id === \"crm_followup_generator\") {\n  output = {\n    \"messages\": [\n      {\n        \"day\": 1,\n        \"subject\": \"Welcome aboard!\",\n        \"body\": \"Thank you for shopping with us.\"\n      }\n    ]\n  };\n} else if (original.module_id === \"analytics_report_generator\") {\n  output = {\n    \"report_markdown\": \"## Performance Metrics\\n- CTR: 2.4%\\n- CPC: $0.45\"\n  };\n}\n\nreturn [{\n  json: {\n    ...original,\n    \"module_status\": status,\n    \"module_response\": runRes || {},\n    \"unified_callback_preview\": {\n      \"contract_version\": \"unified_callback_v0.1\",\n      \"request_id\": original.request_id,\n      \"event_type\": original.event_type,\n      \"brand_id\": original.brand_id,\n      \"campaign_id\": original.campaign_id,\n      \"module_id\": original.module_id,\n      \"module_status\": status === \"completed\" ? \"mock_completed\" : \"failed\",\n      \"approval_status\": \"pending_approval\",\n      \"output\": output,\n      \"errors\": status === \"completed\" ? [] : [{ \"message\": \"Stub request failed\" }],\n      \"metadata\": {\n        \"workflow\": original.module_id + \"_v1\"\n      },\n      \"source\": \"n8n_n11_e2e_dry_run_mock\",\n      \"generated_at\": new Date().toISOString(),\n      \"notes\": \"Generated output ready for approval gate review.\"\n    }\n  }\n}];"
+        "jsCode": "const original = $node[\"Code: Analyze Health\"].json;\nlet runRes = null;\nlet status = \"failed\";\n\ntry {\n  runRes = items[0].json;\n} catch (e) {}\n\nif (runRes && !original.simulate_run_failure) {\n  const isError = runRes.error || runRes.status === \"failed\" || runRes.status === \"rejected\" || (runRes.statusCode && runRes.statusCode >= 400);\n  const isSuccess = runRes.status === \"mock_completed\" || runRes.status === \"QUEUED\" || runRes.status === \"completed\" || runRes.status === \"success\" || runRes.status === \"OK\";\n  if (!isError && isSuccess) {\n    status = \"completed\";\n  }\n}\n\n// Normalize response based on module type\nlet output = {};\nif (original.module_id === \"creative_asset_comfyui\") {\n  output = {\n    \"asset_preview\": \"mock://assets/workspace_generated_001.png\",\n    \"mock_asset_url\": \"mock://assets/workspace_generated_001.png\",\n    \"mock_output_path\": \"storage/assets/placeholder_workspace_001.png\"\n  };\n} else if (original.module_id === \"content_pack_generator\") {\n  output = {\n    \"posts\": [\n      {\n        \"post_id\": 1,\n        \"content\": \"Make the switch to our brand new biodegradable cups today! #eco\"\n      }\n    ]\n  };\n} else if (original.module_id === \"ads_pack_generator\") {\n  output = {\n    \"headline\": \"10% Off Early Bird Registrations!\",\n    \"body\": \"Don't miss our tech event. Sign up now and save big.\"\n  };\n} else if (original.module_id === \"crm_followup_generator\") {\n  output = {\n    \"messages\": [\n      {\n        \"day\": 1,\n        \"subject\": \"Welcome aboard!\",\n        \"body\": \"Thank you for shopping with us.\"\n      }\n    ]\n  };\n} else if (original.module_id === \"analytics_report_generator\") {\n  output = {\n    \"report_markdown\": \"## Performance Metrics\\n- CTR: 2.4%\\n- CPC: $0.45\"\n  };\n}\n\nreturn [{\n  json: {\n    ...original,\n    \"module_status\": status,\n    \"module_response\": runRes || {},\n    \"unified_callback_preview\": {\n      \"contract_version\": \"unified_callback_v0.1\",\n      \"request_id\": original.request_id,\n      \"event_type\": original.event_type,\n      \"brand_id\": original.brand_id,\n      \"campaign_id\": original.campaign_id,\n      \"module_id\": original.module_id,\n      \"module_status\": status === \"completed\" ? \"mock_completed\" : \"failed\",\n      \"approval_status\": \"pending_approval\",\n      \"output\": output,\n      \"errors\": status === \"completed\" ? [] : [{ \"message\": \"Stub request failed\" }],\n      \"metadata\": {\n        \"workflow\": original.module_id + \"_v1\"\n      },\n      \"source\": \"n8n_n11_e2e_dry_run_mock\",\n      \"generated_at\": new Date().toISOString(),\n      \"notes\": \"Generated output ready for approval gate review.\"\n    }\n  }\n}];"
       },
       "name": "Code: Normalize Module Callback",
       "type": "n8n-nodes-base.code",
@@ -250,7 +250,7 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 1,
       "position": [
-        1540,
+        1680,
         500
       ],
       "id": "switch-approval"
@@ -263,7 +263,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 1,
       "position": [
-        1740,
+        1840,
         350
       ],
       "id": "out-approved"
@@ -276,7 +276,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 1,
       "position": [
-        1740,
+        1840,
         450
       ],
       "id": "out-rejected"
@@ -289,7 +289,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 1,
       "position": [
-        1740,
+        1840,
         550
       ],
       "id": "out-revision"
@@ -302,106 +302,43 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 1,
       "position": [
-        1740,
+        1840,
         650
       ],
       "id": "out-pending"
     },
     {
       "parameters": {
-        "values": {
+        "conditions": {
           "string": [
             {
-              "name": "contract_version",
-              "value": ""
-            },
-            {
-              "name": "run_id",
-              "value": ""
-            },
-            {
-              "name": "request_id",
-              "value": ""
-            },
-            {
-              "name": "event_type",
-              "value": ""
-            },
-            {
-              "name": "brand_id",
-              "value": ""
-            },
-            {
-              "name": "campaign_id",
-              "value": ""
-            },
-            {
-              "name": "module_id",
-              "value": ""
-            },
-            {
-              "name": "health_status",
-              "value": ""
-            },
-            {
-              "name": "route_status",
-              "value": ""
-            },
-            {
-              "name": "module_status",
-              "value": ""
-            },
-            {
-              "name": "approval_status",
-              "value": ""
-            },
-            {
-              "name": "final_status",
-              "value": ""
-            },
-            {
-              "name": "module_response",
-              "value": ""
-            },
-            {
-              "name": "unified_callback_preview",
-              "value": ""
-            },
-            {
-              "name": "approval_result",
-              "value": ""
-            },
-            {
-              "name": "error_result",
-              "value": ""
-            },
-            {
-              "name": "execution_trace",
-              "value": ""
-            },
-            {
-              "name": "source",
-              "value": ""
-            },
-            {
-              "name": "generated_at",
-              "value": ""
-            },
-            {
-              "name": "notes",
-              "value": ""
+              "value1": "={{ $json.module_status }}",
+              "value2": "completed"
             }
           ]
         }
       },
-      "name": "Dummy Output Field Reference",
-      "type": "n8n-nodes-base.set",
+      "name": "Switch: Run Succeeded?",
+      "type": "n8n-nodes-base.if",
       "typeVersion": 1,
       "position": [
-        2000,
+        1520,
+        500
+      ],
+      "id": "if-run-succeeded"
+    },
+    {
+      "parameters": {
+        "jsCode": "const prev = $node[\"Code: Normalize Module Callback\"].json;\nreturn [{\n  json: {\n    \"contract_version\": \"e2e_dry_run_v0.1\",\n    \"run_id\": prev.run_id,\n    \"request_id\": prev.request_id,\n    \"event_type\": prev.event_type,\n    \"brand_id\": prev.brand_id,\n    \"campaign_id\": prev.campaign_id,\n    \"module_id\": prev.module_id,\n    \"health_status\": prev.health_status,\n    \"route_status\": \"failed\",\n    \"module_status\": \"failed\",\n    \"approval_status\": \"not_applicable\",\n    \"final_status\": \"failed_mock\",\n    \"module_response\": prev.module_response,\n    \"unified_callback_preview\": null,\n    \"approval_result\": null,\n    \"error_result\": {\n      \"contract_version\": \"error_retry_logging_v0.1\",\n      \"request_id\": prev.request_id,\n      \"event_type\": prev.event_type,\n      \"brand_id\": prev.brand_id,\n      \"campaign_id\": prev.campaign_id,\n      \"module_id\": prev.module_id,\n      \"error_type\": \"unknown_error\",\n      \"error_code\": \"ERR_MODULE_RUN_FAILED\",\n      \"error_message\": `Module ${prev.module_id} execution failed.`,\n      \"retryable\": true,\n      \"attempt\": 1,\n      \"max_attempts\": 3,\n      \"next_action\": \"retry_scheduled\",\n      \"timestamp\": new Date().toISOString(),\n      \"source\": \"n8n_n11_e2e_dry_run_mock\",\n      \"metadata\": {\n        \"run_endpoint\": prev.run_endpoint\n      }\n    },\n    \"execution_trace\": [\n      \"manual_trigger_received\",\n      \"mock_event_loaded\",\n      \"event_normalized\",\n      `target_module_resolved: ${prev.module_id}`,\n      \"health_check_passed: healthy\",\n      `module_stub_called: ${prev.run_endpoint}`,\n      \"module_stub_failed\",\n      \"error_callback_preview_generated\"\n    ],\n    \"source\": \"n8n_n11_e2e_dry_run_mock\",\n    \"generated_at\": new Date().toISOString(),\n    \"notes\": `Module ${prev.module_id} execution failed.`\n  }\n}];"
+      },
+      "name": "Code: Build Run Module Error",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        1680,
         300
       ],
-      "id": "dummy-fields"
+      "id": "err-run-failed"
     }
   ],
   "connections": {
@@ -511,7 +448,25 @@
       "main": [
         [
           {
+            "node": "Switch: Run Succeeded?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch: Run Succeeded?": {
+      "main": [
+        [
+          {
             "node": "Switch: Approval Gate Decision",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code: Build Run Module Error",
             "type": "main",
             "index": 0
           }

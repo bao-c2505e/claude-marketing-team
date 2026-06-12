@@ -23,7 +23,7 @@
     "campaign_id": "campaign_demo_001",
     "module_id": "creative_asset_comfyui",
     "module_status": "mock_completed",
-    "approval_status": "pending_approval",
+    "approval_status": "rejected",
     "output": {
       "asset_preview": "mock://assets/workspace_generated_001.png",
       "mock_asset_url": "mock://assets/workspace_generated_001.png",

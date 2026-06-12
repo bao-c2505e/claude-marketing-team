@@ -23,7 +23,7 @@
     "campaign_id": "campaign_demo_001",
     "module_id": "analytics_report_generator",
     "module_status": "mock_completed",
-    "approval_status": "pending_approval",
+    "approval_status": "approved",
     "output": {
       "report_markdown": "## Performance Metrics\n- CTR: 2.4%\n- CPC: $0.45"
     },

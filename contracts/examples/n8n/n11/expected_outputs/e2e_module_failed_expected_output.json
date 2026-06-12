@@ -1,0 +1,50 @@
+{
+  "contract_version": "e2e_dry_run_v0.1",
+  "run_id": "run_dry_failedmock123",
+  "request_id": "489f9d5e-ca87-439f-a89c-8eb139f4a095",
+  "event_type": "creative_asset.requested",
+  "brand_id": "brand_demo_001",
+  "campaign_id": "campaign_demo_001",
+  "module_id": "creative_asset_comfyui",
+  "health_status": "healthy",
+  "route_status": "failed",
+  "module_status": "failed",
+  "approval_status": "not_applicable",
+  "final_status": "failed_mock",
+  "module_response": {},
+  "unified_callback_preview": null,
+  "approval_result": null,
+  "error_result": {
+    "contract_version": "error_retry_logging_v0.1",
+    "request_id": "489f9d5e-ca87-439f-a89c-8eb139f4a095",
+    "event_type": "creative_asset.requested",
+    "brand_id": "brand_demo_001",
+    "campaign_id": "campaign_demo_001",
+    "module_id": "creative_asset_comfyui",
+    "error_type": "unknown_error",
+    "error_code": "ERR_MODULE_RUN_FAILED",
+    "error_message": "Module creative_asset_comfyui execution failed.",
+    "retryable": true,
+    "attempt": 1,
+    "max_attempts": 3,
+    "next_action": "retry_scheduled",
+    "timestamp": "2026-06-12T03:00:00Z",
+    "source": "n8n_n11_e2e_dry_run_mock",
+    "metadata": {
+      "run_endpoint": "http://localhost:8188/run"
+    }
+  },
+  "execution_trace": [
+    "manual_trigger_received",
+    "mock_event_loaded",
+    "event_normalized",
+    "target_module_resolved: creative_asset_comfyui",
+    "health_check_passed: healthy",
+    "module_stub_called: http://localhost:8188/run",
+    "module_stub_failed",
+    "error_callback_preview_generated"
+  ],
+  "source": "n8n_n11_e2e_dry_run_mock",
+  "generated_at": "2026-06-12T03:02:00Z",
+  "notes": "Module creative_asset_comfyui execution failed."
+}

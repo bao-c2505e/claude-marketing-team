@@ -140,6 +140,16 @@ Paste [e2e_input_module_unavailable.json](file:///C:/Users/DELL/claude-marketing
 - Output shows `final_status: "blocked_module_unavailable"`.
 - `error_result` contains an N9-style error mapping `module_unavailable`.
 
+### Scenario E: Module Run Failure
+- **Trigger**: Paste [e2e_input_module_failed.json](file:///C:/Users/DELL/claude-marketing-team/contracts/examples/n8n/n11/e2e_input_module_failed.json) into `Set Mock Core Event`.
+- **Expected Output**:
+  - The flow routes to `Code: Build Run Module Error`.
+  - Output matches [e2e_module_failed_expected_output.json](file:///C:/Users/DELL/claude-marketing-team/contracts/examples/n8n/n11/expected_outputs/e2e_module_failed_expected_output.json).
+  - Output shows `final_status: "failed_mock"`, `route_status: "failed"`, and `module_status: "failed"`.
+  - `approval_status` is set to `"not_applicable"` and the execution does NOT enter the approval gate.
+  - `unified_callback_preview` is `null` (no approved callback preview is generated).
+  - `error_result` contains an N9-style error.
+
 ---
 
 ## 6. Reading Final Output Preview
@@ -185,3 +195,5 @@ The final output node exports a standardized JSON matching the E2E contract. Ins
 - **No Credentials**: No secret API keys or credentials can be configured or stored.
 - **No production URL**: Under no circumstances should `thecoreagency.com` be queried.
 - **Owner Approval**: Promotion to production or hooking up real webhooks requires explicit approval.
+- **Run Failure Isolation**: Failed module `/run` responses must route to `failed_mock` error handling and must never enter the approval gate.
+- **Callback Alignment**: Top-level `approval_status` must match nested `unified_callback_preview.approval_status` where present. Error/failure paths must not produce approved callback previews.

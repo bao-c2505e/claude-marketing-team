@@ -1,0 +1,20 @@
+{
+  "contract_version": "e2e_dry_run_v0.1",
+  "event_type": "creative_asset.requested",
+  "request_id": "489f9d5e-ca87-439f-a89c-8eb139f4a095",
+  "brand_id": "brand_demo_001",
+  "campaign_id": "campaign_demo_001",
+  "requested_by": "user_demo_001@example.com",
+  "callback_url": "http://localhost:5678/mock-callback",
+  "payload": {
+    "asset_type": "image",
+    "creative_brief": "A co-working space banner designed to fail during module run execution",
+    "dimensions": "1024x1024",
+    "style_notes": "Attempt to trigger run failure mock path"
+  },
+  "metadata": {
+    "client": "local_dev_test",
+    "workflow_engine": "n8n_v1",
+    "simulate_run_failure": true
+  }
+}

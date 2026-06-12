@@ -23,7 +23,7 @@
     "campaign_id": "campaign_demo_001",
     "module_id": "ads_pack_generator",
     "module_status": "mock_completed",
-    "approval_status": "pending_approval",
+    "approval_status": "approved",
     "output": {
       "headline": "10% Off Early Bird Registrations!",
       "body": "Don't miss our tech event. Sign up now and save big."

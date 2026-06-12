@@ -2182,6 +2182,49 @@ try {
       console.error(`[FAIL] N11 expected output ${file} has invalid final_status '${parsed.final_status}'`);
       failed = true;
     }
+
+    // Nested callback consistency validation
+    if (parsed.unified_callback_preview !== null && parsed.unified_callback_preview !== undefined) {
+      if (parsed.approval_status !== parsed.unified_callback_preview.approval_status) {
+        console.error(`[FAIL] N11 expected output ${file} has inconsistent top-level approval_status ('${parsed.approval_status}') and nested unified_callback_preview.approval_status ('${parsed.unified_callback_preview.approval_status}')`);
+        failed = true;
+      }
+    }
+
+    if (["failed_mock", "blocked_module_unavailable", "unsupported_event_type"].includes(parsed.final_status)) {
+      if (parsed.unified_callback_preview && parsed.unified_callback_preview.approval_status === "approved") {
+        console.error(`[FAIL] N11 expected output ${file} is a failure path but nested unified_callback_preview shows approval_status 'approved'`);
+        failed = true;
+      }
+    }
+
+    if (parsed.final_status === "stopped_rejected") {
+      if (parsed.approval_status !== "rejected") {
+        console.error(`[FAIL] N11 expected output ${file} has final_status 'stopped_rejected' but approval_status is '${parsed.approval_status}', expected 'rejected'`);
+        failed = true;
+      }
+    }
+
+    if (parsed.final_status === "revision_required") {
+      if (parsed.approval_status !== "needs_revision") {
+        console.error(`[FAIL] N11 expected output ${file} has final_status 'revision_required' but approval_status is '${parsed.approval_status}', expected 'needs_revision'`);
+        failed = true;
+      }
+    }
+
+    if (parsed.final_status === "completed_mock") {
+      if (parsed.approval_status !== "approved") {
+        console.error(`[FAIL] N11 expected output ${file} has final_status 'completed_mock' but approval_status is '${parsed.approval_status}', expected 'approved'`);
+        failed = true;
+      }
+    }
+
+    if (parsed.final_status === "waiting_for_owner_approval") {
+      if (parsed.approval_status !== "pending_approval") {
+        console.error(`[FAIL] N11 expected output ${file} has final_status 'waiting_for_owner_approval' but approval_status is '${parsed.approval_status}', expected 'pending_approval'`);
+        failed = true;
+      }
+    }
   });
 } catch (err) {
   console.error(`[FAIL] Error validating N11 expected output files: ${err.message}`);
@@ -2245,7 +2288,83 @@ try {
     }
   });
 
-  // Verify output fields
+  // Graph topology validation
+  const nodes = parsed.nodes || [];
+  const connections = parsed.connections || {};
+
+  // Build adjacency list
+  const adj = {};
+  nodes.forEach(n => {
+    adj[n.name] = [];
+  });
+
+  for (const srcName in connections) {
+    const targets = connections[srcName];
+    if (targets && targets.main) {
+      targets.main.forEach(port => {
+        if (port) {
+          port.forEach(conn => {
+            if (conn && conn.node) {
+              if (!adj[srcName]) adj[srcName] = [];
+              adj[srcName].push(conn.node);
+            }
+          });
+        }
+      });
+    }
+  }
+
+  // Check if "Manual Trigger" exists
+  const hasTrigger = nodes.some(n => n.name === 'Manual Trigger');
+  if (!hasTrigger) {
+    console.error(`[FAIL] n11 workflow is missing 'Manual Trigger' node`);
+    failed = true;
+  }
+
+  // BFS to determine reachability
+  const reachable = new Set();
+  const queue = ['Manual Trigger'];
+  reachable.add('Manual Trigger');
+  while (queue.length > 0) {
+    const curr = queue.shift();
+    const neighbors = adj[curr] || [];
+    neighbors.forEach(nxt => {
+      if (!reachable.has(nxt)) {
+        reachable.add(nxt);
+        queue.push(nxt);
+      }
+    });
+  }
+
+  // Required terminal/output nodes
+  const expectedOutputNodes = [
+    'Code: Build Unsupported Event Error',
+    'Code: Build Unavailable Error',
+    'Code: Build Run Module Error',
+    'Code: Prepare Approved Output',
+    'Code: Prepare Rejected Output',
+    'Code: Prepare Revision Output',
+    'Code: Prepare Pending Output'
+  ];
+
+  expectedOutputNodes.forEach(nodeName => {
+    if (!reachable.has(nodeName)) {
+      console.error(`[FAIL] Output node '${nodeName}' is not reachable from 'Manual Trigger'`);
+      failed = true;
+    } else {
+      console.log(`[PASS] Output node '${nodeName}' is reachable`);
+    }
+  });
+
+  // Verify that ALL nodes in the workflow are reachable from 'Manual Trigger' (no disconnected nodes at all)
+  nodes.forEach(n => {
+    if (!reachable.has(n.name)) {
+      console.error(`[FAIL] n11 workflow contains a disconnected node: '${n.name}'`);
+      failed = true;
+    }
+  });
+
+  // Verify required output fields are generated in real reachable output nodes
   const requiredOutputFields = [
     'contract_version', 'run_id', 'request_id', 'event_type',
     'brand_id', 'campaign_id', 'module_id', 'health_status',
@@ -2253,10 +2372,147 @@ try {
     'module_response', 'unified_callback_preview', 'approval_result',
     'error_result', 'execution_trace', 'source', 'generated_at', 'notes'
   ];
-  requiredOutputFields.forEach(field => {
-    if (!content.includes(`"${field}"`)) {
-      console.error(`[FAIL] n11 workflow does not contain required output field '${field}'`);
+
+  expectedOutputNodes.forEach(nodeName => {
+    const node = nodes.find(n => n.name === nodeName);
+    if (node && node.parameters && node.parameters.jsCode) {
+      const code = node.parameters.jsCode;
+      requiredOutputFields.forEach(field => {
+        if (!code.includes(`"${field}"`) && !code.includes(`'${field}'`) && !code.includes(`${field}:`)) {
+          console.error(`[FAIL] Reachable output node '${nodeName}' is missing field '${field}' in its code`);
+          failed = true;
+        }
+      });
+    } else {
+      console.error(`[FAIL] Node '${nodeName}' not found or missing jsCode parameter`);
       failed = true;
+    }
+  });
+
+  // Verify that no disconnected node contains required fields code (Fail if a disconnected dummy field node is used to satisfy field checks)
+  nodes.forEach(n => {
+    if (!reachable.has(n.name)) {
+      const code = (n.parameters && n.parameters.jsCode) || '';
+      const hasOutputField = requiredOutputFields.some(f => code.includes(`"${f}"`) || code.includes(`'${f}'`) || code.includes(`${f}:`));
+      if (hasOutputField) {
+        console.error(`[FAIL] Disconnected dummy node '${n.name}' contains required output fields!`);
+        failed = true;
+      }
+    }
+  });
+
+  // Verify switch decision paths route to correct reachable nodes
+  // 1. Switch: Event Supported?
+  const eventSupportedConnections = connections['Switch: Event Supported?'];
+  if (!eventSupportedConnections || !eventSupportedConnections.main || eventSupportedConnections.main.length < 2) {
+    console.error(`[FAIL] 'Switch: Event Supported?' does not have enough output branches`);
+    failed = true;
+  } else {
+    const falseBranch = eventSupportedConnections.main[1]; // Index 1 is False
+    const falseTargets = falseBranch ? falseBranch.map(c => c.node) : [];
+    if (!falseTargets.includes('Code: Build Unsupported Event Error')) {
+      console.error(`[FAIL] 'Switch: Event Supported?' False branch does not route to 'Code: Build Unsupported Event Error'`);
+      failed = true;
+    } else {
+      console.log(`[PASS] 'Switch: Event Supported?' False branch routes to unsupported event error`);
+    }
+  }
+
+  // 2. Switch: Module Healthy?
+  const moduleHealthyConnections = connections['Switch: Module Healthy?'];
+  if (!moduleHealthyConnections || !moduleHealthyConnections.main || moduleHealthyConnections.main.length < 2) {
+    console.error(`[FAIL] 'Switch: Module Healthy?' does not have enough output branches`);
+    failed = true;
+  } else {
+    const falseBranch = moduleHealthyConnections.main[1]; // Index 1 is False
+    const falseTargets = falseBranch ? falseBranch.map(c => c.node) : [];
+    if (!falseTargets.includes('Code: Build Unavailable Error')) {
+      console.error(`[FAIL] 'Switch: Module Healthy?' False branch does not route to 'Code: Build Unavailable Error'`);
+      failed = true;
+    } else {
+      console.log(`[PASS] 'Switch: Module Healthy?' False branch routes to unavailable error`);
+    }
+  }
+
+  // 3. Switch: Run Succeeded?
+  const runSucceededConnections = connections['Switch: Run Succeeded?'];
+  if (!runSucceededConnections || !runSucceededConnections.main || runSucceededConnections.main.length < 2) {
+    console.error(`[FAIL] 'Switch: Run Succeeded?' does not have enough output branches`);
+    failed = true;
+  } else {
+    const falseBranch = runSucceededConnections.main[1]; // Index 1 is False
+    const falseTargets = falseBranch ? falseBranch.map(c => c.node) : [];
+    if (!falseTargets.includes('Code: Build Run Module Error')) {
+      console.error(`[FAIL] 'Switch: Run Succeeded?' False branch does not route to 'Code: Build Run Module Error'`);
+      failed = true;
+    } else {
+      console.log(`[PASS] 'Switch: Run Succeeded?' False branch routes to module run error`);
+    }
+  }
+
+  // 4. Switch: Approval Gate Decision
+  const approvalConnections = connections['Switch: Approval Gate Decision'];
+  if (!approvalConnections || !approvalConnections.main || approvalConnections.main.length < 4) {
+    console.error(`[FAIL] 'Switch: Approval Gate Decision' does not have 4 outputs for different approval options`);
+    failed = true;
+  } else {
+    const targets = approvalConnections.main.map(branch => branch ? branch.map(c => c.node) : []);
+    const expectedTargets = [
+      'Code: Prepare Approved Output',
+      'Code: Prepare Rejected Output',
+      'Code: Prepare Revision Output',
+      'Code: Prepare Pending Output'
+    ];
+    expectedTargets.forEach((nodeName, idx) => {
+      const branchTargets = targets[idx] || [];
+      if (!branchTargets.includes(nodeName)) {
+        console.error(`[FAIL] 'Switch: Approval Gate Decision' branch ${idx} does not route to '${nodeName}'`);
+        failed = true;
+      }
+    });
+  }
+
+  // Verify module run failure routing logic
+  const runErrorNode = nodes.find(n => n.name === 'Code: Build Run Module Error');
+  if (!runErrorNode) {
+    console.error(`[FAIL] Workflow does not contain 'Code: Build Run Module Error' node`);
+    failed = true;
+  } else {
+    const code = runErrorNode.parameters.jsCode || '';
+    if (!code.includes('failed_mock') || !code.includes('"module_status": "failed"') || !code.includes('error_result')) {
+      console.error(`[FAIL] 'Code: Build Run Module Error' does not set failed_mock or module_status: failed or error_result`);
+      failed = true;
+    }
+    // Verify it doesn't connect to approval success branch
+    const outgoing = adj['Code: Build Run Module Error'] || [];
+    if (outgoing.length > 0) {
+      console.error(`[FAIL] 'Code: Build Run Module Error' has outgoing connections: [${outgoing.join(', ')}], must have none`);
+      failed = true;
+    } else {
+      console.log(`[PASS] Module run failure node does not route to approval branch`);
+    }
+  }
+
+  // Verify approval mappings
+  const approvalMappings = [
+    { node: 'Code: Prepare Approved Output', app: 'approved', fin: 'completed_mock' },
+    { node: 'Code: Prepare Rejected Output', app: 'rejected', fin: 'stopped_rejected' },
+    { node: 'Code: Prepare Revision Output', app: 'needs_revision', fin: 'revision_required' },
+    { node: 'Code: Prepare Pending Output', app: 'pending_approval', fin: 'waiting_for_owner_approval' }
+  ];
+
+  approvalMappings.forEach(m => {
+    const node = nodes.find(n => n.name === m.node);
+    if (node && node.parameters && node.parameters.jsCode) {
+      const code = node.parameters.jsCode;
+      if (!code.includes(`"approval_status": "${m.app}"`) && !code.includes(`'approval_status': '${m.app}'`)) {
+        console.error(`[FAIL] Node '${m.node}' does not map approval_status to '${m.app}'`);
+        failed = true;
+      }
+      if (!code.includes(`"final_status": "${m.fin}"`) && !code.includes(`'final_status': '${m.fin}'`)) {
+        console.error(`[FAIL] Node '${m.node}' does not map final_status to '${m.fin}'`);
+        failed = true;
+      }
     }
   });
 
@@ -2264,6 +2520,7 @@ try {
   const errorIndicators = [
     'blocked_module_unavailable',
     'unsupported_event_type',
+    'failed_mock',
     'error_result'
   ];
   errorIndicators.forEach(ind => {
