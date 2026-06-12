@@ -22,6 +22,43 @@ Chúng ta đang xây dựng **The Core Agency — Real Operations MVP**. Đây l
 
 ---
 
+## 🏁 V2-D1 (Owner naming) — Supabase Staging Audit & Runbook — DONE (2026-06-12)
+
+> **Naming:** Owner gọi package này là V2-D (V2-D1 = audit/runbook, V2-D2 =
+> staging execution); trong roadmap, Supabase staging hardening vốn là
+> roadmap-V2-B. Theo naming của Owner, giống tiền lệ V2-B/V2-C.
+
+> **Status:** V2-D1 (audit + runbook) ✅ DONE. **V2-D2 (staging execution)
+> 🔴 NOT STARTED — runbook checkpoint A: KHÔNG tạo staging project, KHÔNG
+> apply SQL cho tới khi Owner approval được log.**
+
+**Audit/documentation only — KHÔNG live Supabase connection, KHÔNG secrets,
+KHÔNG production DB writes, KHÔNG live connectors/ads/posting/messaging/
+automation, KHÔNG đổi runtime/UUID gating/tenant scope/sanitizers/RLS.**
+
+- **Deliverable:** `CLAUDE_MARKETING_TEAM/V2D_SUPABASE_STAGING_HARDENING_RUNBOOK.md`
+  (11 sections): §1 audit toàn bộ Supabase surface (6 SQL/plan artifacts,
+  client gate, repos, routing gates, sanitizers, env) + 8 findings chính
+  (legacy-vs-wired table duality; **user_roles lockout trap** — RLS bật
+  nhưng zero policies → mọi user thành viewer; roles RLS gap; 16/27 tables
+  chưa RLS tới khi apply plan; client-feedback owner/manager-gated by
+  design; Group F module tables unwired — PC2 paused at N11; Calendar/
+  Reports không wired; mixed local/UUID ids là hành vi đúng) + verdict
+  "ready to plan, not yet ready to execute"; §2 staging vs local demo;
+  §3 env vars + no-secrets rule; §4 V2-D2 execution checklists (migration
+  order M1–M10, RLS verification gồm 18 cross-tenant tests, tenant
+  hierarchy, UUID gating); §5 verification matrix 9 entities × scope ×
+  roles × hierarchy × RLS × ID rules; §6 seed data plan (fictional only);
+  §7 rollback/recovery (env kill-switch → instant localStorage fallback);
+  §8 6 staging safety boundaries; §9 risks R1–R9; §10 Owner checkpoints
+  A–D (A gate mọi execution; D production enablement NGOÀI scope);
+  §11 V2-D1→V2-D2 handoff.
+- **Build:** PASS — 0 TS errors. **Tests:** 45/45 PASS (docs-only diff).
+- **Next:** Owner đọc runbook → log checkpoint A nếu duyệt → V2-D2 thực
+  thi §4 + file staging report → checkpoints B + C → V2-D2 DONE.
+
+---
+
 ## 🏁 V2-C (Owner naming) — Client Demo Package — DONE / PASS (2026-06-12)
 
 > **Naming:** Owner gọi package này là "V2-C — Client Demo Package"; trong

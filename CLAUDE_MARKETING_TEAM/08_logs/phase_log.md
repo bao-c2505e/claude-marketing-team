@@ -6,6 +6,16 @@ Nhật ký theo dõi các mốc hoàn thành kỹ thuật qua các Phase.
 
 ## 📅 Nhật Ký Sự Kiện (Event Logs)
 
+### 🗓️ Ngày 12/06/2026 — V2-D1 — Supabase Staging Audit & Runbook ✅ DONE (V2-D2 execution 🔴 NOT STARTED, Owner-gated)
+*(Naming note: trong `PHASE_19_VER2_ROADMAP.md`, Supabase staging hardening vốn là roadmap-V2-B — entry này theo naming của Owner: V2-D1 = audit/runbook, V2-D2 = staging execution.)*
+- **Sự kiện:** Hoàn tất **audit + staging hardening runbook** cho Supabase. **Audit/documentation/checklist only — KHÔNG live Supabase connection, KHÔNG secrets, KHÔNG production DB writes, KHÔNG live connectors/real ads/posting/messaging/automation, KHÔNG đổi runtime/repository/auth/UUID gating/tenant scope/sanitizers/RLS/tests.**
+- **Audit:** rà soát 6 SQL/plan artifacts (`schema_v1.sql` 27 tables not-idempotent RLS-11-tables; `rls_policy_plan.md` Step-0 + bootstrap + 4 helper functions + 18 cross-tenant tests, dạng markdown; 4 extension migrations additive/idempotent/Codex-PASS), `supabaseClient.ts` gate, scoped repos + routing gates (45 tests), sanitizers, `.env.example`. **8 findings:** legacy-vs-wired table duality; user_roles lockout trap (RLS không policies → mọi user = viewer); roles RLS gap; 16/27 tables chưa RLS; client-feedback owner/manager-gated (by design, checkpoint C); Group F module/callback tables unwired (PC2 paused N11) — out of staging CRUD scope; Calendar/Reports không wired; mixed local/UUID ids = đúng thiết kế.
+- **Deliverable:** `CLAUDE_MARKETING_TEAM/V2D_SUPABASE_STAGING_HARDENING_RUNBOOK.md` — §1 readiness + findings + verdict; §2 staging vs local demo; §3 env vars + no-secrets rule; §4 V2-D2 checklists (M1–M10 migration order, RLS/tenant/UUID verification); §5 matrix 9 entities (clients→callback outputs) × scope fields × roles × hierarchy × RLS × ID rules; §6 seed plan (fictional only); §7 rollback/recovery; §8 6 safety boundaries; §9 risks R1–R9; §10 Owner checkpoints A–D; §11 handoff (V2-D2 DONE chỉ khi staging report filed + Owner approval logged).
+- **Build:** PASS — 0 TS errors. `npm run test`: 45/45 PASS.
+- **Trạng thái:** ✅ **V2-D1 DONE** (deliverable = audit + runbook docs). **V2-D2 🔴 NOT STARTED** — checkpoint A (Owner approval) bắt buộc TRƯỚC khi tạo staging project hoặc apply SQL.
+
+---
+
 ### 🗓️ Ngày 12/06/2026 — V2-C — Owner Rehearsal EXECUTED ✅ DONE / PASS
 - **Sự kiện:** **Owner đã rehearse script 5 phút (§3) của `V2C_CLIENT_DEMO_PACKAGE.md` với UI flow thật.** Kết quả: **"ổn" / PASS** — 5-minute demo script verified, demo flow verified với UI hiện tại, **không có blocking demo issue nào được báo cáo**.
 - **Closure conditions (cả 4 đã đạt):** (1) Owner rehearsal executed ✅; (2) kết quả ghi tại `08_logs/v2c_rehearsal_20260612.md` ✅; (3) **Owner approval ghi nhận cho controlled internal/demo use** ✅; (4) approval logged (CURRENT_PHASE.md + entry này) ✅.
