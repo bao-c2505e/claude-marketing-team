@@ -153,14 +153,26 @@ The final output node exports a standardized JSON matching the E2E contract. Ins
 
 ## 7. Troubleshooting
 
-### `ECONNREFUSED` / Health check fails
-- **Cause**: The target local stub server is not running on its designated localhost port.
+### `ECONNREFUSED` / Health check unavailable or fails
+- **Cause**: The target local stub server is not running on its designated localhost port, or the port is blocked.
 - **Solution**: Confirm the startup script of the module is running (see section 3).
 - **Graceful handling**: In n8n, health nodes use `onError: continueRegularOutput`, allowing the workflow to route to `blocked_module_unavailable` instead of crashing.
 
 ### Unsupported event_type
 - **Cause**: An invalid or typo-ridden `event_type` was provided in the input envelope.
 - **Solution**: Check event name against the list of 5 supported types.
+
+### Missing field in input payload
+- **Cause**: The mock event lacks one or more required envelope properties (e.g. `contract_version`, `event_type`, `request_id`).
+- **Solution**: Refer to Section 2 of this document or check the input JSON schemas to ensure all required root fields are populated.
+
+### Invalid JSON structure
+- **Cause**: The input string pasted in the trigger/mock node has syntactic JSON syntax errors.
+- **Solution**: Paste the payload into a JSON validator/linter and correct commas, brackets, or quotes.
+
+### Unsupported approval_status / decision
+- **Cause**: The input's `metadata.simulate_approval_decision` value is not recognized.
+- **Solution**: Ensure the decision is one of `approved`, `rejected`, `needs_revision`, or `pending_approval` to resolve the final routing path correctly.
 
 ### Docker host.docker.internal issues
 - **Cause**: If n8n runs inside a Docker container, it cannot resolve `localhost` directly.
