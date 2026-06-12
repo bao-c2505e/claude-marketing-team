@@ -89,13 +89,26 @@
     },
     {
       "parameters": {
+        "mode": "wait"
+      },
+      "name": "Merge Health Results",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 2,
+      "position": [
+        480,
+        300
+      ],
+      "id": "merge-health-results"
+    },
+    {
+      "parameters": {
         "jsCode": "// Helper to parse response or fallback to mock offline status if node failed\nfunction getHealth(nodeName, module_id, module_name, local_base_url, default_endpoints) {\n  let res = null;\n  try {\n    res = $node[nodeName].json;\n  } catch (e) {}\n\n  if (res && res.status && !res.error) {\n    return {\n      module_id: res.module_id || module_id,\n      module_name: res.module_name || module_name,\n      status: res.status,\n      mode: res.mode || \"local_stub\",\n      version: res.version || \"1.0.0\",\n      uptime_mock: res.uptime_mock || 3600,\n      local_base_url: res.local_base_url || local_base_url,\n      endpoints: res.endpoints || default_endpoints,\n      last_checked_at: new Date().toISOString(),\n      source: res.source || (module_id + \"_stub\"),\n      notes: res.notes || \"Healthy\"\n    };\n  } else {\n    // Fallback: unavailable if connection refused / node failed\n    return {\n      module_id: module_id,\n      module_name: module_name,\n      status: \"unavailable\",\n      mode: \"local_stub\",\n      version: \"1.0.0\",\n      uptime_mock: 0,\n      local_base_url: local_base_url,\n      endpoints: default_endpoints,\n      last_checked_at: new Date().toISOString(),\n      source: module_id + \"_stub\",\n      notes: \"Local stub unavailable (connection refused).\"\n    };\n  }\n}\n\nconst modulesHealth = [\n  getHealth(\"HTTP: ComfyUI Health\", \"creative_asset_comfyui\", \"ComfyUI Image Generation Pipeline\", \"http://localhost:8188\", [\"GET /health\", \"POST /run\"]),\n  getHealth(\"HTTP: Content Health\", \"content_pack_generator\", \"Social Content Pack Generator Stub\", \"http://localhost:8191\", [\"GET /health\", \"POST /run\"]),\n  getHealth(\"HTTP: Ads Health\", \"ads_pack_generator\", \"Advertising Creative Pack Generator Stub\", \"http://localhost:8192\", [\"GET /health\", \"POST /run\"]),\n  getHealth(\"HTTP: CRM Health\", \"crm_followup_generator\", \"CRM Sequence Draft Generator Stub\", \"http://localhost:8193\", [\"GET /health\", \"POST /run\"]),\n  getHealth(\"HTTP: Analytics Health\", \"analytics_report_generator\", \"Performance Analytics Report Stub\", \"http://localhost:8194\", [\"GET /health\", \"POST /run\"])\n];\n\nreturn [{\n  json: {\n    modules: modulesHealth\n  }\n}];"
       },
       "name": "Code: Normalize Health Results",
       "type": "n8n-nodes-base.code",
       "typeVersion": 1,
       "position": [
-        480,
+        680,
         300
       ],
       "id": "code-normalize"
@@ -108,20 +121,20 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 1,
       "position": [
-        680,
+        880,
         300
       ],
       "id": "code-aggregate"
     },
     {
       "parameters": {
-        "jsCode": "const agg = items[0].json;\nconst details = agg.full_modules_details;\n\nconst warnings = [];\nconst next_actions = [];\n\ndetails.forEach(d => {\n  if (d.status === \"degraded\") {\n    warnings.push(`${d.module_id} has degraded performance.`);\n    next_actions.push(`Verify ${d.module_id} local stub network lag.`);\n  } else if (d.status === \"unavailable\") {\n    warnings.push(`${d.module_id} is unreachable.`);\n    next_actions.push(`Start ${d.module_id} stub server (node modules/${d.module_id === \"creative_asset_comfyui\" ? \"comfyui-pipeline\" : d.module_id.replace(/_/g, \"-\")}/server.js).`);\n  }\n});\n\nif (warnings.length === 0) {\n  next_actions.push(\"No action needed. Ready to run.\");\n}\n\nconst dashboard_data = {\n  dashboard_id: \"dash_\" + Math.random().toString(36).substring(2, 9),\n  generated_at: new Date().toISOString(),\n  overall_status: agg.overall_status,\n  cards: {\n    total_modules: details.length,\n    healthy_count: agg.healthy_count,\n    degraded_count: agg.degraded_count,\n    unavailable_count: agg.unavailable_count,\n    unknown_count: agg.unknown_count,\n    readiness_summary: agg.readiness_status === \"blocked\"\n      ? \"System blocked. Critical modules are offline.\"\n      : (agg.readiness_status === \"partially_ready\" ? \"System partially ready. Non-critical stubs degraded.\" : \"System fully ready for mock campaign processing.\")\n  },\n  module_table: details.map(d => ({\n    module_id: d.module_id,\n    module_name: d.module_name,\n    status: d.status,\n    uptime: d.uptime_mock + \"s\",\n    endpoint: d.local_base_url + \"/health\"\n  })),\n  warnings: warnings,\n  next_actions: next_actions,\n  source: \"n8n_n10_module_health_check_mock\",\n  notes: agg.overall_status + \" dashboard render.\"\n};\n\nreturn [{\n  json: {\n    contract_version: agg.contract_version,\n    overall_status: agg.overall_status,\n    readiness_status: agg.readiness_status,\n    modules: agg.modules,\n    blocking_modules: agg.blocking_modules,\n    dashboard_data: dashboard_data,\n    source: \"n8n_n10_module_health_check_mock\",\n    notes: agg.notes\n  }\n}];"
+        "jsCode": "const agg = items[0].json;\nconst details = agg.full_modules_details;\n\nconst warnings = [];\nconst next_actions = [];\n\ndetails.forEach(d => {\n  if (d.status === \"degraded\") {\n    warnings.push(`${d.module_id} has degraded performance.`);\n    next_actions.push(`Verify ${d.module_id} local stub network lag.`);\n  } else if (d.status === \"unavailable\") {\n    warnings.push(`${d.module_id} is unreachable.`);\n    next_actions.push(`Start ${d.module_id} stub server (node modules/${d.module_id === \"creative_asset_comfyui\" ? \"comfyui-pipeline/src\" : d.module_id.replace(/_/g, \"-\")}/server.js).`);\n  }\n});\n\nif (warnings.length === 0) {\n  next_actions.push(\"No action needed. Ready to run.\");\n}\n\nconst dashboard_data = {\n  dashboard_id: \"dash_\" + Math.random().toString(36).substring(2, 9),\n  generated_at: new Date().toISOString(),\n  overall_status: agg.overall_status,\n  cards: {\n    total_modules: details.length,\n    healthy_count: agg.healthy_count,\n    degraded_count: agg.degraded_count,\n    unavailable_count: agg.unavailable_count,\n    unknown_count: agg.unknown_count,\n    readiness_summary: agg.readiness_status === \"blocked\"\n      ? \"System blocked. Critical modules are offline.\"\n      : (agg.readiness_status === \"partially_ready\" ? \"System partially ready. Non-critical stubs degraded.\" : \"System fully ready for mock campaign processing.\")\n  },\n  module_table: details.map(d => ({\n    module_id: d.module_id,\n    module_name: d.module_name,\n    status: d.status,\n    uptime: d.uptime_mock + \"s\",\n    endpoint: d.local_base_url + \"/health\"\n  })),\n  warnings: warnings,\n  next_actions: next_actions,\n  source: \"n8n_n10_module_health_check_mock\",\n  notes: agg.overall_status + \" dashboard render.\"\n};\n\nreturn [{\n  json: {\n    contract_version: agg.contract_version,\n    overall_status: agg.overall_status,\n    readiness_status: agg.readiness_status,\n    modules: agg.modules,\n    blocking_modules: agg.blocking_modules,\n    dashboard_data: dashboard_data,\n    source: \"n8n_n10_module_health_check_mock\",\n    notes: agg.notes\n  }\n}];"
       },
       "name": "Code: Build Dashboard Data",
       "type": "n8n-nodes-base.code",
       "typeVersion": 1,
       "position": [
-        880,
+        1080,
         300
       ],
       "id": "code-dashboard"
@@ -172,7 +185,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 1,
       "position": [
-        1080,
+        1280,
         300
       ],
       "id": "respond-output-result"
@@ -214,7 +227,7 @@
       "main": [
         [
           {
-            "node": "Code: Normalize Health Results",
+            "node": "Merge Health Results",
             "type": "main",
             "index": 0
           }
@@ -225,9 +238,9 @@
       "main": [
         [
           {
-            "node": "Code: Normalize Health Results",
+            "node": "Merge Health Results",
             "type": "main",
-            "index": 0
+            "index": 1
           }
         ]
       ]
@@ -236,9 +249,9 @@
       "main": [
         [
           {
-            "node": "Code: Normalize Health Results",
+            "node": "Merge Health Results",
             "type": "main",
-            "index": 0
+            "index": 1
           }
         ]
       ]
@@ -247,14 +260,25 @@
       "main": [
         [
           {
-            "node": "Code: Normalize Health Results",
+            "node": "Merge Health Results",
             "type": "main",
-            "index": 0
+            "index": 1
           }
         ]
       ]
     },
     "HTTP: Analytics Health": {
+      "main": [
+        [
+          {
+            "node": "Merge Health Results",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge Health Results": {
       "main": [
         [
           {

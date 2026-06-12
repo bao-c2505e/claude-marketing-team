@@ -1558,6 +1558,17 @@ n10FilesToScan.forEach(filePath => {
 });
 
 // A. Validate Individual Module Health JSON
+const n10ExpectedEndpoints = {
+  'creative_asset_comfyui': 'http://localhost:8188/health',
+  'content_pack_generator': 'http://localhost:8191/health',
+  'ads_pack_generator': 'http://localhost:8192/health',
+  'crm_followup_generator': 'http://localhost:8193/health',
+  'analytics_report_generator': 'http://localhost:8194/health'
+};
+
+const validatedN10ModuleIds = new Set();
+const validatedN10Endpoints = new Set();
+
 n10ModuleHealthFiles.forEach(file => {
   const filePath = path.join(n10Dir, file);
   try {
@@ -1582,12 +1593,62 @@ n10ModuleHealthFiles.forEach(file => {
       failed = true;
     }
 
+    // A. Allowed modes check
+    const allowedModes = ['mock', 'local_stub', 'real_disabled'];
+    if (!allowedModes.includes(parsed.mode)) {
+      console.error(`[FAIL] N10 health file ${file} has invalid mode '${parsed.mode}'`);
+      failed = true;
+    }
+
     if (parsed.local_base_url.includes('thecoreagency.com')) {
       console.error(`[FAIL] N10 health file ${file} local_base_url points to production: ${parsed.local_base_url}`);
       failed = true;
     }
+
+    // B. Exact module/endpoint mappings
+    const expectedEp = n10ExpectedEndpoints[parsed.module_id];
+    if (!expectedEp) {
+      console.error(`[FAIL] N10 health file ${file} contains unexpected module_id '${parsed.module_id}'`);
+      failed = true;
+    } else {
+      const derivedEp = parsed.local_base_url + '/health';
+      if (derivedEp !== expectedEp) {
+        console.error(`[FAIL] N10 health file ${file} module '${parsed.module_id}' has incorrect endpoint: expected '${expectedEp}', found '${derivedEp}'`);
+        failed = true;
+      }
+    }
+
+    if (parsed.module_id) {
+      if (validatedN10ModuleIds.has(parsed.module_id)) {
+        console.error(`[FAIL] Duplicate module_id '${parsed.module_id}' found in health files`);
+        failed = true;
+      }
+      validatedN10ModuleIds.add(parsed.module_id);
+    }
+    if (parsed.local_base_url) {
+      const derivedEp = parsed.local_base_url + '/health';
+      if (validatedN10Endpoints.has(derivedEp)) {
+        console.error(`[FAIL] Duplicate health endpoint '${derivedEp}' found in health files`);
+        failed = true;
+      }
+      validatedN10Endpoints.add(derivedEp);
+    }
+
   } catch (err) {
     console.error(`[FAIL] Error validating N10 health file ${file}: ${err.message}`);
+    failed = true;
+  }
+});
+
+// Check that all 5 required modules/endpoints are present in health examples
+Object.keys(n10ExpectedEndpoints).forEach(mId => {
+  if (!validatedN10ModuleIds.has(mId)) {
+    console.error(`[FAIL] Missing required N10 module: ${mId}`);
+    failed = true;
+  }
+  const ep = n10ExpectedEndpoints[mId];
+  if (!validatedN10Endpoints.has(ep)) {
+    console.error(`[FAIL] Missing required N10 health endpoint: ${ep}`);
     failed = true;
   }
 });
@@ -1616,6 +1677,69 @@ n10AggregateFiles.forEach(file => {
       console.error(`[FAIL] N10 aggregate file ${file} has invalid readiness_status '${parsed.readiness_status}'`);
       failed = true;
     }
+
+    // B. Validate exact module/endpoint mapping in aggregate modules list
+    if (parsed.modules) {
+      if (!Array.isArray(parsed.modules)) {
+        console.error(`[FAIL] N10 aggregate file ${file} modules is not an array`);
+        failed = true;
+      } else {
+        const seenModules = new Set();
+        parsed.modules.forEach(m => {
+          if (!m.module_id || !n10ExpectedEndpoints[m.module_id]) {
+            console.error(`[FAIL] N10 aggregate file ${file} has unexpected module_id: '${m.module_id}'`);
+            failed = true;
+          } else {
+            seenModules.add(m.module_id);
+            const expectedEp = n10ExpectedEndpoints[m.module_id];
+            const derivedEp = m.local_base_url + '/health';
+            if (derivedEp !== expectedEp) {
+              console.error(`[FAIL] N10 aggregate file ${file} module '${m.module_id}' has incorrect endpoint: expected '${expectedEp}', found '${derivedEp}'`);
+              failed = true;
+            }
+            // A. Allowed modes check in aggregate
+            const allowedModes = ['mock', 'local_stub', 'real_disabled'];
+            if (m.mode && !allowedModes.includes(m.mode)) {
+              console.error(`[FAIL] N10 aggregate file ${file} module '${m.module_id}' has invalid mode '${m.mode}'`);
+              failed = true;
+            }
+          }
+        });
+        Object.keys(n10ExpectedEndpoints).forEach(mId => {
+          if (!seenModules.has(mId)) {
+            console.error(`[FAIL] N10 aggregate file ${file} is missing module: ${mId}`);
+            failed = true;
+          }
+        });
+      }
+    }
+
+    // C. Aggregate count consistency
+    if (parsed.healthy_count + parsed.degraded_count + parsed.unavailable_count + parsed.unknown_count !== parsed.modules.length) {
+      console.error(`[FAIL] N10 aggregate ${file} count mismatch: healthy_count + degraded_count + unavailable_count + unknown_count !== modules.length`);
+      failed = true;
+    }
+    if (!Array.isArray(parsed.blocking_modules)) {
+      console.error(`[FAIL] N10 aggregate ${file} blocking_modules is not an array`);
+      failed = true;
+    }
+    if (parsed.readiness_status === 'ready_for_mock_run') {
+      if (parsed.unavailable_count !== 0 || parsed.blocking_modules.length !== 0) {
+        console.error(`[FAIL] N10 aggregate ${file} is ready_for_mock_run but has unavailable modules or blocking modules`);
+        failed = true;
+      }
+    } else if (parsed.readiness_status === 'blocked') {
+      if (parsed.blocking_modules.length === 0) {
+        console.error(`[FAIL] N10 aggregate ${file} is blocked but blocking_modules is empty`);
+        failed = true;
+      }
+    } else if (parsed.readiness_status === 'partially_ready') {
+      if (parsed.degraded_count === 0 && parsed.unavailable_count === 0) {
+        console.error(`[FAIL] N10 aggregate ${file} is partially_ready but has no degraded or unavailable modules`);
+        failed = true;
+      }
+    }
+
   } catch (err) {
     console.error(`[FAIL] Error validating N10 aggregate file ${file}: ${err.message}`);
     failed = true;
@@ -1669,6 +1793,65 @@ n10ExpectedOutputFiles.forEach(file => {
       console.error(`[FAIL] N10 expected output file ${file} source must be 'n8n_n10_module_health_check_mock', found '${parsed.source}'`);
       failed = true;
     }
+
+    // B. Validate exact module/endpoint mapping in expected outputs
+    if (parsed.modules) {
+      if (!Array.isArray(parsed.modules)) {
+        console.error(`[FAIL] N10 expected output file ${file} modules is not an array`);
+        failed = true;
+      } else {
+        const seenModules = new Set();
+        parsed.modules.forEach(m => {
+          if (!m.module_id || !n10ExpectedEndpoints[m.module_id]) {
+            console.error(`[FAIL] N10 expected output file ${file} has unexpected module_id: '${m.module_id}'`);
+            failed = true;
+          } else {
+            seenModules.add(m.module_id);
+            const expectedEp = n10ExpectedEndpoints[m.module_id];
+            if (m.endpoint !== expectedEp) {
+              console.error(`[FAIL] N10 expected output file ${file} module '${m.module_id}' has incorrect endpoint: expected '${expectedEp}', found '${m.endpoint}'`);
+              failed = true;
+            }
+          }
+        });
+        Object.keys(n10ExpectedEndpoints).forEach(mId => {
+          if (!seenModules.has(mId)) {
+            console.error(`[FAIL] N10 expected output file ${file} is missing module: ${mId}`);
+            failed = true;
+          }
+        });
+      }
+    }
+
+    if (parsed.dashboard_data && parsed.dashboard_data.module_table) {
+      const table = parsed.dashboard_data.module_table;
+      if (!Array.isArray(table)) {
+        console.error(`[FAIL] N10 expected output file ${file} dashboard_data.module_table is not an array`);
+        failed = true;
+      } else {
+        const seenModules = new Set();
+        table.forEach(m => {
+          if (!m.module_id || !n10ExpectedEndpoints[m.module_id]) {
+            console.error(`[FAIL] N10 expected output file ${file} dashboard_data.module_table has unexpected module_id: '${m.module_id}'`);
+            failed = true;
+          } else {
+            seenModules.add(m.module_id);
+            const expectedEp = n10ExpectedEndpoints[m.module_id];
+            if (m.endpoint !== expectedEp) {
+              console.error(`[FAIL] N10 expected output file ${file} dashboard_data.module_table module '${m.module_id}' has incorrect endpoint: expected '${expectedEp}', found '${m.endpoint}'`);
+              failed = true;
+            }
+          }
+        });
+        Object.keys(n10ExpectedEndpoints).forEach(mId => {
+          if (!seenModules.has(mId)) {
+            console.error(`[FAIL] N10 expected output file ${file} dashboard_data.module_table is missing module: ${mId}`);
+            failed = true;
+          }
+        });
+      }
+    }
+
   } catch (err) {
     console.error(`[FAIL] Error validating N10 expected output file ${file}: ${err.message}`);
     failed = true;
@@ -1727,6 +1910,84 @@ try {
   } else {
     console.log(`[PASS] n10 workflow contains source identifier`);
   }
+
+  // D. Workflow synchronization checks
+  const syncNodeNames = ["Merge Health Results", "Wait for Health Results", "Synchronize Health Checks", "Join Health Results"];
+  const syncNodes = parsed.nodes.filter(n => syncNodeNames.includes(n.name));
+  if (syncNodes.length === 0) {
+    console.error(`[FAIL] n10 workflow is missing a synchronization node (e.g., "Merge Health Results")`);
+    failed = true;
+  } else {
+    console.log(`[PASS] n10 workflow contains synchronization node: ${syncNodes.map(n => n.name).join(', ')}`);
+  }
+
+  const httpNodeNames = [
+    "HTTP: ComfyUI Health",
+    "HTTP: Content Health",
+    "HTTP: Ads Health",
+    "HTTP: CRM Health",
+    "HTTP: Analytics Health"
+  ];
+  const downstreamAggNodes = [
+    "Code: Normalize Health Results",
+    "Code: Build Aggregate Readiness Report",
+    "Code: Build Dashboard Data"
+  ];
+
+  httpNodeNames.forEach(httpNode => {
+    const conn = parsed.connections[httpNode];
+    if (conn && conn.main) {
+      conn.main.forEach(port => {
+        port.forEach(target => {
+          if (downstreamAggNodes.includes(target.node)) {
+            console.error(`[FAIL] HTTP node '${httpNode}' connects directly to downstream aggregation node '${target.node}' without synchronization`);
+            failed = true;
+          }
+        });
+      });
+    }
+  });
+
+  httpNodeNames.forEach(httpNode => {
+    const conn = parsed.connections[httpNode];
+    let connectsToSync = false;
+    if (conn && conn.main) {
+      conn.main.forEach(port => {
+        port.forEach(target => {
+          if (syncNodeNames.includes(target.node)) {
+            connectsToSync = true;
+          }
+        });
+      });
+    }
+    if (!connectsToSync) {
+      console.error(`[FAIL] HTTP node '${httpNode}' does not connect to a synchronization node`);
+      failed = true;
+    } else {
+      console.log(`[PASS] HTTP node '${httpNode}' connects to synchronization node`);
+    }
+  });
+
+  syncNodes.forEach(syncNode => {
+    const conn = parsed.connections[syncNode.name];
+    let connectsToNormalize = false;
+    if (conn && conn.main) {
+      conn.main.forEach(port => {
+        port.forEach(target => {
+          if (target.node === "Code: Normalize Health Results") {
+            connectsToNormalize = true;
+          }
+        });
+      });
+    }
+    if (!connectsToNormalize) {
+      console.error(`[FAIL] Synchronization node '${syncNode.name}' does not connect to 'Code: Normalize Health Results'`);
+      failed = true;
+    } else {
+      console.log(`[PASS] Synchronization node '${syncNode.name}' connects to 'Code: Normalize Health Results'`);
+    }
+  });
+
 } catch (err) {
   console.error(`[FAIL] Error parsing n10 workflow: ${err.message}`);
   failed = true;

@@ -20,7 +20,7 @@ The following 5 local mock endpoints must be queried for health status checks:
 To run health check integrations locally:
 1.  Open 5 terminal windows.
 2.  Boot each local stub server:
-    - **comfyui-pipeline:** `node modules/comfyui-pipeline/server.js` (listening on port 8188)
+    - **comfyui-pipeline:** `node modules/comfyui-pipeline/src/server.js` (listening on port 8188) (or `cd modules/comfyui-pipeline` and `node src/server.js` or `npm start`)
     - **content-pack-generator:** `node modules/content-pack-generator/server.js` (listening on port 8191)
     - **ads-pack-generator:** `node modules/ads-pack-generator/server.js` (listening on port 8192)
     - **crm-followup-generator:** `node modules/crm-followup-generator/server.js` (listening on port 8193)
@@ -56,6 +56,10 @@ The workflow normalize and aggregate stubs health values into one of the followi
 - **Scenario:** Critical blocking modules (specifically `creative_asset_comfyui` or `analytics_report_generator`) are offline (`unavailable`).
 - **Output Notes:** `"Critical modules unavailable (creative_asset_comfyui). Router execution blocked."`
 - **Blocking Modules List:** Populated with the failed critical module IDs (e.g. `["creative_asset_comfyui"]`).
+
+### Important Aggregation Note
+- **Synchronization:** Health aggregation must run only after all 5 module health checks have completed.
+- **Unavailable Modules:** If a module is unavailable, it should be represented in the aggregate report, not cause separate partial aggregate runs.
 
 ---
 
