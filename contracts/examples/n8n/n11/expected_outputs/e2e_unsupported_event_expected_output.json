@@ -1,0 +1,48 @@
+{
+  "contract_version": "e2e_dry_run_v0.1",
+  "run_id": "23b31e84-18f9-4475-a89c-8eb139f4a093",
+  "request_id": "237f9d5e-ca87-439f-a89c-8eb139f4a093",
+  "event_type": "unknown_event_type.requested",
+  "brand_id": "brand_demo_001",
+  "campaign_id": "campaign_demo_001",
+  "module_id": "n8n_event_router",
+  "health_status": "unknown",
+  "route_status": "failed_unsupported",
+  "module_status": "not_called",
+  "approval_status": "skipped",
+  "final_status": "unsupported_event_type",
+  "module_response": {},
+  "unified_callback_preview": null,
+  "approval_result": null,
+  "error_result": {
+    "contract_version": "error_retry_logging_v0.1",
+    "request_id": "237f9d5e-ca87-439f-a89c-8eb139f4a093",
+    "event_type": "unknown_event_type.requested",
+    "brand_id": "brand_demo_001",
+    "campaign_id": "campaign_demo_001",
+    "module_id": "n8n_event_router",
+    "error_type": "unsupported_event_type",
+    "error_code": "ERR_ROUTER_UNSUPPORTED_EVENT",
+    "error_message": "Event type 'unknown_event_type.requested' has no matching route configuration.",
+    "retryable": false,
+    "attempt": 1,
+    "max_attempts": 1,
+    "next_action": "stop",
+    "timestamp": "2026-06-12T03:00:00Z",
+    "source": "n8n_n11_e2e_dry_run_mock",
+    "metadata": {
+      "unregistered_event_type": "unknown_event_type.requested"
+    }
+  },
+  "execution_trace": [
+    "manual_trigger_received",
+    "mock_event_loaded",
+    "event_normalized",
+    "error_detected: unsupported_event_type",
+    "routing_aborted",
+    "error_callback_preview_generated"
+  ],
+  "source": "n8n_n11_e2e_dry_run_mock",
+  "generated_at": "2026-06-12T03:02:00Z",
+  "notes": "E2E Dry Run failed due to unsupported event type: unknown_event_type.requested."
+}

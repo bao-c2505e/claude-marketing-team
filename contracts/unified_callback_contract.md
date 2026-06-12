@@ -96,3 +96,10 @@ The decision mapping determines the `final_status` and next steps for the callba
 7.  **Owner Approval:** Production rollout and live webhook callbacks require explicit owner sign-off.
 8.  **Error Normalization:** Failed module outputs should be normalized into error callback previews using [error_handling_retry_logging_contract.md](file:///c:/Users/DELL/claude-marketing-team/contracts/error_handling_retry_logging_contract.md).
 9.  **Manual Review for Errors:** The approval gate should not approve failed/error outputs without manual review.
+
+---
+
+## 7. E2E Dry Run (Phase N11)
+- Phase N11 dry run composes the router, health check, module run, approval gate, and error handling into one local/mock workflow (`n11_e2e_dry_run.workflow.json`).
+- Real Core integration remains a future phase and requires owner approval.
+

@@ -4,8 +4,24 @@ This log tracks the progress, status, and deliverables for the PC2 (n8n & Specia
 
 ---
 
-## Phase N10 — Module Registry + Health Check Dashboard Contract
+## Phase N11 — End-to-End Dry Run: Core Mock → Health Check → Module → Approval → Error/Callback Preview
 - **Status**: IMPLEMENTED / READY FOR REVIEW
+- **Reviewer**: Codex
+- **Date**: 2026-06-12
+- **Deliverables**:
+  - `contracts/e2e_dry_run_contract.md` (E2E Dry Run Contract)
+  - `contracts/examples/n8n/n11/*.json` (7 Mock Input event payloads)
+  - `contracts/examples/n8n/n11/expected_outputs/*.json` (9 Expected output payloads)
+  - `n8n-workflows/n11_e2e_dry_run.workflow.json` (E2E Dry Run workflow)
+  - `docs/pc2/phase_n11_e2e_dry_run.md` (E2E dry run guide & testing instructions)
+- **Validation**: `node contracts/tools/validate_contracts.js` successfully PASS.
+- **Scope check**: No database queries, no secrets/APIs, no Core UI modifications. No production URLs. Mock-only execution.
+- **Known limitations**: All stub servers must be running locally to handle success path dry runs; outage simulation handles missing service states.
+
+---
+
+## Phase N10 — Module Registry + Health Check Dashboard Contract
+- **Status**: DONE / PASS
 - **Reviewer**: Codex
 - **Date**: 2026-06-09
 - **Deliverables**:

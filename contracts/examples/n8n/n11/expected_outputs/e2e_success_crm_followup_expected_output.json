@@ -1,0 +1,73 @@
+{
+  "contract_version": "e2e_dry_run_v0.1",
+  "run_id": "01b31e84-18f9-4475-a89c-8eb139f4a091",
+  "request_id": "015f9d5e-ca87-439f-a89c-8eb139f4a091",
+  "event_type": "crm_followup.requested",
+  "brand_id": "brand_demo_001",
+  "campaign_id": "campaign_demo_001",
+  "module_id": "crm_followup_generator",
+  "health_status": "healthy",
+  "route_status": "routed",
+  "module_status": "completed",
+  "approval_status": "approved",
+  "final_status": "completed_mock",
+  "module_response": {
+    "status": "success",
+    "sequence_id": "mock_seq_001"
+  },
+  "unified_callback_preview": {
+    "contract_version": "unified_callback_v0.1",
+    "request_id": "015f9d5e-ca87-439f-a89c-8eb139f4a091",
+    "event_type": "crm_followup.requested",
+    "brand_id": "brand_demo_001",
+    "campaign_id": "campaign_demo_001",
+    "module_id": "crm_followup_generator",
+    "module_status": "mock_completed",
+    "approval_status": "pending_approval",
+    "output": {
+      "messages": [
+        {
+          "day": 1,
+          "subject": "Welcome aboard!",
+          "body": "Thank you for shopping with us."
+        }
+      ]
+    },
+    "errors": [],
+    "metadata": {
+      "workflow": "crm_sequence_v1"
+    },
+    "source": "n8n_n11_e2e_dry_run_mock",
+    "generated_at": "2026-06-12T03:00:00Z",
+    "notes": "Generated output ready for approval gate review."
+  },
+  "approval_result": {
+    "approval_id": "app_dec_004_88924",
+    "decision": "approved",
+    "reviewer": "owner_mock",
+    "reviewed_at": "2026-06-12T03:01:00Z",
+    "reason": "Messages are polite and appropriate.",
+    "revision_notes": "",
+    "next_action": "ready_for_mock_callback_preview",
+    "safety_flags": {
+      "brand_safe": true,
+      "copyright_clear": true,
+      "no_secrets": true
+    }
+  },
+  "error_result": null,
+  "execution_trace": [
+    "manual_trigger_received",
+    "mock_event_loaded",
+    "event_normalized",
+    "target_module_resolved: crm_followup_generator",
+    "health_check_passed: healthy",
+    "module_stub_called: http://localhost:8193/run",
+    "callback_payload_normalized",
+    "approval_gate_passed: approved",
+    "dry_run_completed"
+  ],
+  "source": "n8n_n11_e2e_dry_run_mock",
+  "generated_at": "2026-06-12T03:02:00Z",
+  "notes": "Dry run succeeded and CRM request was approved."
+}

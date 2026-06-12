@@ -1,0 +1,68 @@
+{
+  "contract_version": "e2e_dry_run_v0.1",
+  "run_id": "90b31e84-18f9-4475-a89c-8eb139f4a090",
+  "request_id": "904f9d5e-ca87-439f-a89c-8eb139f4a090",
+  "event_type": "ads_pack.requested",
+  "brand_id": "brand_demo_001",
+  "campaign_id": "campaign_demo_001",
+  "module_id": "ads_pack_generator",
+  "health_status": "healthy",
+  "route_status": "routed",
+  "module_status": "completed",
+  "approval_status": "approved",
+  "final_status": "completed_mock",
+  "module_response": {
+    "status": "success",
+    "ad_id": "mock_ad_001"
+  },
+  "unified_callback_preview": {
+    "contract_version": "unified_callback_v0.1",
+    "request_id": "904f9d5e-ca87-439f-a89c-8eb139f4a090",
+    "event_type": "ads_pack.requested",
+    "brand_id": "brand_demo_001",
+    "campaign_id": "campaign_demo_001",
+    "module_id": "ads_pack_generator",
+    "module_status": "mock_completed",
+    "approval_status": "pending_approval",
+    "output": {
+      "headline": "10% Off Early Bird Registrations!",
+      "body": "Don't miss our tech event. Sign up now and save big."
+    },
+    "errors": [],
+    "metadata": {
+      "workflow": "ads_generator_v1"
+    },
+    "source": "n8n_n11_e2e_dry_run_mock",
+    "generated_at": "2026-06-12T03:00:00Z",
+    "notes": "Generated output ready for approval gate review."
+  },
+  "approval_result": {
+    "approval_id": "app_dec_003_88923",
+    "decision": "approved",
+    "reviewer": "owner_mock",
+    "reviewed_at": "2026-06-12T03:01:00Z",
+    "reason": "Approved for early bird promotion.",
+    "revision_notes": "",
+    "next_action": "ready_for_mock_callback_preview",
+    "safety_flags": {
+      "brand_safe": true,
+      "copyright_clear": true,
+      "no_secrets": true
+    }
+  },
+  "error_result": null,
+  "execution_trace": [
+    "manual_trigger_received",
+    "mock_event_loaded",
+    "event_normalized",
+    "target_module_resolved: ads_pack_generator",
+    "health_check_passed: healthy",
+    "module_stub_called: http://localhost:8192/run",
+    "callback_payload_normalized",
+    "approval_gate_passed: approved",
+    "dry_run_completed"
+  ],
+  "source": "n8n_n11_e2e_dry_run_mock",
+  "generated_at": "2026-06-12T03:02:00Z",
+  "notes": "Dry run succeeded and ads pack request was approved."
+}

@@ -1,0 +1,72 @@
+{
+  "contract_version": "e2e_dry_run_v0.1",
+  "run_id": "89b31e84-18f9-4475-a89c-8eb139f4a089",
+  "request_id": "893f9d5e-ca87-439f-a89c-8eb139f4a089",
+  "event_type": "content_pack.requested",
+  "brand_id": "brand_demo_001",
+  "campaign_id": "campaign_demo_001",
+  "module_id": "content_pack_generator",
+  "health_status": "healthy",
+  "route_status": "routed",
+  "module_status": "completed",
+  "approval_status": "approved",
+  "final_status": "completed_mock",
+  "module_response": {
+    "status": "success",
+    "output_text": "Sample eco-friendly coffee posts generated successfully"
+  },
+  "unified_callback_preview": {
+    "contract_version": "unified_callback_v0.1",
+    "request_id": "893f9d5e-ca87-439f-a89c-8eb139f4a089",
+    "event_type": "content_pack.requested",
+    "brand_id": "brand_demo_001",
+    "campaign_id": "campaign_demo_001",
+    "module_id": "content_pack_generator",
+    "module_status": "mock_completed",
+    "approval_status": "pending_approval",
+    "output": {
+      "posts": [
+        {
+          "post_id": 1,
+          "content": "Make the switch to our brand new biodegradable cups today! #eco"
+        }
+      ]
+    },
+    "errors": [],
+    "metadata": {
+      "workflow": "content_generator_v1"
+    },
+    "source": "n8n_n11_e2e_dry_run_mock",
+    "generated_at": "2026-06-12T03:00:00Z",
+    "notes": "Generated output ready for approval gate review."
+  },
+  "approval_result": {
+    "approval_id": "app_dec_002_88922",
+    "decision": "approved",
+    "reviewer": "owner_mock",
+    "reviewed_at": "2026-06-12T03:01:00Z",
+    "reason": "Text content aligns perfectly with brand tone.",
+    "revision_notes": "",
+    "next_action": "ready_for_mock_callback_preview",
+    "safety_flags": {
+      "brand_safe": true,
+      "copyright_clear": true,
+      "no_secrets": true
+    }
+  },
+  "error_result": null,
+  "execution_trace": [
+    "manual_trigger_received",
+    "mock_event_loaded",
+    "event_normalized",
+    "target_module_resolved: content_pack_generator",
+    "health_check_passed: healthy",
+    "module_stub_called: http://localhost:8191/run",
+    "callback_payload_normalized",
+    "approval_gate_passed: approved",
+    "dry_run_completed"
+  ],
+  "source": "n8n_n11_e2e_dry_run_mock",
+  "generated_at": "2026-06-12T03:02:00Z",
+  "notes": "Dry run succeeded and content pack request was approved."
+}

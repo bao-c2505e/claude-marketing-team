@@ -100,3 +100,8 @@ This document lists all active specialist modules integrated under the PC2 works
 ## Integration Notes (Phase N10)
 - The health checking workflow (`n10_module_health_check.workflow.json`) queries each module's `health_endpoint` (`GET /health`) to build aggregate readiness statuses and dashboard reports.
 - Checking health is required prior to router executions in future phases.
+
+## Integration Notes (Phase N11)
+- Phase N11 dry run composes the router, health check, module run, approval gate, and error handling into one local/mock workflow (`n11_e2e_dry_run.workflow.json`).
+- Real Core integration remains a future phase and requires owner approval.
+

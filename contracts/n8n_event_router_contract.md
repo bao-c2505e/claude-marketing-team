@@ -106,3 +106,10 @@ Final states are mapped as follows:
 7.  **Unsupported Events Routing:** Unsupported `event_type` routes to the N9 error handling path in future integration.
 8.  **Pre-routing Health Checks:** Future router execution should optionally run module health checks before routing.
 9.  **Unavailable Route Handling:** If a required module is unavailable, route the execution to the N9 error handling path.
+
+---
+
+## 7. E2E Dry Run (Phase N11)
+- Phase N11 dry run composes the router, health check, module run, approval gate, and error handling into one local/mock workflow (`n11_e2e_dry_run.workflow.json`).
+- Real Core integration remains a future phase and requires owner approval.
+

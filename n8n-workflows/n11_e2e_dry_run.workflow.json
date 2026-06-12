@@ -1,0 +1,557 @@
+{
+  "name": "Phase N11 E2E Dry Run Workflow",
+  "nodes": [
+    {
+      "parameters": {},
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        100,
+        300
+      ],
+      "id": "manual-trigger"
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "contract_version",
+              "value": "e2e_dry_run_v0.1"
+            },
+            {
+              "name": "event_type",
+              "value": "creative_asset.requested"
+            },
+            {
+              "name": "request_id",
+              "value": "782f9d5e-ca87-439f-a89c-8eb139f4a088"
+            },
+            {
+              "name": "brand_id",
+              "value": "brand_demo_001"
+            },
+            {
+              "name": "campaign_id",
+              "value": "campaign_demo_001"
+            },
+            {
+              "name": "requested_by",
+              "value": "user_demo_001@example.com"
+            },
+            {
+              "name": "callback_url",
+              "value": "http://localhost:5678/mock-callback"
+            }
+          ],
+          "other": [
+            {
+              "name": "payload",
+              "value": {
+                "asset_type": "image",
+                "creative_brief": "A modern co-working space banner with glassmorphism effects",
+                "dimensions": "1024x1024",
+                "style_notes": "Vibrant accents, futuristic neon lighting"
+              }
+            },
+            {
+              "name": "metadata",
+              "value": {
+                "client": "local_dev_test",
+                "workflow_engine": "n8n_v1",
+                "simulate_approval_decision": "approved",
+                "simulate_outage": false
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Set Mock Core Event",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        260,
+        300
+      ],
+      "id": "set-mock-event"
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = items[0].json;\nconst event_type = body.event_type || \"\";\nconst request_id = body.request_id || \"782f9d5e-ca87-439f-a89c-8eb139f4a088\";\nconst brand_id = body.brand_id || \"brand_demo_001\";\nconst campaign_id = body.campaign_id || \"campaign_demo_001\";\nconst requested_by = body.requested_by || \"user_demo_001@example.com\";\nconst callback_url = body.callback_url || \"http://localhost:5678/mock-callback\";\nconst payload = body.payload || {};\nconst metadata = body.metadata || {};\n\n// Strictly declare the mapping of supported event types to local endpoints to satisfy validator\nconst routes = {\n  \"creative_asset.requested\": {\n    \"module_id\": \"creative_asset_comfyui\",\n    \"health_endpoint\": \"http://localhost:8188/health\",\n    \"run_endpoint\": \"http://localhost:8188/run\"\n  },\n  \"content_pack.requested\": {\n    \"module_id\": \"content_pack_generator\",\n    \"health_endpoint\": \"http://localhost:8191/health\",\n    \"run_endpoint\": \"http://localhost:8191/run\"\n  },\n  \"ads_pack.requested\": {\n    \"module_id\": \"ads_pack_generator\",\n    \"health_endpoint\": \"http://localhost:8192/health\",\n    \"run_endpoint\": \"http://localhost:8192/run\"\n  },\n  \"crm_followup.requested\": {\n    \"module_id\": \"crm_followup_generator\",\n    \"health_endpoint\": \"http://localhost:8193/health\",\n    \"run_endpoint\": \"http://localhost:8193/run\"\n  },\n  \"analytics_report.requested\": {\n    \"module_id\": \"analytics_report_generator\",\n    \"health_endpoint\": \"http://localhost:8194/health\",\n    \"run_endpoint\": \"http://localhost:8194/run\"\n  }\n};\n\nconst route = routes[event_type];\nconst is_supported = !!route;\nconst run_id = \"run_dry_\" + Math.random().toString(36).substring(2, 15);\n\nreturn [{\n  json: {\n    \"contract_version\": \"e2e_dry_run_v0.1\",\n    \"run_id\": run_id,\n    \"request_id\": request_id,\n    \"event_type\": event_type,\n    \"brand_id\": brand_id,\n    \"campaign_id\": campaign_id,\n    \"requested_by\": requested_by,\n    \"callback_url\": callback_url,\n    \"payload\": payload,\n    \"metadata\": metadata,\n    \"module_id\": is_supported ? route.module_id : \"n8n_event_router\",\n    \"health_endpoint\": is_supported ? route.health_endpoint : null,\n    \"run_endpoint\": is_supported ? route.run_endpoint : null,\n    \"is_supported\": is_supported,\n    \"simulate_outage\": metadata.simulate_outage || false,\n    \"simulate_approval_decision\": metadata.simulate_approval_decision || \"approved\"\n  }\n}];"
+      },
+      "name": "Code: Normalize Event",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        420,
+        300
+      ],
+      "id": "code-normalize"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.is_supported }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "name": "Switch: Event Supported?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        580,
+        300
+      ],
+      "id": "if-supported"
+    },
+    {
+      "parameters": {
+        "jsCode": "const original = $node[\"Code: Normalize Event\"].json;\nreturn [{\n  json: {\n    \"contract_version\": \"e2e_dry_run_v0.1\",\n    \"run_id\": original.run_id,\n    \"request_id\": original.request_id,\n    \"event_type\": original.event_type,\n    \"brand_id\": original.brand_id,\n    \"campaign_id\": original.campaign_id,\n    \"module_id\": \"n8n_event_router\",\n    \"health_status\": \"unknown\",\n    \"route_status\": \"failed_unsupported\",\n    \"module_status\": \"not_called\",\n    \"approval_status\": \"skipped\",\n    \"final_status\": \"unsupported_event_type\",\n    \"module_response\": {},\n    \"unified_callback_preview\": null,\n    \"approval_result\": null,\n    \"error_result\": {\n      \"contract_version\": \"error_retry_logging_v0.1\",\n      \"request_id\": original.request_id,\n      \"event_type\": original.event_type,\n      \"brand_id\": original.brand_id,\n      \"campaign_id\": original.campaign_id,\n      \"module_id\": \"n8n_event_router\",\n      \"error_type\": \"unsupported_event_type\",\n      \"error_code\": \"ERR_ROUTER_UNSUPPORTED_EVENT\",\n      \"error_message\": `Event type '${original.event_type}' has no matching route configuration.`,\n      \"retryable\": false,\n      \"attempt\": 1,\n      \"max_attempts\": 1,\n      \"next_action\": \"stop\",\n      \"timestamp\": new Date().toISOString(),\n      \"source\": \"n8n_n11_e2e_dry_run_mock\",\n      \"metadata\": {\n        \"unregistered_event_type\": original.event_type\n      }\n    },\n    \"execution_trace\": [\n      \"manual_trigger_received\",\n      \"mock_event_loaded\",\n      \"event_normalized\",\n      \"error_detected: unsupported_event_type\",\n      \"routing_aborted\",\n      \"error_callback_preview_generated\"\n    ],\n    \"source\": \"n8n_n11_e2e_dry_run_mock\",\n    \"generated_at\": new Date().toISOString(),\n    \"notes\": `Unsupported event route configuration: ${original.event_type}`\n  }\n}];"
+      },
+      "name": "Code: Build Unsupported Event Error",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        740,
+        150
+      ],
+      "id": "err-unsupported"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.health_endpoint }}",
+        "options": {}
+      },
+      "name": "HTTP Request: Health Check",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [
+        740,
+        420
+      ],
+      "id": "http-health-check",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const original = $node[\"Code: Normalize Event\"].json;\nlet status = \"unavailable\";\nlet healthRes = null;\n\ntry {\n  healthRes = items[0].json;\n} catch (e) {}\n\nif (healthRes && healthRes.status === \"healthy\" && !original.simulate_outage) {\n  status = \"healthy\";\n}\n\nreturn [{\n  json: {\n    ...original,\n    \"health_status\": status\n  }\n}];"
+      },
+      "name": "Code: Analyze Health",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        900,
+        420
+      ],
+      "id": "code-analyze-health"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.health_status }}",
+              "value2": "healthy"
+            }
+          ]
+        }
+      },
+      "name": "Switch: Module Healthy?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        1060,
+        420
+      ],
+      "id": "if-healthy"
+    },
+    {
+      "parameters": {
+        "jsCode": "const original = $node[\"Code: Analyze Health\"].json;\nreturn [{\n  json: {\n    \"contract_version\": \"e2e_dry_run_v0.1\",\n    \"run_id\": original.run_id,\n    \"request_id\": original.request_id,\n    \"event_type\": original.event_type,\n    \"brand_id\": original.brand_id,\n    \"campaign_id\": original.campaign_id,\n    \"module_id\": original.module_id,\n    \"health_status\": \"unavailable\",\n    \"route_status\": \"failed_unavailable\",\n    \"module_status\": \"not_called\",\n    \"approval_status\": \"skipped\",\n    \"final_status\": \"blocked_module_unavailable\",\n    \"module_response\": {},\n    \"unified_callback_preview\": null,\n    \"approval_result\": null,\n    \"error_result\": {\n      \"contract_version\": \"error_retry_logging_v0.1\",\n      \"request_id\": original.request_id,\n      \"event_type\": original.event_type,\n      \"brand_id\": original.brand_id,\n      \"campaign_id\": original.campaign_id,\n      \"module_id\": original.module_id,\n      \"error_type\": \"module_unavailable\",\n      \"error_code\": \"ERR_MODULE_HEALTH_CHECK_FAILED\",\n      \"error_message\": `Module ${original.module_id} is unavailable/degraded at health check preflight.`,\n      \"retryable\": true,\n      \"attempt\": 1,\n      \"max_attempts\": 3,\n      \"next_action\": \"retry_scheduled\",\n      \"timestamp\": new Date().toISOString(),\n      \"source\": \"n8n_n11_e2e_dry_run_mock\",\n      \"metadata\": {\n        \"health_check_url\": original.health_endpoint\n      }\n    },\n    \"execution_trace\": [\n      \"manual_trigger_received\",\n      \"mock_event_loaded\",\n      \"event_normalized\",\n      `target_module_resolved: ${original.module_id}`,\n      \"health_check_failed: unavailable\",\n      \"routing_blocked: module_unavailable\",\n      \"error_callback_preview_generated\"\n    ],\n    \"source\": \"n8n_n11_e2e_dry_run_mock\",\n    \"generated_at\": new Date().toISOString(),\n    \"notes\": `Module ${original.module_id} unavailable. Routing blocked.`\n  }\n}];"
+      },
+      "name": "Code: Build Unavailable Error",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        1220,
+        250
+      ],
+      "id": "err-unavailable"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.run_endpoint }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"request_id\": \"{{ $json.request_id }}\",\n  \"brand_id\": \"{{ $json.brand_id }}\",\n  \"campaign_id\": \"{{ $json.campaign_id }}\",\n  \"payload\": {{ JSON.stringify($json.payload) }},\n  \"metadata\": {{ JSON.stringify($json.metadata) }}\n}",
+        "options": {}
+      },
+      "name": "HTTP Request: Run Module",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [
+        1220,
+        500
+      ],
+      "id": "http-run-module",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const original = $node[\"Code: Analyze Health\"].json;\nlet runRes = null;\nlet status = \"failed\";\n\ntry {\n  runRes = items[0].json;\n} catch (e) {}\n\nif (runRes && !runRes.error) {\n  status = \"completed\";\n}\n\n// Normalize response based on module type\nlet output = {};\nif (original.module_id === \"creative_asset_comfyui\") {\n  output = {\n    \"asset_preview\": \"mock://assets/workspace_generated_001.png\",\n    \"mock_asset_url\": \"mock://assets/workspace_generated_001.png\",\n    \"mock_output_path\": \"storage/assets/placeholder_workspace_001.png\"\n  };\n} else if (original.module_id === \"content_pack_generator\") {\n  output = {\n    \"posts\": [\n      {\n        \"post_id\": 1,\n        \"content\": \"Make the switch to our brand new biodegradable cups today! #eco\"\n      }\n    ]\n  };\n} else if (original.module_id === \"ads_pack_generator\") {\n  output = {\n    \"headline\": \"10% Off Early Bird Registrations!\",\n    \"body\": \"Don't miss our tech event. Sign up now and save big.\"\n  };\n} else if (original.module_id === \"crm_followup_generator\") {\n  output = {\n    \"messages\": [\n      {\n        \"day\": 1,\n        \"subject\": \"Welcome aboard!\",\n        \"body\": \"Thank you for shopping with us.\"\n      }\n    ]\n  };\n} else if (original.module_id === \"analytics_report_generator\") {\n  output = {\n    \"report_markdown\": \"## Performance Metrics\\n- CTR: 2.4%\\n- CPC: $0.45\"\n  };\n}\n\nreturn [{\n  json: {\n    ...original,\n    \"module_status\": status,\n    \"module_response\": runRes || {},\n    \"unified_callback_preview\": {\n      \"contract_version\": \"unified_callback_v0.1\",\n      \"request_id\": original.request_id,\n      \"event_type\": original.event_type,\n      \"brand_id\": original.brand_id,\n      \"campaign_id\": original.campaign_id,\n      \"module_id\": original.module_id,\n      \"module_status\": status === \"completed\" ? \"mock_completed\" : \"failed\",\n      \"approval_status\": \"pending_approval\",\n      \"output\": output,\n      \"errors\": status === \"completed\" ? [] : [{ \"message\": \"Stub request failed\" }],\n      \"metadata\": {\n        \"workflow\": original.module_id + \"_v1\"\n      },\n      \"source\": \"n8n_n11_e2e_dry_run_mock\",\n      \"generated_at\": new Date().toISOString(),\n      \"notes\": \"Generated output ready for approval gate review.\"\n    }\n  }\n}];"
+      },
+      "name": "Code: Normalize Module Callback",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        1380,
+        500
+      ],
+      "id": "code-normalize-callback"
+    },
+    {
+      "parameters": {
+        "dataType": "string",
+        "value1": "={{ $json.simulate_approval_decision }}",
+        "rules": {
+          "rules": [
+            {
+              "value2": "approved"
+            },
+            {
+              "value2": "rejected"
+            },
+            {
+              "value2": "needs_revision"
+            },
+            {
+              "value2": "pending_approval"
+            }
+          ]
+        }
+      },
+      "name": "Switch: Approval Gate Decision",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [
+        1540,
+        500
+      ],
+      "id": "switch-approval"
+    },
+    {
+      "parameters": {
+        "jsCode": "const prev = $node[\"Code: Normalize Module Callback\"].json;\nreturn [{\n  json: {\n    \"contract_version\": \"e2e_dry_run_v0.1\",\n    \"run_id\": prev.run_id,\n    \"request_id\": prev.request_id,\n    \"event_type\": prev.event_type,\n    \"brand_id\": prev.brand_id,\n    \"campaign_id\": prev.campaign_id,\n    \"module_id\": prev.module_id,\n    \"health_status\": prev.health_status,\n    \"route_status\": \"routed\",\n    \"module_status\": prev.module_status,\n    \"approval_status\": \"approved\",\n    \"final_status\": \"completed_mock\",\n    \"module_response\": prev.module_response,\n    \"unified_callback_preview\": {\n      ...prev.unified_callback_preview,\n      \"approval_status\": \"approved\"\n    },\n    \"approval_result\": {\n      \"approval_id\": \"app_dec_001_88921\",\n      \"decision\": \"approved\",\n      \"reviewer\": \"owner_mock\",\n      \"reviewed_at\": new Date().toISOString(),\n      \"reason\": \"All checks passed. Creative styling complies with mock requirements.\",\n      \"revision_notes\": \"\",\n      \"next_action\": \"ready_for_mock_callback_preview\",\n      \"safety_flags\": {\n        \"brand_safe\": true,\n        \"copyright_clear\": true,\n        \"no_secrets\": true\n      }\n    },\n    \"error_result\": null,\n    \"execution_trace\": [\n      \"manual_trigger_received\",\n      \"mock_event_loaded\",\n      \"event_normalized\",\n      `target_module_resolved: ${prev.module_id}`,\n      \"health_check_passed: healthy\",\n      `module_stub_called: ${prev.run_endpoint}`,\n      \"callback_payload_normalized\",\n      \"approval_gate_passed: approved\",\n      \"dry_run_completed\"\n    ],\n    \"source\": \"n8n_n11_e2e_dry_run_mock\",\n    \"generated_at\": new Date().toISOString(),\n    \"notes\": \"Dry run succeeded and request was approved.\"\n  }\n}];"
+      },
+      "name": "Code: Prepare Approved Output",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        1740,
+        350
+      ],
+      "id": "out-approved"
+    },
+    {
+      "parameters": {
+        "jsCode": "const prev = $node[\"Code: Normalize Module Callback\"].json;\nreturn [{\n  json: {\n    \"contract_version\": \"e2e_dry_run_v0.1\",\n    \"run_id\": prev.run_id,\n    \"request_id\": prev.request_id,\n    \"event_type\": prev.event_type,\n    \"brand_id\": prev.brand_id,\n    \"campaign_id\": prev.campaign_id,\n    \"module_id\": prev.module_id,\n    \"health_status\": prev.health_status,\n    \"route_status\": \"routed\",\n    \"module_status\": prev.module_status,\n    \"approval_status\": \"rejected\",\n    \"final_status\": \"stopped_rejected\",\n    \"module_response\": prev.module_response,\n    \"unified_callback_preview\": {\n      ...prev.unified_callback_preview,\n      \"approval_status\": \"rejected\"\n    },\n    \"approval_result\": {\n      \"approval_id\": \"app_dec_001_88921\",\n      \"decision\": \"rejected\",\n      \"reviewer\": \"owner_mock\",\n      \"reviewed_at\": new Date().toISOString(),\n      \"reason\": \"Brand colors do not match design requirements.\",\n      \"revision_notes\": \"\",\n      \"next_action\": \"stopped_rejected\",\n      \"safety_flags\": {\n        \"brand_safe\": false,\n        \"copyright_clear\": true,\n        \"no_secrets\": true\n      }\n    },\n    \"error_result\": null,\n    \"execution_trace\": [\n      \"manual_trigger_received\",\n      \"mock_event_loaded\",\n      \"event_normalized\",\n      `target_module_resolved: ${prev.module_id}`,\n      \"health_check_passed: healthy\",\n      `module_stub_called: ${prev.run_endpoint}`,\n      \"callback_payload_normalized\",\n      \"approval_gate_passed: rejected\",\n      \"dry_run_completed\"\n    ],\n    \"source\": \"n8n_n11_e2e_dry_run_mock\",\n    \"generated_at\": new Date().toISOString(),\n    \"notes\": \"Dry run asset request was rejected at the approval gate.\"\n  }\n}];"
+      },
+      "name": "Code: Prepare Rejected Output",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        1740,
+        450
+      ],
+      "id": "out-rejected"
+    },
+    {
+      "parameters": {
+        "jsCode": "const prev = $node[\"Code: Normalize Module Callback\"].json;\nreturn [{\n  json: {\n    \"contract_version\": \"e2e_dry_run_v0.1\",\n    \"run_id\": prev.run_id,\n    \"request_id\": prev.request_id,\n    \"event_type\": prev.event_type,\n    \"brand_id\": prev.brand_id,\n    \"campaign_id\": prev.campaign_id,\n    \"module_id\": prev.module_id,\n    \"health_status\": prev.health_status,\n    \"route_status\": \"routed\",\n    \"module_status\": prev.module_status,\n    \"approval_status\": \"needs_revision\",\n    \"final_status\": \"revision_required\",\n    \"module_response\": prev.module_response,\n    \"unified_callback_preview\": {\n      ...prev.unified_callback_preview,\n      \"approval_status\": \"needs_revision\"\n    },\n    \"approval_result\": {\n      \"approval_id\": \"app_dec_001_88921\",\n      \"decision\": \"needs_revision\",\n      \"reviewer\": \"owner_mock\",\n      \"reviewed_at\": new Date().toISOString(),\n      \"reason\": \"Please update text formatting and regenerate.\",\n      \"revision_notes\": \"Text alignments are skewed.\",\n      \"next_action\": \"revision_required\",\n      \"safety_flags\": {\n        \"brand_safe\": true,\n        \"copyright_clear\": true,\n        \"no_secrets\": true\n      }\n    },\n    \"error_result\": null,\n    \"execution_trace\": [\n      \"manual_trigger_received\",\n      \"mock_event_loaded\",\n      \"event_normalized\",\n      `target_module_resolved: ${prev.module_id}`,\n      \"health_check_passed: healthy\",\n      `module_stub_called: ${prev.run_endpoint}`,\n      \"callback_payload_normalized\",\n      \"approval_gate_passed: needs_revision\",\n      \"dry_run_completed\"\n    ],\n    \"source\": \"n8n_n11_e2e_dry_run_mock\",\n    \"generated_at\": new Date().toISOString(),\n    \"notes\": \"Dry run asset request was flagged for revision at the approval gate.\"\n  }\n}];"
+      },
+      "name": "Code: Prepare Revision Output",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        1740,
+        550
+      ],
+      "id": "out-revision"
+    },
+    {
+      "parameters": {
+        "jsCode": "const prev = $node[\"Code: Normalize Module Callback\"].json;\nreturn [{\n  json: {\n    \"contract_version\": \"e2e_dry_run_v0.1\",\n    \"run_id\": prev.run_id,\n    \"request_id\": prev.request_id,\n    \"event_type\": prev.event_type,\n    \"brand_id\": prev.brand_id,\n    \"campaign_id\": prev.campaign_id,\n    \"module_id\": prev.module_id,\n    \"health_status\": prev.health_status,\n    \"route_status\": \"routed\",\n    \"module_status\": prev.module_status,\n    \"approval_status\": \"pending_approval\",\n    \"final_status\": \"waiting_for_owner_approval\",\n    \"module_response\": prev.module_response,\n    \"unified_callback_preview\": {\n      ...prev.unified_callback_preview,\n      \"approval_status\": \"pending_approval\"\n    },\n    \"approval_result\": {\n      \"approval_id\": \"app_dec_001_88921\",\n      \"decision\": \"pending\",\n      \"reviewer\": \"owner_mock\",\n      \"reviewed_at\": new Date().toISOString(),\n      \"reason\": \"Design is pending manual signoff.\",\n      \"revision_notes\": \"\",\n      \"next_action\": \"waiting_for_owner_approval\",\n      \"safety_flags\": {\n        \"brand_safe\": true,\n        \"copyright_clear\": true,\n        \"no_secrets\": true\n      }\n    },\n    \"error_result\": null,\n    \"execution_trace\": [\n      \"manual_trigger_received\",\n      \"mock_event_loaded\",\n      \"event_normalized\",\n      `target_module_resolved: ${prev.module_id}`,\n      \"health_check_passed: healthy\",\n      `module_stub_called: ${prev.run_endpoint}`,\n      \"callback_payload_normalized\",\n      \"approval_gate_passed: pending_approval\",\n      \"dry_run_completed\"\n    ],\n    \"source\": \"n8n_n11_e2e_dry_run_mock\",\n    \"generated_at\": new Date().toISOString(),\n    \"notes\": \"Dry run asset request is waiting for manual owner approval.\"\n  }\n}];"
+      },
+      "name": "Code: Prepare Pending Output",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        1740,
+        650
+      ],
+      "id": "out-pending"
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "contract_version",
+              "value": ""
+            },
+            {
+              "name": "run_id",
+              "value": ""
+            },
+            {
+              "name": "request_id",
+              "value": ""
+            },
+            {
+              "name": "event_type",
+              "value": ""
+            },
+            {
+              "name": "brand_id",
+              "value": ""
+            },
+            {
+              "name": "campaign_id",
+              "value": ""
+            },
+            {
+              "name": "module_id",
+              "value": ""
+            },
+            {
+              "name": "health_status",
+              "value": ""
+            },
+            {
+              "name": "route_status",
+              "value": ""
+            },
+            {
+              "name": "module_status",
+              "value": ""
+            },
+            {
+              "name": "approval_status",
+              "value": ""
+            },
+            {
+              "name": "final_status",
+              "value": ""
+            },
+            {
+              "name": "module_response",
+              "value": ""
+            },
+            {
+              "name": "unified_callback_preview",
+              "value": ""
+            },
+            {
+              "name": "approval_result",
+              "value": ""
+            },
+            {
+              "name": "error_result",
+              "value": ""
+            },
+            {
+              "name": "execution_trace",
+              "value": ""
+            },
+            {
+              "name": "source",
+              "value": ""
+            },
+            {
+              "name": "generated_at",
+              "value": ""
+            },
+            {
+              "name": "notes",
+              "value": ""
+            }
+          ]
+        }
+      },
+      "name": "Dummy Output Field Reference",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        2000,
+        300
+      ],
+      "id": "dummy-fields"
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Set Mock Core Event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Mock Core Event": {
+      "main": [
+        [
+          {
+            "node": "Code: Normalize Event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Normalize Event": {
+      "main": [
+        [
+          {
+            "node": "Switch: Event Supported?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch: Event Supported?": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request: Health Check",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code: Build Unsupported Event Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request: Health Check": {
+      "main": [
+        [
+          {
+            "node": "Code: Analyze Health",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Analyze Health": {
+      "main": [
+        [
+          {
+            "node": "Switch: Module Healthy?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch: Module Healthy?": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request: Run Module",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code: Build Unavailable Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request: Run Module": {
+      "main": [
+        [
+          {
+            "node": "Code: Normalize Module Callback",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Normalize Module Callback": {
+      "main": [
+        [
+          {
+            "node": "Switch: Approval Gate Decision",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch: Approval Gate Decision": {
+      "main": [
+        [
+          {
+            "node": "Code: Prepare Approved Output",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code: Prepare Rejected Output",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code: Prepare Revision Output",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code: Prepare Pending Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {},
+  "id": "n11-e2e-dry-run"
+}

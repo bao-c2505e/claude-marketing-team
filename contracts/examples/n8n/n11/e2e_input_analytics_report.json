@@ -1,0 +1,22 @@
+{
+  "contract_version": "e2e_dry_run_v0.1",
+  "event_type": "analytics_report.requested",
+  "request_id": "126f9d5e-ca87-439f-a89c-8eb139f4a092",
+  "brand_id": "brand_demo_001",
+  "campaign_id": "campaign_demo_001",
+  "requested_by": "user_demo_001@example.com",
+  "callback_url": "http://localhost:5678/mock-callback",
+  "payload": {
+    "data_source": "mock",
+    "reporting_period": "last_30_days",
+    "metrics": [
+      "CTR",
+      "CPC"
+    ],
+    "report_format": "markdown"
+  },
+  "metadata": {
+    "client": "local_dev_test",
+    "workflow_engine": "n8n_v1"
+  }
+}

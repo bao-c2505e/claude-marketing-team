@@ -96,3 +96,10 @@ For presenting registry health to operators, the n8n check compiles a dashboard 
 5.  **No Auto-Start Servers:** Workflows must not issue terminal commands to start local stub servers automatically.
 6.  **No Auto-Heal:** Workflows must not execute recovery/restart commands on failed stubs.
 7.  **No Auto-Post/Ads/Messaging:** Uptime statuses and health failures must not trigger real alert emails or SMS messaging.
+
+---
+
+## 9. E2E Dry Run (Phase N11)
+- Phase N11 dry run composes the router, health check, module run, approval gate, and error handling into one local/mock workflow (`n11_e2e_dry_run.workflow.json`).
+- Real Core integration remains a future phase and requires owner approval.
+

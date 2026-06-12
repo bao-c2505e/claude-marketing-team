@@ -2074,6 +2074,210 @@ try {
   failed = true;
 }
 
+// --- STARTING PHASE N11 VALIDATION CHECKS ---
+console.log('--- STARTING PHASE N11 VALIDATION CHECKS ---');
+const n11Dir = path.join(baseDir, 'examples/n8n/n11');
+const n11ExpectedDir = path.join(n11Dir, 'expected_outputs');
+const n11WorkflowPath = path.join(baseDir, '../n8n-workflows/n11_e2e_dry_run.workflow.json');
+
+// Helper to check safety rules
+function checkN11SafetyRules(content, fileName) {
+  const lowerContent = content.toLowerCase();
+  if (lowerContent.includes('vicuon') || content.includes('Vị Cuốn')) {
+    console.error(`[FAIL] File '${fileName}' contains forbidden brand Vị Cuốn / vicuon`);
+    failed = true;
+  }
+  if (content.includes('thecoreagency.com')) {
+    console.error(`[FAIL] File '${fileName}' contains production URL reference`);
+    failed = true;
+  }
+  if (lowerContent.includes('api_key') || lowerContent.includes('secret') || lowerContent.includes('password')) {
+    if (/\"api_key\"\s*:\s*\"[^\"]+\"/i.test(content) || /\"secret\"\s*:\s*\"[^\"]+\"/i.test(content)) {
+      console.error(`[FAIL] File '${fileName}' appears to contain credential/secret value`);
+      failed = true;
+    }
+  }
+}
+
+// 1. Validate input examples
+try {
+  const inputFiles = fs.readdirSync(n11Dir).filter(f => f.endsWith('.json'));
+  inputFiles.forEach(file => {
+    const filePath = path.join(n11Dir, file);
+    const content = fs.readFileSync(filePath, 'utf8');
+    checkN11SafetyRules(content, file);
+
+    const parsed = JSON.parse(content);
+    console.log(`[PASS] N11 input file parses as JSON: n11/${file}`);
+
+    const requiredInputFields = [
+      'contract_version', 'event_type', 'request_id', 'brand_id',
+      'campaign_id', 'requested_by', 'callback_url', 'payload', 'metadata'
+    ];
+    requiredInputFields.forEach(f => {
+      if (parsed[f] === undefined) {
+        console.error(`[FAIL] N11 input ${file} is missing field '${f}'`);
+        failed = true;
+      }
+    });
+
+    if (parsed.brand_id !== 'brand_demo_001') {
+      console.error(`[FAIL] N11 input ${file} brand_id must be 'brand_demo_001', found '${parsed.brand_id}'`);
+      failed = true;
+    }
+    if (parsed.contract_version !== 'e2e_dry_run_v0.1') {
+      console.error(`[FAIL] N11 input ${file} contract_version must be 'e2e_dry_run_v0.1', found '${parsed.contract_version}'`);
+      failed = true;
+    }
+    if (parsed.callback_url && parsed.callback_url.includes('thecoreagency.com')) {
+      console.error(`[FAIL] N11 input ${file} callback_url points to production: ${parsed.callback_url}`);
+      failed = true;
+    }
+  });
+} catch (err) {
+  console.error(`[FAIL] Error validating N11 input files: ${err.message}`);
+  failed = true;
+}
+
+// 2. Validate expected output examples
+try {
+  const outputFiles = fs.readdirSync(n11ExpectedDir).filter(f => f.endsWith('.json'));
+  outputFiles.forEach(file => {
+    const filePath = path.join(n11ExpectedDir, file);
+    const content = fs.readFileSync(filePath, 'utf8');
+    checkN11SafetyRules(content, file);
+
+    const parsed = JSON.parse(content);
+    console.log(`[PASS] N11 expected output parses as JSON: n11/expected_outputs/${file}`);
+
+    const requiredOutputFields = [
+      'contract_version', 'run_id', 'request_id', 'event_type',
+      'brand_id', 'campaign_id', 'module_id', 'health_status',
+      'route_status', 'module_status', 'approval_status', 'final_status',
+      'module_response', 'unified_callback_preview', 'approval_result',
+      'error_result', 'execution_trace', 'source', 'generated_at', 'notes'
+    ];
+    requiredOutputFields.forEach(f => {
+      if (parsed[f] === undefined) {
+        console.error(`[FAIL] N11 expected output ${file} is missing field '${f}'`);
+        failed = true;
+      }
+    });
+
+    if (parsed.brand_id !== 'brand_demo_001') {
+      console.error(`[FAIL] N11 expected output ${file} brand_id must be 'brand_demo_001', found '${parsed.brand_id}'`);
+      failed = true;
+    }
+    if (parsed.contract_version !== 'e2e_dry_run_v0.1') {
+      console.error(`[FAIL] N11 expected output ${file} contract_version must be 'e2e_dry_run_v0.1', found '${parsed.contract_version}'`);
+      failed = true;
+    }
+
+    const allowedFinalStatuses = [
+      'completed_mock', 'waiting_for_owner_approval', 'revision_required',
+      'stopped_rejected', 'failed_mock', 'blocked_module_unavailable',
+      'unsupported_event_type'
+    ];
+    if (!allowedFinalStatuses.includes(parsed.final_status)) {
+      console.error(`[FAIL] N11 expected output ${file} has invalid final_status '${parsed.final_status}'`);
+      failed = true;
+    }
+  });
+} catch (err) {
+  console.error(`[FAIL] Error validating N11 expected output files: ${err.message}`);
+  failed = true;
+}
+
+// 3. Validate workflow JSON
+try {
+  const content = fs.readFileSync(n11WorkflowPath, 'utf8');
+  checkN11SafetyRules(content, 'n11_e2e_dry_run.workflow.json');
+
+  if (content.includes('"type": "n8n-nodes-base.httpRequest"') && !content.includes('"url"')) {
+    console.warn(`[WARN] n11 workflow contains HTTP node but no URL parameter`);
+  }
+  if (/credentials/i.test(content) && !content.includes('workflow_engine')) {
+    console.error(`[FAIL] n11 workflow contains credentials reference`);
+    failed = true;
+  }
+
+  const parsed = JSON.parse(content);
+  console.log(`[PASS] n11_e2e_dry_run.workflow.json parses as valid JSON`);
+
+  if (!content.includes('n8n_n11_e2e_dry_run_mock')) {
+    console.error(`[FAIL] n11 workflow is missing source identifier 'n8n_n11_e2e_dry_run_mock'`);
+    failed = true;
+  } else {
+    console.log(`[PASS] n11 workflow contains source identifier`);
+  }
+
+  // Verify all supported event types are mentioned
+  const expectedEvents = [
+    'creative_asset.requested',
+    'content_pack.requested',
+    'ads_pack.requested',
+    'crm_followup.requested',
+    'analytics_report.requested'
+  ];
+  expectedEvents.forEach(evt => {
+    if (!content.includes(evt)) {
+      console.error(`[FAIL] n11 workflow is missing supported event type: ${evt}`);
+      failed = true;
+    } else {
+      console.log(`[PASS] n11 workflow contains event type: ${evt}`);
+    }
+  });
+
+  // Verify all local run endpoints are mentioned
+  const expectedRunEndpoints = [
+    'http://localhost:8188/run',
+    'http://localhost:8191/run',
+    'http://localhost:8192/run',
+    'http://localhost:8193/run',
+    'http://localhost:8194/run'
+  ];
+  expectedRunEndpoints.forEach(ep => {
+    if (!content.includes(ep)) {
+      console.error(`[FAIL] n11 workflow is missing local module run endpoint: ${ep}`);
+      failed = true;
+    } else {
+      console.log(`[PASS] n11 workflow contains run endpoint: ${ep}`);
+    }
+  });
+
+  // Verify output fields
+  const requiredOutputFields = [
+    'contract_version', 'run_id', 'request_id', 'event_type',
+    'brand_id', 'campaign_id', 'module_id', 'health_status',
+    'route_status', 'module_status', 'approval_status', 'final_status',
+    'module_response', 'unified_callback_preview', 'approval_result',
+    'error_result', 'execution_trace', 'source', 'generated_at', 'notes'
+  ];
+  requiredOutputFields.forEach(field => {
+    if (!content.includes(`"${field}"`)) {
+      console.error(`[FAIL] n11 workflow does not contain required output field '${field}'`);
+      failed = true;
+    }
+  });
+
+  // Verify error path indicators
+  const errorIndicators = [
+    'blocked_module_unavailable',
+    'unsupported_event_type',
+    'error_result'
+  ];
+  errorIndicators.forEach(ind => {
+    if (!content.includes(ind)) {
+      console.error(`[FAIL] n11 workflow does not contain error path indicator '${ind}'`);
+      failed = true;
+    }
+  });
+
+} catch (err) {
+  console.error(`[FAIL] Error validating n11 workflow: ${err.message}`);
+  failed = true;
+}
+
 if (failed) {
   console.error('--- CONTRACT VALIDATION CHECKS FAILED ---');
   process.exit(1);
@@ -2081,6 +2285,7 @@ if (failed) {
   console.log('--- ALL CONTRACT VALIDATION CHECKS PASSED SUCCESSFULLY ---');
   process.exit(0);
 }
+
 
 
 

@@ -119,3 +119,10 @@ The mock callback dispatched back to the Core representing a processing failure:
 6.  **No Auto-Post/Ads/Messaging:** Error states must not trigger notification emails or SMS alerts to actual users.
 7.  **Owner Approval:** Moving from mock error handling to live queue routing requires explicit owner confirmation.
 8.  **Health Check Error Mapping:** A `module_unavailable` status detected in Phase N10 health checks must map directly to the N9 `module_unavailable` error type.
+
+---
+
+## 9. E2E Dry Run (Phase N11)
+- Phase N11 dry run composes the router, health check, module run, approval gate, and error handling into one local/mock workflow (`n11_e2e_dry_run.workflow.json`).
+- Real Core integration remains a future phase and requires owner approval.
+

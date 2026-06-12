@@ -1,0 +1,49 @@
+{
+  "contract_version": "e2e_dry_run_v0.1",
+  "run_id": "34b31e84-18f9-4475-a89c-8eb139f4a094",
+  "request_id": "348f9d5e-ca87-439f-a89c-8eb139f4a094",
+  "event_type": "creative_asset.requested",
+  "brand_id": "brand_demo_001",
+  "campaign_id": "campaign_demo_001",
+  "module_id": "creative_asset_comfyui",
+  "health_status": "unavailable",
+  "route_status": "failed_unavailable",
+  "module_status": "not_called",
+  "approval_status": "skipped",
+  "final_status": "blocked_module_unavailable",
+  "module_response": {},
+  "unified_callback_preview": null,
+  "approval_result": null,
+  "error_result": {
+    "contract_version": "error_retry_logging_v0.1",
+    "request_id": "348f9d5e-ca87-439f-a89c-8eb139f4a094",
+    "event_type": "creative_asset.requested",
+    "brand_id": "brand_demo_001",
+    "campaign_id": "campaign_demo_001",
+    "module_id": "creative_asset_comfyui",
+    "error_type": "module_unavailable",
+    "error_code": "ERR_MODULE_HEALTH_CHECK_FAILED",
+    "error_message": "Module creative_asset_comfyui is unavailable/degraded at health check preflight.",
+    "retryable": true,
+    "attempt": 1,
+    "max_attempts": 3,
+    "next_action": "retry_scheduled",
+    "timestamp": "2026-06-12T03:00:00Z",
+    "source": "n8n_n11_e2e_dry_run_mock",
+    "metadata": {
+      "health_check_url": "http://localhost:8188/health"
+    }
+  },
+  "execution_trace": [
+    "manual_trigger_received",
+    "mock_event_loaded",
+    "event_normalized",
+    "target_module_resolved: creative_asset_comfyui",
+    "health_check_failed: unavailable",
+    "routing_blocked: module_unavailable",
+    "error_callback_preview_generated"
+  ],
+  "source": "n8n_n11_e2e_dry_run_mock",
+  "generated_at": "2026-06-12T03:02:00Z",
+  "notes": "E2E Dry Run blocked because target module creative_asset_comfyui is offline."
+}

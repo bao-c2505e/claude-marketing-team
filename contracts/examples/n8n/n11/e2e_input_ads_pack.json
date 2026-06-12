@@ -1,0 +1,20 @@
+{
+  "contract_version": "e2e_dry_run_v0.1",
+  "event_type": "ads_pack.requested",
+  "request_id": "904f9d5e-ca87-439f-a89c-8eb139f4a090",
+  "brand_id": "brand_demo_001",
+  "campaign_id": "campaign_demo_001",
+  "requested_by": "user_demo_001@example.com",
+  "callback_url": "http://localhost:5678/mock-callback",
+  "payload": {
+    "platform": "meta",
+    "objective": "conversions",
+    "target_audience": "Tech enthusiasts 25-40",
+    "offer": "10% off early bird registrations",
+    "budget_mode": "mock"
+  },
+  "metadata": {
+    "client": "local_dev_test",
+    "workflow_engine": "n8n_v1"
+  }
+}
