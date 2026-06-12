@@ -22,7 +22,7 @@
 | Input | Where | Status |
 |---|---|---|
 | V2-E1 mapping spec | `CLAUDE_MARKETING_TEAM/V2E_CORE_PC2_MAPPING_SPEC.md` | ✅ PASS at `4407cf7` — envelopes, status table (§4), validation rules V1–V9 (§6) are normative here and are NOT restated in full |
-| PC2 handoff summary | `docs/pc2/pc2_handoff_to_core_integration.md`, `docs/pc2/pc2_final_summary.md`, `contracts/pc2_validation_manifest.json` (N1–N12 DONE/PASS, `stabilized_mock_ready`) | ✅ PASS, required fixes: none |
+| PC2 handoff summary | `docs/pc2/core_mapping_handoff_summary.md` (merged to main 2026-06-12, commit `967cb00` — workflow paths, event types, registry, callback preview contract, scenario payloads, expected outputs, validator commands), plus `docs/pc2/pc2_handoff_to_core_integration.md`, `docs/pc2/pc2_final_summary.md`, `contracts/pc2_validation_manifest.json` (N1–N12 DONE/PASS, `stabilized_mock_ready`) | ✅ PASS, required fixes: none |
 | Callback/approval/safety contracts | `contracts/unified_callback_contract.md`, `contracts/error_handling_retry_logging_contract.md`, `contracts/e2e_dry_run_contract.md`, `contracts/callback_statuses.md` | ✅ validated (`node contracts/tools/validate_contracts.js` ALL PASS, 2026-06-12) |
 | Current Core callback ingest behavior | **None exists.** Core is a static Vite/React frontend with zero outbound network calls in `src/` except the Supabase SDK (Phase 18 verification). The Phase-13 Module Event Inbox / Phase-14 Automation Logs are localStorage-only UI surfaces; Group F tables (`module_events`, `webhook_callbacks`, `automation_logs`) have **no repository wiring** (V2-D1 finding #6). | ✅ documented constraint — drives §1.6 design |
 
