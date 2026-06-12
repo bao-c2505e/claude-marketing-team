@@ -57,6 +57,16 @@ files chỉ đọc làm reference.**
   hard limits + closure evidence; §9 checkpoints O1–O5 (env var / HTTP /
   n8n-from-Core / Supabase staging+V2-D-A / real connector = ngoài V2-E);
   §10 non-goals.
+- **Codex REQUIRED FIX applied (2026-06-12):** T2/T3 từng để PC2 callback
+  chuyển approvals/items sang `revision_requested`/`rejected` — mâu thuẫn
+  safety rules (Core UI = approval authority duy nhất). Đã sửa (docs-only):
+  imported PC2 callbacks **non-authoritative mọi trường hợp** — chỉ
+  validate / log status / record output-error metadata / echo decision
+  đã có trong Core / attach review notes; T2/T3 = "non-authoritative
+  echo" (items `generated`, approval `pending`, PC2 status = metadata
+  cho human review); mọi transition chỉ từ authenticated Core UI action;
+  **callbacks cannot bypass or mutate Core approval decisions** — stated
+  explicitly (§4 → 8 rules + reading note cho bảng V2-E1 §4).
 - **Build:** PASS — 0 TS errors. **Tests:** 45/45 PASS.
 - **Next:** Owner duyệt plan → log checkpoint O1 → V2-E3 adapter skeleton
   (builder + tests + dev panel, zero HTTP, disabled by default).

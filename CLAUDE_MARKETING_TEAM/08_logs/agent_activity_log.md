@@ -6,6 +6,15 @@ Nhật ký ghi lại các hành động mô phỏng của các AI Agent khi vậ
 
 ## 🗓️ Nhật Ký Hoạt Động (Simulated Activity Logs)
 
+### 🗓️ Ngày 12/06/2026 — V2-E2 Fix Round (Codex REQUIRED FIX) — T2/T3 callbacks made non-authoritative ✅ DONE
+- **[Codex Reviewer]:** Flagged a contract inconsistency in `V2E2_CORE_PC2_DRY_RUN_INTEGRATION_PLAN.md`: test scenarios T2/T3 implied imported PC2 callbacks could transition Core approvals/items to `revision_requested`/`rejected`, conflicting with the V2-E1/V2-E2 safety rules (approval decisions originate only from authenticated Core UI actions; PC2 decisions are non-authoritative; PC2 callbacks cannot change Core approval state) — and with the plan's own §4 rule 1 and T9.
+- **[PC1 Claude Code Builder, required fix applied]:** Rewrote §4 into 8 rules: any approval-state claim in a callback (`approved`/`rejected`/`needs_revision`) transitions nothing and lands as flagged callback metadata; enumerated the ONLY five permitted callback effects (validate payload consistency, log callback status, record module output/error metadata, echo a decision that already exists in Core — E6 round-trip, mismatch logged as warning and never applied, attach non-authoritative review notes); every transition to `revision_requested`/`rejected`/`approved` requires an authenticated Core UI action with no code path from ingest to an approval transition; PC2 rejection-flavored statuses are review inputs requiring human review, not transitions. Added the explicit sentence **"Imported PC2 callbacks cannot bypass or mutate Core approval decisions."**
+- **[PC1]:** Rewrote T2/T3 as "non-authoritative echo" scenarios — ingest accepts as metadata only: items land `generated`, approval request stays `pending`, no state transition; the real `revision_requested`/`rejected` transition is a separate manual Owner/manager step in the Approvals UI, verified as a Core-UI action outside ingest. Added a reading note clarifying that the V2-E1 §4 status table's needs_revision/rejected/approved rows describe states AFTER a Core-UI decision and are unreachable via callback import.
+- **[PC1]:** Docs-only diff (plan + 4 tracking docs) — no product code, runtime, tests, repository, Supabase, auth, UUID-gating, tenant-scope, sanitizer, RLS, or connector changes.
+- **[PC1]:** `npm run build` PASS (0 TS errors); `npm run test` 45/45 PASS — unchanged green.
+
+---
+
 ### 🗓️ Ngày 12/06/2026 — V2-E2 — Core ↔ PC2 Dry-run Integration Plan ✅ DONE (V2-E3 adapter skeleton Owner-gated via checkpoint O1)
 *(Scope note: V2-E1 originally labeled "V2-E2" as the dry-run implementation — the Owner refined the ladder: V2-E2 = integration PLAN; implementation is split into V2-E3→V2-E6, each Owner-gated. Supersedes the V2-E1 §7 boundary table.)*
 - **[PC1 Claude Code Builder]:** Authored `CLAUDE_MARKETING_TEAM/V2E2_CORE_PC2_DRY_RUN_INTEGRATION_PLAN.md` from the approved V2-E1 mapping spec (`4407cf7`), the PC2 N12 handoff (PASS, no required fixes), and the callback/approval/safety contracts — planning/contract/test-design only, no runtime integration, no outbound HTTP, no secrets/env vars, no live connectors; PC2 workflow files referenced read-only.

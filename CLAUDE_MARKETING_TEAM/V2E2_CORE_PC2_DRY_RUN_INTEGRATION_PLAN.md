@@ -114,11 +114,21 @@
 
 ## 4. Callback Safety Rules (normative, restated from V2-E1 V5–V8)
 
-1. **No callback can bypass approval.** Ingest never writes any approval state other than creating a `pending` request for generated items. A callback claiming `approval_status: approved` does not set anything to approved — it is logged with a warning and the item still lands as `generated`/`pending` (Core UI is the only approval authority).
-2. **`failed_mock` never enters approval.** Any failure status ⇒ job `failed` + logs only; no item rows, no approval rows.
-3. **`partial_failure` ⇒ logs + partial output only.** Successful sub-outputs land as `generated` (+ `pending` approval); failed sub-outputs produce log entries; the job records a partial-failure note.
-4. **`approved` means human-approved in Core.** Only an authenticated Owner/manager action in the Approvals UI produces `approved`. PC2 approval-gate decisions are simulations/echoes — non-authoritative by contract.
-5. **`published` stays planning/blocked.** No V2-E sub-phase can produce `published`. `planned_publish`/`scheduled` remain calendar markers. Real publishing requires a future dedicated real-connector phase with written per-connector Owner sign-off (V2-F framework) — outside V2-E.
+1. **No callback can bypass or mutate approval — imported PC2 callbacks are non-authoritative, always.** Ingest never writes any approval state other than creating a `pending` request for generated items. A callback claiming ANY approval state — `approved`, `rejected`, or `needs_revision` — does not transition anything: the claim is recorded as callback metadata, the items still land as `generated` with the approval request at `pending`, and the claim is flagged for human review (Core UI is the only approval authority). **Imported PC2 callbacks cannot bypass or mutate Core approval decisions, in any V2-E sub-phase, under any status combination.**
+2. **The only things an imported PC2 callback may do:**
+   - validate payload consistency (the §1.6 precondition pipeline);
+   - log callback status (`module_status` / `approval_status` / `final_status` recorded verbatim as metadata);
+   - record module output/error metadata (items as `generated`, error objects to logs);
+   - echo an approval decision **that already exists in Core** (E6 round-trip: Core decided first in the UI, PC2 echoes it back — ingest verifies the echo matches the existing Core state and logs it; a mismatch is logged as a warning, never applied);
+   - attach non-authoritative notes for review (`revision_notes`, `reason`, gate-sim decisions — surfaced to the reviewer in the Approvals UI as PC2 annotations).
+3. **Every transition to `revision_requested`, `rejected`, or `approved` is triggered only by an authenticated Core UI approval action** (Owner/manager in the Approvals surface, under existing auth + RLS). There is no code path from ingest to an approval transition.
+4. **PC2 `needs_revision`/`rejected`-like statuses are review inputs, not transitions.** When a callback reports `revision_required` / `stopped_rejected` (or any rejection-flavored status), Core treats it as non-authoritative callback metadata requiring human review: the reviewer sees PC2's recommendation and its notes, and may then — manually — apply `revision_requested`/`rejected` in the UI. If the reviewer does nothing, the request simply stays `pending`.
+5. **`failed_mock` never enters approval.** Any failure status ⇒ job `failed` + logs only; no item rows, no approval rows.
+6. **`partial_failure` ⇒ logs + partial output only.** Successful sub-outputs land as `generated` (+ `pending` approval); failed sub-outputs produce log entries; the job records a partial-failure note.
+7. **`approved` means human-approved in Core.** Only an authenticated Owner/manager action in the Approvals UI produces `approved`. PC2 approval-gate decisions are simulations/echoes — non-authoritative by contract.
+8. **`published` stays planning/blocked.** No V2-E sub-phase can produce `published`. `planned_publish`/`scheduled` remain calendar markers. Real publishing requires a future dedicated real-connector phase with written per-connector Owner sign-off (V2-F framework) — outside V2-E.
+
+> **Reading the V2-E1 §4 status table under these rules:** the `needs_revision`/`rejected`/`approved` rows of that table describe Core entity states **after an authenticated Core UI decision** (the "decision `…`" entries in its PC2-triple column, i.e. the E6 flow). They are NOT reachable by importing a PC2 callback that merely *reports* those statuses — such a callback lands per rules 1–4 above: entities stay `generated`/`pending`, the PC2 status is metadata.
 
 ---
 
@@ -129,8 +139,8 @@ Conventions: each test = (input artifact, action, expected per V2-E1 §4/§6). A
 | ID | Scenario | Input | Expected result |
 |---|---|---|---|
 | T1 | **Success / generated** | E1 `content_pack.requested` envelope → N11 run (approved-path sim `pending`) → preview with `mock_completed` + `pending_approval`, items in `output` | Ingest ACCEPTS; job `completed`; items `generated`; approval request `pending`; logs carry full correlation chain |
-| T2 | **needs_revision** | T1 preview, approval-gate sim `needs_revision` (`final_status: revision_required`, `revision_notes` set) | Ingest ACCEPTS; items `revision_requested`; approval `revision_requested`; revision notes surfaced; nothing auto-resubmitted |
-| T3 | **rejected** | T1 preview, gate sim `rejected` (`final_status: stopped_rejected`, `reason` set) | Ingest ACCEPTS; items `rejected`; approval `rejected` (terminal); reason logged |
+| T2 | **needs_revision (non-authoritative echo)** | T1 preview, approval-gate sim `needs_revision` (`final_status: revision_required`, `revision_notes` set) | Ingest ACCEPTS as **metadata only**: items land `generated`; approval request created/stays `pending`; **NO transition to `revision_requested`** — PC2's recommendation + `revision_notes` attached as non-authoritative review notes and logged, flagged for human review (§4.4). Separate manual step (not part of ingest): Owner/manager applies `revision_requested` in the Approvals UI, and THAT transition is verified as a Core-UI action |
+| T3 | **rejected (non-authoritative echo)** | T1 preview, gate sim `rejected` (`final_status: stopped_rejected`, `reason` set) | Ingest ACCEPTS as **metadata only**: items land `generated`; approval stays `pending`; **NO transition to `rejected`** — PC2 rejection + `reason` logged as callback metadata, flagged for human review (§4.4). Separate manual step: Owner/manager applies `rejected` in the Approvals UI; ingest itself never rejects |
 | T4 | **failed_mock** | Stub stopped (module_unavailable) OR `/run` 500 → N11 `final_status: failed_mock`/`blocked_module_unavailable` with `error_result` | Ingest ACCEPTS as failure: job `failed`; **zero item rows, zero approval rows**; error object + retry_summary logged; dead-letter listed if present |
 | T5 | **partial_failure** | Crafted preview: `mock_completed`, 3 items in `output`, `errors: ["item 4 failed …"]` | Ingest ACCEPTS partially: 3 items `generated` + `pending` approval; failure note logged; job carries partial-failure note |
 | T6 | **Duplicate callback / idempotency** | T1 preview imported twice (same `idempotency_key`) | Second import = idempotent NO-OP: no duplicate items/approvals/job transitions; dedupe hit logged (V4) |
