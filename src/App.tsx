@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   LayoutDashboard,
   Users,
@@ -17,9 +17,49 @@ import {
   Monitor,
   BookOpen,
   Store,
-  Eye
+  Eye,
+  LogOut,
+  Lock,
+  Zap,
+  ClipboardList,
+  Wand2,
+  CalendarDays,
+  ClipboardCheck,
+  UserCheck,
+  FolderOpen,
+  BarChart2,
+  Package,
+  Network,
+  Activity,
 } from 'lucide-react';
 import { sampleCampaigns, Campaign, CampaignBrief, CalendarItem, ChecklistItem } from './mockData';
+import { useAuth } from './lib/auth/AuthContext';
+import { ROLE_LABELS, ROLE_COLORS } from './lib/auth/permissions';
+import { isSupabaseConfigured, supabase } from './lib/supabaseClient';
+import { createPhase16aRepositories } from './lib/core/repositoryFactory';
+import { LocalStorageApprovalRepository, LocalStorageAssetRepository } from './lib/core/localStorageRepositories';
+import type { BriefUpdatePatch, GenerationDetailResult, ResolvingApprovalAction, ApprovalRepository, AssetRepository, AssetCreateInput, AssetUpdatePatch, AssetScopedParams } from './lib/core/coreRepository';
+import type { Client, Brand, Campaign as CoreCampaign, CampaignBrief as CoreCampaignBrief, PlanLengthDays, ContentPlanItem, ContentApprovalRequest, AssetItem } from './types/core';
+import LoginScreen from './components/auth/LoginScreen';
+import ClientsTab from './components/core/ClientsTab';
+import BrandsTab from './components/core/BrandsTab';
+import CampaignsTab from './components/core/CampaignsTab';
+import BriefIntakeTab from './components/core/BriefIntakeTab';
+import ContentGenerationTab from './components/core/ContentGenerationTab';
+import ContentCalendarTab from './components/core/ContentCalendarTab';
+import ApprovalsTab from './components/core/ApprovalsTab';
+import ClientViewTab from './components/core/ClientViewTab';
+import AssetLibraryTab from './components/core/AssetLibraryTab';
+import ReportsTab from './components/core/ReportsTab';
+import ExportPackTab from './components/core/ExportPackTab';
+import ConnectorRegistryTab from './components/core/ConnectorRegistryTab';
+import AutomationLogsTab from './components/core/AutomationLogsTab';
+import { loadCoreData, saveCoreData, loadGenerationData, saveGenerationData, loadApprovalData, saveApprovalData, loadAssetData, saveAssetData, canSubmitItem } from './lib/core/coreData';
+import { assetScopeIsSupabaseSafe, approvalScopeIsSupabaseSafe } from './lib/core/repoRouting';
+import type { AssetRouteIds, ApprovalRouteIds } from './lib/core/repoRouting';
+import type { CoreDataStore, GenerationDataStore, ApprovalDataStore, AssetDataStore, ClientFormData, BrandFormData, CampaignFormData, BriefFormData } from './lib/core/coreData';
+import { loadAutomationLogData, saveAutomationLogData } from './lib/core/automationLogs';
+import type { AutomationLogStore } from './lib/core/automationLogs';
 
 const manualExportBlocks = [
   {
@@ -167,6 +207,8 @@ Chiến dịch truyền thông tích hợp cho thương hiệu "Vị Cuốn", h�
 ];
 
 export default function App() {
+  const { user, loading: authLoading, isAuthenticated, signOut, mode } = useAuth();
+
   const [campaigns, setCampaigns] = useState<Campaign[]>(() => {
     try {
       const stored = localStorage.getItem('claude_marketing_team_campaigns_v3');
@@ -211,10 +253,471 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<string>('dashboard');
   const [outputSubTab, setOutputSubTab] = useState<string>('calendar');
   const [viewMode, setViewMode] = useState<'owner' | 'client'>('owner');
+
+  // Phase 4 — Core data (clients, brands, campaigns)
+  const [coreData, setCoreData] = useState<CoreDataStore>(() => loadCoreData());
+  const [coreNavFilter, setCoreNavFilter] = useState<{ clientId?: string; brandId?: string }>({});
+
+  // Phase 16A — Repository layer (Supabase when configured, localStorage otherwise)
+  const repos = useMemo(
+    () => createPhase16aRepositories(supabase, isSupabaseConfigured),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  );
+
+  // Phase 16C-2 — Always-available localStorage approval repo, used as the
+  // per-operation fallback when scope IDs are not valid UUIDs (local/demo data).
+  const localApprovals = useMemo(() => new LocalStorageApprovalRepository(), []);
+
+  // Phase 16D — Always-available localStorage asset repo, used as the
+  // per-operation fallback when scope IDs are not valid UUIDs (local/demo data).
+  const localAssets = useMemo(() => new LocalStorageAssetRepository(), []);
+
+  // Phase 16A — Non-blocking error state for Supabase data load failures
+  const [supabaseLoadError, setSupabaseLoadError] = useState<string | null>(null);
+
+  // Phase 16A — On mount: if Supabase is configured, fetch clients+brands and
+  // override the localStorage seed. Errors are non-fatal (localStorage fallback stays active).
+  useEffect(() => {
+    if (!isSupabaseConfigured) return;
+    let cancelled = false;
+    const load = async () => {
+      const clients = await repos.clients.list();
+      // Load brands scoped per client to prevent cross-client data leakage
+      const brandArrays = await Promise.all(clients.map(c => repos.brands.list(c.id)));
+      const brands = brandArrays.flat();
+      // Load campaigns scoped per client to prevent cross-client data leakage
+      const campaignArrays = await Promise.all(clients.map(c => repos.campaigns.list({ clientId: c.id })));
+      const loadedCampaigns = campaignArrays.flat();
+      // Load briefs scoped per campaign to prevent cross-tenant data leakage
+      const briefArrays = await Promise.all(
+        loadedCampaigns.map(c => repos.briefs.list({ clientId: c.client_id, brandId: c.brand_id, campaignId: c.id })),
+      );
+      const loadedBriefs = briefArrays.flat();
+      // Load generation jobs/items scoped per client/brand/campaign/brief —
+      // never by briefId/generationId alone (Phase 16C-1)
+      const generationArrays = await Promise.all(
+        loadedCampaigns.flatMap((c, idx) =>
+          briefArrays[idx].map(b =>
+            repos.generations.list({ clientId: c.client_id, brandId: c.brand_id, campaignId: c.id, briefId: b.id }),
+          ),
+        ),
+      );
+      const loadedGenerationJobs = generationArrays.flatMap(r => r.jobs);
+      const loadedContentItems = generationArrays.flatMap(r => r.items);
+      // Load approval requests/events/comments scoped per generation job —
+      // never by approvalId/generationId alone (Phase 16C-2)
+      const approvalArrays = await Promise.all(
+        loadedGenerationJobs
+          .filter(job => job.client_id && job.brand_id)
+          .map(job => repos.approvals.list({
+            clientId: job.client_id as string,
+            brandId: job.brand_id as string,
+            campaignId: job.campaign_id,
+            briefId: job.brief_id,
+            generationId: job.id,
+          })),
+      );
+      const loadedApprovalRequests = approvalArrays.flatMap(r => r.requests);
+      const loadedApprovalEvents = approvalArrays.flatMap(r => r.events);
+      const loadedApprovalComments = approvalArrays.flatMap(r => r.comments);
+      // Load assets/collections scoped per client+brand — never by assetId
+      // alone (Phase 16D). campaign/brief/generation/content-item scope is
+      // left unfiltered here to load every asset under each brand.
+      const assetArrays = await Promise.all(
+        brands.map(b => repos.assets.list({ clientId: b.client_id, brandId: b.id })),
+      );
+      const loadedAssets = assetArrays.flat();
+      const collectionArrays = await Promise.all(
+        brands.map(b => repos.assetCollections.list({ clientId: b.client_id, brandId: b.id })),
+      );
+      const loadedCollections = collectionArrays.flat();
+      if (cancelled) return;
+      setCoreData(prev => {
+        const next = { ...prev, clients, brands, campaigns: loadedCampaigns, briefs: loadedBriefs };
+        saveCoreData(next);
+        return next;
+      });
+      setGenData(() => {
+        const next = { generationJobs: loadedGenerationJobs, contentItems: loadedContentItems };
+        saveGenerationData(next);
+        return next;
+      });
+      setApprovalData(() => {
+        const next = {
+          approvalRequests: loadedApprovalRequests,
+          approvalEvents: loadedApprovalEvents,
+          approvalComments: loadedApprovalComments,
+        };
+        saveApprovalData(next);
+        return next;
+      });
+      setAssetData(() => {
+        const next: AssetDataStore = { assets: loadedAssets, collections: loadedCollections };
+        saveAssetData(next);
+        return next;
+      });
+    };
+    load().catch((err: unknown) => {
+      if (cancelled) return;
+      const msg = err instanceof Error ? err.message : String(err);
+      setSupabaseLoadError(`Supabase load failed (using local data): ${msg}`);
+    });
+    return () => { cancelled = true; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+
+  // Phase 16A — typed repo handlers: mutations go through repos, return DB rows with real IDs.
+  // Errors propagate to the calling tab so the user sees them in the form/action error display.
+
+  const handleClientCreate = async (data: ClientFormData): Promise<void> => {
+    const client: Client = await repos.clients.create(data);
+    setCoreData(prev => {
+      const next = { ...prev, clients: [client, ...prev.clients] };
+      saveCoreData(next);
+      return next;
+    });
+  };
+
+  const handleClientUpdate = async (id: string, patch: Partial<Client>): Promise<void> => {
+    const updated: Client = await repos.clients.update(id, patch);
+    setCoreData(prev => {
+      const next = { ...prev, clients: prev.clients.map(c => c.id === id ? updated : c) };
+      saveCoreData(next);
+      return next;
+    });
+  };
+
+  const handleBrandCreate = async (data: BrandFormData): Promise<void> => {
+    const brand: Brand = await repos.brands.create(data);
+    setCoreData(prev => {
+      const next = { ...prev, brands: [brand, ...prev.brands] };
+      saveCoreData(next);
+      return next;
+    });
+  };
+
+  // Phase 16B-1 — typed campaign repo handlers (clientId/brandId/campaignId scoped)
+  const handleCampaignCreate = async (data: CampaignFormData): Promise<void> => {
+    const campaign: CoreCampaign = await repos.campaigns.create(data);
+    setCoreData(prev => {
+      const next = { ...prev, campaigns: [campaign, ...prev.campaigns] };
+      saveCoreData(next);
+      return next;
+    });
+  };
+
+  const handleCampaignUpdate = async (campaign: CoreCampaign, patch: Partial<CoreCampaign>): Promise<void> => {
+    const updated: CoreCampaign = await repos.campaigns.update(
+      { clientId: campaign.client_id, brandId: campaign.brand_id, campaignId: campaign.id },
+      patch,
+    );
+    setCoreData(prev => {
+      const next = { ...prev, campaigns: prev.campaigns.map(c => c.id === updated.id ? updated : c) };
+      saveCoreData(next);
+      return next;
+    });
+  };
+
+  // Phase 16B-2 — typed brief repo handlers (clientId/brandId/campaignId scoped)
+  const handleBriefCreate = async (data: BriefFormData): Promise<CoreCampaignBrief> => {
+    const brief: CoreCampaignBrief = await repos.briefs.create(data);
+    setCoreData(prev => {
+      const next = { ...prev, briefs: [brief, ...prev.briefs] };
+      saveCoreData(next);
+      return next;
+    });
+    return brief;
+  };
+
+  const handleBriefUpdate = async (brief: CoreCampaignBrief, patch: BriefUpdatePatch): Promise<void> => {
+    const campaign = coreData.campaigns.find(c => c.id === brief.campaign_id);
+    if (!campaign) throw new Error(`Campaign ${brief.campaign_id} not found for brief ${brief.id}`);
+    const updated: CoreCampaignBrief = await repos.briefs.update(
+      { clientId: campaign.client_id, brandId: campaign.brand_id, campaignId: campaign.id, briefId: brief.id },
+      patch,
+    );
+    setCoreData(prev => {
+      const next = { ...prev, briefs: prev.briefs.map(b => b.id === updated.id ? updated : b) };
+      saveCoreData(next);
+      return next;
+    });
+  };
+
+  const handleCoreNavigate = (tab: string, filter?: { clientId?: string; brandId?: string }) => {
+    setActiveTab(tab);
+    setCoreNavFilter(filter ?? {});
+  };
+
+  // Phase 6 — Generation data (separate store to avoid cascade prop changes)
+  const [genData, setGenData] = useState<GenerationDataStore>(() => loadGenerationData());
+  const [genNavBriefId, setGenNavBriefId] = useState<string | undefined>(undefined);
+
+  const handleGenerationUpdate = (updated: GenerationDataStore) => {
+    setGenData(updated);
+    saveGenerationData(updated);
+  };
+
+  // Phase 16C-1 — typed generation repo handler, scoped by
+  // clientId/brandId/campaignId/briefId (never by generationId alone).
+  const handleGenerationCreate = async (
+    brief: CoreCampaignBrief,
+    planLengthDays: PlanLengthDays,
+  ): Promise<GenerationDetailResult> => {
+    const campaign = coreData.campaigns.find(c => c.id === brief.campaign_id);
+    if (!campaign) throw new Error(`Campaign ${brief.campaign_id} not found for brief ${brief.id}`);
+    return repos.generations.create({
+      brief,
+      clientId: campaign.client_id,
+      brandId: campaign.brand_id,
+      campaignId: campaign.id,
+      briefId: brief.id,
+      planLengthDays,
+      requestedBy: user?.role ?? null,
+    });
+  };
+
+  const handleNavigateToGenerate = (briefId: string) => {
+    setGenNavBriefId(briefId);
+    setActiveTab('content-gen');
+  };
+
+  // Phase 8 — Approval data (separate store)
+  const [approvalData, setApprovalData] = useState<ApprovalDataStore>(() => loadApprovalData());
+
+  const handleNavigateToApprovals = () => {
+    setActiveTab('approvals');
+  };
+
+  // Phase 10 — Asset Library data (separate store)
+  const [assetData, setAssetData] = useState<AssetDataStore>(() => loadAssetData());
+
+  // Phase 16D — Asset Library CRUD: per-operation repo selection. client_id/
+  // brand_id are required for Supabase routing (content_assets.client_id/
+  // brand_id are NOT NULL); campaign_id/brief_id/generation_job_id/
+  // content_item_id/asset_collection_id are optional — null or undefined skip
+  // the UUID check and only validated when present. Local-format ids
+  // (asset-*/ast-*/col-*/collection-*/asset-collection-*/campaign-*/brand-*/
+  // client-*/brief-*/generation-*/job-*/item-*/content-item-*) always fall
+  // back to localStorage.
+  //
+  // Codex Fix Round (2026-06-11): asset_collection_id / assetCollectionId is
+  // now part of the gate. content_assets.asset_collection_id is a UUID FK to
+  // content_asset_collections — a local collection id (col-*/collection-*/
+  // asset-collection-*) must never be sent there, so any operation touching
+  // such a collection id falls back to localStorage too.
+  //
+  // Phase 17: the gate predicate is extracted verbatim into
+  // repoRouting.ts (assetScopeIsSupabaseSafe) so it is unit-testable.
+  const assetRepoFor = (ids: AssetRouteIds): AssetRepository => {
+    if (isSupabaseConfigured && assetScopeIsSupabaseSafe(ids)) {
+      return repos.assets;
+    }
+    return localAssets;
+  };
+
+  // Phase 16D — Create an asset, scoped by the client/brand/campaign chosen in
+  // the form. The Asset Library UI does not expose brief/generation/
+  // content-item linkage, so new assets always have those set to null.
+  // asset_collection_id (input.data.asset_collection_id) is included in the
+  // routing check — a local collection id routes the create to localStorage
+  // even if client/brand are valid Supabase UUIDs.
+  const handleAssetCreate = async (input: AssetCreateInput): Promise<void> => {
+    const repo = assetRepoFor({
+      clientId: input.clientId,
+      brandId: input.brandId,
+      campaignId: input.campaignId,
+      briefId: input.briefId,
+      generationId: input.generationId,
+      contentItemId: input.contentItemId,
+      assetCollectionId: input.data.asset_collection_id,
+    });
+    const created = await repo.create(input);
+    setAssetData(prev => {
+      const next: AssetDataStore = { ...prev, assets: [created, ...prev.assets] };
+      saveAssetData(next);
+      return next;
+    });
+  };
+
+  // Phase 16D — Update an asset, scoped by its own full tenant chain (never by
+  // assetId alone). Tenant/audit/identity fields are stripped from the patch
+  // by the repository (sanitizeAssetPatch).
+  //
+  // Codex Fix Round (2026-06-11): scope.assetCollectionId is the asset's
+  // CURRENT collection (used to match the existing row); nextCollectionId is
+  // whichever collection id the operation will actually write (the patch's
+  // new value if it changes the collection, otherwise the current one).
+  //
+  // Codex Fix Round 2 (2026-06-11): both the CURRENT and NEXT collection ids
+  // must be gated. If the asset's current asset_collection_id is a local id
+  // (col-*/collection-*/asset-collection-*), the operation must stay on
+  // localStorage even when the patch changes the collection to null or a
+  // valid UUID — Supabase has no row to match by that local id. currentAssetCollectionId
+  // covers this; assetCollectionId (set to nextCollectionId) covers the
+  // write-side check as before.
+  const handleAssetEdit = async (asset: AssetItem, patch: AssetUpdatePatch): Promise<void> => {
+    const scope: AssetScopedParams = {
+      clientId: asset.client_id,
+      brandId: asset.brand_id,
+      campaignId: asset.campaign_id,
+      briefId: asset.brief_id,
+      generationId: asset.generation_job_id,
+      contentItemId: asset.content_item_id,
+      assetCollectionId: asset.asset_collection_id,
+      assetId: asset.id,
+    };
+    const nextCollectionId = patch.asset_collection_id !== undefined ? patch.asset_collection_id : asset.asset_collection_id;
+    const repo = assetRepoFor({ ...scope, assetCollectionId: nextCollectionId, currentAssetCollectionId: asset.asset_collection_id });
+    const updated = await repo.update(scope, patch);
+    setAssetData(prev => {
+      const next: AssetDataStore = { ...prev, assets: prev.assets.map(a => a.id === updated.id ? updated : a) };
+      saveAssetData(next);
+      return next;
+    });
+  };
+
+  // Phase 16D — Archive an asset (approval_status -> 'archived'), scoped by
+  // its own full tenant chain (never by assetId alone). Non-destructive — no
+  // hard delete (no DELETE policy on content_assets).
+  const handleAssetArchive = async (asset: AssetItem): Promise<void> => {
+    await handleAssetEdit(asset, { approval_status: 'archived' });
+  };
+
+  // Phase 14 — Automation Logs
+  const [logData, setLogData] = useState<AutomationLogStore>(() => loadAutomationLogData());
+
+  const handleLogUpdate = (data: AutomationLogStore) => {
+    setLogData(data);
+    saveAutomationLogData(data);
+  };
+
+  const actorLabel = user?.email ?? user?.role ?? 'System';
+
+  // Phase 16C-2 — Approval CRUD: per-operation repo selection. Falls back to
+  // localStorage whenever any ID *used by that operation* — tenant scope,
+  // approvalId, and/or contentItemId — is not a valid UUID (local/demo data),
+  // so local-format ids (approval-*/item-*/generation-*/job-*) are never sent
+  // into a Supabase UUID column, even if Supabase is configured.
+  //
+  // Phase 17: the gate predicate is extracted verbatim into
+  // repoRouting.ts (approvalScopeIsSupabaseSafe) so it is unit-testable.
+  const approvalRepoFor = (ids: ApprovalRouteIds): ApprovalRepository => {
+    if (isSupabaseConfigured && approvalScopeIsSupabaseSafe(ids)) {
+      return repos.approvals;
+    }
+    return localApprovals;
+  };
+
+  // Phase 16C-2 — Submit a content item for approval, scoped by its full
+  // tenant chain (clientId/brandId/campaignId/briefId/generationId).
+  const handleApprovalSubmit = async (item: ContentPlanItem): Promise<void> => {
+    const scope = {
+      clientId: item.client_id,
+      brandId: item.brand_id,
+      campaignId: item.campaign_id,
+      briefId: item.brief_id,
+      generationId: item.generation_job_id,
+      contentItemId: item.id,
+    };
+    if (!scope.clientId || !scope.brandId) {
+      throw new Error(`Content item ${item.id} is missing client/brand scope`);
+    }
+    const repo = approvalRepoFor(scope);
+    const result = await repo.create({
+      contentItem: item,
+      clientId: scope.clientId,
+      brandId: scope.brandId,
+      campaignId: scope.campaignId,
+      briefId: scope.briefId,
+      generationId: scope.generationId,
+      actorLabel,
+    });
+    setApprovalData(prev => {
+      const next: ApprovalDataStore = {
+        approvalRequests: [result.request, ...prev.approvalRequests],
+        approvalEvents: [result.event, ...prev.approvalEvents],
+        approvalComments: prev.approvalComments,
+      };
+      saveApprovalData(next);
+      return next;
+    });
+    setGenData(prev => {
+      const next: GenerationDataStore = {
+        ...prev,
+        contentItems: prev.contentItems.map(i => i.id === result.updatedItem.id ? result.updatedItem : i),
+      };
+      saveGenerationData(next);
+      return next;
+    });
+  };
+
+  // Phase 16C-2 — Approve/reject/request revision/cancel an approval request,
+  // scoped by its full tenant chain (never by approvalId alone).
+  const handleApprovalAction = async (
+    request: ContentApprovalRequest,
+    action: ResolvingApprovalAction,
+    comment?: string,
+  ): Promise<void> => {
+    const { client_id: clientId, brand_id: brandId, campaign_id: campaignId, brief_id: briefId, generation_job_id: generationId, content_item_id: contentItemId } = request;
+    if (!clientId || !brandId || !briefId || !generationId) {
+      throw new Error(`Approval request ${request.id} is missing tenant scope`);
+    }
+    const scope = { clientId, brandId, campaignId, briefId, generationId, approvalId: request.id, contentItemId };
+    const repo = approvalRepoFor(scope);
+    const result = await repo.executeAction(scope, action, actorLabel, comment);
+    setApprovalData(prev => {
+      const next: ApprovalDataStore = {
+        approvalRequests: prev.approvalRequests.map(r => r.id === result.request.id ? result.request : r),
+        approvalEvents: [result.event, ...prev.approvalEvents],
+        approvalComments: prev.approvalComments,
+      };
+      saveApprovalData(next);
+      return next;
+    });
+    setGenData(prev => {
+      const next: GenerationDataStore = {
+        ...prev,
+        contentItems: prev.contentItems.map(i => i.id === result.updatedItem.id ? result.updatedItem : i),
+      };
+      saveGenerationData(next);
+      return next;
+    });
+  };
+
+  // Phase 16C-2 — Add a comment to an approval request, scoped by its full
+  // tenant chain (never by approvalId alone).
+  const handleApprovalComment = async (
+    request: ContentApprovalRequest,
+    commentText: string,
+    isInternal = true,
+  ): Promise<void> => {
+    const { client_id: clientId, brand_id: brandId, campaign_id: campaignId, brief_id: briefId, generation_job_id: generationId, content_item_id: contentItemId } = request;
+    if (!clientId || !brandId || !briefId || !generationId) {
+      throw new Error(`Approval request ${request.id} is missing tenant scope`);
+    }
+    const scope = { clientId, brandId, campaignId, briefId, generationId, approvalId: request.id, contentItemId };
+    const repo = approvalRepoFor(scope);
+    const result = await repo.addComment(scope, actorLabel, commentText, isInternal);
+    setApprovalData(prev => {
+      const next: ApprovalDataStore = {
+        ...prev,
+        approvalEvents: [result.event, ...prev.approvalEvents],
+        approvalComments: [result.comment, ...prev.approvalComments],
+      };
+      saveApprovalData(next);
+      return next;
+    });
+  };
+
+  const submittableItemIds = new Set(
+    genData.contentItems.filter(i => canSubmitItem(approvalData, i)).map(i => i.id)
+  );
   const handleViewModeSwitch = (mode: 'owner' | 'client') => {
     setViewMode(mode);
     if (mode === 'client') {
-      const ownerOnlyTabs = ['new-campaign', 'team-board', 'manual-export', 'client-demo'];
+      const ownerOnlyTabs = ['new-campaign', 'team-board', 'manual-export', 'client-demo', 'automation-logs'];
       if (ownerOnlyTabs.includes(activeTab)) setActiveTab('dashboard');
     }
   };
@@ -478,23 +981,74 @@ export default function App() {
     }));
   };
 
+  // Auth gate — must be after all hooks
+  if (authLoading) {
+    return (
+      <div style={{ minHeight: '100vh', background: 'transparent', display: 'flex', flexDirection: 'column', gap: '14px', alignItems: 'center', justifyContent: 'center' }}>
+        <div className="spinner" />
+        <div style={{ color: '#6b7280', fontSize: '0.875rem' }}>Loading The Core Agency…</div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <LoginScreen />;
+  }
+
   return (
     <div className="app-container">
       {/* Header section */}
       <header className="app-header">
         <div className="logo-section">
-          <div className="logo-glow"></div>
+          <img src="/brand/core-icon.png" alt="The Core Agency" className="brand-mark" width={42} height={42} />
           <div>
-            <h1 style={{ fontSize: '1.5rem', fontWeight: 700, background: 'linear-gradient(135deg, #fff, #a1a1aa)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+            <h1 style={{ fontSize: '1.5rem', fontWeight: 700, letterSpacing: '0.02em', background: 'linear-gradient(135deg, #fff 40%, #fdba74)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
               THE CORE AGENCY
             </h1>
             <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>AI Marketing Team Workspace</p>
           </div>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-end' }}>
-          <span className="badge badge-indigo" style={{ background: 'rgba(99, 102, 241, 0.15)', color: '#818cf8', borderColor: 'rgba(99, 102, 241, 0.3)', border: '1px solid' }}>
-            Real Operations MVP — Phase 1
-          </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span className="badge badge-brand" style={{ background: 'rgba(244, 122, 31, 0.15)', color: '#fb923c', borderColor: 'rgba(244, 122, 31, 0.3)', border: '1px solid' }}>
+              Core MVP — Internal Demo
+            </span>
+            <span
+              title={isSupabaseConfigured
+                ? 'Connected to Supabase. Data persists to your Supabase project (local-format records stay in this browser).'
+                : 'Supabase is not configured. All data stays in this browser (localStorage).'}
+              style={{
+                fontSize: '0.68rem', fontWeight: 600, borderRadius: '5px', padding: '2px 8px', cursor: 'default',
+                color: isSupabaseConfigured ? '#34d399' : '#f59e0b',
+                background: isSupabaseConfigured ? 'rgba(16,185,129,0.12)' : 'rgba(245,158,11,0.12)',
+                border: isSupabaseConfigured ? '1px solid rgba(16,185,129,0.3)' : '1px solid rgba(245,158,11,0.3)',
+              }}
+            >
+              {isSupabaseConfigured ? 'Supabase Data' : 'Local Data Only'}
+            </span>
+            {/* User status */}
+            {user && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '5px 10px' }}>
+                <Lock size={11} style={{ color: 'var(--text-muted)' }} />
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', maxWidth: '140px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {user.email}
+                </span>
+                <span style={{ fontSize: '0.68rem', fontWeight: 600, color: ROLE_COLORS[user.role] ?? '#fb923c', background: `${ROLE_COLORS[user.role] ?? '#fb923c'}18`, borderRadius: '4px', padding: '1px 6px' }}>
+                  {ROLE_LABELS[user.role] ?? user.role}
+                </span>
+                {mode === 'demo' && (
+                  <span style={{ fontSize: '0.65rem', color: '#f59e0b', background: 'rgba(245,158,11,0.12)', borderRadius: '4px', padding: '1px 5px' }}>DEMO</span>
+                )}
+                <button
+                  onClick={() => signOut()}
+                  title="Sign out"
+                  style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', padding: '2px' }}
+                >
+                  <LogOut size={13} />
+                </button>
+              </div>
+            )}
+          </div>
           <div style={{ display: 'flex', gap: '3px', background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '3px' }}>
             <button
               onClick={() => handleViewModeSwitch('owner')}
@@ -502,8 +1056,8 @@ export default function App() {
                 display: 'flex', alignItems: 'center', gap: '5px',
                 padding: '5px 14px', borderRadius: '6px', fontSize: '0.78rem', fontWeight: 600,
                 border: 'none', cursor: 'pointer',
-                background: viewMode === 'owner' ? 'rgba(99,102,241,0.25)' : 'transparent',
-                color: viewMode === 'owner' ? '#818cf8' : 'var(--text-muted)',
+                background: viewMode === 'owner' ? 'rgba(244, 122, 31,0.25)' : 'transparent',
+                color: viewMode === 'owner' ? '#fb923c' : 'var(--text-muted)',
                 transition: 'all 0.15s',
               }}
             >
@@ -535,15 +1089,139 @@ export default function App() {
             
             <button
               className={`btn btn-secondary ${activeTab === 'dashboard' ? 'active' : ''}`}
-              style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'dashboard' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'dashboard' ? 'rgba(99, 102, 241, 0.1)' : '' }}
+              style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'dashboard' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'dashboard' ? 'rgba(244, 122, 31, 0.1)' : '' }}
               onClick={() => setActiveTab('dashboard')}
             >
               <LayoutDashboard size={18} /> Dashboard
             </button>
 
+            {/* ── Core Management ── */}
+            <div style={{ margin: '4px 0 2px', padding: '0 4px', fontSize: '0.68rem', fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Core</div>
+
+            <button
+              className={`btn btn-secondary ${activeTab === 'clients' ? 'active' : ''}`}
+              style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'clients' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'clients' ? 'rgba(244, 122, 31, 0.1)' : '' }}
+              onClick={() => setActiveTab('clients')}
+            >
+              <Users size={18} /> Clients
+            </button>
+
+            <button
+              className={`btn btn-secondary ${activeTab === 'brands' ? 'active' : ''}`}
+              style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'brands' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'brands' ? 'rgba(244, 122, 31, 0.1)' : '' }}
+              onClick={() => setActiveTab('brands')}
+            >
+              <Store size={18} /> Brands
+            </button>
+
+            <button
+              className={`btn btn-secondary ${activeTab === 'campaigns' ? 'active' : ''}`}
+              style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'campaigns' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'campaigns' ? 'rgba(244, 122, 31, 0.1)' : '' }}
+              onClick={() => setActiveTab('campaigns')}
+            >
+              <Zap size={18} /> Campaigns
+            </button>
+
+            <button
+              className={`btn btn-secondary ${activeTab === 'brief-intake' ? 'active' : ''}`}
+              style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'brief-intake' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'brief-intake' ? 'rgba(244, 122, 31, 0.1)' : '' }}
+              onClick={() => setActiveTab('brief-intake')}
+            >
+              <ClipboardList size={18} /> Brief Intake
+            </button>
+
+            <button
+              className={`btn btn-secondary ${activeTab === 'content-gen' ? 'active' : ''}`}
+              style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'content-gen' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'content-gen' ? 'rgba(244, 122, 31, 0.1)' : '' }}
+              onClick={() => { setGenNavBriefId(undefined); setActiveTab('content-gen'); }}
+            >
+              <Wand2 size={18} /> Content Generation
+            </button>
+
+            <button
+              className={`btn btn-secondary ${activeTab === 'content-calendar' ? 'active' : ''}`}
+              style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'content-calendar' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'content-calendar' ? 'rgba(244, 122, 31, 0.1)' : '' }}
+              onClick={() => setActiveTab('content-calendar')}
+            >
+              <CalendarDays size={18} /> Content Calendar
+            </button>
+
+            <button
+              className={`btn btn-secondary ${activeTab === 'approvals' ? 'active' : ''}`}
+              style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'approvals' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'approvals' ? 'rgba(244, 122, 31, 0.1)' : '', position: 'relative' }}
+              onClick={() => setActiveTab('approvals')}
+            >
+              <ClipboardCheck size={18} /> Approvals
+              {approvalData.approvalRequests.filter(r => r.status === 'submitted').length > 0 && (
+                <span style={{ marginLeft: 'auto', fontSize: '0.65rem', fontWeight: 700, color: '#60a5fa', background: 'rgba(96,165,250,0.2)', borderRadius: '10px', padding: '1px 6px' }}>
+                  {approvalData.approvalRequests.filter(r => r.status === 'submitted').length}
+                </span>
+              )}
+            </button>
+
+            <button
+              className={`btn btn-secondary ${activeTab === 'reports' ? 'active' : ''}`}
+              style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'reports' ? '1px solid rgba(251, 146, 60,0.5)' : '', background: activeTab === 'reports' ? 'rgba(244, 122, 31,0.1)' : '' }}
+              onClick={() => setActiveTab('reports')}
+            >
+              <BarChart2 size={18} /> Reports
+            </button>
+
+            <button
+              className={`btn btn-secondary ${activeTab === 'export-pack' ? 'active' : ''}`}
+              style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'export-pack' ? '1px solid rgba(251, 146, 60,0.5)' : '', background: activeTab === 'export-pack' ? 'rgba(244, 122, 31,0.1)' : '' }}
+              onClick={() => setActiveTab('export-pack')}
+            >
+              <Package size={18} /> Export Pack
+            </button>
+
+            <button
+              className={`btn btn-secondary ${activeTab === 'connector-registry' ? 'active' : ''}`}
+              style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'connector-registry' ? '1px solid rgba(251, 146, 60,0.5)' : '', background: activeTab === 'connector-registry' ? 'rgba(244, 122, 31,0.1)' : '' }}
+              onClick={() => setActiveTab('connector-registry')}
+            >
+              <Network size={18} /> Connector Registry
+            </button>
+
+            {viewMode === 'owner' && (user?.role === 'owner' || user?.role === 'manager') && (
+              <button
+                className={`btn btn-secondary ${activeTab === 'automation-logs' ? 'active' : ''}`}
+                style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'automation-logs' ? '1px solid rgba(251, 146, 60,0.5)' : '', background: activeTab === 'automation-logs' ? 'rgba(244, 122, 31,0.1)' : '', position: 'relative' }}
+                onClick={() => setActiveTab('automation-logs')}
+              >
+                <Activity size={18} /> Automation Logs
+                {logData.logs.filter(l => l.status === 'recorded' && l.severity === 'error').length > 0 && (
+                  <span style={{ marginLeft: 'auto', fontSize: '0.65rem', fontWeight: 700, color: '#f87171', background: 'rgba(248,113,113,0.2)', borderRadius: '10px', padding: '1px 6px' }}>
+                    {logData.logs.filter(l => l.status === 'recorded' && l.severity === 'error').length}
+                  </span>
+                )}
+              </button>
+            )}
+
+            {/* ── Client ── */}
+            <div style={{ margin: '4px 0 2px', padding: '0 4px', fontSize: '0.68rem', fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Client</div>
+
+            <button
+              className={`btn btn-secondary ${activeTab === 'client-view' ? 'active' : ''}`}
+              style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'client-view' ? '1px solid rgba(52,211,153,0.5)' : '', background: activeTab === 'client-view' ? 'rgba(16,185,129,0.1)' : '' }}
+              onClick={() => setActiveTab('client-view')}
+            >
+              <UserCheck size={18} /> Client Portal
+            </button>
+
+            <button
+              className={`btn btn-secondary ${activeTab === 'asset-library' ? 'active' : ''}`}
+              style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'asset-library' ? '1px solid rgba(245,158,11,0.5)' : '', background: activeTab === 'asset-library' ? 'rgba(245,158,11,0.08)' : '' }}
+              onClick={() => setActiveTab('asset-library')}
+            >
+              <FolderOpen size={18} /> Asset Library
+            </button>
+
+            <div style={{ margin: '4px 0 2px', padding: '0 4px', fontSize: '0.68rem', fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Workspace</div>
+
             <button
               className={`btn btn-secondary ${activeTab === 'brand-gallery' ? 'active' : ''}`}
-              style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'brand-gallery' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'brand-gallery' ? 'rgba(99, 102, 241, 0.1)' : '' }}
+              style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'brand-gallery' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'brand-gallery' ? 'rgba(244, 122, 31, 0.1)' : '' }}
               onClick={() => setActiveTab('brand-gallery')}
             >
               <Store size={18} /> Brand Workspace
@@ -552,7 +1230,7 @@ export default function App() {
             {viewMode === 'owner' && (
               <button
                 className={`btn btn-secondary ${activeTab === 'new-campaign' ? 'active' : ''}`}
-                style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'new-campaign' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'new-campaign' ? 'rgba(99, 102, 241, 0.1)' : '' }}
+                style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'new-campaign' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'new-campaign' ? 'rgba(244, 122, 31, 0.1)' : '' }}
                 onClick={() => setActiveTab('new-campaign')}
               >
                 <Plus size={18} /> New Campaign Brief
@@ -562,7 +1240,7 @@ export default function App() {
             {viewMode === 'owner' && (
               <button
                 className={`btn btn-secondary ${activeTab === 'team-board' ? 'active' : ''}`}
-                style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'team-board' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'team-board' ? 'rgba(99, 102, 241, 0.1)' : '' }}
+                style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'team-board' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'team-board' ? 'rgba(244, 122, 31, 0.1)' : '' }}
                 onClick={() => setActiveTab('team-board')}
               >
                 <Users size={18} /> AI Team Board
@@ -571,7 +1249,7 @@ export default function App() {
 
             <button 
               className={`btn btn-secondary ${activeTab === 'outputs' ? 'active' : ''}`} 
-              style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'outputs' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'outputs' ? 'rgba(99, 102, 241, 0.1)' : '' }}
+              style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'outputs' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'outputs' ? 'rgba(244, 122, 31, 0.1)' : '' }}
               onClick={() => setActiveTab('outputs')}
             >
               <Layers size={18} /> Campaign Outputs
@@ -579,7 +1257,7 @@ export default function App() {
 
             <button 
               className={`btn btn-secondary ${activeTab === 'approval' ? 'active' : ''}`} 
-              style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'approval' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'approval' ? 'rgba(99, 102, 241, 0.1)' : '' }}
+              style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'approval' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'approval' ? 'rgba(244, 122, 31, 0.1)' : '' }}
               onClick={() => setActiveTab('approval')}
             >
               <CheckSquare size={18} /> Approval Checklist
@@ -587,7 +1265,7 @@ export default function App() {
 
             <button 
               className={`btn btn-secondary ${activeTab === 'demo-pack' ? 'active' : ''}`} 
-              style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'demo-pack' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'demo-pack' ? 'rgba(99, 102, 241, 0.1)' : '' }}
+              style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'demo-pack' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'demo-pack' ? 'rgba(244, 122, 31, 0.1)' : '' }}
               onClick={() => setActiveTab('demo-pack')}
             >
               <FileText size={18} /> Client Presentation Pack
@@ -596,7 +1274,7 @@ export default function App() {
             {viewMode === 'owner' && (
               <button
                 className={`btn btn-secondary ${activeTab === 'client-demo' ? 'active' : ''}`}
-                style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'client-demo' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'client-demo' ? 'rgba(99, 102, 241, 0.1)' : '' }}
+                style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'client-demo' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'client-demo' ? 'rgba(244, 122, 31, 0.1)' : '' }}
                 onClick={() => setActiveTab('client-demo')}
               >
                 <Monitor size={18} /> Client Workspace View
@@ -606,7 +1284,7 @@ export default function App() {
             {viewMode === 'owner' && (
               <button
                 className={`btn btn-secondary ${activeTab === 'manual-export' ? 'active' : ''}`}
-                style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'manual-export' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'manual-export' ? 'rgba(99, 102, 241, 0.1)' : '' }}
+                style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'manual-export' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'manual-export' ? 'rgba(244, 122, 31, 0.1)' : '' }}
                 onClick={() => setActiveTab('manual-export')}
               >
                 <Copy size={18} /> Manual Export Pack
@@ -615,7 +1293,7 @@ export default function App() {
 
             <button
               className={`btn btn-secondary ${activeTab === 'presentation-export' ? 'active' : ''}`}
-              style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'presentation-export' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'presentation-export' ? 'rgba(99, 102, 241, 0.1)' : '' }}
+              style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'presentation-export' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'presentation-export' ? 'rgba(244, 122, 31, 0.1)' : '' }}
               onClick={() => setActiveTab('presentation-export')}
             >
               <BookOpen size={18} /> Presentation & Export
@@ -649,7 +1327,6 @@ export default function App() {
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Real Message:</span> <span style={{ color: 'var(--accent-rose)', fontWeight: 'bold' }}>NO</span></div>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Real Connectors:</span> <span style={{ color: 'var(--accent-rose)', fontWeight: 'bold' }}>NO</span></div>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Secrets Added:</span> <span style={{ color: 'var(--accent-rose)', fontWeight: 'bold' }}>NO</span></div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>FnB OS V1:</span> <span style={{ color: 'var(--accent-rose)', fontWeight: 'bold' }}>NO</span></div>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Sample Data Only:</span> <span style={{ color: 'var(--accent-emerald)', fontWeight: 'bold' }}>YES</span></div>
                 </div>
               </>
@@ -670,7 +1347,7 @@ export default function App() {
         </aside>
 
         {/* Content Area */}
-        <main style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+        <main style={{ display: 'flex', flexDirection: 'column', gap: '24px', minWidth: 0, maxWidth: '100%' }}>
           
           {/* Simulation Loading overlay overlay */}
           {isSimulating && (
@@ -690,19 +1367,223 @@ export default function App() {
             </div>
           )}
 
+          {/* Phase 16A — Supabase load error banner (non-blocking, dismissible) */}
+          {supabaseLoadError && (
+            <div style={{ margin: '0 0 12px', padding: '10px 14px', background: 'rgba(251,146,60,0.1)', border: '1px solid rgba(251,146,60,0.4)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
+              <span style={{ fontSize: '0.78rem', color: '#fb923c' }}>⚠ {supabaseLoadError}</span>
+              <button onClick={() => setSupabaseLoadError(null)} style={{ background: 'none', border: 'none', color: '#fb923c', cursor: 'pointer', fontSize: '0.85rem', padding: '0 4px' }}>✕</button>
+            </div>
+          )}
+
           {!isSimulating && (
             <>
+              {/* ── Phase 4: Clients Tab ── */}
+              {activeTab === 'clients' && (
+                <ClientsTab
+                  clients={coreData.clients}
+                  brands={coreData.brands}
+                  campaigns={coreData.campaigns}
+                  onClientCreate={handleClientCreate}
+                  onClientUpdate={handleClientUpdate}
+                  userRole={user?.role ?? null}
+                  isSupabaseConfigured={isSupabaseConfigured}
+                  onNavigate={handleCoreNavigate}
+                />
+              )}
+
+              {/* ── Phase 4: Brands Tab ── */}
+              {activeTab === 'brands' && (
+                <BrandsTab
+                  clients={coreData.clients}
+                  brands={coreData.brands}
+                  campaigns={coreData.campaigns}
+                  onBrandCreate={handleBrandCreate}
+                  userRole={user?.role ?? null}
+                  isSupabaseConfigured={isSupabaseConfigured}
+                  initialFilterClientId={coreNavFilter.clientId}
+                  onNavigate={handleCoreNavigate}
+                />
+              )}
+
+              {/* ── Phase 4: Campaigns Tab ── */}
+              {activeTab === 'campaigns' && (
+                <CampaignsTab
+                  clients={coreData.clients}
+                  brands={coreData.brands}
+                  campaigns={coreData.campaigns}
+                  onCampaignCreate={handleCampaignCreate}
+                  onCampaignUpdate={handleCampaignUpdate}
+                  userRole={user?.role ?? null}
+                  isSupabaseConfigured={isSupabaseConfigured}
+                  initialFilterClientId={coreNavFilter.clientId}
+                  initialFilterBrandId={coreNavFilter.brandId}
+                />
+              )}
+
+              {/* ── Phase 5: Brief Intake Tab ── */}
+              {activeTab === 'brief-intake' && (
+                <BriefIntakeTab
+                  clients={coreData.clients}
+                  brands={coreData.brands}
+                  campaigns={coreData.campaigns}
+                  briefs={coreData.briefs}
+                  onBriefCreate={handleBriefCreate}
+                  onBriefUpdate={handleBriefUpdate}
+                  userRole={user?.role ?? null}
+                  isSupabaseConfigured={isSupabaseConfigured}
+                  onNavigateToGenerate={handleNavigateToGenerate}
+                />
+              )}
+
+              {/* ── Phase 6: Content Generation Tab ── */}
+              {activeTab === 'content-gen' && (
+                <ContentGenerationTab
+                  clients={coreData.clients}
+                  brands={coreData.brands}
+                  campaigns={coreData.campaigns}
+                  briefs={coreData.briefs}
+                  generationJobs={genData.generationJobs}
+                  contentItems={genData.contentItems}
+                  onUpdate={handleGenerationUpdate}
+                  onGenerate={handleGenerationCreate}
+                  userRole={user?.role ?? null}
+                  isSupabaseConfigured={isSupabaseConfigured}
+                  initialBriefId={genNavBriefId}
+                  onNavigateToApprovals={handleNavigateToApprovals}
+                  submittableItemIds={submittableItemIds}
+                />
+              )}
+
+              {/* ── Phase 7: Content Calendar Tab ── */}
+              {activeTab === 'content-calendar' && (
+                <ContentCalendarTab
+                  clients={coreData.clients}
+                  brands={coreData.brands}
+                  campaigns={coreData.campaigns}
+                  briefs={coreData.briefs}
+                  generationJobs={genData.generationJobs}
+                  contentItems={genData.contentItems}
+                  onUpdate={handleGenerationUpdate}
+                  userRole={user?.role ?? null}
+                  isSupabaseConfigured={isSupabaseConfigured}
+                  approvalRequests={approvalData.approvalRequests}
+                  onNavigateToApprovals={handleNavigateToApprovals}
+                />
+              )}
+
+              {/* ── Phase 8: Approvals Tab ── */}
+              {activeTab === 'approvals' && (
+                <ApprovalsTab
+                  clients={coreData.clients}
+                  brands={coreData.brands}
+                  campaigns={coreData.campaigns}
+                  contentItems={genData.contentItems}
+                  approvalData={approvalData}
+                  onSubmit={handleApprovalSubmit}
+                  onAction={handleApprovalAction}
+                  onComment={handleApprovalComment}
+                  userRole={user?.role ?? null}
+                  isSupabaseConfigured={isSupabaseConfigured}
+                />
+              )}
+
+              {/* ── Phase 9: Client Portal Tab ── */}
+              {activeTab === 'client-view' && (
+                <ClientViewTab
+                  clients={coreData.clients}
+                  brands={coreData.brands}
+                  campaigns={coreData.campaigns}
+                  briefs={coreData.briefs}
+                  contentItems={genData.contentItems}
+                  approvalData={approvalData}
+                  onComment={handleApprovalComment}
+                  userRole={user?.role ?? null}
+                  isSupabaseConfigured={isSupabaseConfigured}
+                />
+              )}
+
+              {/* ── Phase 10: Asset Library Tab ── */}
+              {activeTab === 'asset-library' && (
+                <AssetLibraryTab
+                  clients={coreData.clients}
+                  brands={coreData.brands}
+                  campaigns={coreData.campaigns}
+                  assetData={assetData}
+                  onAssetCreate={handleAssetCreate}
+                  onAssetEdit={handleAssetEdit}
+                  onAssetArchive={handleAssetArchive}
+                  userRole={user?.role ?? null}
+                  actorLabel={actorLabel}
+                  isSupabaseConfigured={isSupabaseConfigured}
+                />
+              )}
+
+              {/* ── Phase 11: Reports Tab ── */}
+              {activeTab === 'reports' && (
+                <ReportsTab
+                  clients={coreData.clients}
+                  brands={coreData.brands}
+                  campaigns={coreData.campaigns}
+                  briefs={coreData.briefs}
+                  genData={genData}
+                  approvalData={approvalData}
+                  assetData={assetData}
+                  userRole={user?.role ?? null}
+                  actorLabel={actorLabel}
+                  isSupabaseConfigured={isSupabaseConfigured}
+                />
+              )}
+
+              {/* ── Phase 12: Export Pack Tab ── */}
+              {activeTab === 'export-pack' && (
+                <ExportPackTab
+                  clients={coreData.clients}
+                  brands={coreData.brands}
+                  campaigns={coreData.campaigns}
+                  briefs={coreData.briefs}
+                  genData={genData}
+                  approvalData={approvalData}
+                  assetData={assetData}
+                  userRole={user?.role ?? null}
+                  actorLabel={actorLabel}
+                  isSupabaseConfigured={isSupabaseConfigured}
+                />
+              )}
+
+              {/* ── Phase 13: Connector Registry Tab ── */}
+              {activeTab === 'connector-registry' && (
+                <ConnectorRegistryTab
+                  clients={coreData.clients}
+                  brands={coreData.brands}
+                  campaigns={coreData.campaigns}
+                  userRole={user?.role ?? null}
+                  actorLabel={actorLabel}
+                  isSupabaseConfigured={isSupabaseConfigured}
+                />
+              )}
+
+              {/* ── Phase 14: Automation Logs Tab ── */}
+              {activeTab === 'automation-logs' && (
+                <AutomationLogsTab
+                  logData={logData}
+                  onLogUpdate={handleLogUpdate}
+                  userRole={user?.role ?? null}
+                  actorLabel={actorLabel}
+                  isSupabaseConfigured={isSupabaseConfigured}
+                />
+              )}
+
               {/* 1. DASHBOARD TAB */}
               {activeTab === 'dashboard' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
 
                   {/* ── View Mode Context Card — Phase H.7 ── */}
                   {viewMode === 'owner' ? (
-                    <div style={{ padding: '14px 18px', background: 'rgba(99,102,241,0.06)', border: '1px solid rgba(99,102,241,0.25)', borderRadius: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ padding: '14px 18px', background: 'rgba(244, 122, 31,0.06)', border: '1px solid rgba(244, 122, 31,0.25)', borderRadius: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <span style={{ fontSize: '1.1rem' }}>🔧</span>
                         <div>
-                          <span style={{ fontSize: '0.88rem', fontWeight: 700, color: '#818cf8' }}>Owner View — Internal Workspace</span>
+                          <span style={{ fontSize: '0.88rem', fontWeight: 700, color: '#fb923c' }}>Owner View — Internal Workspace</span>
                           <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: '2px 0 0' }}>Manage brands, review AI outputs, run approval, configure campaigns. Switch to Client View before presenting.</p>
                         </div>
                       </div>
@@ -719,7 +1600,7 @@ export default function App() {
                           <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: '2px 0 0' }}>Present campaign plan and outputs to your client. Internal tools hidden. Sample data — approval required before export.</p>
                         </div>
                       </div>
-                      <button onClick={() => handleViewModeSwitch('owner')} style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '5px 12px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 600, border: '1px solid rgba(99,102,241,0.3)', cursor: 'pointer', background: 'rgba(99,102,241,0.08)', color: '#818cf8' }}>
+                      <button onClick={() => handleViewModeSwitch('owner')} style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '5px 12px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 600, border: '1px solid rgba(244, 122, 31,0.3)', cursor: 'pointer', background: 'rgba(244, 122, 31,0.08)', color: '#fb923c' }}>
                         🔧 Back to Owner View
                       </button>
                     </div>
@@ -737,7 +1618,7 @@ export default function App() {
                         </p>
                       </div>
                       <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                        <span className="badge badge-indigo" style={{ fontSize: '0.68rem', background: 'rgba(99,102,241,0.12)', color: '#818cf8', border: '1px solid rgba(99,102,241,0.3)' }}>
+                        <span className="badge badge-brand" style={{ fontSize: '0.68rem', background: 'rgba(244, 122, 31,0.12)', color: '#fb923c', border: '1px solid rgba(244, 122, 31,0.3)' }}>
                           {campaigns.length} Brand{campaigns.length !== 1 ? 's' : ''}
                         </span>
                         <span className="badge badge-emerald" style={{ fontSize: '0.68rem', background: 'rgba(16,185,129,0.1)', color: '#34d399', border: '1px solid rgba(16,185,129,0.25)' }}>
@@ -753,8 +1634,8 @@ export default function App() {
                             key={c.id}
                             onClick={() => setActiveCampaignId(c.id)}
                             style={{
-                              background: isActive ? 'rgba(99,102,241,0.1)' : 'rgba(255,255,255,0.02)',
-                              border: `1px solid ${isActive ? 'rgba(99,102,241,0.5)' : 'var(--border-color)'}`,
+                              background: isActive ? 'rgba(244, 122, 31,0.1)' : 'rgba(255,255,255,0.02)',
+                              border: `1px solid ${isActive ? 'rgba(244, 122, 31,0.5)' : 'var(--border-color)'}`,
                               borderRadius: '10px',
                               padding: '12px 14px',
                               textAlign: 'left',
@@ -764,15 +1645,15 @@ export default function App() {
                               gap: '6px',
                               transition: 'all 0.2s',
                             }}
-                            onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = 'rgba(99,102,241,0.06)'; }}
+                            onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = 'rgba(244, 122, 31,0.06)'; }}
                             onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = 'rgba(255,255,255,0.02)'; }}
                           >
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                              <span style={{ fontSize: '0.9rem', fontWeight: 700, color: isActive ? '#818cf8' : 'var(--text-primary)' }}>
+                              <span style={{ fontSize: '0.9rem', fontWeight: 700, color: isActive ? '#fb923c' : 'var(--text-primary)' }}>
                                 {c.brief.brandName}
                               </span>
                               {isActive && (
-                                <span className="badge badge-indigo" style={{ fontSize: '0.6rem', background: 'rgba(99,102,241,0.2)', color: '#818cf8', border: '1px solid rgba(99,102,241,0.4)', padding: '2px 6px' }}>
+                                <span className="badge badge-brand" style={{ fontSize: '0.6rem', background: 'rgba(244, 122, 31,0.2)', color: '#fb923c', border: '1px solid rgba(244, 122, 31,0.4)', padding: '2px 6px' }}>
                                   Active
                                 </span>
                               )}
@@ -922,10 +1803,6 @@ export default function App() {
                         <span style={{ fontSize: '0.85rem' }}>Secrets Added:</span>
                         <span className="badge badge-rose" style={{ fontWeight: 'bold' }}>NO</span>
                       </div>
-                      <div style={{ background: 'rgba(255,255,255,0.02)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontSize: '0.85rem' }}>FnB OS V1 Touched:</span>
-                        <span className="badge badge-rose" style={{ fontWeight: 'bold' }}>NO</span>
-                      </div>
                       <div style={{ background: 'rgba(255,255,255,0.02)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gridColumn: 'span 2' }}>
                         <span style={{ fontSize: '0.85rem' }}>Sample Data Only:</span>
                         <span className="badge badge-emerald" style={{ fontWeight: 'bold' }}>YES</span>
@@ -990,9 +1867,9 @@ export default function App() {
                         <button
                           key={item.step}
                           onClick={() => setActiveTab(item.tab)}
-                          style={{ background: 'rgba(99, 102, 241, 0.04)', border: '1px solid rgba(99, 102, 241, 0.2)', borderRadius: '10px', padding: '14px', textAlign: 'left', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '8px', transition: 'background 0.2s' }}
-                          onMouseEnter={e => (e.currentTarget.style.background = 'rgba(99, 102, 241, 0.1)')}
-                          onMouseLeave={e => (e.currentTarget.style.background = 'rgba(99, 102, 241, 0.04)')}
+                          style={{ background: 'rgba(244, 122, 31, 0.04)', border: '1px solid rgba(244, 122, 31, 0.2)', borderRadius: '10px', padding: '14px', textAlign: 'left', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '8px', transition: 'background 0.2s' }}
+                          onMouseEnter={e => (e.currentTarget.style.background = 'rgba(244, 122, 31, 0.1)')}
+                          onMouseLeave={e => (e.currentTarget.style.background = 'rgba(244, 122, 31, 0.04)')}
                         >
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                             <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '24px', height: '24px', background: 'var(--accent-indigo)', color: '#fff', borderRadius: '50%', fontSize: '0.7rem', fontWeight: 'bold', flexShrink: 0 }}>{item.step}</span>
@@ -1245,7 +2122,7 @@ export default function App() {
                       </p>
                     </div>
                     <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                      <span className="badge badge-indigo" style={{ background: 'rgba(99, 102, 241, 0.15)', color: '#818cf8', borderColor: 'rgba(99, 102, 241, 0.3)', border: '1px solid' }}>Sample Data Only</span>
+                      <span className="badge badge-brand" style={{ background: 'rgba(244, 122, 31, 0.15)', color: '#fb923c', borderColor: 'rgba(244, 122, 31, 0.3)', border: '1px solid' }}>Sample Data Only</span>
                       <span className="badge badge-emerald" style={{ background: 'rgba(16, 185, 129, 0.15)', color: '#34d399', borderColor: 'rgba(16, 185, 129, 0.3)', border: '1px solid' }}>🛡️ Safety Guard</span>
                       <span className={`badge ${
                         activeCampaign.status === 'Approved' ? 'badge-emerald' : 
@@ -1375,7 +2252,7 @@ export default function App() {
                           </div>
                           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                             {activeCampaign.outputs.copywriter.ctas.map((c, idx) => (
-                              <code key={idx} style={{ background: 'rgba(99, 102, 241, 0.1)', padding: '6px 12px', borderRadius: '4px', border: '1px solid rgba(99, 102, 241, 0.2)', fontSize: '0.85rem' }}>{c}</code>
+                              <code key={idx} style={{ background: 'rgba(244, 122, 31, 0.1)', padding: '6px 12px', borderRadius: '4px', border: '1px solid rgba(244, 122, 31, 0.2)', fontSize: '0.85rem' }}>{c}</code>
                             ))}
                           </div>
                         </div>
@@ -1655,7 +2532,7 @@ export default function App() {
                   {/* Final pack tab */}
                   {outputSubTab === 'final' && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                      <div style={{ background: 'rgba(99,102,241,0.05)', padding: '24px', borderRadius: '12px', border: '1px solid var(--border-glow)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div style={{ background: 'rgba(244, 122, 31,0.05)', padding: '24px', borderRadius: '12px', border: '1px solid var(--border-glow)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <div>
                           <h3 style={{ fontSize: '1.2rem', marginBottom: '8px', color: 'var(--accent-indigo)' }}>Gói Chiến Dịch Đóng Gói (Final Campaign Pack)</h3>
                           <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
@@ -1718,7 +2595,7 @@ export default function App() {
                       </p>
                     </div>
                     <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                      <span className="badge badge-indigo" style={{ background: 'rgba(99, 102, 241, 0.15)', color: '#818cf8', borderColor: 'rgba(99, 102, 241, 0.3)', border: '1px solid' }}>Human Approval Required</span>
+                      <span className="badge badge-brand" style={{ background: 'rgba(244, 122, 31, 0.15)', color: '#fb923c', borderColor: 'rgba(244, 122, 31, 0.3)', border: '1px solid' }}>Human Approval Required</span>
                     </div>
                   </div>
 
@@ -1815,7 +2692,7 @@ export default function App() {
                   </div>
 
                   {/* Review rules help alert */}
-                  <div style={{ display: 'flex', gap: '12px', padding: '16px', background: 'rgba(99, 102, 241, 0.05)', borderRadius: '8px', border: '1px solid var(--border-glow)' }}>
+                  <div style={{ display: 'flex', gap: '12px', padding: '16px', background: 'rgba(244, 122, 31, 0.05)', borderRadius: '8px', border: '1px solid var(--border-glow)' }}>
                     <AlertCircle style={{ color: 'var(--accent-indigo)', flexShrink: 0 }} />
                     <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.5, textAlign: 'left' }}>
                       <strong>Lời khuyên khi duyệt:</strong> Đảm bảo thông tin về <em>{activeCampaign.brief.heroProduct}</em> đã khớp với định vị thương hiệu của <em>{activeCampaign.brief.brandName}</em>. Hãy copy prompt hình ảnh mang sang Canva/Fal.ai để tự thiết kế nếu bạn đã duyệt nội dung.
@@ -1931,7 +2808,7 @@ export default function App() {
                   </div>
 
                   {/* Service Packages Teaser — Phase H.3 */}
-                  <div style={{ marginTop: '8px', padding: '28px', background: 'rgba(99, 102, 241, 0.04)', border: '1px solid rgba(99, 102, 241, 0.2)', borderRadius: '16px' }}>
+                  <div style={{ marginTop: '8px', padding: '28px', background: 'rgba(244, 122, 31, 0.04)', border: '1px solid rgba(244, 122, 31, 0.2)', borderRadius: '16px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                       <div>
                         <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--accent-indigo)', marginBottom: '4px' }}>Gói dịch vụ AI Marketing Team</h3>
@@ -1955,8 +2832,8 @@ export default function App() {
                           name: 'Growth',
                           tag: 'Phổ biến nhất',
                           color: 'var(--accent-indigo)',
-                          borderColor: 'rgba(99, 102, 241, 0.5)',
-                          bg: 'rgba(99, 102, 241, 0.08)',
+                          borderColor: 'rgba(244, 122, 31, 0.5)',
+                          bg: 'rgba(244, 122, 31, 0.08)',
                           items: ['3 thương hiệu', '4 campaigns/tháng', 'Full campaign pack', 'Client Workspace View', 'Priority support'],
                           cta: 'Liên hệ báo giá',
                           highlight: true,
@@ -2034,7 +2911,7 @@ export default function App() {
                   </div>
 
                   {/* Recommended Usage Order */}
-                  <div style={{ background: 'rgba(99, 102, 241, 0.03)', border: '1px solid rgba(99, 102, 241, 0.15)', padding: '20px', borderRadius: '12px', marginBottom: '32px', textAlign: 'left' }}>
+                  <div style={{ background: 'rgba(244, 122, 31, 0.03)', border: '1px solid rgba(244, 122, 31, 0.15)', padding: '20px', borderRadius: '12px', marginBottom: '32px', textAlign: 'left' }}>
                     <h3 style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                       📋 Quy trình khuyên dùng (Recommended usage order):
                     </h3>
@@ -2106,7 +2983,7 @@ export default function App() {
                     <div>
                       <h2 style={{ fontSize: '1.6rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '12px' }}>
                         Client Workspace View
-                        <span className="badge badge-indigo" style={{ fontSize: '0.75rem', padding: '4px 10px', background: 'rgba(99, 102, 241, 0.15)', color: '#818cf8', borderColor: 'rgba(99, 102, 241, 0.3)', border: '1px solid', borderRadius: '9999px', fontWeight: 600 }}>
+                        <span className="badge badge-brand" style={{ fontSize: '0.75rem', padding: '4px 10px', background: 'rgba(244, 122, 31, 0.15)', color: '#fb923c', borderColor: 'rgba(244, 122, 31, 0.3)', border: '1px solid', borderRadius: '9999px', fontWeight: 600 }}>
                           Client-Ready
                         </span>
                       </h2>
@@ -2132,8 +3009,8 @@ export default function App() {
                         label: 'Giải pháp AI Team',
                         body: 'Nhập brief một lần → 5 AI Agents song song tạo full campaign pack: captions, video scripts, design prompts, ads plan.',
                         color: 'var(--accent-indigo)',
-                        borderColor: 'rgba(99,102,241,0.25)',
-                        bg: 'rgba(99,102,241,0.04)',
+                        borderColor: 'rgba(244, 122, 31,0.25)',
+                        bg: 'rgba(244, 122, 31,0.04)',
                       },
                       {
                         icon: '📦',
@@ -2265,7 +3142,7 @@ export default function App() {
                   <div className="glass-panel" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px', borderLeft: '4px solid var(--accent-indigo)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <h3 style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--accent-indigo)' }}>Tại sao chọn AI Marketing Team?</h3>
-                      <span className="badge badge-indigo" style={{ fontSize: '0.7rem', background: 'rgba(99,102,241,0.12)', color: '#818cf8', border: '1px solid rgba(99,102,241,0.3)' }}>Value Proposition</span>
+                      <span className="badge badge-brand" style={{ fontSize: '0.7rem', background: 'rgba(244, 122, 31,0.12)', color: '#fb923c', border: '1px solid rgba(244, 122, 31,0.3)' }}>Value Proposition</span>
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
                       {[
@@ -2453,7 +3330,7 @@ export default function App() {
                   </div>
 
                   {/* CTA Block — Phase H.3 */}
-                  <div style={{ background: 'linear-gradient(135deg, rgba(99,102,241,0.08), rgba(16,185,129,0.05))', border: '1px solid rgba(99,102,241,0.25)', borderRadius: '16px', padding: '28px' }}>
+                  <div style={{ background: 'linear-gradient(135deg, rgba(244, 122, 31,0.08), rgba(16,185,129,0.05))', border: '1px solid rgba(244, 122, 31,0.25)', borderRadius: '16px', padding: '28px' }}>
                     <div style={{ textAlign: 'center', marginBottom: '20px' }}>
                       <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '6px' }}>Bước tiếp theo</h3>
                       <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Chọn hành động phù hợp với giai đoạn hiện tại của chiến dịch</p>
@@ -2479,7 +3356,7 @@ export default function App() {
                       </button>
                       <button
                         className="btn btn-secondary"
-                        style={{ flexDirection: 'column', gap: '8px', padding: '18px', height: 'auto', border: '1px solid rgba(99,102,241,0.3)', background: 'rgba(99,102,241,0.06)' }}
+                        style={{ flexDirection: 'column', gap: '8px', padding: '18px', height: 'auto', border: '1px solid rgba(244, 122, 31,0.3)', background: 'rgba(244, 122, 31,0.06)' }}
                         onClick={() => { setActiveTab('new-campaign'); }}
                       >
                         <span style={{ fontSize: '1.4rem' }}>✍️</span>
@@ -2501,7 +3378,7 @@ export default function App() {
                     <div>
                       <h2 style={{ fontSize: '1.6rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '12px' }}>
                         Brand Workspace Gallery
-                        <span className="badge badge-indigo" style={{ fontSize: '0.72rem', padding: '4px 10px', background: 'rgba(99,102,241,0.15)', color: '#818cf8', borderColor: 'rgba(99,102,241,0.3)', border: '1px solid', borderRadius: '9999px', fontWeight: 600 }}>
+                        <span className="badge badge-brand" style={{ fontSize: '0.72rem', padding: '4px 10px', background: 'rgba(244, 122, 31,0.15)', color: '#fb923c', borderColor: 'rgba(244, 122, 31,0.3)', border: '1px solid', borderRadius: '9999px', fontWeight: 600 }}>
                           {campaigns.length} Brands
                         </span>
                         <span className="badge badge-emerald" style={{ fontSize: '0.72rem', padding: '4px 10px', background: 'rgba(16,185,129,0.1)', color: '#34d399', border: '1px solid rgba(16,185,129,0.25)', borderRadius: '9999px', fontWeight: 600 }}>
@@ -2527,14 +3404,14 @@ export default function App() {
                             display: 'flex',
                             flexDirection: 'column',
                             gap: '14px',
-                            border: isActive ? '1px solid rgba(99,102,241,0.5)' : '1px solid var(--border-color)',
+                            border: isActive ? '1px solid rgba(244, 122, 31,0.5)' : '1px solid var(--border-color)',
                             borderLeft: isActive ? '4px solid var(--accent-indigo)' : '4px solid rgba(255,255,255,0.08)',
                           }}
                         >
                           {/* Brand header */}
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                             <div>
-                              <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: isActive ? '#818cf8' : 'var(--text-primary)', margin: 0 }}>
+                              <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: isActive ? '#fb923c' : 'var(--text-primary)', margin: 0 }}>
                                 {c.brief.brandName}
                               </h3>
                               <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '4px' }}>
@@ -2543,7 +3420,7 @@ export default function App() {
                             </div>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'flex-end' }}>
                               {isActive && (
-                                <span className="badge badge-indigo" style={{ fontSize: '0.62rem', background: 'rgba(99,102,241,0.2)', color: '#818cf8', border: '1px solid rgba(99,102,241,0.4)' }}>
+                                <span className="badge badge-brand" style={{ fontSize: '0.62rem', background: 'rgba(244, 122, 31,0.2)', color: '#fb923c', border: '1px solid rgba(244, 122, 31,0.4)' }}>
                                   ● Active
                                 </span>
                               )}
@@ -2609,7 +3486,7 @@ export default function App() {
                           {isActive ? (
                             <button
                               className="btn btn-secondary"
-                              style={{ border: '1px solid rgba(99,102,241,0.4)', color: '#818cf8', background: 'rgba(99,102,241,0.08)', cursor: 'default' }}
+                              style={{ border: '1px solid rgba(244, 122, 31,0.4)', color: '#fb923c', background: 'rgba(244, 122, 31,0.08)', cursor: 'default' }}
                               disabled
                             >
                               ● Currently Active Workspace
@@ -2629,7 +3506,7 @@ export default function App() {
 
                   {/* Phase I connector boundary note — conditional by view mode */}
                   {viewMode === 'owner' ? (
-                    <div style={{ padding: '20px', background: 'rgba(99,102,241,0.04)', border: '1px solid rgba(99,102,241,0.2)', borderRadius: '12px' }}>
+                    <div style={{ padding: '20px', background: 'rgba(244, 122, 31,0.04)', border: '1px solid rgba(244, 122, 31,0.2)', borderRadius: '12px' }}>
                       <h4 style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--accent-indigo)', marginBottom: '10px' }}>
                         ⚡ Workspace Architecture — Phase I Connector Boundary
                       </h4>
@@ -2672,7 +3549,7 @@ export default function App() {
                       <div>
                         <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '12px' }}>
                           Presentation View
-                          <span className="badge badge-indigo" style={{ fontSize: '0.72rem', padding: '4px 10px', background: 'rgba(99,102,241,0.12)', color: '#818cf8', border: '1px solid rgba(99,102,241,0.3)', borderRadius: '9999px' }}>Client-Ready</span>
+                          <span className="badge badge-brand" style={{ fontSize: '0.72rem', padding: '4px 10px', background: 'rgba(244, 122, 31,0.12)', color: '#fb923c', border: '1px solid rgba(244, 122, 31,0.3)', borderRadius: '9999px' }}>Client-Ready</span>
                         </h2>
                         <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginTop: '6px' }}>
                           A step-by-step walkthrough: problem, AI solution, outputs, approval flow, manual publishing, and safety.
@@ -2682,7 +3559,7 @@ export default function App() {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                       {[
                         { step: '01', icon: '❓', title: 'Client Problem', color: 'var(--accent-rose)', borderColor: 'rgba(244,63,94,0.25)', bg: 'rgba(244,63,94,0.04)', body: 'SME owners spend 10–15 hours per week planning content, briefing teams, and reviewing posts — before any actual publishing. Manual marketing is slow, inconsistent, and hard to scale.' },
-                        { step: '02', icon: '🤖', title: 'AI Marketing Team Solution', color: 'var(--accent-indigo)', borderColor: 'rgba(99,102,241,0.25)', bg: 'rgba(99,102,241,0.04)', body: 'Enter one brand brief → 5 specialized AI Agents run in parallel: Copywriter, Video Editor, Designer, Ads Manager, Data Reporter. Full campaign pack delivered in minutes.' },
+                        { step: '02', icon: '🤖', title: 'AI Marketing Team Solution', color: 'var(--accent-indigo)', borderColor: 'rgba(244, 122, 31,0.25)', bg: 'rgba(244, 122, 31,0.04)', body: 'Enter one brand brief → 5 specialized AI Agents run in parallel: Copywriter, Video Editor, Designer, Ads Manager, Data Reporter. Full campaign pack delivered in minutes.' },
                         { step: '03', icon: '📦', title: 'Campaign Outputs', color: 'var(--accent-blue)', borderColor: 'rgba(59,130,246,0.25)', bg: 'rgba(59,130,246,0.04)', body: '7-day content calendar, 7 Facebook captions, 3 TikTok/Reels scripts, 3 AI design prompts (Fal.ai/Midjourney), local ads targeting plan, and simulated performance report — all in one exportable pack.' },
                         { step: '04', icon: '✍️', title: 'Approval Process', color: 'var(--accent-amber)', borderColor: 'rgba(245,158,11,0.25)', bg: 'rgba(245,158,11,0.04)', body: 'Owner reviews every piece of content via the Approval Checklist tab before anything leaves this workspace. No post, no ad, no message is sent without explicit human sign-off.' },
                         { step: '05', icon: '📤', title: 'Manual Publishing & Manual Ads Execution', color: '#a78bfa', borderColor: 'rgba(167,139,250,0.25)', bg: 'rgba(167,139,250,0.04)', body: 'After Owner approves, all content is copy-pasted manually to Facebook, TikTok, or the Ads Manager platform. No auto-scheduler, no API connection, no direct publishing from this workspace.' },
@@ -2839,7 +3716,7 @@ export default function App() {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
                       {([
                         { time: '0:00–0:30', title: 'Introduce the Problem',     color: 'var(--accent-rose)',    borderColor: 'rgba(244,63,94,0.3)',   bg: 'rgba(244,63,94,0.04)',   say: '"Most F&B/SME owners spend 10–15 hours per week on marketing — writing posts, briefing teams, reviewing content, configuring ads. It\'s repetitive, expensive, and slow. And it still doesn\'t guarantee results."', action: null },
-                        { time: '0:30–1:30', title: 'Show AI Team Roles',        color: 'var(--accent-indigo)', borderColor: 'rgba(99,102,241,0.3)',  bg: 'rgba(99,102,241,0.04)',  say: '"This workspace gives you a full AI Marketing Team — 5 specialists running in parallel. Let me show you the AI Team Board."', action: '→ Click: AI Team Board → show all 5 role cards (Copywriter, Video Editor, Designer, Ads Manager, Data Reporter)' },
+                        { time: '0:30–1:30', title: 'Show AI Team Roles',        color: 'var(--accent-indigo)', borderColor: 'rgba(244, 122, 31,0.3)',  bg: 'rgba(244, 122, 31,0.04)',  say: '"This workspace gives you a full AI Marketing Team — 5 specialists running in parallel. Let me show you the AI Team Board."', action: '→ Click: AI Team Board → show all 5 role cards (Copywriter, Video Editor, Designer, Ads Manager, Data Reporter)' },
                         { time: '1:30–3:00', title: 'Show the Campaign Pack',    color: 'var(--accent-blue)',   borderColor: 'rgba(59,130,246,0.3)',  bg: 'rgba(59,130,246,0.04)',  say: '"Let me enter a quick brief. Just brand name, product, audience, and location." … "Watch the AI run — about 3 seconds in this workspace." … "Here\'s the full campaign pack — 7-day calendar, captions, video scripts, design prompts, ads plan. Copy-paste ready."', action: '→ Click: New Campaign Brief → fill sample data → Activate AI → Campaign Outputs → cycle sub-tabs' },
                         { time: '3:00–4:00', title: 'Show Approval & Safety',   color: 'var(--accent-amber)',  borderColor: 'rgba(245,158,11,0.3)', bg: 'rgba(245,158,11,0.04)', say: '"Nothing leaves this workspace without your signature. This is a 10-point safety checklist. Auto-post: NO. Real Ads: NO. No messaging to customers. You control everything."', action: '→ Click: Approval Checklist → show progress bar + items → Safety Guard panel on Dashboard' },
                         { time: '4:00–5:00', title: 'Explain Next Step',         color: '#a78bfa',              borderColor: 'rgba(167,139,250,0.3)', bg: 'rgba(167,139,250,0.04)', say: '"After you approve, all content is copy-pasted manually to Facebook or TikTok. We never touch your accounts, your passwords, or your ad budget."', action: '→ Click: Manual Export Pack → show the 6 copy blocks' },

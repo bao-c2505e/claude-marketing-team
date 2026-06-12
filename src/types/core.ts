@@ -33,6 +33,124 @@ export type ResourceStatus = 'active' | 'inactive' | 'archived';
 
 export type CampaignStatus = 'draft' | 'active' | 'paused' | 'completed' | 'archived';
 
+export type BriefStatus =
+  | 'draft'
+  | 'ready_for_generation'
+  | 'needs_revision'
+  | 'approved_for_generation'
+  | 'archived';
+
+// Phase 6: Content Generation
+export type ContentPlanJobStatus = 'draft' | 'queued' | 'generating' | 'completed' | 'failed' | 'archived';
+
+// Phase 8: Approval Workflow
+export type ContentApprovalStatus =
+  | 'draft'
+  | 'submitted'
+  | 'approved'
+  | 'rejected'
+  | 'revision_requested'
+  | 'cancelled';
+
+export type ApprovalPriority = 'low' | 'normal' | 'high';
+
+export type ApprovalActionType =
+  | 'submitted'
+  | 'approved'
+  | 'rejected'
+  | 'revision_requested'
+  | 'commented'
+  | 'cancelled';
+
+export interface ContentApprovalRequest {
+  id: string;
+  content_item_id: string;
+  generation_job_id: string | null;
+  brief_id: string | null;
+  campaign_id: string;
+  brand_id: string | null;
+  client_id: string | null;
+  title: string;
+  status: ContentApprovalStatus;
+  priority: ApprovalPriority;
+  requested_by: string;
+  assigned_to_role: string | null;
+  due_date: string | null;
+  created_at: string;
+  updated_at: string;
+  resolved_at: string | null;
+}
+
+export interface ContentApprovalEvent {
+  id: string;
+  approval_request_id: string;
+  content_item_id: string;
+  action: ApprovalActionType;
+  actor_label: string;
+  comment: string | null;
+  previous_status: ContentApprovalStatus | null;
+  new_status: ContentApprovalStatus | null;
+  created_at: string;
+}
+
+export interface ContentApprovalComment {
+  id: string;
+  approval_request_id: string;
+  content_item_id: string;
+  actor_label: string;
+  comment: string;
+  is_internal: boolean;
+  created_at: string;
+}
+export type GenerationMode = 'mock' | 'ai_ready' | 'external_module';
+export type PlanLengthDays = 7 | 15 | 30;
+export type ContentItemStatus6 = 'generated' | 'needs_review' | 'revision_requested' | 'approved' | 'scheduled' | 'published' | 'rejected' | 'archived';
+
+export interface ContentPlanJob {
+  id: string;
+  brief_id: string;
+  campaign_id: string;
+  brand_id: string | null;
+  client_id: string | null;
+  plan_length_days: PlanLengthDays;
+  generation_mode: GenerationMode;
+  status: ContentPlanJobStatus;
+  requested_by: string | null;
+  item_count: number;
+  created_at: string;
+  updated_at: string;
+  completed_at: string | null;
+  error_message: string | null;
+}
+
+export interface ContentPlanItem {
+  id: string;
+  generation_job_id: string;
+  brief_id: string;
+  campaign_id: string;
+  brand_id: string | null;
+  client_id: string | null;
+  day_number: number;
+  planned_date: string | null;
+  channel: string;
+  content_type: string;
+  pillar: string;
+  angle: string;
+  hook: string;
+  caption: string;
+  visual_brief: string;
+  cta: string;
+  hashtags: string;
+  status: ContentItemStatus6;
+  created_at: string;
+  updated_at: string;
+  // Phase 7 — Calendar metadata (all optional for backward compat)
+  scheduled_time?: string | null;
+  publish_note?: string | null;
+  owner_note?: string | null;
+  last_moved_at?: string | null;
+}
+
 export type CampaignType = '7_day' | '15_day' | '30_day' | 'custom';
 
 export type ModuleType =
@@ -167,16 +285,34 @@ export interface Campaign {
 export interface CampaignBrief {
   id: string;
   campaign_id: string;
+  // denormalised refs (Phase 5+)
+  brand_id: string | null;
+  client_id: string | null;
   brand_name: string;
   hero_product: string | null;
   industry: string | null;
+  // Phase 5 fields — all nullable for backward compat
+  brief_title: string | null;
+  campaign_goal: string | null;
+  product_focus: string | null;
+  offer: string | null;
+  tone_of_voice: string | null;
   tone: string | null;
   target_audience: string | null;
   campaign_goals: string[] | null;
   key_messages: string[] | null;
   channels: string[] | null;
+  content_pillars: string[] | null;
+  must_include: string | null;
+  must_avoid: string | null;
+  competitors: string | null;
+  reference_links: string | null;
+  budget_note: string | null;
+  timeline_note: string | null;
+  approval_requirements: string | null;
   duration_days: number | null;
   additional_notes: string | null;
+  status: BriefStatus | null;
   submitted_by: string | null;
   submitted_at: string | null;
   created_at: string;
@@ -496,6 +632,119 @@ export interface SystemSetting {
 }
 
 // ---------------------------------------------------------------------------
+// PHASE 10 — ASSET LIBRARY
+// ---------------------------------------------------------------------------
+
+export type AssetType =
+  | 'image'
+  | 'video'
+  | 'design'
+  | 'document'
+  | 'logo'
+  | 'raw_footage'
+  | 'reference'
+  | 'other';
+
+export type AssetSourceType =
+  | 'local_placeholder'
+  | 'external_url'
+  | 'storage_ready'
+  | 'generated_placeholder';
+
+export type AssetApprovalStatus =
+  | 'draft'
+  | 'needs_review'
+  | 'approved'
+  | 'rejected'
+  | 'archived';
+
+export interface AssetItem {
+  id: string;
+  client_id: string | null;
+  brand_id: string | null;
+  campaign_id: string | null;
+  brief_id: string | null;
+  generation_job_id: string | null;
+  content_item_id: string | null;
+  asset_collection_id: string | null;
+  name: string;
+  asset_type: AssetType;
+  source_type: AssetSourceType;
+  url: string | null;
+  thumbnail_url: string | null;
+  file_name: string | null;
+  file_size_note: string | null;
+  mime_type: string | null;
+  tags: string[];
+  usage_rights_note: string | null;
+  approval_status: AssetApprovalStatus;
+  notes: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface LocalAssetCollection {
+  id: string;
+  client_id: string | null;
+  brand_id: string | null;
+  campaign_id: string | null;
+  name: string;
+  description: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+// ---------------------------------------------------------------------------
+// PHASE 11 — REPORT MODULE
+// ---------------------------------------------------------------------------
+
+export type LocalReportType =
+  | 'internal_summary'
+  | 'client_summary'
+  | 'campaign_progress'
+  | 'content_status'
+  | 'approval_status'
+  | 'asset_status';
+
+export type LocalReportStatus = 'draft' | 'generated' | 'approved' | 'archived';
+
+export interface ReportMetrics {
+  total_briefs: number;
+  total_generation_jobs: number;
+  total_content_items: number;
+  content_by_status: Record<string, number>;
+  content_by_channel: Record<string, number>;
+  approval_requests_total: number;
+  approval_by_status: Record<string, number>;
+  pending_approval_count: number;
+  approved_content_count: number;
+  revision_requested_count: number;
+  rejected_count: number;
+  asset_count: number;
+  approved_asset_count: number;
+  campaign_progress_percent: number;
+}
+
+export interface LocalReport {
+  id: string;
+  client_id: string | null;
+  brand_id: string | null;
+  campaign_id: string | null;
+  report_type: LocalReportType;
+  title: string;
+  period_start: string | null;
+  period_end: string | null;
+  summary: string;
+  metrics: ReportMetrics;
+  client_summary_text: string;
+  status: LocalReportStatus;
+  generated_by: string;
+  created_at: string;
+}
+
+// ---------------------------------------------------------------------------
 // COMPOSITE / VIEW TYPES (used by UI)
 // ---------------------------------------------------------------------------
 
@@ -521,4 +770,207 @@ export interface ApprovalRequestWithEvents extends ApprovalRequest {
 export interface ModuleEventWithCallback extends ModuleEvent {
   webhook_callback?: WebhookCallback;
   module?: ModuleRegistry;
+}
+
+// ---------------------------------------------------------------------------
+// PHASE 12 — EXPORT PACK
+// ---------------------------------------------------------------------------
+
+export type ExportPackType =
+  | 'campaign_summary'
+  | 'content_calendar'
+  | 'approved_content'
+  | 'client_report'
+  | 'asset_checklist'
+  | 'full_campaign_pack';
+
+export type ExportPackFormat = 'markdown' | 'plain_text' | 'json_preview';
+
+export type ExportPackStatus = 'draft' | 'generated' | 'copied' | 'archived';
+
+export interface LocalExportPack {
+  id: string;
+  client_id: string | null;
+  brand_id: string | null;
+  campaign_id: string | null;
+  export_type: ExportPackType;
+  title: string;
+  format: ExportPackFormat;
+  status: ExportPackStatus;
+  content: string;
+  created_at: string;
+  updated_at: string;
+}
+
+// ---------------------------------------------------------------------------
+// PHASE 13 — CONNECTOR REGISTRY + MODULE EVENT INBOX
+// ---------------------------------------------------------------------------
+
+export type LocalConnectorType =
+  | 'n8n'
+  | 'openai'
+  | 'anthropic'
+  | 'gemini'
+  | 'canva'
+  | 'meta_ads'
+  | 'google_drive'
+  | 'google_sheets'
+  | 'comfyui'
+  | 'storage'
+  | 'webhook'
+  | 'other';
+
+export type LocalConnectorStatus =
+  | 'not_configured'
+  | 'configured'
+  | 'connected'
+  | 'error'
+  | 'disabled';
+
+export type LocalConnectorMode = 'mock' | 'sandbox' | 'production';
+
+export interface LocalConnectorRegistryItem {
+  id: string;
+  name: string;
+  connector_type: LocalConnectorType;
+  status: LocalConnectorStatus;
+  mode: LocalConnectorMode;
+  description: string | null;
+  required_env_keys: string[];
+  last_checked_at: string | null;
+  health_note: string | null;
+  safety_note: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export type LocalModuleName =
+  | 'content_auto'
+  | 'creative_asset_auto'
+  | 'ads_pack_auto'
+  | 'crm_followup_auto'
+  | 'comment_inbox_reply_assistant'
+  | 'approval_publishing_automation'
+  | 'analytics_intelligence'
+  | 'competitor_intelligence'
+  | 'website_landing_intelligence'
+  | 'comfyui_creative_module'
+  | 'other';
+
+export type LocalModuleStatus =
+  | 'planned'
+  | 'mock_ready'
+  | 'sandbox_ready'
+  | 'connected'
+  | 'disabled'
+  | 'error';
+
+export interface LocalModuleRegistryItem {
+  id: string;
+  module_name: LocalModuleName;
+  module_type: string;
+  status: LocalModuleStatus;
+  description: string | null;
+  input_contract_name: string | null;
+  output_contract_name: string | null;
+  callback_endpoint_note: string | null;
+  owner: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export type LocalModuleEventType =
+  | 'generation_requested'
+  | 'generation_completed'
+  | 'creative_requested'
+  | 'creative_completed'
+  | 'ads_pack_requested'
+  | 'ads_pack_completed'
+  | 'approval_submitted'
+  | 'approval_completed'
+  | 'report_generated'
+  | 'webhook_received'
+  | 'error'
+  | 'other';
+
+export type ModuleEventDirection = 'inbound' | 'outbound';
+
+export type LocalModuleEventStatus =
+  | 'received'
+  | 'processed'
+  | 'needs_review'
+  | 'failed'
+  | 'ignored';
+
+export interface LocalModuleEvent {
+  id: string;
+  module_id: string | null;
+  connector_id: string | null;
+  event_type: LocalModuleEventType;
+  direction: ModuleEventDirection;
+  status: LocalModuleEventStatus;
+  related_client_id: string | null;
+  related_brand_id: string | null;
+  related_campaign_id: string | null;
+  related_content_item_id: string | null;
+  payload_preview: string | null;
+  error_message: string | null;
+  received_at: string;
+  processed_at: string | null;
+  created_at: string;
+}
+
+// ---------------------------------------------------------------------------
+// PHASE 14 — AUTOMATION LOGS
+// ---------------------------------------------------------------------------
+
+export type AutomationLogType =
+  | 'workflow'
+  | 'connector'
+  | 'module'
+  | 'webhook'
+  | 'approval'
+  | 'export'
+  | 'report'
+  | 'safety'
+  | 'error'
+  | 'system';
+
+export type AutomationLogSource =
+  | 'core'
+  | 'n8n'
+  | 'module'
+  | 'connector'
+  | 'webhook'
+  | 'user_action'
+  | 'system';
+
+export type AutomationLogSeverity = 'info' | 'warning' | 'error' | 'success';
+
+export type AutomationLogStatus =
+  | 'recorded'
+  | 'reviewed'
+  | 'ignored'
+  | 'resolved'
+  | 'failed';
+
+export interface LocalAutomationLog {
+  id: string;
+  log_type: AutomationLogType;
+  source: AutomationLogSource;
+  severity: AutomationLogSeverity;
+  status: AutomationLogStatus;
+  title: string;
+  message: string;
+  payload_preview: string | null;
+  related_connector_id: string | null;
+  related_module_id: string | null;
+  related_event_id: string | null;
+  related_client_id: string | null;
+  related_brand_id: string | null;
+  related_campaign_id: string | null;
+  related_content_item_id: string | null;
+  created_at: string;
+  reviewed_at: string | null;
+  resolved_at: string | null;
 }
