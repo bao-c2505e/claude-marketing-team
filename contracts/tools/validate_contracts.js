@@ -2562,8 +2562,9 @@ try {
             failed = true;
           }
         }
-        if (manifest.phases.N12 !== 'IMPLEMENTED / READY FOR REVIEW') {
-          console.error(`[FAIL] Manifest phase N12 status must be 'IMPLEMENTED / READY FOR REVIEW', found '${manifest.phases.N12}'`);
+        const expectedN12Status = 'DONE / PASS — integration-ready handoff only, not production connector release.';
+        if (manifest.phases.N12 !== expectedN12Status) {
+          console.error(`[FAIL] Manifest phase N12 status must be '${expectedN12Status}', found '${manifest.phases.N12}'`);
           failed = true;
         }
       }
@@ -2680,6 +2681,161 @@ try {
 } catch (err) {
   console.error(`[FAIL] Error validating n11 workflow: ${err.message}`);
   failed = true;
+}
+
+// --- STARTING POST-MERGE HANDOFF COMPLIANCE CHECKS ---
+console.log('--- STARTING POST-MERGE HANDOFF COMPLIANCE CHECKS ---');
+
+function scanDirectory(dir, filter, callback) {
+  const list = fs.readdirSync(dir);
+  list.forEach(file => {
+    const fullPath = path.join(dir, file);
+    const stat = fs.statSync(fullPath);
+    if (stat && stat.isDirectory()) {
+      scanDirectory(fullPath, filter, callback);
+    } else {
+      if (filter(fullPath)) {
+        callback(fullPath);
+      }
+    }
+  });
+}
+
+// 1. Check for absolute links, forbidden domains, and external URLs in PC2 directories
+function checkHandoffCompliance(filePath) {
+  if (filePath.endsWith('validate_contracts.js')) return;
+  const ext = path.extname(filePath).toLowerCase();
+  const allowedExtensions = ['.json', '.js', '.md', '.txt', '.yml', '.yaml', '.html', '.css', '.jsonld', '.json5'];
+  if (!allowedExtensions.includes(ext)) return;
+
+  const content = fs.readFileSync(filePath, 'utf8');
+
+  // 1.1 file:// check
+  if (content.toLowerCase().includes('file://')) {
+    console.error(`[FAIL] File '${filePath}' contains absolute file:// link`);
+    failed = true;
+  }
+
+  // 1.2 C:/Users check
+  if (/c:\/users/i.test(content)) {
+    console.error(`[FAIL] File '${filePath}' contains machine-specific absolute path C:/Users`);
+    failed = true;
+  }
+
+  // 1.3 Forbidden domains check (allow only in backticks/code blocks in MD files for documentation)
+  let cleanContent = content;
+  if (ext === '.md') {
+    cleanContent = content.replace(/```[\s\S]*?```/g, '').replace(/`[^`\n]*`/g, '');
+  }
+  if (/thecoreagency\.com/i.test(cleanContent)) {
+    console.error(`[FAIL] File '${filePath}' contains forbidden reference to 'thecoreagency.com'`);
+    failed = true;
+  }
+  if (/facebook\.com/i.test(cleanContent)) {
+    console.error(`[FAIL] File '${filePath}' contains forbidden reference to 'facebook.com'`);
+    failed = true;
+  }
+
+  // 1.4 http/https external/production URLs check
+  const urlRegex = /https?:\/\/[a-zA-Z0-9.\-_]+/g;
+  const matches = content.match(urlRegex) || [];
+  for (const url of matches) {
+    const host = url.replace(/https?:\/\//, '').split('/')[0].split(':')[0].toLowerCase();
+    const safeHosts = ['localhost', '127.0.0.1', 'mock.local', 'host.docker.internal', 'json-schema.org', 'github.com'];
+    if (!safeHosts.includes(host)) {
+      console.error(`[FAIL] File '${filePath}' contains forbidden external/production URL: ${url}`);
+      failed = true;
+    }
+  }
+}
+
+// Scan PC2-owned directories for handoff compliance
+const docsPc2Dir = path.join(baseDir, '../docs/pc2');
+const workflowsDir = path.join(baseDir, '../n8n-workflows');
+const localModulesDir = path.join(baseDir, '../modules');
+
+scanDirectory(baseDir, () => true, checkHandoffCompliance);
+scanDirectory(workflowsDir, () => true, checkHandoffCompliance);
+scanDirectory(localModulesDir, () => true, checkHandoffCompliance);
+scanDirectory(docsPc2Dir, () => true, checkHandoffCompliance);
+
+// 3. Check for workflow dispatch HTTP nodes across all workflows
+function checkWorkflowDispatch() {
+  scanDirectory(workflowsDir, (p) => p.endsWith('.workflow.json') || p.endsWith('.json'), (wfPath) => {
+    const baseName = path.basename(wfPath);
+    const content = fs.readFileSync(wfPath, 'utf8');
+    let wfJson;
+    try {
+      wfJson = JSON.parse(content);
+    } catch (e) {
+      return;
+    }
+    if (!wfJson.nodes || !Array.isArray(wfJson.nodes)) return;
+
+    wfJson.nodes.forEach(node => {
+      if (node.type === 'n8n-nodes-base.httpRequest') {
+        const url = node.parameters?.url || '';
+        const lowerUrl = url.toLowerCase();
+
+        // Check if this is a Core callback dispatch or a dynamic callback URL
+        const isCoreCallbackDispatch = (
+          lowerUrl.includes('callback') ||
+          lowerUrl.includes('webhook') ||
+          lowerUrl.includes('receiver') ||
+          lowerUrl.includes('core') ||
+          lowerUrl.includes('localhost:3000') ||
+          lowerUrl.includes('localhost:5678/mock-callback') ||
+          (lowerUrl.startsWith('={{') && (
+            lowerUrl.includes('callback') ||
+            lowerUrl.includes('webhook') ||
+            lowerUrl.includes('receiver') ||
+            lowerUrl.includes('core') ||
+            (!lowerUrl.includes('health_endpoint') && !lowerUrl.includes('run_endpoint'))
+          ))
+        );
+
+        if (isCoreCallbackDispatch) {
+          console.error(`[FAIL] Workflow ${baseName} contains dispatch-capable HTTP Request node '${node.name}' targeting Core callback or dynamic URL: '${url}'`);
+          failed = true;
+          return;
+        }
+
+        const hostRegex = /https?:\/\/[a-zA-Z0-9.\-_]+/i;
+        const match = url.match(hostRegex);
+        if (match) {
+          const host = match[0].replace(/https?:\/\//i, '').split('/')[0].split(':')[0].toLowerCase();
+          const safeHosts = ['localhost', '127.0.0.1', 'mock.local', 'host.docker.internal', 'json-schema.org', 'github.com'];
+          if (!safeHosts.includes(host)) {
+            console.error(`[FAIL] Workflow ${baseName} contains HTTP Request node '${node.name}' targeting external endpoint: '${url}'`);
+            failed = true;
+          }
+        } else if (!url.includes('localhost') && !url.includes('127.0.0.1') && !url.includes('mock.local') && !url.includes('host.docker.internal') && !url.startsWith('MODULE_') && !url.startsWith('={{')) {
+          console.error(`[FAIL] Workflow ${baseName} contains HTTP Request node '${node.name}' targeting suspicious URL: '${url}'`);
+          failed = true;
+        }
+      }
+    });
+  });
+}
+checkWorkflowDispatch();
+
+// 4. Verify consistent N12 Status
+const expectedN12Status = 'DONE / PASS — integration-ready handoff only, not production connector release.';
+const finalSummaryPath = path.join(baseDir, '../docs/pc2/pc2_final_summary.md');
+if (fs.existsSync(finalSummaryPath)) {
+  const summaryContent = fs.readFileSync(finalSummaryPath, 'utf8');
+  if (!summaryContent.includes(`N12 | Stabilization & Handoff package | ${expectedN12Status}`)) {
+    console.error(`[FAIL] pc2_final_summary.md status for N12 is not '${expectedN12Status}'`);
+    failed = true;
+  }
+}
+const phaseLogPath = path.join(baseDir, '../docs/pc2/phase_log.md');
+if (fs.existsSync(phaseLogPath)) {
+  const logContent = fs.readFileSync(phaseLogPath, 'utf8');
+  if (!logContent.includes(`- **Status**: ${expectedN12Status}`)) {
+    console.error(`[FAIL] phase_log.md status for N12 is not '${expectedN12Status}'`);
+    failed = true;
+  }
 }
 
 if (failed) {

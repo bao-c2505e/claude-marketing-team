@@ -4,14 +4,14 @@ This directory contains placeholder JSON workflows representing the automation b
 
 ## Workflow List
 
-1. **[Core Event Router](file:///c:/Users/DELL/claude-marketing-team/n8n-workflows/core_event_router.workflow.json)**:
+1. **[Core Event Router](./core_event_router.workflow.json)**:
    - Receives events from Core webhook.
    - Validates event payload against schema constraints (contract validation placeholder).
    - Enforces generic safety gate validation and routes tasks to specialized modules based on `event_type`.
    - Sends error callbacks (`INVALID_CONTRACT` or `REJECTED_BY_SAFETY`) to Core.
-2. **[Approved Design to ComfyUI](file:///c:/Users/DELL/claude-marketing-team/n8n-workflows/approved_design_to_comfyui.workflow.json)**:
+2. **[Approved Design to ComfyUI](./approved_design_to_comfyui.workflow.json)**:
    - Evaluates design briefs, checks final approval, and schedules generation jobs on ComfyUI.
-3. **[Module Result Callback to Core](file:///c:/Users/DELL/claude-marketing-team/n8n-workflows/module_result_callback_to_core.workflow.json)**:
+3. **[Module Result Callback to Core](./module_result_callback_to_core.workflow.json)**:
    - Handles callbacks from specialist modules, formats payloads, and triggers the callback back to the Core webhook.
 
 ---

@@ -94,7 +94,7 @@ The decision mapping determines the `final_status` and next steps for the callba
 5.  **No Real Customer Data:** Mock events and outputs must only use synthetic mock profiles.
 6.  **No Secrets:** Workflows and mock servers must run with zero credentials.
 7.  **Owner Approval:** Production rollout and live webhook callbacks require explicit owner sign-off.
-8.  **Error Normalization:** Failed module outputs should be normalized into error callback previews using [error_handling_retry_logging_contract.md](file:///c:/Users/DELL/claude-marketing-team/contracts/error_handling_retry_logging_contract.md).
+8.  **Error Normalization:** Failed module outputs should be normalized into error callback previews using [error_handling_retry_logging_contract.md](./error_handling_retry_logging_contract.md).
 9.  **Manual Review for Errors:** The approval gate should not approve failed/error outputs without manual review.
 
 ---

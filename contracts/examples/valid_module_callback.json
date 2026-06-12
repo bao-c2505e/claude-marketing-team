@@ -6,7 +6,7 @@
   "status": "COMPLETED",
   "payload": {
     "fb_post_id": "page_post_1234567890",
-    "permalink_url": "https://facebook.com/demobrand/posts/1234567890",
+    "permalink_url": "http://mock.local/posts/1234567890",
     "published_at": "2026-06-08T13:41:15Z"
   },
   "safety": {

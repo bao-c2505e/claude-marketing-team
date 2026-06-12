@@ -37,10 +37,10 @@ Các mẫu trên được ánh xạ vào The Core Agency PC2 như sau:
 
 | Mẫu từ FnB OS V1 | Ánh xạ thực tế trong PC2 | Vị trí File / Implement trong PC2 |
 | :--- | :--- | :--- |
-| **Approval Gate** | `IF: Safety Gate` nodes trong n8n workflows | [core_event_router.workflow.json](file:///c:/Users/DELL/claude-marketing-team/n8n-workflows/core_event_router.workflow.json) |
-| **Audit Logs/Governance** | `correlation_id`, `job_id`, `safety` object trong JSON Schemas | [core_to_n8n_event.schema.json](file:///c:/Users/DELL/claude-marketing-team/contracts/core_to_n8n_event.schema.json) |
-| **Webhook Callback** | `HTTP: Callback Core` nodes sử dụng `CORE_CALLBACK_URL` | [module_result_callback_to_core.workflow.json](file:///c:/Users/DELL/claude-marketing-team/n8n-workflows/module_result_callback_to_core.workflow.json) |
-| **Module Skeletons** | Cấu trúc thư mục chứa `README.md` và `contract.md` độc lập | [modules/meta-ads-connector](file:///c:/Users/DELL/claude-marketing-team/modules/meta-ads-connector/) |
+| **Approval Gate** | `IF: Safety Gate` nodes trong n8n workflows | [core_event_router.workflow.json](../n8n-workflows/core_event_router.workflow.json) |
+| **Audit Logs/Governance** | `correlation_id`, `job_id`, `safety` object trong JSON Schemas | [core_to_n8n_event.schema.json](../contracts/core_to_n8n_event.schema.json) |
+| **Webhook Callback** | `HTTP: Callback Core` nodes sử dụng `CORE_CALLBACK_URL` | [module_result_callback_to_core.workflow.json](../n8n-workflows/module_result_callback_to_core.workflow.json) |
+| **Module Skeletons** | Cấu trúc thư mục chứa `README.md` và `contract.md` độc lập | [modules/meta-ads-connector](../modules/meta-ads-connector/) |
 
 ---
 

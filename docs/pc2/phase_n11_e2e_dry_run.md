@@ -96,7 +96,7 @@ npm start
 ## 4. How to Import the Workflow
 1. Start your local n8n instance.
 2. Click **Workflows** -> **Add Workflow** -> **Import from File**.
-3. Select [n11_e2e_dry_run.workflow.json](file:///C:/Users/DELL/claude-marketing-team/n8n-workflows/n11_e2e_dry_run.workflow.json).
+3. Select [n11_e2e_dry_run.workflow.json](../../n8n-workflows/n11_e2e_dry_run.workflow.json).
 4. Click **Import**.
 
 ---
@@ -107,11 +107,11 @@ We have prepared 7 mock inputs under `contracts/examples/n8n/n11/` to verify all
 
 ### Scenario A: Success Path Testing (All 5 Modules)
 Paste the corresponding input files:
-- **Creative Asset**: [e2e_input_creative_asset.json](file:///C:/Users/DELL/claude-marketing-team/contracts/examples/n8n/n11/e2e_input_creative_asset.json)
-- **Content Pack**: [e2e_input_content_pack.json](file:///C:/Users/DELL/claude-marketing-team/contracts/examples/n8n/n11/e2e_input_content_pack.json)
-- **Ads Pack**: [e2e_input_ads_pack.json](file:///C:/Users/DELL/claude-marketing-team/contracts/examples/n8n/n11/e2e_input_ads_pack.json)
-- **CRM Followup**: [e2e_input_crm_followup.json](file:///C:/Users/DELL/claude-marketing-team/contracts/examples/n8n/n11/e2e_input_crm_followup.json)
-- **Analytics Report**: [e2e_input_analytics_report.json](file:///C:/Users/DELL/claude-marketing-team/contracts/examples/n8n/n11/e2e_input_analytics_report.json)
+- **Creative Asset**: [e2e_input_creative_asset.json](../../contracts/examples/n8n/n11/e2e_input_creative_asset.json)
+- **Content Pack**: [e2e_input_content_pack.json](../../contracts/examples/n8n/n11/e2e_input_content_pack.json)
+- **Ads Pack**: [e2e_input_ads_pack.json](../../contracts/examples/n8n/n11/e2e_input_ads_pack.json)
+- **CRM Followup**: [e2e_input_crm_followup.json](../../contracts/examples/n8n/n11/e2e_input_crm_followup.json)
+- **Analytics Report**: [e2e_input_analytics_report.json](../../contracts/examples/n8n/n11/e2e_input_analytics_report.json)
 
 **Expected Output**:
 - The flow executes preflight health, hits the local stub's `/run` endpoint, normalizes callback payload, runs mock approval, and generates the final output object showing `final_status: "completed_mock"`.
@@ -124,7 +124,7 @@ Configure `metadata.simulate_approval_decision` in the mock event:
 4. `"pending_approval"`: Output shows `approval_status: "pending_approval"` and `final_status: "waiting_for_owner_approval"`.
 
 ### Scenario C: Unsupported Event Type
-Paste [e2e_input_unsupported_event.json](file:///C:/Users/DELL/claude-marketing-team/contracts/examples/n8n/n11/e2e_input_unsupported_event.json) into `Set Mock Core Event`.
+Paste [e2e_input_unsupported_event.json](../../contracts/examples/n8n/n11/e2e_input_unsupported_event.json) into `Set Mock Core Event`.
 
 **Expected Output**:
 - The workflow immediately branches to `Code: Build Unsupported Event Error`.
@@ -132,7 +132,7 @@ Paste [e2e_input_unsupported_event.json](file:///C:/Users/DELL/claude-marketing-
 - `error_result` contains an N9-style error.
 
 ### Scenario D: Module Unavailable (Outage)
-Paste [e2e_input_module_unavailable.json](file:///C:/Users/DELL/claude-marketing-team/contracts/examples/n8n/n11/e2e_input_module_unavailable.json) into `Set Mock Core Event`. Alternatively, stop the target local stub server.
+Paste [e2e_input_module_unavailable.json](../../contracts/examples/n8n/n11/e2e_input_module_unavailable.json) into `Set Mock Core Event`. Alternatively, stop the target local stub server.
 
 **Expected Output**:
 - Preflight health check fails (or detects `simulate_outage: true`).
@@ -141,10 +141,10 @@ Paste [e2e_input_module_unavailable.json](file:///C:/Users/DELL/claude-marketing
 - `error_result` contains an N9-style error mapping `module_unavailable`.
 
 ### Scenario E: Module Run Failure
-- **Trigger**: Paste [e2e_input_module_failed.json](file:///C:/Users/DELL/claude-marketing-team/contracts/examples/n8n/n11/e2e_input_module_failed.json) into `Set Mock Core Event`.
+- **Trigger**: Paste [e2e_input_module_failed.json](../../contracts/examples/n8n/n11/e2e_input_module_failed.json) into `Set Mock Core Event`.
 - **Expected Output**:
   - The flow routes to `Code: Build Run Module Error`.
-  - Output matches [e2e_module_failed_expected_output.json](file:///C:/Users/DELL/claude-marketing-team/contracts/examples/n8n/n11/expected_outputs/e2e_module_failed_expected_output.json).
+  - Output matches [e2e_module_failed_expected_output.json](../../contracts/examples/n8n/n11/expected_outputs/e2e_module_failed_expected_output.json).
   - Output shows `final_status: "failed_mock"`, `route_status: "failed"`, and `module_status: "failed"`.
   - `approval_status` is set to `"not_applicable"` and the execution does NOT enter the approval gate.
   - `unified_callback_preview` is `null` (no approved callback preview is generated).

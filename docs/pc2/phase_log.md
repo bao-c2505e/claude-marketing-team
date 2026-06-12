@@ -5,7 +5,7 @@ This log tracks the progress, status, and deliverables for the PC2 (n8n & Specia
 ---
 
 ## Phase N12 — PC2 Stabilization + Handoff to PC1/Core Integration
-- **Status**: IMPLEMENTED / READY FOR REVIEW
+- **Status**: DONE / PASS — integration-ready handoff only, not production connector release.
 - **Reviewer**: Codex
 - **Date**: 2026-06-12
 - **Deliverables**:

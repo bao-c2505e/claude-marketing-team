@@ -411,25 +411,41 @@
     },
     {
       "parameters": {
-        "method": "POST",
-        "url": "CORE_CALLBACK_URL",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
+        "values": {
+          "string": [
             {
-              "name": "Content-Type",
-              "value": "application/json"
+              "name": "event_id",
+              "value": "={{ $json.event_id }}"
+            },
+            {
+              "name": "correlation_id",
+              "value": "={{ $json.correlation_id }}"
+            },
+            {
+              "name": "job_id",
+              "value": "={{ $json.job_id }}"
+            },
+            {
+              "name": "status",
+              "value": "INVALID_CONTRACT"
+            }
+          ],
+          "other": [
+            {
+              "name": "payload",
+              "value": "={{ { \"error\": $json.validation_error, \"original_event_type\": $json.event_type } }}"
+            },
+            {
+              "name": "safety",
+              "value": "={{ $json.safety || {} }}"
             }
           ]
         },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={\n  \"event_id\": \"{{ $json.event_id }}\",\n  \"correlation_id\": \"{{ $json.correlation_id }}\",\n  \"job_id\": \"{{ $json.job_id }}\",\n  \"status\": \"INVALID_CONTRACT\",\n  \"payload\": {\n    \"error\": \"{{ $json.validation_error }}\",\n    \"original_event_type\": \"{{ $json.event_type }}\"\n  },\n  \"safety\": {{ JSON.stringify($json.safety || {}) }}\n}",
         "options": {}
       },
       "name": "HTTP: Callback Core - Invalid Contract",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4,
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
       "position": [
         500,
         600
@@ -438,25 +454,57 @@
     },
     {
       "parameters": {
-        "method": "POST",
-        "url": "CORE_CALLBACK_URL",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
+        "values": {
+          "string": [
             {
-              "name": "Content-Type",
-              "value": "application/json"
+              "name": "status",
+              "value": "REJECTED_BY_SAFETY"
+            },
+            {
+              "name": "reason",
+              "value": "Workflow-level approval/safety gate blocked real-world action"
+            },
+            {
+              "name": "event_id",
+              "value": "={{ $json.event_id }}"
+            },
+            {
+              "name": "correlation_id",
+              "value": "={{ $json.correlation_id }}"
+            },
+            {
+              "name": "campaign_id",
+              "value": "={{ $json.campaign_id }}"
+            },
+            {
+              "name": "job_id",
+              "value": "={{ $json.job_id }}"
+            },
+            {
+              "name": "module_name",
+              "value": "={{ $json.event_type === 'CAMPAIGN_PUBLISH_REQUESTED' ? 'facebook-publisher' : 'meta-ads-connector' }}"
+            },
+            {
+              "name": "original_event_type",
+              "value": "={{ $json.event_type }}"
+            },
+            {
+              "name": "rejected_at",
+              "value": "={{ new Date().toISOString() }}"
+            }
+          ],
+          "other": [
+            {
+              "name": "safety",
+              "value": "={{ $json.safety }}"
             }
           ]
         },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={\n  \"status\": \"REJECTED_BY_SAFETY\",\n  \"reason\": \"Workflow-level approval/safety gate blocked real-world action\",\n  \"event_id\": \"{{ $json.event_id }}\",\n  \"correlation_id\": \"{{ $json.correlation_id }}\",\n  \"campaign_id\": \"{{ $json.campaign_id }}\",\n  \"job_id\": \"{{ $json.job_id }}\",\n  \"module_name\": \"{{ $json.event_type === 'CAMPAIGN_PUBLISH_REQUESTED' ? 'facebook-publisher' : 'meta-ads-connector' }}\",\n  \"safety\": {{ JSON.stringify($json.safety) }},\n  \"original_event_type\": \"{{ $json.event_type }}\",\n  \"rejected_at\": \"{{ new Date().toISOString() }}\"\n}",
         "options": {}
       },
       "name": "HTTP: Callback Core - Rejected By Safety",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4,
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
       "position": [
         1350,
         600
@@ -465,16 +513,39 @@
     },
     {
       "parameters": {
-        "method": "POST",
-        "url": "CORE_CALLBACK_URL",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={\n  \"event_id\": \"{{ $json.event_id }}\",\n  \"correlation_id\": \"{{ $json.correlation_id }}\",\n  \"job_id\": \"{{ $json.job_id }}\",\n  \"status\": \"QUEUED\",\n  \"payload\": {\n    \"message\": \"Request successfully routed and queued for execution.\"\n  }\n}",
+        "values": {
+          "string": [
+            {
+              "name": "event_id",
+              "value": "={{ $json.event_id }}"
+            },
+            {
+              "name": "correlation_id",
+              "value": "={{ $json.correlation_id }}"
+            },
+            {
+              "name": "job_id",
+              "value": "={{ $json.job_id }}"
+            },
+            {
+              "name": "status",
+              "value": "QUEUED"
+            }
+          ],
+          "other": [
+            {
+              "name": "payload",
+              "value": {
+                "message": "Request successfully routed and queued for execution."
+              }
+            }
+          ]
+        },
         "options": {}
       },
       "name": "HTTP: Callback Core - Queued",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4,
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
       "position": [
         1600,
         350

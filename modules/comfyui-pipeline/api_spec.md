@@ -93,7 +93,7 @@ Version: 1.0.0
     "status": "COMPLETED",
     "payload": {
       "module_run_id": "run_comfyui_abcd1234",
-      "asset_url": "https://storage.thecoreagency.com/assets/mock_generated_job_demo_001.png",
+      "asset_url": "http://localhost:8188/assets/mock_generated_job_demo_001.png",
       "asset_type": "image/png",
       "generation_params": {
         "prompt": "A futuristic marketing banner for a smart AI assistant, dark glassmorphism style, neon accents",

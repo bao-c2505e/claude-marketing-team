@@ -18,7 +18,7 @@ export function generateMockCallback(reqBody, status = 'COMPLETED') {
     "status": status,
     "payload": {
       "module_run_id": `run_comfyui_${crypto.randomBytes(4).toString('hex')}`,
-      "asset_url": `https://storage.thecoreagency.com/assets/mock_generated_${job_id}.png`,
+      "asset_url": `http://localhost:8188/assets/mock_generated_${job_id}.png`,
       "asset_type": "image/png",
       "generation_params": {
         "prompt": reqBody.payload?.prompt || "A generic workspace template",

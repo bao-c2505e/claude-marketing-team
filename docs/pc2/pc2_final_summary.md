@@ -19,7 +19,7 @@ This document provides a final summary of the deliverables, status, and outcomes
 | N9 | Error Policy, Retry, & Logging | DONE / PASS | Codex | 2026-06-09 |
 | N10 | Module Health Preflight & Dashboard | DONE / PASS | Codex | 2026-06-09 |
 | N11 | E2E Dry Run Workflow & Isolation | DONE / PASS | Codex | 2026-06-12 |
-| N12 | Stabilization & Handoff package | IMPLEMENTED / READY FOR REVIEW | Codex | 2026-06-12 |
+| N12 | Stabilization & Handoff package | DONE / PASS — integration-ready handoff only, not production connector release. | Codex | 2026-06-12 |
 
 ---
 
