@@ -22,6 +22,47 @@ Chúng ta đang xây dựng **The Core Agency — Real Operations MVP**. Đây l
 
 ---
 
+## 🏁 V2-E1 (Owner naming) — Core ↔ PC2 Contract Mapping Spec — DONE (2026-06-12)
+
+> **Naming:** Owner gọi package này là V2-E (V2-E1 = mapping spec, V2-E2 =
+> dry-run implementation); trong roadmap, PC2 n8n dry-run vốn là
+> roadmap-V2-C còn "V2-E" là UI polish. Theo naming của Owner, giống tiền
+> lệ V2-B/V2-C/V2-D.
+
+> **Status:** V2-E1 (mapping spec) ✅ DONE. **V2-E2 (dry-run implementation)
+> 🔴 NOT STARTED — KHÔNG implement runtime integration, KHÔNG gọi n8n,
+> cho tới khi Owner approval được log.**
+
+**Documentation/contract mapping only — KHÔNG runtime integration, KHÔNG
+gọi n8n, KHÔNG secrets, KHÔNG live connectors, KHÔNG real ads/posting/
+messaging/automation, KHÔNG đổi Supabase runtime/repository/auth/UUID
+gating/tenant scope/sanitizers/RLS.**
+
+- **Deliverable:** `CLAUDE_MARKETING_TEAM/V2E_CORE_PC2_MAPPING_SPEC.md` —
+  mapping spec giữa Core (PC1) và PC2 n8n/modules mock backbone (PC2 N12,
+  `stabilized_mock_ready`): §1 Core→PC2 events E1–E9 (5 events routable
+  tới 5 module stubs; **E7–E9 publish/ads/messaging BLOCKED**) + envelope
+  `e2e_dry_run_v0.1` + extensions `core_scope` (full tenant hierarchy,
+  UUID-only), `mode.dry_run`, `approval_required`, 4 safety flags
+  (constant `true`), `idempotency_key`; §2 PC2→Core callback
+  `unified_callback_v0.1` + correlation block (`request_id`/`run_id`/
+  `workflow_id`/`module_id`/`idempotency_key`) + N9 error/retry/
+  dead-letter + approval decision (**Core UI là nguồn approval duy nhất**)
+  + 7 acceptance preconditions; §4 unified status table (10 statuses,
+  published/planned_publish = blocked/planning-only); §5 outputs → wired
+  entities (content_plan_jobs/items, content_assets/collections,
+  approval_requests; Group F logs unwired → local surface); §6 validation
+  V1–V9 (failed_mock never→approval, no callback bypasses approval,
+  local ids stay local…); §7 boundary V2-E1→V2-E2 (Owner-gated)→real
+  connectors (dedicated phase); §8 PC2 handoff checklist (validator
+  re-run ALL PASS) + 3 gaps cho V2-E2; §9 non-goals.
+- **Build:** PASS — 0 TS errors. **Tests:** 45/45 PASS.
+- **Next:** Owner đọc spec → nếu duyệt → V2-E2 dry-run implementation
+  (local mock only, kill-switch, no secrets). V2-E2 DONE chỉ khi dry-run
+  evidence filed + Owner approval logged.
+
+---
+
 ## 🏁 V2-D1 (Owner naming) — Supabase Staging Audit & Runbook — DONE (2026-06-12)
 
 > **Naming:** Owner gọi package này là V2-D (V2-D1 = audit/runbook, V2-D2 =
