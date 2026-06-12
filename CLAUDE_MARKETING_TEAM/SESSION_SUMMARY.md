@@ -22,6 +22,47 @@ Chúng ta đang xây dựng **The Core Agency — Real Operations MVP**. Đây l
 
 ---
 
+## 🏁 V2-E2 (Owner naming) — Core ↔ PC2 Dry-run Integration Plan — DONE (2026-06-12)
+
+> **Scope note:** Owner refine ladder — V2-E2 = integration PLAN;
+> implementation tách thành V2-E3 (adapter skeleton, disabled by default)
+> → V2-E4 (local-only ingest test) → V2-E5 (E2E với mock endpoint only)
+> → V2-E6 (closure/evidence pack), mỗi phase Owner-gated (checkpoints
+> O1–O5). Supersede bảng boundary V2-E1 §7.
+
+> **Status:** V2-E2 (plan) ✅ DONE. **V2-E3 🔴 NOT STARTED — checkpoint O1
+> bắt buộc trước. KHÔNG runtime n8n calls, KHÔNG outbound HTTP, KHÔNG
+> secrets/env vars, KHÔNG live connectors trong V2-E2.**
+
+**Planning/contract/test-design only — KHÔNG đổi Supabase runtime/
+repository/auth/UUID gating/tenant scope/sanitizers/RLS; PC2 workflow
+files chỉ đọc làm reference.**
+
+- **Deliverable:** `CLAUDE_MARKETING_TEAM/V2E2_CORE_PC2_DRY_RUN_INTEGRATION_PLAN.md` —
+  §0 inputs + constraint chốt: **Core không có HTTP listener → callback
+  toàn ladder = preview JSON artifact, ingest = local dev-only manual
+  import, không bao giờ live webhook**; §1 architecture 9 thành phần
+  (trigger → adapter disabled-by-default → n11 router → stubs → preview
+  → local ingest → Approvals gate → AutomationLog trail → failure/DLQ
+  log-only); §2 adapter reqs A1–A9 (pure builder, dry_run + 4 safety
+  flags hard-coded `true` — builder throws nếu khác, idempotency ledger,
+  correlation IDs, scope hierarchy validation, UUID gating reuse qua
+  import, blocked events reject ở type level, kill-switch default-off);
+  §3 PC2 expectations (5 event types, workflows, registry, examples,
+  validator, status rules, failed_mock fail-safe, partial_failure =
+  Core-side classification); §4 callback safety (no approval bypass,
+  failed_mock never→approval, partial = logs+partial only, approved =
+  human-in-Core, published = blocked); §5 test plan T1–T10 (8 yêu cầu +
+  T9 approval-bypass + T10 unknown request_id); §8 ladder V2-E3→E6 với
+  hard limits + closure evidence; §9 checkpoints O1–O5 (env var / HTTP /
+  n8n-from-Core / Supabase staging+V2-D-A / real connector = ngoài V2-E);
+  §10 non-goals.
+- **Build:** PASS — 0 TS errors. **Tests:** 45/45 PASS.
+- **Next:** Owner duyệt plan → log checkpoint O1 → V2-E3 adapter skeleton
+  (builder + tests + dev panel, zero HTTP, disabled by default).
+
+---
+
 ## 🏁 V2-E1 (Owner naming) — Core ↔ PC2 Contract Mapping Spec — DONE (2026-06-12)
 
 > **Naming:** Owner gọi package này là V2-E (V2-E1 = mapping spec, V2-E2 =
