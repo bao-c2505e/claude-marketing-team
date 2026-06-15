@@ -196,6 +196,15 @@ Chúng ta đang xây dựng **The Core Agency — Real Operations MVP**. Đây l
 > Report §14.1 has the exact presence-only re-run command/check for when a disposable staging
 > env is provisioned. V2-E3 PC2 Adapter Skeleton, feedback implementation, and Checkpoint F
 > all remain 🔴 NOT STARTED / Owner-gated.
+>
+> **V2-E3 start attempt (2026-06-16): GATED 🔴 — NOT started.** Owner requested starting the
+> PC2 Adapter Skeleton; the prerequisite gate failed because B2 = BLOCKED (not VERIFIED) and
+> the tracking does not explicitly authorize parallel V2-E3 (checkpoint O1 not logged). Per
+> the explicit "if B2 BLOCKED → do not start V2-E3, stop" rule, no adapter code/tests/spec
+> were created. The PC2 adapter is a Supabase-independent local builder, so the Owner may
+> unblock it either by getting B2 VERIFIED, **or** by explicitly recording in tracking that
+> V2-E3 may proceed in parallel (staging treated as non-blocking for the adapter) **and**
+> logging checkpoint O1.
 
 > **Checkpoint A ✅ PASS** (process/docs — Codex-reviewed honest blocked
 > report). **Checkpoint B verdict 🔴 BLOCKED** — DB-level verification

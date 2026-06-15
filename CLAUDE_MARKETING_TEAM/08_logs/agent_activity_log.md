@@ -6,6 +6,17 @@ Nhật ký ghi lại các hành động mô phỏng của các AI Agent khi vậ
 
 ## 🗓️ Nhật Ký Hoạt Động (Simulated Activity Logs)
 
+### 🗓️ Ngày 16/06/2026 — V2-E3 PC2 Adapter Skeleton — START GATED 🔴 (prerequisite gate FAILS; NOT started)
+- **[Owner — Approver]:** Directed: start V2-E3 PC2 Adapter Skeleton **only if** the prerequisite gate is satisfied; if B2 is BLOCKED/FAILED or unsafe, do not start — report the blocker and stop.
+- **[PC1 Claude Code Builder]:** Ran the gate inspection (no code touched): B2 verdict = 🔴 **BLOCKED** (staging report §13.10/§14; presence-only env re-check = all staging vars MISSING, `.env*` ABSENT); overall V2-D2 = 🟡 PARTIAL / BLOCKED ON STAGING VERIFICATION (not VERIFIED/PASS); no V2-UI-T2 file (manual product E2E not started); all four tracking files consistent — `V2-E3 PC2 Adapter Skeleton 🔴 NOT STARTED / Owner-gated (checkpoint O1)`.
+- **[PC1]:** Evaluated "proceed" condition 1 = B2 VERIFIED/PASS **OR** tracking *explicitly* allows V2-E3 to proceed in parallel despite a documented *non-blocking partial*. Both false: B2 is BLOCKED (not VERIFIED), and no tracking statement authorizes parallel V2-E3 (the verdict is BLOCKED, not a non-blocking partial; checkpoint O1 visibility-flag approval was never logged). The explicit hard rule "if B2 BLOCKED → do NOT start V2-E3, stop" also fires.
+- **[PC1]:** **Did NOT start V2-E3** — created no `pc2Adapter.ts`/`pc2Types.ts`/`pc2StatusMapping.ts`, no tests, no `v2_e3_pc2_adapter_skeleton.md` spec. Reported the blocker and the two Owner unblock paths: (A) provision disposable staging → re-run §14.1 → B2 VERIFIED → unlock V2-E3; or (B) Owner explicitly records in tracking that V2-E3 (a Supabase-independent local builder) may proceed in parallel (staging blocker treated as non-blocking for the adapter) AND logs checkpoint O1.
+- **[PC1]:** Noted the architectural fact (for the Owner's decision): V2-E3 adapter skeleton is a pure local builder (zero HTTP, kill-switch, no Supabase dependency), so the staging blocker is arguably non-blocking for it — but the agent will not self-authorize past the explicit "if BLOCKED stop" rule without the Owner recording that allowance.
+- **[PC1]:** Preserved gates — V2-E3 + real connector activation + feedback implementation + Checkpoint F all remain 🔴 NOT STARTED / Owner-gated. No approval mutation; PC2 callbacks metadata/log/echo only; Core UI authoritative. No live connector/PC2 endpoint, no secrets, no production URL/Supabase/data, no SQL.
+- **[PC1]:** Docs/logs-only — no runtime/repo/Supabase/RLS/auth/test changes. `npm run build` PASS (0 TS errors); `npm run test` 45/45 PASS.
+
+---
+
 ### 🗓️ Ngày 16/06/2026 — V2-D2 — B2 verdict routing → Route B (BLOCKED, no UI/product impl)
 - **[Owner — Approver]:** Directed: determine the actual B2 verdict from the staging report and route to the fastest safe next checkpoint. Cautioned that "Codex PASS" for B2 means the report was reviewed as truthful, **not** that staging is VERIFIED.
 - **[PC1 Claude Code Builder]:** Read the staging report verdict directly — §13.10 = 🔴 **BLOCKED** ("staging verification did not run … no fake pass"); §8 STATUS header and §14 agree. Classified the verdict as exactly one: **BLOCKED** (not VERIFIED/PARTIAL/FAILED — nothing ran, so nothing partially/failed).

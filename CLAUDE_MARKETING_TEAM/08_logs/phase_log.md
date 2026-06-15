@@ -6,6 +6,18 @@ Nhật ký theo dõi các mốc hoàn thành kỹ thuật qua các Phase.
 
 ## 📅 Nhật Ký Sự Kiện (Event Logs)
 
+### 🗓️ Ngày 16/06/2026 — V2-E3 PC2 Adapter Skeleton — START GATED 🔴 (prerequisite gate FAILS; NOT started)
+- **Sự kiện:** Owner direction = start V2-E3 PC2 Adapter Skeleton **chỉ nếu prerequisite gate pass**. Inspect-first gate check. **Kết quả: GATE FAILS → KHÔNG start V2-E3.** No adapter code, no tests, no spec created.
+- **Gate inputs (inspected):** (1) **B2 verdict = 🔴 BLOCKED** (staging report §13.10 + §14; env re-confirm presence-only = tất cả MISSING). (2) **Overall V2-D2 = 🟡 PARTIAL / BLOCKED ON STAGING VERIFICATION** (KHÔNG VERIFIED/PASS). (3) **V2-UI-T2 / manual product E2E = không tồn tại** (chưa start, Route B kỳ trước). (4) **4-file consistency = nhất quán** — tất cả ghi `V2-E3 PC2 Adapter Skeleton 🔴 NOT STARTED / Owner-gated (checkpoint O1)`.
+- **Gate evaluation:** Điều kiện "proceed" #1 = "B2 VERIFIED/PASS **HOẶC** tracking **explicitly** cho phép V2-E3 chạy song song bất chấp một documented **non-blocking partial**." → B2 KHÔNG VERIFIED (BLOCKED) ❌; tracking KHÔNG có statement nào explicitly cho phép parallel V2-E3 ❌ (verdict là BLOCKED, không phải "non-blocking partial"; **checkpoint O1 — Owner duyệt visibility-flag — cũng chưa logged**). Cộng thêm hard rule rõ ràng: "**If B2 is BLOCKED/FAILED → Do NOT start V2-E3. Stop.**" → fired.
+- **Quyết định:** KHÔNG start V2-E3 (respect safety gate). Architecturally V2-E3 (pure local builder, zero HTTP, kill-switch) ĐỘC LẬP với Supabase staging, nên blocker B2 có thể coi là non-blocking CHO adapter — **nhưng** việc đó cần Owner ghi rõ vào tracking, không phải agent tự suy diễn vượt qua "if BLOCKED stop".
+- **Hai đường unblock cho Owner:** (A) provision disposable staging → re-run §14.1 → B2 = VERIFIED → V2-E3 mở khóa; **hoặc** (B) Owner ghi rõ trong tracking rằng V2-E3 (Supabase-independent) được phép chạy **song song** (coi staging blocker là non-blocking cho adapter) **VÀ** log checkpoint O1 (tên/cơ chế visibility flag) → V2-E3 start.
+- **Preserved:** V2-E3 PC2 Adapter Skeleton 🔴 NOT STARTED / Owner-gated; real connector activation 🔴 NOT STARTED / Owner-gated; feedback implementation + Checkpoint F 🔴 NOT STARTED / Owner-gated. KHÔNG approval mutation; PC2 callbacks metadata/log/echo only; Core UI authoritative.
+- **Safety:** no live connector/PC2 endpoint; no secrets; no production URL/Supabase/data; no SQL; no approval-semantics change. Diff = docs/logs only.
+- **Build:** PASS — 0 TS errors. `npm run test`: 45/45 PASS.
+
+---
+
 ### 🗓️ Ngày 16/06/2026 — V2-D2 — B2 verdict routing → Route B (BLOCKED, no UI/product impl)
 - **Sự kiện:** Owner direction = xác định verdict B2 thực tế từ staging report + route tới checkpoint kế tiếp an toàn nhanh nhất. **Lưu ý: "Codex PASS" cho B2 = report/tracking được review là TRUTHFUL, KHÔNG phải staging VERIFIED.**
 - **Verdict B2 thực tế (đọc report §13.10 + §14):** 🔴 **BLOCKED** (classify đúng một: VERIFIED/PARTIAL/BLOCKED/FAILED → **BLOCKED**). Evidence (§13.3–§13.10) nói rõ substantive staging verification (migrations/schema/RLS/tenant hierarchy) **KHÔNG chạy**. Re-confirm 2026-06-16: env presence-only re-check (không in giá trị) = `VITE_SUPABASE_URL`/`VITE_SUPABASE_ANON_KEY`/`SUPABASE_ACCESS_TOKEN`/`SUPABASE_PROJECT_REF`/`DATABASE_URL` tất cả MISSING; `.env*` ABSENT. Không đổi gì so với §13.
