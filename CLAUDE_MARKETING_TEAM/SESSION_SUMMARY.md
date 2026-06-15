@@ -22,12 +22,45 @@ Chúng ta đang xây dựng **The Core Agency — Real Operations MVP**. Đây l
 
 ---
 
-## 🟡 V2-D2 — Checkpoint C — Client-Feedback Policy 🟡 DOCS/SPEC PROPOSED (2026-06-15)
+## ✅ V2-D2 — Checkpoint D — Owner Decision ✅ DONE (policy stage CLOSED — 2026-06-15)
 
-> **Checkpoint C 🟡 DOCS/SPEC PROPOSED — NOT implemented.** Author client-role
+> **Checkpoint D ✅ DONE — Owner decision recorded; policy-decision stage
+> CLOSED.** Documentation/log/decision-record only. **Decision status:
+> ✅ ACCEPTED / OWNER-APPROVED FOR FUTURE IMPLEMENTATION — NOT implemented.**
+> Owner approval phủ policy *direction*; KHÔNG authorize build bây giờ.
+
+- **Owner decision (recorded):**
+  - **A = YES** — client approver may submit feedback / request revision (no state mutation).
+  - **B = YES, metadata only** — approved-like feedback requires Core owner/internal
+    confirmation before any real approval state change (no auto-approve).
+  - **C = YES** — client viewer remains read-only.
+  - **D = YES** — future implementation uses a separate feedback table.
+- **Invariants preserved (không nới lỏng):** client feedback KHÔNG mutate Core
+  `approval_status` directly; approved-like = metadata only; rejected/needs_revision-like
+  = metadata/feedback-record only; viewer read-only; PC2 callbacks = metadata/log/echo
+  only (non-authoritative); KHÔNG feedback/callback-driven posting/ads/messaging/customer
+  contact.
+- **Updated docs (wording/decision-record only):** `03_core/specs/v2_d2_checkpoint_c_decision_record.md`
+  (+§7 Checkpoint D Owner Decision, +§8 Status; header → ACCEPTED/NOT IMPLEMENTED) +
+  `03_core/specs/v2_d2_client_feedback_policy.md` (status header + §11 → approved A–D;
+  E/F open). KHÔNG chuyển thành implementation/migration instructions.
+- **No implementation:** không code/RLS/SQL/migrations/tests/secrets/connectors; không
+  kết nối production/staging. Diff = docs/specs/logs only.
+- **Future implementation phase 🔴 NOT STARTED / Owner-gated** — theo sau một Checkpoint B
+  *VERIFIED* (hiện BLOCKED). **Next recommended checkpoint:** future Owner-gated
+  implementation phase (design + Codex-review `client_feedback` table + scoped RLS, build
+  behind approved policy) — chỉ bắt đầu sau Checkpoint B VERIFIED.
+- **Build:** PASS — 0 TS errors. `npm run test`: 45/45 PASS (docs-only diff).
+
+---
+
+## ✅ V2-D2 — Checkpoint C — Client-Feedback Policy ✅ DOCS/SPEC DONE (2026-06-15)
+
+> **Checkpoint C ✅ DOCS/SPEC DONE — NOT implemented.** Author client-role
 > feedback policy decision dưới dạng **documentation/specification only**
 > (Owner-approved docs/spec scope). Checkpoint C trước đó = NOT STARTED → tạo
-> mới (không duplicate). **Checkpoint D 🔴 NOT STARTED / Owner-gated.**
+> mới (không duplicate). **Owner đã approve policy direction tại Checkpoint D
+> (xem section trên).**
 
 - **Deliverables (mới):**
   - `03_core/specs/v2_d2_client_feedback_policy.md` — Purpose / Scope /

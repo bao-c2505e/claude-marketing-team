@@ -6,6 +6,17 @@ Nhật ký ghi lại các hành động mô phỏng của các AI Agent khi vậ
 
 ## 🗓️ Nhật Ký Hoạt Động (Simulated Activity Logs)
 
+### 🗓️ Ngày 15/06/2026 — V2-D2 — Checkpoint D Owner Decision ✅ DONE (policy stage CLOSED)
+- **[PC1 Claude Code Builder]:** Inspected repo first — branch `main` = origin/main, tree clean, latest commit `2462875` (Checkpoint C). Confirmed the Checkpoint C policy + decision-record docs exist; this checkpoint only **records the Owner decision** and **closes the policy-decision stage** — no new spec authored, no duplication.
+- **[Owner — Approver]:** Recorded decision for Checkpoint D — **A = YES** (client approver may submit feedback/request revision), **B = YES, metadata only** (approved-like feedback requires Core owner/internal confirmation before any real approval state change), **C = YES** (client viewer read-only), **D = YES** (future implementation uses a separate feedback table).
+- **[PC1]:** Updated `03_core/specs/v2_d2_checkpoint_c_decision_record.md` — status header → ✅ ACCEPTED / OWNER-APPROVED FOR FUTURE IMPLEMENTATION / NOT IMPLEMENTED; added §7 "Checkpoint D — Owner Decision (Recorded)" (A/B/C/D answers, what it means + does NOT mean, invariants preserved) and §8 Status & Next Steps; reworked §6 as carried-forward consequences.
+- **[PC1]:** Updated `03_core/specs/v2_d2_client_feedback_policy.md` wording only — status header → Owner-approved policy direction; §11 → Owner-approved A–D with sub-decisions E/F still open. Did **not** convert it into implementation/migration instructions.
+- **[PC1]:** Held every hard boundary — did **not** implement code/RLS/runtime; did **not** change Supabase migrations/auth/tests/connectors; did **not** run SQL; did **not** connect to production/staging; did **not** add secrets. Client/viewer cannot mutate Core approval state; PC2 callback status cannot mutate approval decisions; no feedback/callback-driven posting/ads/messaging/customer contact. Preserved in the docs, no behavior changed.
+- **[PC1]:** Marked **Checkpoint D ✅ DONE (Owner decision recorded, policy-decision stage CLOSED)** and **future implementation phase 🔴 NOT STARTED / Owner-gated** (should follow a *VERIFIED* Checkpoint B, currently BLOCKED). No implementation done.
+- **[PC1]:** `npm run build` PASS (0 TS errors); `npm run test` 45/45 PASS — docs-only diff, unchanged green.
+
+---
+
 ### 🗓️ Ngày 15/06/2026 — V2-D2 — Checkpoint C Client-Feedback Policy 🟡 DOCS/SPEC PROPOSED
 - **[PC1 Claude Code Builder]:** Inspected repo first — branch `main` = origin/main, tree clean, latest commit `a6e7445`. Confirmed Checkpoint C was **NOT STARTED**: no `03_core/specs/` directory and no `client_feedback`/`checkpoint_c` documents existed. Started Checkpoint C fresh (no duplication).
 - **[PC1]:** Authored two specs (documentation/specification only): `03_core/specs/v2_d2_client_feedback_policy.md` (purpose, scope, 5 role definitions, permission matrix, state-transition policy, separate-feedback-table data model, future RLS requirements, future UI requirements, audit/log, risks/mitigations, open owner decisions) and `03_core/specs/v2_d2_checkpoint_c_decision_record.md` (decision PROPOSED/not implemented, recommended option, rejected unsafe options, required Owner decision A/B/C/D + recommended answers A=yes / B=yes-metadata-only / C=yes / D=yes).

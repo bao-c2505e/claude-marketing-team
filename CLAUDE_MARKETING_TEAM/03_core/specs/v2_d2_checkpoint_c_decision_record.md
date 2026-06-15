@@ -1,16 +1,17 @@
 # V2-D2 Checkpoint C — Implementation Decision Record
 
-**Decision status:** 🟡 **PROPOSED — NOT IMPLEMENTED.**
+**Decision status:** ✅ **ACCEPTED — OWNER-APPROVED FOR FUTURE IMPLEMENTATION (Checkpoint D, 2026-06-15). NOT IMPLEMENTED.**
 **Type:** Architecture / policy decision record (ADR-style).
-**Workstream:** Post-MVP / Ver2 — V2-D2 Supabase Staging Execution, Checkpoint C.
-**Date:** 2026-06-15
-**Authored by:** PC1 (Claude Code Builder) — for Owner decision.
+**Workstream:** Post-MVP / Ver2 — V2-D2 Supabase Staging Execution, Checkpoints C → D.
+**Date:** 2026-06-15 (Checkpoint C proposed) → 2026-06-15 (Checkpoint D Owner decision recorded)
+**Authored by:** PC1 (Claude Code Builder) — proposal; Owner decision recorded in §7.
 **Companion:** `v2_d2_client_feedback_policy.md` (full policy/spec).
 
 > **Scope guard:** Documentation/specification only. This record changes **no** runtime
 > behavior, repository logic, Supabase migration/RLS/auth, tests, secrets, or connectors. It
-> records a *proposed* policy and the answers the Owner must confirm before any future,
-> separately-gated implementation phase.
+> records a policy proposal (Checkpoint C) **and the Owner's accept decision (Checkpoint D)**.
+> The Owner decision authorizes the policy *direction* for a future, separately-gated
+> implementation phase — **it does not implement anything and does not authorize building now.**
 
 ---
 
@@ -103,15 +104,78 @@ to publish authority, to PC2's non-authoritative status, or to existing tests.
 
 ---
 
-## 6. Status & Next Steps
+## 6. Consequences (carried forward)
 
-- **Checkpoint C:** 🟡 **docs/spec PROPOSED — complete as a specification; NOT implemented.**
-- **Checkpoint D:** 🔴 **NOT STARTED / Owner-gated** — any implementation (table, RLS, UI)
-  is a future phase that the Owner must explicitly approve. Implementation should follow a
-  *VERIFIED* Checkpoint B (live RLS behavior observed on disposable staging), which is
-  currently 🔴 BLOCKED (no disposable staging env).
-- **No implementation was done in this checkpoint.** No SQL, no RLS, no code, no tests, no
-  connectors, no secrets, no production/staging connection.
+The §5 consequences stand: an approved policy direction means a future, separately-gated
+phase would design + Codex-review a `client_feedback` table and scoped RLS before any
+migration runs against a disposable staging env; UI would add labeled client-feedback entry
+with approval controls remaining Owner/Internal-only; the approval/publish authority model
+is unchanged. **Non-consequences guaranteed:** no change to `approval_status` semantics,
+publish authority, PC2's non-authoritative status, or existing tests.
 
-**Next action for Owner:** review this record + `v2_d2_client_feedback_policy.md`, confirm
-A/B/C/D (and sub-decisions E/F in the policy doc §11), then decide whether to gate Checkpoint D.
+---
+
+## 7. Checkpoint D — Owner Decision (Recorded)
+
+**Decision status:** ✅ **ACCEPTED / OWNER-APPROVED FOR FUTURE IMPLEMENTATION.**
+**Recorded:** 2026-06-15 · **Decider:** Owner · **Recorded by:** PC1 (Claude Code Builder).
+
+The Owner reviewed Checkpoint C (`v2_d2_client_feedback_policy.md` + this record) and
+**approved the policy direction** with the following answers:
+
+| Key | Decision | Owner answer |
+|---|---|---|
+| **A** | Client approver may submit feedback / request revision (no state mutation). | ✅ **YES** |
+| **B** | Client approver may submit **approved-like** feedback — **metadata only**, requires Core Owner/Internal confirmation before any real approval state change (no auto-approve). | ✅ **YES, metadata only** |
+| **C** | Client viewer remains **read-only**. | ✅ **YES** |
+| **D** | Future implementation uses a **separate feedback table**. | ✅ **YES** |
+
+### 7.1 What this Owner decision means
+
+- It **accepts the policy direction** described in this record and in
+  `v2_d2_client_feedback_policy.md` as the approved blueprint for a future build.
+- It **closes the policy-decision stage** (Checkpoints C → D) for V2-D2.
+
+### 7.2 What this Owner decision does NOT mean — explicitly
+
+- ⛔ **Not implemented.** No code, RLS, SQL, migration, table, UI, test, connector, or
+  secret was created or changed. No production/staging connection was made.
+- ⛔ **Does not authorize building now.** Implementation remains a **future, separately
+  Owner-gated phase**. It should still follow a *VERIFIED* Checkpoint B (live RLS behavior
+  observed on a disposable staging env), which is currently 🔴 BLOCKED (no disposable
+  staging env). The Owner approving the *policy* does not unblock or skip that verification.
+
+### 7.3 Invariants preserved by this decision (unchanged)
+
+The Owner decision explicitly **preserves** every safety invariant — none is relaxed:
+
+- **Client feedback cannot mutate Core `approval_status` directly.** Only an authenticated
+  Owner/Internal action in the Core Approvals UI transitions approval state.
+- **Approved-like feedback is metadata only** (Decision B) — never an auto-approve; a human
+  Owner/Internal confirmation is required before any real approval state change.
+- **Rejected-like / needs_revision-like feedback is metadata or a feedback record only** —
+  it flags the item for human review; it never transitions `approval_status` on its own.
+- **Client viewer remains read-only** (Decision C) — no write path by default.
+- **PC2 / module callbacks remain metadata / log / echo only** — non-authoritative by
+  contract; a callback can never approve/reject or impersonate a human role.
+- **No feedback- or callback-driven posting, ads, messaging, or customer contact.** Publish
+  stays Owner-only and manual; no client/callback path triggers any external action.
+
+---
+
+## 8. Status & Next Steps
+
+- **Checkpoint C:** ✅ **docs/spec COMPLETE (PROPOSED policy authored).**
+- **Checkpoint D:** ✅ **DONE — Owner decision recorded (A=YES, B=YES metadata-only, C=YES,
+  D=YES). Policy-decision stage CLOSED.**
+- **Future implementation phase:** 🔴 **NOT STARTED / Owner-gated** — building the
+  `client_feedback` table, RLS, and UI is a separate future phase requiring explicit Owner
+  approval, and should follow a *VERIFIED* Checkpoint B (currently BLOCKED).
+- **No implementation was done.** No SQL, RLS, code, tests, connectors, secrets, or
+  production/staging connection.
+
+**Next recommended checkpoint:** a future, separately Owner-gated **implementation phase**
+(design + Codex-review the `client_feedback` table and scoped RLS, then build behind the
+approved policy) — to begin only after a *VERIFIED* Checkpoint B (disposable staging env
+provisioned so live RLS behavior can be observed). Until then, the status quo holds and no
+build proceeds.

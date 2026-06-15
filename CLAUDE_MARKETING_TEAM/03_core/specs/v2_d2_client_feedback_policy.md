@@ -1,13 +1,14 @@
 # V2-D2 Checkpoint C — Client-Role Feedback Policy
 
-**Status:** 🟡 PROPOSED — documentation/specification only. **No implementation.**
-**Workstream:** Post-MVP / Ver2 — V2-D2 Supabase Staging Execution, Checkpoint C.
-**Date:** 2026-06-15
-**Owner of this document:** PC1 (Claude Code Builder) — proposal for Owner decision.
+**Status:** ✅ OWNER-APPROVED policy direction (Checkpoint D, 2026-06-15) — documentation/specification only. **No implementation.**
+**Workstream:** Post-MVP / Ver2 — V2-D2 Supabase Staging Execution, Checkpoints C → D.
+**Date:** 2026-06-15 (Checkpoint C authored) · Owner decision recorded 2026-06-15 (Checkpoint D)
+**Owner of this document:** PC1 (Claude Code Builder) — proposal; Owner decision recorded (A=YES, B=YES metadata-only, C=YES, D=YES).
 **Scope guard:** This document does **not** change runtime/product behavior, repository
 logic, Supabase migrations/RLS/auth, tests, or any connector. It describes the *future*
 policy that a later (separately Owner-gated) implementation phase would apply. Nothing
-here is wired or executed.
+here is wired or executed. The Owner approval covers the policy *direction* only and does
+**not** authorize building now.
 
 > **Companion document:** `v2_d2_checkpoint_c_decision_record.md` (the decision record /
 > required Owner answers). Read the two together.
@@ -299,25 +300,31 @@ feedback write accidentally touching an approval column.
 
 ---
 
-## 11. Open Owner Decisions
+## 11. Owner Decisions (Checkpoint D — Recorded 2026-06-15)
 
-These are the explicit choices the Owner must confirm (also itemized in the decision record):
+The core choices A–D were confirmed by the Owner at Checkpoint D (full record in
+`v2_d2_checkpoint_c_decision_record.md` §7):
 
-- **A.** Allow **client approver** to submit feedback / request a revision **only**
-  (no state mutation)? → *Recommended: **yes**.*
-- **B.** Allow **client approver** to submit an **approved-like** signal, but **only as
-  metadata** requiring Owner/Internal confirmation (never an auto-approve)? →
-  *Recommended: **yes, metadata only**.*
-- **C.** Keep **client viewer read-only** by default (feedback only if explicitly granted)? →
-  *Recommended: **yes** (viewer read-only).*
-- **D.** Create a **separate `client_feedback` table** in the future implementation? →
-  *Recommended: **yes**.*
-- **E (sub-decision):** Allow a narrow client "withdraw own feedback within N minutes"
+- **A. ✅ APPROVED (YES).** Client approver may submit feedback / request a revision **only**
+  (no state mutation).
+- **B. ✅ APPROVED (YES, metadata only).** Client approver may submit an **approved-like**
+  signal, but **only as metadata** requiring Core Owner/Internal confirmation before any real
+  approval state change — never an auto-approve.
+- **C. ✅ APPROVED (YES, viewer read-only).** Client viewer stays read-only by default
+  (feedback only if explicitly granted).
+- **D. ✅ APPROVED (YES).** Future implementation uses a **separate `client_feedback` table**.
+
+Sub-decisions E/F remain **open** for the future implementation phase (no Owner answer
+required to close the policy stage; recommendations stand as defaults):
+
+- **E (sub-decision, open):** Allow a narrow client "withdraw own feedback within N minutes"
   exception, or keep client rows strictly immutable? → *Recommended default: **strictly
   immutable** unless Owner wants the withdraw window.*
-- **F (sub-decision):** Encode "client approver vs client viewer" as a designation flag on
-  the tenant assignment, or introduce a future role value? → *Recommended: **designation
+- **F (sub-decision, open):** Encode "client approver vs client viewer" as a designation flag
+  on the tenant assignment, or introduce a future role value? → *Recommended: **designation
   flag**, defer any new enum value.*
 
-> All decisions above are **proposals**. Nothing is implemented. Implementation is a future
-> phase gated by the Owner (see Checkpoint D and `v2_d2_checkpoint_c_decision_record.md`).
+> A–D are **Owner-approved as policy direction**. Nothing is implemented. Implementation is a
+> future, separately Owner-gated phase (see the decision record §7–§8) and should follow a
+> *VERIFIED* Checkpoint B. The approval covers the policy direction only — it does not
+> authorize building now.
