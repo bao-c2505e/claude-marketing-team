@@ -31,6 +31,7 @@ import {
   Package,
   Network,
   Activity,
+  Factory,
 } from 'lucide-react';
 import { sampleCampaigns, Campaign, CampaignBrief, CalendarItem, ChecklistItem } from './mockData';
 import { useAuth } from './lib/auth/AuthContext';
@@ -54,6 +55,7 @@ import ReportsTab from './components/core/ReportsTab';
 import ExportPackTab from './components/core/ExportPackTab';
 import ConnectorRegistryTab from './components/core/ConnectorRegistryTab';
 import AutomationLogsTab from './components/core/AutomationLogsTab';
+import AutomationFactoryTab from './components/core/AutomationFactoryTab';
 import { loadCoreData, saveCoreData, loadGenerationData, saveGenerationData, loadApprovalData, saveApprovalData, loadAssetData, saveAssetData, canSubmitItem } from './lib/core/coreData';
 import { assetScopeIsSupabaseSafe, approvalScopeIsSupabaseSafe } from './lib/core/repoRouting';
 import type { AssetRouteIds, ApprovalRouteIds } from './lib/core/repoRouting';
@@ -717,7 +719,7 @@ export default function App() {
   const handleViewModeSwitch = (mode: 'owner' | 'client') => {
     setViewMode(mode);
     if (mode === 'client') {
-      const ownerOnlyTabs = ['new-campaign', 'team-board', 'manual-export', 'client-demo', 'automation-logs'];
+      const ownerOnlyTabs = ['new-campaign', 'team-board', 'manual-export', 'client-demo', 'automation-factory', 'automation-logs'];
       if (ownerOnlyTabs.includes(activeTab)) setActiveTab('dashboard');
     }
   };
@@ -986,7 +988,7 @@ export default function App() {
     return (
       <div style={{ minHeight: '100vh', background: 'transparent', display: 'flex', flexDirection: 'column', gap: '14px', alignItems: 'center', justifyContent: 'center' }}>
         <div className="spinner" />
-        <div style={{ color: '#6b7280', fontSize: '0.875rem' }}>Loading The Core Agency…</div>
+        <div style={{ color: '#6b7280', fontSize: '0.875rem' }}>Loading The Core Agency — Internal OS…</div>
       </div>
     );
   }
@@ -1000,12 +1002,12 @@ export default function App() {
       {/* Header section */}
       <header className="app-header">
         <div className="logo-section">
-          <img src="/brand/core-icon.png" alt="The Core Agency" className="brand-mark" width={42} height={42} />
+          <img src="/brand/core-icon.png" alt="The Core Agency — Internal OS" className="brand-mark" width={42} height={42} />
           <div>
             <h1 style={{ fontSize: '1.5rem', fontWeight: 700, letterSpacing: '0.02em', background: 'linear-gradient(135deg, #fff 40%, #fdba74)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-              THE CORE AGENCY
+              The Core Agency — Internal OS
             </h1>
-            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>AI Marketing Team Workspace</p>
+            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>FnB agency control center · Owner-approved workflows only</p>
           </div>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-end' }}>
@@ -1137,6 +1139,15 @@ export default function App() {
             >
               <Wand2 size={18} /> Content Generation
             </button>
+            {viewMode === 'owner' && (user?.role === 'owner' || user?.role === 'manager') && (
+              <button
+                className={`btn btn-secondary ${activeTab === 'automation-factory' ? 'active' : ''}`}
+                style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'automation-factory' ? '1px solid rgba(251, 146, 60,0.5)' : '', background: activeTab === 'automation-factory' ? 'rgba(244, 122, 31,0.1)' : '' }}
+                onClick={() => setActiveTab('automation-factory')}
+              >
+                <Factory size={18} /> Automation Factory
+              </button>
+            )}
 
             <button
               className={`btn btn-secondary ${activeTab === 'content-calendar' ? 'active' : ''}`}
@@ -1562,6 +1573,22 @@ export default function App() {
                 />
               )}
 
+              {/* ── Internal Automation Factory Tab ── */}
+              {activeTab === 'automation-factory' && (
+                <AutomationFactoryTab
+                  clients={coreData.clients}
+                  brands={coreData.brands}
+                  campaigns={coreData.campaigns}
+                  briefs={coreData.briefs}
+                  generationJobs={genData.generationJobs}
+                  contentItems={genData.contentItems}
+                  approvalRequests={approvalData.approvalRequests}
+                  assetCount={assetData.assets.length}
+                  reportCount={genData.generationJobs.length}
+                  userRole={user?.role ?? null}
+                  isSupabaseConfigured={isSupabaseConfigured}
+                />
+              )}
               {/* ── Phase 14: Automation Logs Tab ── */}
               {activeTab === 'automation-logs' && (
                 <AutomationLogsTab
@@ -1584,7 +1611,7 @@ export default function App() {
                         <span style={{ fontSize: '1.1rem' }}>🔧</span>
                         <div>
                           <span style={{ fontSize: '0.88rem', fontWeight: 700, color: '#fb923c' }}>Owner View — Internal Workspace</span>
-                          <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: '2px 0 0' }}>Manage brands, review AI outputs, run approval, configure campaigns. Switch to Client View before presenting.</p>
+                          <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: '2px 0 0' }}>Control clients, brands, campaigns, briefs, AI outputs, approvals, assets, and reports. Owner approval is required before any output is used.</p>
                         </div>
                       </div>
                       <button onClick={() => handleViewModeSwitch('client')} style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '5px 12px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 600, border: '1px solid rgba(16,185,129,0.3)', cursor: 'pointer', background: 'rgba(16,185,129,0.08)', color: '#34d399' }}>
@@ -1606,6 +1633,44 @@ export default function App() {
                     </div>
                   )}
 
+                  {viewMode === 'owner' && (
+                    <div className="glass-panel" style={{ padding: '22px', borderLeft: '4px solid #fb923c' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '14px', flexWrap: 'wrap', marginBottom: '16px' }}>
+                        <div>
+                          <h2 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '5px' }}>The Core Agency — Internal OS</h2>
+                          <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', margin: 0 }}>
+                            Daily-use control center for FnB client work. AI and automation can draft, but Owner approval decides what is usable.
+                          </p>
+                        </div>
+                        <span className="badge badge-amber" style={{ fontSize: '0.68rem' }}>Approval-first</span>
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '12px' }}>
+                        {[
+                          { label: 'Clients', value: coreData.clients.length, tab: 'clients', note: 'Accounts and relationships' },
+                          { label: 'Brands', value: coreData.brands.length, tab: 'brands', note: 'FnB brand profiles' },
+                          { label: 'Campaigns', value: coreData.campaigns.length, tab: 'campaigns', note: 'Active marketing work' },
+                          { label: 'Briefs', value: coreData.briefs.length, tab: 'brief-intake', note: 'Owner-reviewed inputs' },
+                          { label: 'Automation Factory', value: genData.generationJobs.length, tab: 'automation-factory', note: 'Draft workflows only' },
+                          { label: 'Approval Board', value: approvalData.approvalRequests.length, tab: 'approvals', note: 'Human sign-off queue' },
+                          { label: 'Asset Library', value: assetData.assets.length, tab: 'asset-library', note: 'Creative assets' },
+                          { label: 'Reports', value: genData.generationJobs.length, tab: 'reports', note: 'Draft reporting workspace' },
+                        ].map(section => (
+                          <button
+                            key={section.label}
+                            className="btn btn-secondary"
+                            onClick={() => setActiveTab(section.tab)}
+                            style={{ height: 'auto', alignItems: 'flex-start', flexDirection: 'column', gap: '5px', padding: '14px', borderRadius: '8px', textAlign: 'left' }}
+                          >
+                            <span style={{ display: 'flex', justifyContent: 'space-between', width: '100%', gap: '8px', alignItems: 'center' }}>
+                              <strong style={{ fontSize: '0.86rem' }}>{section.label}</strong>
+                              <span style={{ color: '#fb923c', fontWeight: 700, fontSize: '0.9rem' }}>{section.value}</span>
+                            </span>
+                            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 400 }}>{section.note}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                   {/* ── Brand Switcher — Phase H.5 ── */}
                   <div className="glass-panel" style={{ padding: '20px', borderLeft: '4px solid var(--accent-indigo)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
