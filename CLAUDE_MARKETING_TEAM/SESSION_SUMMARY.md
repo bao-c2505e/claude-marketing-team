@@ -22,14 +22,42 @@ Chúng ta đang xây dựng **The Core Agency — Real Operations MVP**. Đây l
 
 ---
 
+## 🟡 V2-D2 — Checkpoint C — Client-Feedback Policy 🟡 DOCS/SPEC PROPOSED (2026-06-15)
+
+> **Checkpoint C 🟡 DOCS/SPEC PROPOSED — NOT implemented.** Author client-role
+> feedback policy decision dưới dạng **documentation/specification only**
+> (Owner-approved docs/spec scope). Checkpoint C trước đó = NOT STARTED → tạo
+> mới (không duplicate). **Checkpoint D 🔴 NOT STARTED / Owner-gated.**
+
+- **Deliverables (mới):**
+  - `03_core/specs/v2_d2_client_feedback_policy.md` — Purpose / Scope /
+    5 role definitions (owner-admin, internal-editor, client approver,
+    client viewer, PC2/module callback) / permission matrix / state-transition
+    policy (cái gì CAN/CANNOT đổi `approval_status`; `feedback_status` → review
+    mapping) / data model (separate `client_feedback` table) / future RLS /
+    future UI / audit-log / risks (R1–R9) / open owner decisions.
+  - `03_core/specs/v2_d2_checkpoint_c_decision_record.md` — Decision PROPOSED/
+    not implemented; rejected unsafe options; required Owner decision A/B/C/D.
+- **Invariant cốt lõi:** Client feedback = **input cho human review**, KHÔNG bao
+  giờ là approval / publish trigger / state transition. Chỉ authenticated
+  Owner/Internal action trong Core Approvals UI mới đổi `approval_status`. PC2
+  callbacks non-authoritative. Client/viewer KHÔNG mutate Core approval.
+- **Recommended Owner answers:** A=yes (feedback/request-revision only),
+  B=yes nhưng **metadata only**, C=yes (viewer read-only), D=yes (separate
+  feedback table, future phase).
+- **No implementation:** không code/RLS/SQL/migrations/tests/secrets/connectors;
+  không kết nối production/staging. Diff = docs/specs/logs only.
+- **Build:** PASS — 0 TS errors. `npm run test`: 45/45 PASS (docs-only diff).
+
+---
+
 ## 🟡 V2-D2 — Supabase Staging Execution — Checkpoint A ✅ PASS / Checkpoint B 🔴 VERDICT BLOCKED (2026-06-15)
 
 > **Checkpoint A ✅ PASS** (process/docs — Codex-reviewed honest blocked
 > report). **Checkpoint B verdict 🔴 BLOCKED** — DB-level verification
 > không chạy được (env re-check 2026-06-15: vẫn MISSING, `.env.local` vẫn
-> absent). **Checkpoint C 🔴 NOT STARTED / Owner-gated** — không proceed
-> trên cơ sở verification đã hoàn tất; client-feedback policy KHÔNG
-> implement (out of scope).
+> absent). **Checkpoint C 🟡 DOCS/SPEC PROPOSED** (2026-06-15, see section
+> above) — policy authored docs/spec only, NOT implemented.
 
 - **Checkpoint B verdict (report §10):** Overall = **BLOCKED** (không
   VERIFIED/PARTIAL/FAILED — 0 DB-level criteria chạy; nothing failed vì

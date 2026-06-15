@@ -6,6 +6,16 @@ Nhật ký ghi lại các hành động mô phỏng của các AI Agent khi vậ
 
 ## 🗓️ Nhật Ký Hoạt Động (Simulated Activity Logs)
 
+### 🗓️ Ngày 15/06/2026 — V2-D2 — Checkpoint C Client-Feedback Policy 🟡 DOCS/SPEC PROPOSED
+- **[PC1 Claude Code Builder]:** Inspected repo first — branch `main` = origin/main, tree clean, latest commit `a6e7445`. Confirmed Checkpoint C was **NOT STARTED**: no `03_core/specs/` directory and no `client_feedback`/`checkpoint_c` documents existed. Started Checkpoint C fresh (no duplication).
+- **[PC1]:** Authored two specs (documentation/specification only): `03_core/specs/v2_d2_client_feedback_policy.md` (purpose, scope, 5 role definitions, permission matrix, state-transition policy, separate-feedback-table data model, future RLS requirements, future UI requirements, audit/log, risks/mitigations, open owner decisions) and `03_core/specs/v2_d2_checkpoint_c_decision_record.md` (decision PROPOSED/not implemented, recommended option, rejected unsafe options, required Owner decision A/B/C/D + recommended answers A=yes / B=yes-metadata-only / C=yes / D=yes).
+- **[PC1]:** Grounded the policy in existing repo facts: approval model `ContentApprovalStatus` + `canApproveContent: ['owner','manager']` (`src/lib/auth/permissions.ts`); Phase-9 client portal feedback-comment path; RLS plan `approval_comments` three-tier read + audit finding #5 (client feedback owner/manager-gated); PC2 non-authoritative callback rule (V2-E2 plan §4 + commit `3c8f853`).
+- **[PC1]:** Held every hard boundary — did **not** implement code/RLS/runtime; did **not** change Supabase migrations/auth/tests/connectors; did **not** run SQL; did **not** connect to production/staging; did **not** add secrets. Client/viewer cannot mutate Core approval state; PC2 callback status cannot mutate approval decisions — preserved in the spec, no behavior changed.
+- **[PC1]:** Marked **Checkpoint C 🟡 docs/spec PROPOSED (complete as specification; NOT implemented)** and **Checkpoint D 🔴 NOT STARTED / Owner-gated**. No implementation done.
+- **[PC1]:** `npm run build` PASS (0 TS errors); `npm run test` 45/45 PASS — docs-only diff, unchanged green.
+
+---
+
 ### 🗓️ Ngày 15/06/2026 — V2-D2 — Checkpoint B Verification Verdict 🔴 BLOCKED
 - **[PC1 Claude Code Builder]:** Re-checked the staging env without printing values: `VITE_SUPABASE_URL`/`VITE_SUPABASE_ANON_KEY` still MISSING, `.env.local` still absent — unchanged since Checkpoint A. The disposable staging project was never provisioned, so the substantive V2-D2 verification still cannot run.
 - **[PC1]:** Rendered the **Checkpoint B verdict = 🔴 BLOCKED** (not VERIFIED/PARTIAL/FAILED — zero DB-level criteria executed; preflight is preparatory only; nothing ran so nothing failed). **No fake pass.**

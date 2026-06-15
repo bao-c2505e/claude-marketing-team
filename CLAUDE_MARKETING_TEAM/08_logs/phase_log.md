@@ -6,6 +6,18 @@ Nhật ký theo dõi các mốc hoàn thành kỹ thuật qua các Phase.
 
 ## 📅 Nhật Ký Sự Kiện (Event Logs)
 
+### 🗓️ Ngày 15/06/2026 — V2-D2 — Checkpoint C Client-Feedback Policy 🟡 DOCS/SPEC PROPOSED
+- **Sự kiện:** Author Checkpoint C — **client-role feedback policy decision** dưới dạng **documentation/specification only** (Owner-approved docs/spec scope). Checkpoint C trước đó = NOT STARTED (không có `03_core/specs/`, không có policy/decision docs). **KHÔNG implement** code/RLS/runtime/migrations/tests.
+- **Deliverables (mới):**
+  - `03_core/specs/v2_d2_client_feedback_policy.md` — Purpose / Scope / 5 role definitions (owner-admin, internal-editor, client approver, client viewer, PC2/module callback) / permission matrix (read/feedback/revision/approved-like/rejected-like/mutate approval_status/publish/edit hierarchy/edit output/archive-delete) / state-transition policy (cái gì CAN/CANNOT đổi `approval_status`; `feedback_status` → review mapping; xử lý an toàn needs_revision/rejected/approved) / data-model recommendation (separate `client_feedback` table, required + tenant/scope + immutable audit + actor identity + parent refs + created_at/updated_at) / future RLS requirements / future UI requirements / audit-log / risks+mitigations (R1–R9) / open owner decisions.
+  - `03_core/specs/v2_d2_checkpoint_c_decision_record.md` — Decision status PROPOSED/not implemented; recommended option; rejected unsafe options (client mutates approval_status; PC2 callback approves/rejects; viewer writes without grant; feedback triggers publish/ads/send; overload approval column); required Owner decision A/B/C/D + recommended answer (A=yes, B=yes metadata only, C=yes viewer read-only, D=yes separate table).
+- **Invariant cốt lõi:** Client feedback là **input** cho human review — KHÔNG bao giờ là approval / publish trigger / state transition. Chỉ authenticated Owner/Internal action trong Core Approvals UI mới đổi `approval_status`. PC2 callbacks non-authoritative (V2-E2 §4 + t2/t3 fix `3c8f853`).
+- **Safety:** KHÔNG đổi runtime/product/repository/Supabase migrations/RLS/auth/tests/connectors/secrets. KHÔNG chạy SQL. KHÔNG kết nối production/staging. Diff = docs/specs/logs only. Client/viewer KHÔNG được mutate Core approval; PC2 callback status KHÔNG mutate approval decisions.
+- **Build:** PASS — 0 TS errors. `npm run test`: 45/45 PASS (docs-only diff).
+- **Trạng thái:** **Checkpoint C 🟡 docs/spec PROPOSED (complete as specification; NOT implemented)** / **Checkpoint D 🔴 NOT STARTED / Owner-gated** (implementation = future phase, theo sau một Checkpoint B *VERIFIED* — hiện BLOCKED). No implementation yet.
+
+---
+
 ### 🗓️ Ngày 15/06/2026 — V2-D2 — Checkpoint B Verification Verdict 🔴 BLOCKED
 - **Sự kiện:** Render Checkpoint B verdict cho V2-D2. **Checkpoint A ✅ PASS** (process/docs — Codex-reviewed honest blocked report). **Checkpoint B verdict: 🔴 BLOCKED** — DB-level verification vẫn không chạy được. Re-check env 2026-06-15: `VITE_SUPABASE_URL`/`VITE_SUPABASE_ANON_KEY` vẫn MISSING, `.env.local` vẫn absent — không có gì thay đổi từ Checkpoint A. **KHÔNG fake pass.**
 - **Verdict rationale:** BLOCKED chứ không VERIFIED/PARTIAL/FAILED — zero DB-level criteria chạy (preflight chỉ preparatory); không defect nào quan sát được vì không có gì chạy.
