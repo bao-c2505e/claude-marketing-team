@@ -6,6 +6,21 @@ Nhật ký theo dõi các mốc hoàn thành kỹ thuật qua các Phase.
 
 ## 📅 Nhật Ký Sự Kiện (Event Logs)
 
+### 🗓️ Ngày 15/06/2026 — V2-D2 — Tracking truthfulness fix ✅ DONE (overall = PARTIAL / BLOCKED ON STAGING VERIFICATION)
+- **Sự kiện (Codex required fix):** Codex flag — "V2-D2 Checkpoint B remains BLOCKED, so Checkpoints A–E are not all DONE/PASS (criterion 11)." Fix tracking truthfulness — docs/logs/tracking-only.
+- **Correct status model (khớp staging report `v2_d2_staging_report_20260615.md`, verdict = BLOCKED, "No fake pass issued"):**
+  - **Overall V2-D2 = 🟡 PARTIAL / BLOCKED ON STAGING VERIFICATION** — KHÔNG claim fully DONE/PASS cho tới khi Checkpoint B unblocked + verified.
+  - **Checkpoint A** ✅ PASS (process/docs — Codex-reviewed honest blocked report).
+  - **Checkpoint B 🔴 BLOCKED** = **the staging-verification blocker** (full staging verification KHÔNG chạy — no disposable staging env; DB-level §6/§7 NOT EXECUTED). KHÔNG fake.
+  - **Checkpoint C** ✅ DOCS/SPEC DONE (client feedback policy). **Checkpoint D** ✅ DONE (owner decision docs). **Checkpoint E** ✅ DOCS/SPEC DONE (implementation plan docs).
+  - **C/D/E là docs/spec/policy/planning hoàn thành ĐỘC LẬP — KHÔNG complete hay replace staging verification**; DONE status của chúng KHÔNG làm V2-D2 done.
+- **Changes:** thêm overall PARTIAL/BLOCKED status + clarification ở `CURRENT_PHASE.md` (header + V2-D2 section) & `SESSION_SUMMARY.md` (section header); sửa 2 stale conditional "→ V2-D2 DONE" (CURRENT_PHASE §next + SESSION_SUMMARY next); reframe 2 dòng summary "A–E standing verdicts" (phase_log + agent_activity) để nêu rõ overall PARTIAL/BLOCKED.
+- **Preserved:** V2-UI-T1 ✅ DONE/PASS (separate from V2-E3); **V2-E3 PC2 Adapter Skeleton 🔴 NOT STARTED / Owner-gated**; feedback implementation + Checkpoint F migration draft 🔴 NOT STARTED / Owner-gated. Approval/callback safety: PC2 callbacks metadata/log/echo only; no callback-driven approval mutation; Core UI authoritative for approval state.
+- **Safety:** KHÔNG fake staging verification; KHÔNG chạy SQL; KHÔNG kết nối production/staging; KHÔNG runtime/repo/Supabase/RLS/auth/test changes; KHÔNG secrets/connectors. Diff = docs/logs/tracking only.
+- **Build:** PASS — 0 TS errors. `npm run test`: 45/45 PASS.
+
+---
+
 ### 🗓️ Ngày 15/06/2026 — V2-UI-T1 — Manual E2E + UI Bug Triage ✅ DONE / PASS (small safe fixes)
 - **Disambiguation (Codex required fix):** đây là **V2-UI-T1**, một checkpoint UI/manual smoke-test triage **RIÊNG** — KHÔNG phải V2-E3. **V2-E3 = PC2 Adapter Skeleton vẫn 🔴 NOT STARTED / Owner-gated** (checkpoint O1). V2-UI-T1 DONE/PASS **KHÔNG** bắt đầu/hoàn thành bất kỳ V2-E3 PC2 adapter-skeleton work nào. (Trước đó entry này bị đặt nhầm tên "V2-E3"; đã rename + đổi file `v2_e3_ui_bug_triage.md` → `v2_ui_t1_ui_bug_triage.md`.)
 - **Sự kiện:** Owner pause feedback implementation; start **V2-UI-T1 Manual E2E + UI Bug Triage**. 2 issue Owner báo: (1) mobile UI rối/cluttered; (2) Create Brand "clicking Create has no visible response". Investigation + small safe fixes only — **KHÔNG redesign, KHÔNG feedback table/RLS/UI, KHÔNG Supabase/migration/auth changes**.
@@ -15,7 +30,7 @@ Nhật ký theo dõi các mốc hoàn thành kỹ thuật qua các Phase.
 - **Manual E2E smoke (fictional data):** create/read client → brand (scoped) → campaign (scoped) → brief (scoped) đều theo cùng pattern đúng; generated/pending approval an toàn; KHÔNG callback-driven approval mutation; localStorage UUID gating unchanged. Verified qua build (type-correct), dev server (HTTP 200, modules transform), code reading.
 - **Safety:** KHÔNG Supabase/RLS/auth/migration; KHÔNG SQL; KHÔNG secrets; **KHÔNG connector activation; KHÔNG real posting/ads/messaging/customer contact**; KHÔNG feedback implementation; approval semantics unchanged; **PC2 callbacks remain metadata/log/echo only; KHÔNG callback-driven approval mutation; approval state remains Core UI-authoritative.** Diff = 3 UI/CSS files + docs/logs.
 - **Build:** PASS — 0 TS errors. `npm run test`: 45/45 PASS.
-- **Trạng thái:** **V2-UI-T1 ✅ DONE / PASS** (Create Brand success-feedback fix + mobile responsive polish). **V2-E3 PC2 Adapter Skeleton vẫn 🔴 NOT STARTED / Owner-gated** (checkpoint O1). Feedback implementation + Checkpoint F migration draft vẫn 🔴 NOT STARTED / Owner-gated. V2-D2 Checkpoint A–E giữ nguyên standing verdicts (A ✅ PASS / B 🔴 verdict BLOCKED — DB-level verification chưa chạy được / C·D·E ✅ docs-spec DONE).
+- **Trạng thái:** **V2-UI-T1 ✅ DONE / PASS** (Create Brand success-feedback fix + mobile responsive polish). **V2-E3 PC2 Adapter Skeleton vẫn 🔴 NOT STARTED / Owner-gated** (checkpoint O1). Feedback implementation + Checkpoint F migration draft vẫn 🔴 NOT STARTED / Owner-gated. **Overall V2-D2 = 🟡 PARTIAL / BLOCKED ON STAGING VERIFICATION** (KHÔNG phải all DONE/PASS): A ✅ PASS / **B 🔴 BLOCKED = staging-verification blocker, DB-level verification chưa chạy được** / C·D·E ✅ docs-spec DONE độc lập nhưng **KHÔNG complete/replace staging verification**. V2-D2 chỉ DONE khi B unblocked + verified.
 
 ---
 

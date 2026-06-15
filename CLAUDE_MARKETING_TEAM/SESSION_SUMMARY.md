@@ -173,7 +173,13 @@ Chúng ta đang xây dựng **The Core Agency — Real Operations MVP**. Đây l
 
 ---
 
-## 🟡 V2-D2 — Supabase Staging Execution — Checkpoint A ✅ PASS / Checkpoint B 🔴 VERDICT BLOCKED (2026-06-15)
+## 🟡 V2-D2 — Supabase Staging Execution — OVERALL 🟡 PARTIAL / BLOCKED ON STAGING VERIFICATION (Checkpoint A ✅ PASS / Checkpoint B 🔴 VERDICT BLOCKED — 2026-06-15)
+
+> **Overall V2-D2: 🟡 PARTIAL / BLOCKED ON STAGING VERIFICATION — NOT fully DONE/PASS.**
+> Checkpoint B (the staging-verification blocker) is 🔴 BLOCKED. Checkpoints C/D/E are
+> independent docs/spec/policy/planning work that is DONE but **does not complete or replace
+> staging verification**. V2-D2 must not be claimed fully DONE/PASS until B is unblocked and
+> verified.
 
 > **Checkpoint A ✅ PASS** (process/docs — Codex-reviewed honest blocked
 > report). **Checkpoint B verdict 🔴 BLOCKED** — DB-level verification
@@ -390,7 +396,11 @@ automation, KHÔNG đổi runtime/UUID gating/tenant scope/sanitizers/RLS.**
   §11 V2-D1→V2-D2 handoff.
 - **Build:** PASS — 0 TS errors. **Tests:** 45/45 PASS (docs-only diff).
 - **Next:** Owner đọc runbook → log checkpoint A nếu duyệt → V2-D2 thực
-  thi §4 + file staging report → checkpoints B + C → V2-D2 DONE.
+  thi §4 + file staging report → checkpoint B staging verification. **B vẫn 🔴
+  BLOCKED → overall V2-D2 vẫn 🟡 PARTIAL / BLOCKED ON STAGING VERIFICATION**
+  (C/D/E docs/spec done độc lập, KHÔNG thay thế staging verification). V2-D2
+  chỉ DONE khi B unblocked + verified. *(Older plan này chỉ liệt kê B+C; model
+  sau mở rộng thành Checkpoints A–F.)*
 
 ---
 
