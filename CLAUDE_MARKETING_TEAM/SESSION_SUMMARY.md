@@ -22,6 +22,43 @@ Chúng ta đang xây dựng **The Core Agency — Real Operations MVP**. Đây l
 
 ---
 
+## 🏁 V2-D1.5 — Manual E2E Checklist + Demo Script (docs-only prep) — DONE (2026-06-12)
+
+> **Status:** Documentation/checklist/demo-script prep cho manual E2E
+> verification. **KHÔNG tạo Supabase staging project, KHÔNG chạy SQL,
+> KHÔNG kết nối DB, KHÔNG secrets, KHÔNG live connector, KHÔNG đổi
+> runtime/product/repository/Supabase/auth/RLS/tests. V2-D2 vẫn 🔴 NOT
+> STARTED / Owner-gated (checkpoint A).**
+
+- **Deliverables (new folder `CLAUDE_MARKETING_TEAM/07_runbooks/`):**
+  - `v2_manual_e2e_checklist.md` — purpose/scope; preflight PF1–PF8
+    (branch/build/test/no-secrets/no-connectors/Local-Data-Only badge/
+    **PF8 hard gate: no SQL trừ khi checkpoint A logged**); manual
+    scenario S1–S10 (client→brand→campaign→brief→generation/items→asset/
+    collection→approval pending/generated→callback metadata-only→UUID
+    gating); PC2 callback preview C1–C5 (`ready_for_mock_callback_preview`
+    N8 echo, `completed_mock` = N11/N12 final mock KHÔNG phải approval,
+    `failed_mock`/N9 error route, `needs_revision`/`rejected` = metadata
+    cho human review, C5 no callback-driven mutation); evidence capture
+    table; stop conditions; evidence guide (naming + result-summary/
+    owner-sign-off/unresolved-issue templates).
+  - `v2_demo_script.md` — 10–15 min owner demo, persona Vị Cuốn
+    (fictional F&B), 10 beats có narrator lines (open→client→brand→
+    campaign→brief→mock generation→approval stays pending/generated→PC2
+    callback metadata-only→failure/error route→Human Approval Checklist),
+    "what NOT to claim" rules.
+- **PC2 status wording:** "paused at N11" → "N12 post-merge cleanup
+  (integration-ready handoff)" ở 6 chỗ status-label. KHÔNG đổi PC2 callback
+  contract.
+- **Approval safety preserved:** PC2 callbacks non-authoritative; generated
+  stays generated / pending stays pending unless authenticated Core UI
+  action; `completed_mock` ≠ approval shortcut.
+- **Build:** PASS — 0 TS errors. **Tests:** 45/45 PASS (docs-only diff).
+- **Next:** Owner/tester chạy checklist §2–§4 trong Local mode + file
+  evidence; V2-D2 chỉ bắt đầu sau checkpoint A.
+
+---
+
 ## 🏁 V2-E2 (Owner naming) — Core ↔ PC2 Dry-run Integration Plan — DONE (2026-06-12)
 
 > **Scope note:** Owner refine ladder — V2-E2 = integration PLAN;
@@ -134,8 +171,8 @@ automation, KHÔNG đổi runtime/UUID gating/tenant scope/sanitizers/RLS.**
   (legacy-vs-wired table duality; **user_roles lockout trap** — RLS bật
   nhưng zero policies → mọi user thành viewer; roles RLS gap; 16/27 tables
   chưa RLS tới khi apply plan; client-feedback owner/manager-gated by
-  design; Group F module tables unwired — PC2 paused at N11; Calendar/
-  Reports không wired; mixed local/UUID ids là hành vi đúng) + verdict
+  design; Group F module tables unwired — PC2 at N12 post-merge cleanup;
+  Calendar/Reports không wired; mixed local/UUID ids là hành vi đúng) + verdict
   "ready to plan, not yet ready to execute"; §2 staging vs local demo;
   §3 env vars + no-secrets rule; §4 V2-D2 execution checklists (migration
   order M1–M10, RLS verification gồm 18 cross-tenant tests, tenant
