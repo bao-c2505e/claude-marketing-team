@@ -6,6 +6,18 @@ Nhật ký theo dõi các mốc hoàn thành kỹ thuật qua các Phase.
 
 ## 📅 Nhật Ký Sự Kiện (Event Logs)
 
+### 🗓️ Ngày 15/06/2026 — V2-D2 — Checkpoint E Feedback Implementation Plan 🟡 PLAN ONLY (NOT implemented)
+- **Sự kiện:** Owner duyệt bắt đầu **Checkpoint E** = feedback implementation **planning** (docs/spec/implementation-plan only). Author 2 spec mới; **KHÔNG implement** code/migrations/RLS/runtime/UI/tests.
+- **Deliverables (mới):**
+  - `03_core/specs/v2_d2_feedback_implementation_plan.md` — Purpose / Scope / Non-goals / current accepted policy summary / proposed data model (separate `client_feedback` table: required fields + tenant/scope + parent refs + actor identity + feedback_type/feedback_status + immutable audit + created_at/updated_at) / suggested RLS design (scoped reads only; **client approver INSERT only trong assigned tenant**; **viewer read-only — không có trong INSERT/UPDATE/DELETE predicate**; inactive/expired denied; read/write role separation; parent hierarchy validation; no broad OR-scope bypass; no callback impersonation) / suggested repository-API (interfaces, safe create/list, **no client update/delete**, UUID-gating `feedbackScopeIsSupabaseSafe`) / suggested UI (feedback panel, "Client feedback" label, approval controls tách riêng owner/internal-only, viewer read-only) / audit-logging / migration outline (future-only, NOT executable, staging-first) / test plan / rollout / risks R1–R8 / open questions / recommended next checkpoint.
+  - `03_core/specs/v2_d2_feedback_future_checkpoints.md` — Checkpoint F (migration draft) / G (staging RLS verify) / H (repository-API) / I (UI) / J (manual E2E + evidence), mỗi cái: scope / allowed changes / hard boundaries / validation / Codex review expectations; tất cả 🔴 NOT STARTED / Owner-gated; global invariants restated.
+- **Invariants preserved (KHÔNG nới lỏng):** client/viewer feedback KHÔNG mutate Core `approval_status`; **client viewer remains strictly read-only**; client approver có thể submit feedback/request revision, approved-like = metadata only cần Core owner/internal confirmation; PC2/module callbacks = metadata/log/echo only (non-authoritative); KHÔNG feedback/callback-driven posting/ads/messaging/customer contact.
+- **Safety:** KHÔNG đổi runtime/product/repository/Supabase migrations/RLS/auth/tests/connectors/secrets. KHÔNG add executable SQL migration. KHÔNG chạy SQL. KHÔNG kết nối production/staging. Diff = docs/specs/logs only.
+- **Build:** PASS — 0 TS errors. `npm run test`: 45/45 PASS (docs-only diff).
+- **Trạng thái:** **Checkpoint E 🟡 implementation plan only** / Feedback implementation 🔴 **NOT STARTED** / **Checkpoint F 🔴 NOT STARTED / Owner-gated** (build checkpoints G+ còn cần Checkpoint B *VERIFIED* — hiện BLOCKED). No implementation yet.
+
+---
+
 ### 🗓️ Ngày 15/06/2026 — V2-D2 — Checkpoint D Codex REQUIRED FIX (round 2) ✅ DONE (stale viewer wording)
 - **Sự kiện:** Codex flag — decision record vẫn còn câu **stale**: "Client portal (Phase 9): client/viewer already limited to read + non-internal feedback comment" — gộp client/viewer chung và ngụ ý viewer được add non-internal feedback comment, mâu thuẫn với Decision C (viewer strictly read-only). **Fix: tách rõ theo role.**
 - **Stale statement fixed (`v2_d2_checkpoint_c_decision_record.md` §1 Context):** rewrote → Phase 9 là legacy/current implementation; dưới **accepted V2-D2 policy** thì non-internal feedback comment là capability của **client approver** (Phase-9-style/future feedback feature có thể cho client approver submit non-internal feedback comments); **client viewer remains strictly read-only**, KHÔNG add feedback/comment. Bất kỳ viewer-comment tương lai = separate future Owner-gated policy change, KHÔNG thuộc accepted V2-D2.

@@ -22,6 +22,47 @@ Chúng ta đang xây dựng **The Core Agency — Real Operations MVP**. Đây l
 
 ---
 
+## 🟡 V2-D2 — Checkpoint E — Feedback Implementation Plan 🟡 PLAN ONLY (2026-06-15)
+
+> **Checkpoint E 🟡 PLAN ONLY — NOT implemented.** Owner approved starting
+> Checkpoint E as docs/spec-only implementation **planning**. Feedback
+> implementation 🔴 **NOT STARTED**; **Checkpoint F (migration draft)
+> 🔴 NOT STARTED / Owner-gated** (build checkpoints G+ also need a VERIFIED
+> Checkpoint B — currently BLOCKED).
+
+- **Deliverables (mới):**
+  - `03_core/specs/v2_d2_feedback_implementation_plan.md` — Purpose / Scope /
+    Non-goals / accepted-policy summary / proposed data model (separate
+    `client_feedback` table: required fields, tenant/scope, parent refs, actor
+    identity, feedback_type/feedback_status, immutable audit, created_at/
+    updated_at) / suggested RLS design (scoped reads only; **client approver
+    INSERT only in assigned tenant**; **viewer read-only — excluded from every
+    write predicate**; inactive/expired denied; read/write role separation;
+    parent hierarchy validation; no broad OR-scope bypass; no callback
+    impersonation) / suggested repository-API (interfaces, safe create/list,
+    **no client update/delete**, UUID-gating) / suggested UI (feedback panel,
+    "Client feedback" label, approval controls owner/internal-only & separated,
+    viewer read-only) / audit-logging / migration outline (future-only, NOT
+    executable, staging-first) / test plan / rollout / risks R1–R8 / open
+    questions / recommended next checkpoint.
+  - `03_core/specs/v2_d2_feedback_future_checkpoints.md` — Checkpoints
+    F (migration draft) / G (staging RLS verify) / H (repository-API) /
+    I (UI) / J (manual E2E + evidence); each with scope / allowed changes /
+    hard boundaries / validation / Codex review expectations; all 🔴 NOT
+    STARTED / Owner-gated.
+- **Invariants preserved (KHÔNG nới lỏng):** client/viewer feedback KHÔNG mutate
+  Core `approval_status`; **client viewer remains strictly read-only**; client
+  approver may submit feedback/request revision, approved-like = metadata only
+  cần Core owner/internal confirmation; PC2/module callbacks = metadata/log/echo
+  only (non-authoritative); KHÔNG feedback/callback-driven posting/ads/messaging/
+  customer contact.
+- **No implementation:** không code/migrations/RLS/SQL/tests/secrets/connectors;
+  không add executable SQL migration; không kết nối production/staging. Diff =
+  docs/specs/logs only.
+- **Build:** PASS — 0 TS errors. `npm run test`: 45/45 PASS (docs-only diff).
+
+---
+
 ## ✅ V2-D2 — Checkpoint D — Owner Decision ✅ DONE (policy stage CLOSED — 2026-06-15)
 
 > **Checkpoint D ✅ DONE — Owner decision recorded; policy-decision stage

@@ -6,6 +6,17 @@ Nhật ký ghi lại các hành động mô phỏng của các AI Agent khi vậ
 
 ## 🗓️ Nhật Ký Hoạt Động (Simulated Activity Logs)
 
+### 🗓️ Ngày 15/06/2026 — V2-D2 — Checkpoint E Feedback Implementation Plan 🟡 PLAN ONLY (NOT implemented)
+- **[Owner — Approver]:** Approved starting V2-D2 Checkpoint E as docs/spec-only implementation planning.
+- **[PC1 Claude Code Builder]:** Inspected repo first — branch `main` = origin/main, tree clean, HEAD `6d393bd`; confirmed the two existing policy/decision docs are present and no implementation-plan docs existed yet → authored fresh (no duplication).
+- **[PC1]:** Grounded the plan in actual repo structure: repository pattern (`coreRepository.ts` interfaces + `SupabaseXRepository`/`LocalStorageXRepository` + `repositoryFactory.ts` + `repoRouting.ts` UUID-gating like `approvalScopeIsSupabaseSafe`/`okOrAbsentUuid` + `sanitize*Patch`); RLS helper family (`current_user_has_global_role`/`current_user_has_scoped_role`/`current_user_can_access_client`/`current_user_can_access_campaign` + `content_*_hierarchy_is_valid`); accepted policy data model (separate `client_feedback` table).
+- **[PC1]:** Wrote `03_core/specs/v2_d2_feedback_implementation_plan.md` (purpose, scope, non-goals, accepted-policy summary, data model, RLS design, repository/API, UI, audit/logging, migration outline, test plan, rollout, risks, open questions, next checkpoint) and `03_core/specs/v2_d2_feedback_future_checkpoints.md` (Checkpoints F–J, each with scope/allowed-changes/hard-boundaries/validation/Codex-expectations; all NOT STARTED/Owner-gated).
+- **[PC1]:** Held every hard boundary — did **not** implement code/migrations/RLS/runtime/UI; did **not** add an executable SQL migration; did **not** run SQL; did **not** connect to production/staging; did **not** change tests/connectors/secrets. The plan keeps **client viewer strictly read-only** (viewer excluded from any write predicate), keeps approval authority Owner/Internal-only, and keeps PC2 callbacks non-authoritative — no behavior changed.
+- **[PC1]:** Marked Checkpoint E = implementation plan only; feedback implementation = NOT STARTED; Checkpoint F = NOT STARTED / Owner-gated. No implementation done.
+- **[PC1]:** `npm run build` PASS (0 TS errors); `npm run test` 45/45 PASS — docs-only diff, unchanged green.
+
+---
+
 ### 🗓️ Ngày 15/06/2026 — V2-D2 — Checkpoint D Codex REQUIRED FIX (round 2) ✅ DONE (stale viewer wording)
 - **[Codex — Reviewer]:** Flagged REQUIRED FIX — the decision record still said "Client portal (Phase 9): client/viewer already limited to read + non-internal feedback comment", grouping client/viewer and implying the viewer can add non-internal feedback comments. Remove/clarify so the viewer is consistently read-only.
 - **[PC1 Claude Code Builder]:** Inspected repo (branch `main` = origin/main, clean, HEAD `8b8404f`) and grepped all V2-D2 policy docs + the four state/log files for `client/viewer`, `Phase 9`, `non-internal`, `add feedback`, `feedback comment`, `explicit Owner grant`, `read-only unless`.
