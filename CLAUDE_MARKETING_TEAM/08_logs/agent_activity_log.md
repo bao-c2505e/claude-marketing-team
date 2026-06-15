@@ -6,6 +6,18 @@ Nhật ký ghi lại các hành động mô phỏng của các AI Agent khi vậ
 
 ## 🗓️ Nhật Ký Hoạt Động (Simulated Activity Logs)
 
+### 🗓️ Ngày 15/06/2026 — V2-D2 — Supabase Staging Execution — CHECKPOINT A STARTED / 🔴 EXECUTION BLOCKED
+- **[Owner — Approver]:** Approved V2-D2 Checkpoint A (authorizes disposable staging verification per the runbook).
+- **[PC1 Claude Code Builder]:** Ran preflight: branch `main` = origin/main (clean tree, `2f1b700`), `npm run build` PASS (0 TS errors), `npm run test` 45/45 PASS, secrets scan clean (only `.env.example` tracked; `service_role` only in SQL/code comments + a safety note).
+- **[PC1]:** Checked staging env presence **without printing any values**: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `DATABASE_URL` all MISSING; `.env.local` and `.env` absent. No disposable Supabase staging project exists and the agent cannot create one (requires Owner/operator dashboard + account).
+- **[PC1]:** Per the explicit hard boundary ("if required Supabase staging env vars are missing, STOP and document the exact missing variables; do not fake verification"), **halted before any database action** — no SQL run, no DB connection, no fabricated results.
+- **[PC1]:** Authored `08_logs/v2_d2_staging_report_20260615.md`: preflight results, staging target NOT PROVISIONED (env redacted), the exact missing variables + provisioning prerequisites, migration order M1–M10 (ready, NOT EXECUTED), rollback/recovery, stop conditions, the migration/RLS verification checklist and the 9-entity × 7-assertion cross-tenant matrix (defined, NOT EXECUTED), and approval/callback safety (DB-level RLS NOT EXECUTED; code/contract-level invariants restated as unchanged, explicitly not a substitute for the blocked checks).
+- **[PC1]:** Approval safety preserved — no code changed, so no callback can mutate Core approval state; PC2 callbacks remain non-authoritative; `completed_mock`/`ready_for_mock_callback_preview` are statuses, not approvals.
+- **[PC1]:** Docs-only diff. Production Supabase NOT touched; no production data; no secrets committed or printed; no connectors; no runtime/product/repository/Supabase/auth/RLS/test changes. **Verdict: Checkpoint A started, execution BLOCKED, Checkpoint B NOT READY (no fake pass).**
+- **[PC1]:** `npm run build` PASS (0 TS errors); `npm run test` 45/45 PASS — unchanged green.
+
+---
+
 ### 🗓️ Ngày 12/06/2026 — V2-D1.5 — Manual E2E Checklist + Demo Script (docs-only prep) ✅ DONE
 - **[PC1 Claude Code Builder]:** Inspected the docs tree; no runbook-specific folder existed (`07_docs/` holds client/strategy docs), so created `CLAUDE_MARKETING_TEAM/07_runbooks/` per the task fallback.
 - **[PC1]:** Authored `07_runbooks/v2_manual_e2e_checklist.md` — purpose/scope (tenant scope + approval-state safety + PC2 callback-as-metadata, companion to V2-A QA and V2-D1 runbook), preflight PF1–PF8 (incl. a hard gate that no SQL runs unless V2-D2 checkpoint A is logged, and a "Local Data Only" badge check), manual scenarios S1–S10 (client→brand→campaign→brief→generation/items→asset/collection→approval pending/generated→callback metadata-only→UUID gating), PC2 callback preview checklist C1–C5, an evidence-capture table, six stop conditions, and an evidence guide (screenshot/log naming conventions + result-summary/owner-sign-off/unresolved-issue templates).

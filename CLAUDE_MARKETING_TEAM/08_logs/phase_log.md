@@ -6,6 +6,17 @@ Nhật ký theo dõi các mốc hoàn thành kỹ thuật qua các Phase.
 
 ## 📅 Nhật Ký Sự Kiện (Event Logs)
 
+### 🗓️ Ngày 15/06/2026 — V2-D2 — Supabase Staging Execution — CHECKPOINT A STARTED / 🔴 EXECUTION BLOCKED
+- **Sự kiện:** Owner duyệt **Checkpoint A** cho V2-D2 (Supabase staging execution). Bắt đầu preflight. **Phát hiện BLOCKER ở PF8: không có disposable Supabase staging project + env vars.** Đã STOP đúng hard-boundary — **KHÔNG chạy SQL, KHÔNG kết nối DB, KHÔNG fake verification.**
+- **Preflight:** branch `main` = origin/main, tree clean, commit `2f1b700`; `npm run build` PASS (0 TS errors); `npm run test` 45/45 PASS; secrets scan sạch (chỉ `.env.example`/`modules/comfyui-pipeline/.env.example` tracked; `service_role` chỉ trong SQL/code comments + safety note).
+- **BLOCKER (env presence check — giá trị KHÔNG bao giờ in ra):** `VITE_SUPABASE_URL`=MISSING, `VITE_SUPABASE_ANON_KEY`=MISSING, `SUPABASE_SERVICE_ROLE_KEY`=MISSING, `DATABASE_URL`=MISSING; `.env.local` absent, `.env` absent. `.gitignore` đã loại `.env`/`.env.local`. Agent KHÔNG thể tạo Supabase project (cần dashboard + account của Owner/operator).
+- **Deliverable:** `CLAUDE_MARKETING_TEAM/08_logs/v2_d2_staging_report_20260615.md` — preflight results, staging target NOT PROVISIONED (env redacted), exact missing env vars + provisioning prerequisites, migration files + order M1–M10 (READY/NOT EXECUTED), rollback/recovery, stop conditions, migration/RLS verification checklist (NOT EXECUTED), cross-tenant matrix 9 entities × 7 assertions (DEFINED/NOT EXECUTED), approval/callback safety (DB-level NOT EXECUTED; code/contract invariants restated unchanged), verdict + unblock steps.
+- **Approval/callback safety:** KHÔNG đổi. PC2 callbacks non-authoritative; generated/pending stay until authenticated Core UI action; `completed_mock` ≠ approval; `failed_mock` → failure route; needs_revision/rejected = metadata. KHÔNG code nào thay đổi → KHÔNG callback nào mutate Core approval.
+- **Build:** PASS — 0 TS errors. `npm run test`: 45/45 PASS (docs-only diff).
+- **Trạng thái:** 🟡 Checkpoint A STARTED, 🔴 **EXECUTION BLOCKED** (missing disposable staging env). **Checkpoint B NOT READY** — no fake pass. Production Supabase NOT touched.
+
+---
+
 ### 🗓️ Ngày 12/06/2026 — V2-D1.5 — Manual E2E Checklist + Demo Script (docs-only prep) ✅ DONE
 - **Sự kiện:** Tạo prep docs cho manual E2E verification. **Documentation/checklist/demo-script only — KHÔNG tạo Supabase staging project, KHÔNG chạy SQL, KHÔNG kết nối DB, KHÔNG secrets/credentials, KHÔNG live connector, KHÔNG đổi runtime/product/repository/Supabase/auth/RLS/tests. V2-D2 (staging execution) vẫn 🔴 NOT STARTED / Owner-gated (checkpoint A).**
 - **Deliverables:** new folder `CLAUDE_MARKETING_TEAM/07_runbooks/`:

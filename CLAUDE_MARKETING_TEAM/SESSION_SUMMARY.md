@@ -22,6 +22,34 @@ Chúng ta đang xây dựng **The Core Agency — Real Operations MVP**. Đây l
 
 ---
 
+## 🟡 V2-D2 — Supabase Staging Execution — CHECKPOINT A STARTED / 🔴 EXECUTION BLOCKED (2026-06-15)
+
+> **Owner approved Checkpoint A (2026-06-15).** Execution BLOCKED: không có
+> disposable Supabase staging project + env vars. Đã STOP đúng hard-boundary
+> — KHÔNG chạy SQL, KHÔNG kết nối DB, KHÔNG fake verification.
+
+- **Preflight:** branch main=origin/main, tree clean, commit `2f1b700`;
+  build PASS (0 TS errors); tests 45/45; secrets clean (chỉ `.env.example`
+  tracked).
+- **BLOCKER (PF8):** presence check (giá trị KHÔNG in): `VITE_SUPABASE_URL`
+  /`VITE_SUPABASE_ANON_KEY`/`SUPABASE_SERVICE_ROLE_KEY`/`DATABASE_URL` đều
+  MISSING; `.env.local`/`.env` absent. Agent không thể tạo Supabase project
+  (cần dashboard/account của Owner/operator).
+- **Deliverable:** `08_logs/v2_d2_staging_report_20260615.md` — staging
+  target NOT PROVISIONED (env redacted), exact missing env vars + unblock
+  steps, migration order M1–M10 (READY/NOT EXECUTED), rollback, stop
+  conditions, migration/RLS checklist + cross-tenant matrix 9×7 (DEFINED/
+  NOT EXECUTED), approval-callback safety (DB-level NOT EXECUTED; code/
+  contract invariants unchanged).
+- **Verdict:** Migration/RLS/cross-tenant = NOT EXECUTED; **Checkpoint B
+  NOT READY (no fake pass).** Production Supabase NOT touched; no secrets;
+  approval semantics unchanged; PC2 callbacks still non-authoritative.
+- **Build:** PASS — 0 TS errors. **Tests:** 45/45 PASS (docs-only diff).
+- **Next:** Owner/operator provision disposable staging (project + 4 users
+  + `.env.local` anon URL/key) → hand back → PC1 drives M1–M10 + verification.
+
+---
+
 ## 🏁 V2-D1.5 — Manual E2E Checklist + Demo Script (docs-only prep) — DONE (2026-06-12)
 
 > **Status:** Documentation/checklist/demo-script prep cho manual E2E
