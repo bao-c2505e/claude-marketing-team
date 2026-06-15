@@ -6,6 +6,17 @@ Nhật ký ghi lại các hành động mô phỏng của các AI Agent khi vậ
 
 ## 🗓️ Nhật Ký Hoạt Động (Simulated Activity Logs)
 
+### 🗓️ Ngày 15/06/2026 — V2-D2 — Checkpoint D Codex REQUIRED FIX (round 2) ✅ DONE (stale viewer wording)
+- **[Codex — Reviewer]:** Flagged REQUIRED FIX — the decision record still said "Client portal (Phase 9): client/viewer already limited to read + non-internal feedback comment", grouping client/viewer and implying the viewer can add non-internal feedback comments. Remove/clarify so the viewer is consistently read-only.
+- **[PC1 Claude Code Builder]:** Inspected repo (branch `main` = origin/main, clean, HEAD `8b8404f`) and grepped all V2-D2 policy docs + the four state/log files for `client/viewer`, `Phase 9`, `non-internal`, `add feedback`, `feedback comment`, `explicit Owner grant`, `read-only unless`.
+- **[PC1]:** Rewrote the one stale statement (`v2_d2_checkpoint_c_decision_record.md` §1 Context): Phase 9 is labeled legacy/current implementation; under the **accepted V2-D2 policy** the non-internal feedback comment is a **client approver** capability (a Phase-9-style / future feedback feature may allow client approvers to submit non-internal feedback comments), while the **client viewer remains strictly read-only** and cannot add feedback/comments; any future viewer-comment capability is a separate, future Owner-gated policy change not part of accepted V2-D2.
+- **[PC1]:** Confirmed the V2-D2 policy docs never group "client approver" and "client viewer" together for any write/comment/feedback permission (the permission matrix already lists approver ✅ / viewer ⛔). Left the remaining `client/viewer` groupings that are correct for *both* roles (no approval controls, read-scoping, no-write under planned RLS) and the historical Phase 9/16 READMEs + V2D runbook that document actual current runtime behavior — rewriting those would misrepresent product behavior.
+- **[PC1]:** Preserved all approved policy safety: client feedback cannot mutate `approval_status` directly; approved-like approver feedback stays metadata pending Core owner/internal confirmation; rejected/needs_revision-like stays metadata/feedback-record pending Core review; PC2/module callbacks stay metadata/log/echo only; no callback-driven approval mutation; no feedback-driven posting/ads/messaging/customer contact.
+- **[PC1]:** Docs/specs/logs-only — no runtime/product/repository logic, Supabase migrations/RLS/auth, tests, connectors, or secrets changed; no SQL; no production/staging connection.
+- **[PC1]:** `npm run build` PASS (0 TS errors); `npm run test` 45/45 PASS — docs-only diff, unchanged green.
+
+---
+
 ### 🗓️ Ngày 15/06/2026 — V2-D2 — Checkpoint D Codex REQUIRED FIX ✅ DONE (Decision C consistency)
 - **[Codex — Reviewer]:** Flagged REQUIRED FIX — Decision C inconsistent: accepted wording says client viewer remains read-only, but the policy/decision docs still allowed viewer feedback "if explicitly granted by Owner". Make Decision C consistent: viewer is read-only, no Owner-grant exception in V2-D2.
 - **[PC1 Claude Code Builder]:** Inspected repo (branch `main` = origin/main, clean, HEAD `8990a3e`) and grepped both spec docs + logs for every "explicit grant / Owner-grant / ☑️ / by default" reference touching the viewer.

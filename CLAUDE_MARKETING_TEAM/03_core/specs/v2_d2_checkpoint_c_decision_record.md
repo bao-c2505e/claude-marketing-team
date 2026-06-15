@@ -27,7 +27,13 @@ callback) touch Core approval state.
 This record sits downstream of:
 - Approval workflow: `approval_status ∈ {draft, submitted, approved, rejected,
   revision_requested, cancelled}`, transitioned only by `canApproveContent` (`owner`/`manager`).
-- Client portal (Phase 9): client/viewer already limited to read + non-internal feedback comment.
+- Client portal (Phase 9, legacy/current implementation): a client-side stakeholder is
+  limited to read + a non-internal feedback comment. **Under the accepted V2-D2 policy this
+  is separated by role:** the non-internal feedback comment is a **client approver**
+  capability (a Phase-9-style / future feedback feature may allow client approvers to submit
+  non-internal feedback comments); the **client viewer remains strictly read-only** and
+  cannot add feedback/comments. (Any future viewer-comment capability is a separate, future
+  Owner-gated policy change — not part of accepted V2-D2.)
 - PC2 non-authoritative callback rule (V2-E2 plan §4; t2/t3 fix, commit `3c8f853`).
 
 ---

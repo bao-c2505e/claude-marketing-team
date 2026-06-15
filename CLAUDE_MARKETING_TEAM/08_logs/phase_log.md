@@ -6,6 +6,17 @@ Nhật ký theo dõi các mốc hoàn thành kỹ thuật qua các Phase.
 
 ## 📅 Nhật Ký Sự Kiện (Event Logs)
 
+### 🗓️ Ngày 15/06/2026 — V2-D2 — Checkpoint D Codex REQUIRED FIX (round 2) ✅ DONE (stale viewer wording)
+- **Sự kiện:** Codex flag — decision record vẫn còn câu **stale**: "Client portal (Phase 9): client/viewer already limited to read + non-internal feedback comment" — gộp client/viewer chung và ngụ ý viewer được add non-internal feedback comment, mâu thuẫn với Decision C (viewer strictly read-only). **Fix: tách rõ theo role.**
+- **Stale statement fixed (`v2_d2_checkpoint_c_decision_record.md` §1 Context):** rewrote → Phase 9 là legacy/current implementation; dưới **accepted V2-D2 policy** thì non-internal feedback comment là capability của **client approver** (Phase-9-style/future feedback feature có thể cho client approver submit non-internal feedback comments); **client viewer remains strictly read-only**, KHÔNG add feedback/comment. Bất kỳ viewer-comment tương lai = separate future Owner-gated policy change, KHÔNG thuộc accepted V2-D2.
+- **No grouping:** client approver và client viewer KHÔNG còn bị gộp chung cho bất kỳ write/comment/feedback permission nào trong V2-D2 policy docs.
+- **Unchanged (preserved):** client approver policy giữ nguyên; client feedback KHÔNG mutate `approval_status` directly; approved-like = metadata pending Core owner/internal confirmation; rejected/needs_revision-like = metadata/feedback-record pending Core review; PC2/module callbacks = metadata/log/echo only; no callback-driven approval mutation; no feedback-driven posting/ads/messaging/customer contact. Historical Phase 9/16 READMEs + V2D runbook mô tả runtime thật để NGUYÊN (không misrepresent product behavior).
+- **Safety:** docs/specs/logs-only — KHÔNG đổi runtime/product/repository/Supabase migrations/RLS/auth/tests/connectors/secrets; KHÔNG chạy SQL; KHÔNG kết nối production/staging.
+- **Build:** PASS — 0 TS errors. `npm run test`: 45/45 PASS (docs-only diff).
+- **Trạng thái:** Checkpoint D ✅ DONE — viewer consistently read-only mọi nơi. Future implementation phase 🔴 NOT STARTED / Owner-gated. No implementation yet.
+
+---
+
 ### 🗓️ Ngày 15/06/2026 — V2-D2 — Checkpoint D Codex REQUIRED FIX ✅ DONE (Decision C consistency)
 - **Sự kiện:** Codex review flag — **Decision C inconsistent**: accepted wording nói viewer read-only, nhưng policy/decision docs vẫn cho phép viewer feedback "nếu Owner explicitly grant". **Fix: làm Decision C nhất quán mọi nơi — client viewer STRICTLY read-only, KHÔNG có ngoại lệ Owner-grant trong V2-D2.** Docs/specs/logs-only.
 - **Changes:** Bỏ mọi "viewer feedback if explicitly granted/Owner-grant" exception. Permission matrix nay state rõ viewer: **read scoped outputs only**; KHÔNG create feedback/comment; KHÔNG request revision; KHÔNG submit approved-like; KHÔNG submit rejected-like; KHÔNG mutate Core approval state. Bỏ ký hiệu legend `☑️ (Owner-granted)` → viewer "Create feedback/comment" = ⛔ (read-only). Thêm clarification: bất kỳ thay đổi tương lai cho phép viewer comment = **separate future Owner-gated policy update + future implementation checkpoint**, KHÔNG thuộc accepted V2-D2 decision.
