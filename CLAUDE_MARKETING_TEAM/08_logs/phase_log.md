@@ -6,6 +6,18 @@ Nhật ký theo dõi các mốc hoàn thành kỹ thuật qua các Phase.
 
 ## 📅 Nhật Ký Sự Kiện (Event Logs)
 
+### 🗓️ Ngày 15/06/2026 — V2-D2 — Checkpoint B Verification Verdict 🔴 BLOCKED
+- **Sự kiện:** Render Checkpoint B verdict cho V2-D2. **Checkpoint A ✅ PASS** (process/docs — Codex-reviewed honest blocked report). **Checkpoint B verdict: 🔴 BLOCKED** — DB-level verification vẫn không chạy được. Re-check env 2026-06-15: `VITE_SUPABASE_URL`/`VITE_SUPABASE_ANON_KEY` vẫn MISSING, `.env.local` vẫn absent — không có gì thay đổi từ Checkpoint A. **KHÔNG fake pass.**
+- **Verdict rationale:** BLOCKED chứ không VERIFIED/PARTIAL/FAILED — zero DB-level criteria chạy (preflight chỉ preparatory); không defect nào quan sát được vì không có gì chạy.
+- **Ran:** preflight (build 0 TS errors, tests 45/45, secrets clean, env-presence MISSING) + documentation. **Did not run:** §6 (schema/RLS/hierarchy/helpers/role-sep/UUID-gating) + §7 (cross-tenant matrix + 18 rls_policy_plan §14 tests) + §8 DB-level — 0 executed.
+- **Report additions (`08_logs/v2_d2_staging_report_20260615.md`):** §10 Checkpoint B verdict (overall result, what ran/didn't, evidence, assumptions, unverified, next action, can-proceed-to-C = NO), §11 evidence closure table 16 verification areas (preflight/secrets PASS; migration order/schema existence/tenant hierarchy/RLS/active-unexpired assignment/read-write role sep/UUID-gating/brief-client-brand-campaign hierarchy/asset_collection_id validation/Group-F unwired/approval-callback safety/failed_mock route/needs_revision metadata — DB-level BLOCKED, code/contract-level invariants PASS but explicitly NOT a substitute), §12 safety conclusion.
+- **Checkpoint C:** 🔴 NOT STARTED / Owner-gated — KHÔNG proceed trên cơ sở verification hoàn tất (B chưa VERIFIED); client-role feedback policy KHÔNG implement (out of scope).
+- **Safety:** production Supabase NOT used; no production data; no secrets printed/committed; no connector activation; no posting/ads/messaging/customer contact; no callback-driven approval mutation; approval state remains Core UI-authoritative.
+- **Build:** PASS — 0 TS errors. `npm run test`: 45/45 PASS (docs-only diff).
+- **Trạng thái:** Checkpoint A ✅ PASS / Checkpoint B 🔴 BLOCKED / Checkpoint C 🔴 NOT STARTED. Unblock = Owner/operator provision disposable staging → PC1 drive M1–M10 + §6–§7.
+
+---
+
 ### 🗓️ Ngày 15/06/2026 — V2-D2 — Supabase Staging Execution — CHECKPOINT A STARTED / 🔴 EXECUTION BLOCKED
 - **Sự kiện:** Owner duyệt **Checkpoint A** cho V2-D2 (Supabase staging execution). Bắt đầu preflight. **Phát hiện BLOCKER ở PF8: không có disposable Supabase staging project + env vars.** Đã STOP đúng hard-boundary — **KHÔNG chạy SQL, KHÔNG kết nối DB, KHÔNG fake verification.**
 - **Preflight:** branch `main` = origin/main, tree clean, commit `2f1b700`; `npm run build` PASS (0 TS errors); `npm run test` 45/45 PASS; secrets scan sạch (chỉ `.env.example`/`modules/comfyui-pipeline/.env.example` tracked; `service_role` chỉ trong SQL/code comments + safety note).

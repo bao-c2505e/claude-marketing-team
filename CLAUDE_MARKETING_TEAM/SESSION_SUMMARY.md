@@ -22,7 +22,35 @@ Chúng ta đang xây dựng **The Core Agency — Real Operations MVP**. Đây l
 
 ---
 
-## 🟡 V2-D2 — Supabase Staging Execution — CHECKPOINT A STARTED / 🔴 EXECUTION BLOCKED (2026-06-15)
+## 🟡 V2-D2 — Supabase Staging Execution — Checkpoint A ✅ PASS / Checkpoint B 🔴 VERDICT BLOCKED (2026-06-15)
+
+> **Checkpoint A ✅ PASS** (process/docs — Codex-reviewed honest blocked
+> report). **Checkpoint B verdict 🔴 BLOCKED** — DB-level verification
+> không chạy được (env re-check 2026-06-15: vẫn MISSING, `.env.local` vẫn
+> absent). **Checkpoint C 🔴 NOT STARTED / Owner-gated** — không proceed
+> trên cơ sở verification đã hoàn tất; client-feedback policy KHÔNG
+> implement (out of scope).
+
+- **Checkpoint B verdict (report §10):** Overall = **BLOCKED** (không
+  VERIFIED/PARTIAL/FAILED — 0 DB-level criteria chạy; nothing failed vì
+  nothing ran). Ran = preflight + documentation; Did not run = toàn bộ
+  §6/§7 + §8 DB-level (0 executed). Evidence = preflight outputs + report
+  audit trail (no screenshots/SQL logs — no DB session). Remains
+  unverified = tất cả live DB behavior.
+- **Report additions:** §10 verdict, §11 evidence closure table (16 areas
+  — preflight/secrets PASS; migration/schema/RLS/hierarchy/role-sep/
+  asset-collection/Group-F BLOCKED at DB; code/contract approval-safety
+  invariants noted PASS but NOT a substitute), §12 safety conclusion.
+- **Safety:** production Supabase NOT used; no production data; no secrets
+  printed/committed; no connectors; no posting/ads/messaging; no
+  callback-driven approval mutation; approval state Core UI-authoritative.
+- **Build:** PASS — 0 TS errors. **Tests:** 45/45 PASS (docs-only diff).
+- **Next:** Owner/operator provision disposable staging → PC1 drives
+  M1–M10 + §6–§7 → re-issue Checkpoint B verdict.
+
+---
+
+### Checkpoint A (2026-06-15) — original record
 
 > **Owner approved Checkpoint A (2026-06-15).** Execution BLOCKED: không có
 > disposable Supabase staging project + env vars. Đã STOP đúng hard-boundary

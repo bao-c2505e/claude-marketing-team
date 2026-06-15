@@ -6,6 +6,16 @@ Nhật ký ghi lại các hành động mô phỏng của các AI Agent khi vậ
 
 ## 🗓️ Nhật Ký Hoạt Động (Simulated Activity Logs)
 
+### 🗓️ Ngày 15/06/2026 — V2-D2 — Checkpoint B Verification Verdict 🔴 BLOCKED
+- **[PC1 Claude Code Builder]:** Re-checked the staging env without printing values: `VITE_SUPABASE_URL`/`VITE_SUPABASE_ANON_KEY` still MISSING, `.env.local` still absent — unchanged since Checkpoint A. The disposable staging project was never provisioned, so the substantive V2-D2 verification still cannot run.
+- **[PC1]:** Rendered the **Checkpoint B verdict = 🔴 BLOCKED** (not VERIFIED/PARTIAL/FAILED — zero DB-level criteria executed; preflight is preparatory only; nothing ran so nothing failed). **No fake pass.**
+- **[PC1]:** Updated `08_logs/v2_d2_staging_report_20260615.md`: status header now reflects Checkpoint A PASS (process/docs) + Checkpoint B BLOCKED; §9 Checkpoint A marked PASS; added §10 (Checkpoint B verdict — what ran/didn't, evidence, assumptions, unverified, next action, can-proceed-to-C = NO), §11 (evidence closure table — 16 verification areas covering migration order, schema existence, tenant hierarchy, RLS, active/unexpired assignment, read/write role separation, UUID/localStorage gating, brief/client/brand/campaign hierarchy, asset_collection_id validation, Group-F present-but-unwired, approval/callback safety, failed_mock route, needs_revision/rejected metadata — DB-level BLOCKED, code/contract invariants PASS but explicitly not a substitute), §12 (safety conclusion).
+- **[PC1]:** Marked Checkpoint A PASS, Checkpoint B BLOCKED, Checkpoint C NOT STARTED / Owner-gated. Did not implement the client-role feedback policy (out of scope). Did not mark Checkpoint C complete.
+- **[PC1]:** Safety confirmed — no production Supabase, no production data, no secret values printed/committed, no connector activation, no posting/ads/messaging/customer contact, no callback-driven approval mutation; approval state remains Core UI-authoritative. Docs-only diff; no runtime/product/repository/Supabase/auth/RLS/test changes.
+- **[PC1]:** `npm run build` PASS (0 TS errors); `npm run test` 45/45 PASS — unchanged green.
+
+---
+
 ### 🗓️ Ngày 15/06/2026 — V2-D2 — Supabase Staging Execution — CHECKPOINT A STARTED / 🔴 EXECUTION BLOCKED
 - **[Owner — Approver]:** Approved V2-D2 Checkpoint A (authorizes disposable staging verification per the runbook).
 - **[PC1 Claude Code Builder]:** Ran preflight: branch `main` = origin/main (clean tree, `2f1b700`), `npm run build` PASS (0 TS errors), `npm run test` 45/45 PASS, secrets scan clean (only `.env.example` tracked; `service_role` only in SQL/code comments + a safety note).
