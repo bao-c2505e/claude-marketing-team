@@ -6,6 +6,16 @@ Nhật ký ghi lại các hành động mô phỏng của các AI Agent khi vậ
 
 ## 🗓️ Nhật Ký Hoạt Động (Simulated Activity Logs)
 
+### 🗓️ Ngày 16/06/2026 — V2-D2 — B2 verdict routing → Route B (BLOCKED, no UI/product impl)
+- **[Owner — Approver]:** Directed: determine the actual B2 verdict from the staging report and route to the fastest safe next checkpoint. Cautioned that "Codex PASS" for B2 means the report was reviewed as truthful, **not** that staging is VERIFIED.
+- **[PC1 Claude Code Builder]:** Read the staging report verdict directly — §13.10 = 🔴 **BLOCKED** ("staging verification did not run … no fake pass"); §8 STATUS header and §14 agree. Classified the verdict as exactly one: **BLOCKED** (not VERIFIED/PARTIAL/FAILED — nothing ran, so nothing partially/failed).
+- **[PC1]:** Re-confirmed the blocker with a presence-only env re-check (no values printed): `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_REF`, `DATABASE_URL` all MISSING; `.env`/`.env.local`/`.env.staging` ABSENT. Unchanged since §13.
+- **[PC1]:** Selected **Route B (B2 BLOCKED)** — did **not** proceed to UI/product implementation; did **not** start Route A (V2-UI-T2 Manual Product E2E), which is predicated on a VERIFIED B2. Appended report §14 (verdict routing + the "Codex PASS ≠ VERIFIED" clarification) and §14.1 (exact presence-only re-run command/check sequence to use once a disposable staging env is provisioned).
+- **[PC1]:** Kept tracking truthful — Checkpoint B/B2 = 🔴 BLOCKED; **overall V2-D2 = 🟡 PARTIAL / BLOCKED ON STAGING VERIFICATION (not DONE/PASS).** C/D/E remain ✅ docs-spec DONE independently (do not replace staging verification). V2-UI-T1 ✅ DONE/PASS and separate from V2-E3. **V2-E3 PC2 Adapter Skeleton, feedback implementation, and Checkpoint F migration draft all remain 🔴 NOT STARTED / Owner-gated — none started here.**
+- **[PC1]:** Docs/logs-only — no runtime/repo/Supabase/RLS/auth/test changes; no SQL; no production/staging connection; no secrets/connectors. `npm run build` PASS (0 TS errors); `npm run test` 45/45 PASS.
+
+---
+
 ### 🗓️ Ngày 16/06/2026 — V2-D2 — Checkpoint B2 Unblock Attempt 🔴 STILL BLOCKED (no disposable staging env)
 - **[Owner — Approver]:** Directed Checkpoint B2 — unblock the disposable Supabase staging verification (schema/RLS/tenant hierarchy). Do not fake; stop with exact blocker if env missing.
 - **[PC1 Claude Code Builder]:** Inspected repo (branch `main` = origin/main, clean, HEAD `4ac7ea4`), confirmed migration files + staging report present, then checked staging env **presence only (no values printed)**: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_REF`, `DATABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` all MISSING; `.env`/`.env.local`/`.env.staging`/`.env.development` all ABSENT; no `supabase/` linked project; supabase CLI not installed.

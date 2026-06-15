@@ -6,6 +6,17 @@ Nhật ký theo dõi các mốc hoàn thành kỹ thuật qua các Phase.
 
 ## 📅 Nhật Ký Sự Kiện (Event Logs)
 
+### 🗓️ Ngày 16/06/2026 — V2-D2 — B2 verdict routing → Route B (BLOCKED, no UI/product impl)
+- **Sự kiện:** Owner direction = xác định verdict B2 thực tế từ staging report + route tới checkpoint kế tiếp an toàn nhanh nhất. **Lưu ý: "Codex PASS" cho B2 = report/tracking được review là TRUTHFUL, KHÔNG phải staging VERIFIED.**
+- **Verdict B2 thực tế (đọc report §13.10 + §14):** 🔴 **BLOCKED** (classify đúng một: VERIFIED/PARTIAL/BLOCKED/FAILED → **BLOCKED**). Evidence (§13.3–§13.10) nói rõ substantive staging verification (migrations/schema/RLS/tenant hierarchy) **KHÔNG chạy**. Re-confirm 2026-06-16: env presence-only re-check (không in giá trị) = `VITE_SUPABASE_URL`/`VITE_SUPABASE_ANON_KEY`/`SUPABASE_ACCESS_TOKEN`/`SUPABASE_PROJECT_REF`/`DATABASE_URL` tất cả MISSING; `.env*` ABSENT. Không đổi gì so với §13.
+- **Route chọn: B (B2 BLOCKED).** **KHÔNG** proceed sang UI/product implementation; **Route A (V2-UI-T2 Manual Product E2E) KHÔNG được start** vì nó dựa trên B2 = VERIFIED (chưa đạt). KHÔNG chạy SQL, KHÔNG connect, KHÔNG production, KHÔNG fake.
+- **Deliverable:** staging report §14 "Verdict routing" + §14.1 **exact re-run command/check** (presence-only env recheck → disposable-project confirm (redacted) → preflight → PC1 drive M1–M10 + §6/§7 → re-issue B verdict). Owner setup steps đã có ở §13.11.
+- **Trạng thái:** Checkpoint B/B2 = 🔴 BLOCKED; **overall V2-D2 = 🟡 PARTIAL / BLOCKED ON STAGING VERIFICATION (KHÔNG DONE/PASS).** C/D/E ✅ docs-spec DONE độc lập (không replace staging verification). **V2-UI-T1 ✅ DONE/PASS, separate from V2-E3. V2-E3 PC2 Adapter Skeleton + feedback implementation + Checkpoint F migration draft vẫn 🔴 NOT STARTED / Owner-gated** (không cái nào được start trong checkpoint này).
+- **Safety:** no production Supabase/data; no secrets printed/committed (presence-only); no connectors; no posting/ads/messaging/customer contact; no feedback table/RLS/UI; no PC2 adapter skeleton; approval semantics unchanged; PC2 callbacks metadata/log/echo only; Core UI authoritative. Diff = docs/logs only.
+- **Build:** PASS — 0 TS errors. `npm run test`: 45/45 PASS.
+
+---
+
 ### 🗓️ Ngày 16/06/2026 — V2-D2 — Checkpoint B2 Unblock Attempt 🔴 STILL BLOCKED (no disposable staging env)
 - **Sự kiện:** Owner direction = start **Checkpoint B2** (unblock disposable Supabase staging verification cho schema/RLS/tenant hierarchy). Inspect-first; KHÔNG fake verification; nếu env thiếu → STOP + document blocker.
 - **Env presence check (redacted — KHÔNG in giá trị):** `VITE_SUPABASE_URL`/`VITE_SUPABASE_ANON_KEY`/`SUPABASE_ACCESS_TOKEN`/`SUPABASE_PROJECT_REF`/`DATABASE_URL`/`SUPABASE_SERVICE_ROLE_KEY` = **tất cả MISSING**; `.env`/`.env.local`/`.env.staging`/`.env.development` = **ABSENT**; `supabase/` linked project = ABSENT; supabase CLI = NOT INSTALLED.

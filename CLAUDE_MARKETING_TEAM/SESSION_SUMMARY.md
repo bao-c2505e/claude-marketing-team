@@ -188,6 +188,14 @@ Chúng ta đang xây dựng **The Core Agency — Real Operations MVP**. Đây l
 > installed. No disposable staging exists → verification did **not** run (no SQL, no DB
 > connection, no production, no fake pass). See staging report §13 for the evidence table +
 > exact owner unblock steps.
+>
+> **B2 verdict routing (2026-06-16) → Route B.** Actual B2 verdict (report §13.10/§14) =
+> 🔴 BLOCKED — "Codex PASS" meant the report was reviewed as *truthful*, **not** that staging
+> is VERIFIED. Because B2 is BLOCKED (not VERIFIED), **Route A (V2-UI-T2 Manual Product E2E)
+> was NOT started**; no UI/product implementation proceeds on a verified-staging basis.
+> Report §14.1 has the exact presence-only re-run command/check for when a disposable staging
+> env is provisioned. V2-E3 PC2 Adapter Skeleton, feedback implementation, and Checkpoint F
+> all remain 🔴 NOT STARTED / Owner-gated.
 
 > **Checkpoint A ✅ PASS** (process/docs — Codex-reviewed honest blocked
 > report). **Checkpoint B verdict 🔴 BLOCKED** — DB-level verification

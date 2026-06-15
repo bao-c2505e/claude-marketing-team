@@ -340,3 +340,47 @@ Set up a **disposable, non-production** Supabase project, then hand back to PC1:
 - ✅ No callback-driven approval mutation; approval state remains Core UI-authoritative.
 - ✅ No feedback table/RLS/UI implemented; no PC2 adapter skeleton implemented; approval
   semantics unchanged. Diff this attempt = docs/logs only.
+
+---
+
+## 14. Verdict routing (2026-06-16) — B2 = BLOCKED → Route B
+
+**Verdict classification (exactly one): 🔴 BLOCKED.** Re-confirmed 2026-06-16 by a
+presence-only env re-check (no values printed): `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`,
+`SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_REF`, `DATABASE_URL` all **MISSING**;
+`.env`/`.env.local`/`.env.staging` **ABSENT**. Nothing changed since §13.
+
+> **Note on "Codex PASS":** Codex reviewed the B2 report/tracking as **truthful** — it did
+> **not** mark staging as VERIFIED. The evidence (§13.3–§13.10) explicitly states the
+> substantive staging verification **did not run**. B2 is therefore **BLOCKED**, not VERIFIED.
+
+**Route selected: B (B2 BLOCKED).** Do **not** proceed to UI/product implementation on a
+"verified staging" basis; Route A (V2-UI-T2 manual product E2E) is **not** started here
+because it is predicated on B2 = VERIFIED. Overall V2-D2 stays **🟡 PARTIAL / BLOCKED ON
+STAGING VERIFICATION**.
+
+### 14.1 Exact re-run command/check (once a disposable staging env is ready)
+Run from repo root **only after** the Owner provisions `.env.local` per §13.11 (disposable,
+non-production). Stop immediately if step 1 still shows MISSING.
+
+```bash
+# 1) Presence-only env recheck (prints SET/MISSING only — never values):
+for v in VITE_SUPABASE_URL VITE_SUPABASE_ANON_KEY; do \
+  [ -n "${!v:-}" ] && echo "$v: SET" || echo "$v: MISSING"; done
+#    Expected to proceed: both SET. If MISSING → STOP, env not ready, stay BLOCKED.
+
+# 2) Confirm the target is the DISPOSABLE project (redacted) — host only, no key:
+#    (host should be the staging project ref, NEVER the production project)
+node -e "const u=process.env.VITE_SUPABASE_URL||''; console.log('host:', u.replace(/^https?:\/\//,'').split('.')[0] ? '<redacted-ref>.supabase.co' : 'UNSET')"
+
+# 3) Preflight (must already be green): npm run build && npm run test
+
+# 4) Then PC1 drives the staging verification on the disposable project only:
+#    - apply migrations M1–M10 (§4/§5 order)
+#    - execute §6 schema + RLS checks and §7 cross-tenant matrix
+#    - replace every ⬜ with PASS/FAIL + evidence
+#    - re-issue the Checkpoint B verdict (VERIFIED / PARTIAL / FAILED — honestly)
+```
+
+**Until step 1 shows both SET against a confirmed disposable project, no SQL is run, no DB is
+connected, and the verdict stays BLOCKED.**
