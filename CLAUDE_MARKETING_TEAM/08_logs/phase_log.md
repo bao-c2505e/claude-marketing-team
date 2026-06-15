@@ -6,6 +6,18 @@ Nhật ký theo dõi các mốc hoàn thành kỹ thuật qua các Phase.
 
 ## 📅 Nhật Ký Sự Kiện (Event Logs)
 
+### 🗓️ Ngày 15/06/2026 — V2-E3 — Manual E2E + UI Bug Triage ✅ DONE (small safe fixes)
+- **Sự kiện:** Owner pause feedback implementation; start **V2-E3 Manual E2E + UI Bug Triage**. 2 issue Owner báo: (1) mobile UI rối/cluttered; (2) Create Brand "clicking Create has no visible response". Investigation + small safe fixes only — **KHÔNG redesign, KHÔNG feedback table/RLS/UI, KHÔNG Supabase/migration/auth changes**.
+- **Issue 2 (Create Brand) — root cause:** KHÔNG phải broken handler. Local-mode create flow đúng (`BrandsTab.handleCreate` → `handleBrandCreate` → `LocalStorageBrandRepository.create` → prepend state → card render). Defect thực = **UX gap: success path im lặng** (form đóng, card mới có thể nằm dưới fold trên mobile) → cảm giác "no response". **Fix:** thêm visible auto-dismiss success banner `✓ Brand "…" created.` trong `BrandsTab.tsx` (validation/loading/error vốn đã đúng). Latent UUID-gating gap (brands/clients thiếu per-op Supabase-vs-local fallback) đã **document làm follow-up**, KHÔNG fix (out of small-safe scope; moot khi env local).
+- **Issue 1 (mobile) — root cause:** `index.css` KHÔNG có `@media` query nào + layout grid inline `260px 1fr` không collapse. **Fix (small, desktop unchanged):** thêm `className="app-main-grid"`/`app-sidebar` (App.tsx) + responsive block trong `index.css` (≤768px: grid → 1 cột, giảm container padding, header wrap, `.form-grid-2` 2-col→1-col; ≤480px: padding nhỏ hơn, heading word-break). KHÔNG đổi brand identity/màu/font.
+- **Files (code):** `src/components/core/BrandsTab.tsx`, `src/App.tsx`, `src/index.css`. **Triage note:** `08_logs/v2_e3_ui_bug_triage.md`.
+- **Manual E2E smoke (fictional data):** create/read client → brand (scoped) → campaign (scoped) → brief (scoped) đều theo cùng pattern đúng; generated/pending approval an toàn; KHÔNG callback-driven approval mutation; localStorage UUID gating unchanged. Verified qua build (type-correct), dev server (HTTP 200, modules transform), code reading.
+- **Safety:** KHÔNG Supabase/RLS/auth/migration; KHÔNG SQL; KHÔNG secrets; KHÔNG connectors; KHÔNG feedback implementation; approval semantics unchanged; PC2 callbacks non-authoritative. Diff = 3 UI/CSS files + docs/logs.
+- **Build:** PASS — 0 TS errors. `npm run test`: 45/45 PASS.
+- **Trạng thái:** V2-E3 ✅ DONE (Create Brand success-feedback fix + mobile responsive polish). Feedback implementation vẫn 🔴 NOT STARTED / Owner-gated (Checkpoint F).
+
+---
+
 ### 🗓️ Ngày 15/06/2026 — V2-D2 — Checkpoint E Feedback Implementation Plan 🟡 PLAN ONLY (NOT implemented)
 - **Sự kiện:** Owner duyệt bắt đầu **Checkpoint E** = feedback implementation **planning** (docs/spec/implementation-plan only). Author 2 spec mới; **KHÔNG implement** code/migrations/RLS/runtime/UI/tests.
 - **Deliverables (mới):**

@@ -22,6 +22,42 @@ Chúng ta đang xây dựng **The Core Agency — Real Operations MVP**. Đây l
 
 ---
 
+## ✅ V2-E3 — Manual E2E + UI Bug Triage ✅ DONE (2026-06-15)
+
+> **V2-E3 ✅ DONE — small safe fixes only.** Owner paused feedback
+> implementation and directed Manual E2E + UI bug triage for two reported
+> issues. **Feedback implementation (Checkpoint F) remains 🔴 NOT STARTED /
+> Owner-gated.**
+
+- **Issue 2 — Create Brand "no visible response":** root cause was a **UX gap,
+  not a broken handler**. In local mode the flow is correct (`BrandsTab.handleCreate`
+  → `App.handleBrandCreate` → `LocalStorageBrandRepository.create` → state prepend
+  → card renders); but the success path closed the form silently and the new card
+  could land below the fold on mobile. **Fix:** added a visible, auto-dismissing
+  success banner (`✓ Brand "…" created.`) in `BrandsTab.tsx`. Documented a latent
+  UUID-gating gap (brands/clients lack the per-operation Supabase-vs-local fallback
+  that assets/approvals have) as a recommended follow-up — **not** fixed (out of
+  small-safe scope; moot with Supabase off).
+- **Issue 1 — mobile cluttered/"rối":** root cause = `src/index.css` had **no
+  `@media` queries** and the main layout grid was a fixed inline `260px 1fr` that
+  never collapses. **Fix (desktop unchanged):** added `app-main-grid`/`app-sidebar`
+  classes (App.tsx) + a responsive CSS block — ≤768px collapses the sidebar grid to
+  one column, reduces container padding, wraps the header, and a new `.form-grid-2`
+  helper stacks 2-column forms; ≤480px tighter padding + heading wrap. No redesign,
+  no brand-identity/color/font change.
+- **Manual E2E smoke (fictional data):** client → brand → campaign → brief
+  create/read all follow the same correct prepend pattern; generated/pending
+  approval stays safe; no callback-driven approval mutation; localStorage UUID
+  gating unchanged (45 tests green). Verified via build + dev-server run (HTTP 200)
+  + code reading.
+- **Safety:** no Supabase/RLS/auth/migration changes; no SQL; no secrets; no
+  connectors; no feedback table/RLS/UI; approval semantics unchanged; PC2 callbacks
+  non-authoritative. Diff = `BrandsTab.tsx` + `App.tsx` + `index.css` + triage note
+  + logs.
+- **Build:** PASS — 0 TS errors. `npm run test`: 45/45 PASS.
+
+---
+
 ## 🟡 V2-D2 — Checkpoint E — Feedback Implementation Plan 🟡 PLAN ONLY (2026-06-15)
 
 > **Checkpoint E 🟡 PLAN ONLY — NOT implemented.** Owner approved starting

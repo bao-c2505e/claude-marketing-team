@@ -6,6 +6,17 @@ Nhật ký ghi lại các hành động mô phỏng của các AI Agent khi vậ
 
 ## 🗓️ Nhật Ký Hoạt Động (Simulated Activity Logs)
 
+### 🗓️ Ngày 15/06/2026 — V2-E3 — Manual E2E + UI Bug Triage ✅ DONE (small safe fixes)
+- **[Owner — Approver]:** Paused feedback implementation; directed V2-E3 Manual E2E + UI Bug Triage. Reported: mobile UI cluttered; Create Brand has no visible response.
+- **[PC1 Claude Code Builder]:** Inspected repo (branch `main` = origin/main, clean, HEAD `37f9902`) and traced the Create Brand flow end-to-end: `BrandsTab.handleCreate` → `App.handleBrandCreate` → `repos.brands.create` (LocalStorage in this env — `.env.local` absent) → state prepend. Confirmed the handler is correct (validation visible, loading state, errors caught, no silent catch); demo role = owner so the form renders; seed clients exist.
+- **[PC1]:** Diagnosed Issue 2 as a **UX gap, not a broken handler** — the success path closed the form silently and the new card could land below the fold (esp. mobile), so it felt like "no response". Fix: added a visible, auto-dismissing success banner (`✓ Brand "…" created.`) in `BrandsTab.tsx`. Documented a latent UUID-gating gap (brands/clients lack per-op Supabase-vs-local fallback) as a recommended follow-up — not fixed (out of small-safe scope; moot with Supabase off).
+- **[PC1]:** Diagnosed Issue 1 — `index.css` had **no media queries** and the main grid was a fixed inline `260px 1fr`. Fix (desktop unchanged): added `app-main-grid`/`app-sidebar` classes (App.tsx) + a responsive CSS block (≤768px collapse sidebar grid, reduce padding, wrap header, `.form-grid-2` single-column; ≤480px tighter padding + heading wrap). No redesign, no brand-identity change.
+- **[PC1]:** Ran the manual E2E smoke (fictional data, code-path + build + dev-server run): client→brand→campaign→brief create/read all follow the correct prepend pattern; approval generated/pending stays safe; no callback-driven approval mutation; localStorage UUID gating unchanged.
+- **[PC1]:** Held every boundary — no Supabase/RLS/auth/migration changes, no SQL, no secrets, no connectors, no feedback table/RLS/UI, approval semantics unchanged, PC2 callbacks non-authoritative. Diff = `BrandsTab.tsx` + `App.tsx` + `index.css` + triage note `08_logs/v2_e3_ui_bug_triage.md` + logs.
+- **[PC1]:** `npm run build` PASS (0 TS errors); `npm run test` 45/45 PASS; dev server served HTTP 200 (app runs, modules transform clean).
+
+---
+
 ### 🗓️ Ngày 15/06/2026 — V2-D2 — Checkpoint E Feedback Implementation Plan 🟡 PLAN ONLY (NOT implemented)
 - **[Owner — Approver]:** Approved starting V2-D2 Checkpoint E as docs/spec-only implementation planning.
 - **[PC1 Claude Code Builder]:** Inspected repo first — branch `main` = origin/main, tree clean, HEAD `6d393bd`; confirmed the two existing policy/decision docs are present and no implementation-plan docs existed yet → authored fresh (no duplication).

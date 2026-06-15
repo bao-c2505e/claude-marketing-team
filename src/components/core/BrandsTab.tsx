@@ -47,6 +47,7 @@ export default function BrandsTab({
   const [form, setForm] = useState<BrandFormData>(EMPTY_FORM);
   const [formError, setFormError] = useState('');
   const [formLoading, setFormLoading] = useState(false);
+  const [successMsg, setSuccessMsg] = useState('');
   const [filterClientId, setFilterClientId] = useState<string>(initialFilterClientId ?? '');
 
   useEffect(() => {
@@ -64,18 +65,30 @@ export default function BrandsTab({
   const handleCreate = async () => {
     if (!form.client_id) { setFormError('Please select a client.'); return; }
     if (!form.name.trim()) { setFormError('Brand name is required.'); return; }
+    const createdName = form.name.trim();
     setFormLoading(true);
     setFormError('');
+    setSuccessMsg('');
     try {
       await onBrandCreate(form);
       setForm(EMPTY_FORM);
       setShowForm(false);
+      // Visible confirmation — the new card renders in the list, but on small
+      // screens it can be below the fold, so surface an explicit success note.
+      setSuccessMsg(`✓ Brand “${createdName}” created.`);
     } catch (err) {
       setFormError(err instanceof Error ? err.message : 'Failed to create brand. Please try again.');
     } finally {
       setFormLoading(false);
     }
   };
+
+  // Auto-dismiss the success note after a few seconds.
+  useEffect(() => {
+    if (!successMsg) return;
+    const t = setTimeout(() => setSuccessMsg(''), 4000);
+    return () => clearTimeout(t);
+  }, [successMsg]);
 
   // ── Detail view ───────────────────────────────────────────────────────────
 
@@ -188,18 +201,25 @@ export default function BrandsTab({
             {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
           {canManage && (
-            <button className="btn btn-primary" style={{ fontSize: '0.85rem' }} onClick={() => { setShowForm(s => !s); setFormError(''); setForm(f => ({ ...f, client_id: filterClientId || '' })); }}>
+            <button className="btn btn-primary" style={{ fontSize: '0.85rem' }} onClick={() => { setShowForm(s => !s); setFormError(''); setSuccessMsg(''); setForm(f => ({ ...f, client_id: filterClientId || '' })); }}>
               <Plus size={15} /> New Brand
             </button>
           )}
         </div>
       </div>
 
+      {/* Success confirmation */}
+      {successMsg && (
+        <div style={{ fontSize: '0.85rem', color: '#34d399', background: 'rgba(52,211,153,0.1)', border: '1px solid rgba(52,211,153,0.3)', borderRadius: '8px', padding: '10px 14px' }}>
+          {successMsg}
+        </div>
+      )}
+
       {/* Create form */}
       {showForm && canManage && (
         <div className="glass-panel" style={{ padding: '20px', border: '1px solid rgba(244, 122, 31,0.3)' }}>
           <h3 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: '16px', color: 'var(--accent-indigo)' }}>New Brand</h3>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+          <div className="form-grid-2">
             <div>
               <label style={{ display: 'block', fontSize: '0.78rem', color: 'var(--text-secondary)', marginBottom: '5px' }}>Client *</label>
               <select className="form-control" value={form.client_id} onChange={e => setForm(p => ({ ...p, client_id: e.target.value }))} style={{ width: '100%' }} disabled={formLoading}>

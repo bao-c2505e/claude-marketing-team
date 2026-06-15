@@ -1081,10 +1081,10 @@ export default function App() {
       </header>
 
       {/* Main layout */}
-      <div style={{ display: 'grid', gridTemplateColumns: '260px 1fr', gap: '32px', minHeight: 'calc(100vh - 150px)' }}>
-        
+      <div className="app-main-grid" style={{ display: 'grid', gridTemplateColumns: '260px 1fr', gap: '32px', minHeight: 'calc(100vh - 150px)' }}>
+
         {/* Navigation Sidebar */}
-        <aside className="glass-panel" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '8px', height: 'fit-content' }}>
+        <aside className="glass-panel app-sidebar" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '8px', height: 'fit-content' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' }}>
             
             <button

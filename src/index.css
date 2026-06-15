@@ -392,3 +392,62 @@ aside.glass-panel .btn svg {
   background: var(--brand-glow);
   color: var(--text-primary);
 }
+
+/* ---------------------------------------------------------------------------
+   Responsive — V2-E3 mobile polish (small, safe; desktop layout unchanged).
+   Only narrow viewports are affected. Collapses the fixed 260px sidebar grid,
+   relaxes container padding, lets the header wrap, and makes 2-col form grids
+   stack so cards/forms stop feeling cramped on phones.
+---------------------------------------------------------------------------- */
+
+/* Two-column form grid that collapses to one column on small screens. */
+.form-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+@media (max-width: 768px) {
+  .app-container {
+    padding: 14px;
+  }
+
+  .app-header {
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  /* Stack the navigation sidebar above the content (was a fixed 260px column). */
+  .app-main-grid {
+    grid-template-columns: 1fr !important;
+    gap: 18px !important;
+  }
+
+  /* Sidebar nav as a horizontally scrollable row instead of a tall column. */
+  .app-sidebar {
+    position: static !important;
+  }
+
+  /* Forms and 2-up grids go single-column to avoid cramped fields. */
+  .form-grid-2 {
+    grid-template-columns: 1fr;
+  }
+
+  /* Trim panel padding/radius a touch so content isn't boxed-in on phones. */
+  .glass-panel {
+    border-radius: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .app-container {
+    padding: 10px;
+  }
+
+  /* Allow long names/values to wrap rather than overflow their cards. */
+  .glass-panel h2,
+  .glass-panel h3 {
+    word-break: break-word;
+  }
+}
