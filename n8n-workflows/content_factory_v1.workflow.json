@@ -1,0 +1,155 @@
+{
+  "name": "Content Factory V1 - Content Pack",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "content-factory-v1/content-pack",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "ContentFactoryWebhook",
+      "name": "Receive Content Pack Request",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300],
+      "webhookId": "content-factory-v1-content-pack"
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $json.body || $json;\nconst required = ['request_id', 'workflow_type', 'generated_by', 'client', 'brand', 'campaign', 'brief', 'options', 'safety'];\nconst missing = required.filter((key) => body[key] === undefined || body[key] === null);\nconst safety = body.safety || {};\nconst safetyOk = body.workflow_type === 'content_pack'\n  && body.owner_approval_required === true\n  && safety.no_auto_post === true\n  && safety.no_auto_ads === true\n  && safety.no_live_connectors === true\n  && safety.no_secrets === true\n  && safety.owner_approval_required === true;\nif (missing.length || !safetyOk) {\n  return [{ json: {\n    ok: false,\n    request_id: body.request_id || null,\n    error: {\n      code: missing.length ? 'INVALID_CONTRACT' : 'REJECTED_BY_SAFETY',\n      message: missing.length ? `Missing required fields: ${missing.join(', ')}` : 'Safety flags rejected this request.'\n    },\n    status: 'failed',\n    owner_approval_required: true,\n    safety\n  }}];\n}\nreturn [{ json: body }];"
+      },
+      "id": "ValidatePayload",
+      "name": "Validate Contract + Safety",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [500, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "IsValid",
+              "leftValue": "={{ $json.ok }}",
+              "rightValue": false,
+              "operator": {
+                "type": "boolean",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "IsValidRequest",
+      "name": "Valid Request?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [740, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const request = $json;\nconst days = Number(request.options?.plan_length_days || 7);\nconst channel = request.options?.channel || 'Facebook';\nconst goal = request.options?.goal || 'branding';\nconst brand = request.brand?.name || 'Brand';\nconst product = request.brief?.product_focus || request.brand?.hero_product || 'hero product';\nconst messages = Array.isArray(request.brief?.key_messages) && request.brief.key_messages.length ? request.brief.key_messages : ['Fresh draft angle', 'Owner-approved message', 'Clear customer benefit'];\nconst pillars = Array.isArray(request.brief?.content_pillars) && request.brief.content_pillars.length ? request.brief.content_pillars : ['Product', 'Offer', 'Trust', 'Lifestyle'];\nconst items = [];\nfor (let day = 1; day <= days; day++) {\n  const planned = new Date();\n  planned.setDate(planned.getDate() + day);\n  const message = messages[(day - 1) % messages.length];\n  const pillar = pillars[(day - 1) % pillars.length];\n  items.push({\n    day_number: day,\n    planned_date: planned.toISOString().slice(0, 10),\n    channel,\n    content_type: channel === 'TikTok' ? 'video_script' : 'caption',\n    pillar,\n    angle: `${goal} / ${pillar}`,\n    hook: `${brand}: ${message}`,\n    caption: `${product}\\n\\nGoal: ${goal}.\\nDraft angle: ${message}.\\nOwner must approve before use.`,\n    visual_brief: `Create ${channel} creative for ${brand}. No live publishing.`,\n    cta: goal === 'sales' ? 'Message to order.' : 'Follow for the next update.',\n    hashtags: `#${brand.replace(/\\s+/g, '')} #TheCoreAgency #${channel}`,\n    generated_by: 'n8n-ai-provider-placeholder',\n    workflow_type: 'content_pack',\n    status: 'pending_approval',\n    owner_approval_required: true\n  });\n}\nreturn [{ json: {\n  ok: true,\n  request_id: request.request_id,\n  workflow_type: 'content_pack',\n  generated_by: 'n8n-ai-provider-placeholder',\n  owner_approval_required: true,\n  status: 'pending_approval',\n  job: {\n    external_execution_id: $execution.id,\n    item_count: items.length\n  },\n  items,\n  safety: request.safety\n}}];"
+      },
+      "id": "AiProviderPlaceholder",
+      "name": "AI Provider Placeholder",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [980, 220],
+      "notes": "Replace this Code node with OpenAI/Claude/Gemini n8n node using n8n Credentials. Do not commit API keys."
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "SuccessResponse",
+      "name": "Return Structured Content Pack",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1220, 220]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 400
+        }
+      },
+      "id": "FailureResponse",
+      "name": "Return Validation Failure",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [980, 420]
+    }
+  ],
+  "connections": {
+    "Receive Content Pack Request": {
+      "main": [
+        [
+          {
+            "node": "Validate Contract + Safety",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Contract + Safety": {
+      "main": [
+        [
+          {
+            "node": "Valid Request?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Valid Request?": {
+      "main": [
+        [
+          {
+            "node": "AI Provider Placeholder",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Return Validation Failure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Provider Placeholder": {
+      "main": [
+        [
+          {
+            "node": "Return Structured Content Pack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "tags": []
+}

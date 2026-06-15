@@ -56,12 +56,14 @@ import ExportPackTab from './components/core/ExportPackTab';
 import ConnectorRegistryTab from './components/core/ConnectorRegistryTab';
 import AutomationLogsTab from './components/core/AutomationLogsTab';
 import AutomationFactoryTab from './components/core/AutomationFactoryTab';
-import { loadCoreData, saveCoreData, loadGenerationData, saveGenerationData, loadApprovalData, saveApprovalData, loadAssetData, saveAssetData, canSubmitItem } from './lib/core/coreData';
+import { loadCoreData, saveCoreData, loadGenerationData, saveGenerationData, loadApprovalData, saveApprovalData, loadAssetData, saveAssetData, canSubmitItem, submitForApproval } from './lib/core/coreData';
 import { assetScopeIsSupabaseSafe, approvalScopeIsSupabaseSafe } from './lib/core/repoRouting';
 import type { AssetRouteIds, ApprovalRouteIds } from './lib/core/repoRouting';
 import type { CoreDataStore, GenerationDataStore, ApprovalDataStore, AssetDataStore, ClientFormData, BrandFormData, CampaignFormData, BriefFormData } from './lib/core/coreData';
 import { loadAutomationLogData, saveAutomationLogData } from './lib/core/automationLogs';
 import type { AutomationLogStore } from './lib/core/automationLogs';
+import { runContentFactory } from './lib/core/contentFactory';
+import type { ContentFactoryResult, ContentFactoryRunInput } from './lib/core/contentFactory';
 
 const manualExportBlocks = [
   {
@@ -596,6 +598,28 @@ export default function App() {
   };
 
   const actorLabel = user?.email ?? user?.role ?? 'System';
+
+  const handleContentFactoryGenerate = async (input: ContentFactoryRunInput): Promise<ContentFactoryResult> => {
+    const result = await runContentFactory(input);
+    const baseGen: GenerationDataStore = {
+      generationJobs: [result.job, ...genData.generationJobs],
+      contentItems: [...result.items, ...genData.contentItems],
+    };
+
+    let nextGen = baseGen;
+    let nextApproval = approvalData;
+    for (const item of result.items) {
+      const submitted = submitForApproval(nextApproval, nextGen, item, actorLabel, { priority: 'normal' });
+      nextApproval = submitted.approval;
+      nextGen = submitted.gen;
+    }
+
+    setGenData(nextGen);
+    saveGenerationData(nextGen);
+    setApprovalData(nextApproval);
+    saveApprovalData(nextApproval);
+    return result;
+  };
 
   // Phase 16C-2 — Approval CRUD: per-operation repo selection. Falls back to
   // localStorage whenever any ID *used by that operation* — tenant scope,
@@ -1587,6 +1611,8 @@ export default function App() {
                   reportCount={genData.generationJobs.length}
                   userRole={user?.role ?? null}
                   isSupabaseConfigured={isSupabaseConfigured}
+                  onGenerateContentPack={handleContentFactoryGenerate}
+                  actorLabel={actorLabel}
                 />
               )}
               {/* ── Phase 14: Automation Logs Tab ── */}

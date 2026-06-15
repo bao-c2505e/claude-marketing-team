@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   AlertTriangle,
   CheckCircle,
@@ -20,6 +20,7 @@ import type {
   ContentPlanItem,
   RoleName,
 } from '../../types/core';
+import type { ContentFactoryOptions, ContentFactoryResult, ContentFactoryRunInput } from '../../lib/core/contentFactory';
 
 interface Props {
   clients: Client[];
@@ -33,6 +34,8 @@ interface Props {
   reportCount: number;
   userRole: RoleName | null;
   isSupabaseConfigured: boolean;
+  onGenerateContentPack: (input: ContentFactoryRunInput) => Promise<ContentFactoryResult>;
+  actorLabel: string;
 }
 
 type WorkflowId = 'content-pack' | 'design-briefs' | 'video-scripts' | 'ads-pack' | 'report-draft';
@@ -101,9 +104,23 @@ export default function AutomationFactoryTab({
   reportCount,
   userRole,
   isSupabaseConfigured,
+  onGenerateContentPack,
+  actorLabel,
 }: Props) {
   const [drafts, setDrafts] = useState<DraftWorkflow[]>([]);
   const [lastCreatedId, setLastCreatedId] = useState<string | null>(null);
+  const [selectedClientId, setSelectedClientId] = useState('');
+  const [selectedBrandId, setSelectedBrandId] = useState('');
+  const [selectedCampaignId, setSelectedCampaignId] = useState('');
+  const [selectedBriefId, setSelectedBriefId] = useState('');
+  const [contentOptions, setContentOptions] = useState<ContentFactoryOptions>({
+    planLengthDays: 7,
+    channel: 'Facebook',
+    goal: 'branding',
+  });
+  const [isGeneratingContentPack, setIsGeneratingContentPack] = useState(false);
+  const [contentPackMessage, setContentPackMessage] = useState<string | null>(null);
+  const [contentPackError, setContentPackError] = useState<string | null>(null);
   const canUseFactory = userRole === 'owner' || userRole === 'manager';
 
   const readyBriefs = useMemo(
@@ -115,6 +132,56 @@ export default function AutomationFactoryTab({
     () => approvalRequests.filter(request => request.status === 'submitted').length,
     [approvalRequests],
   );
+
+  const availableBrands = useMemo(
+    () => brands.filter(brand => !selectedClientId || brand.client_id === selectedClientId),
+    [brands, selectedClientId],
+  );
+
+  const availableCampaigns = useMemo(
+    () => campaigns.filter(campaign =>
+      (!selectedClientId || campaign.client_id === selectedClientId) &&
+      (!selectedBrandId || campaign.brand_id === selectedBrandId)
+    ),
+    [campaigns, selectedBrandId, selectedClientId],
+  );
+
+  const availableBriefs = useMemo(
+    () => briefs.filter(brief =>
+      (!selectedClientId || brief.client_id === selectedClientId) &&
+      (!selectedBrandId || brief.brand_id === selectedBrandId) &&
+      (!selectedCampaignId || brief.campaign_id === selectedCampaignId)
+    ),
+    [briefs, selectedBrandId, selectedCampaignId, selectedClientId],
+  );
+
+  const selectedClient = clients.find(client => client.id === selectedClientId) ?? null;
+  const selectedBrand = brands.find(brand => brand.id === selectedBrandId) ?? null;
+  const selectedCampaign = campaigns.find(campaign => campaign.id === selectedCampaignId) ?? null;
+  const selectedBrief = briefs.find(brief => brief.id === selectedBriefId) ?? null;
+
+  useEffect(() => {
+    if (!selectedClientId && clients[0]) setSelectedClientId(clients[0].id);
+  }, [clients, selectedClientId]);
+
+  useEffect(() => {
+    if (!availableBrands.some(brand => brand.id === selectedBrandId)) {
+      setSelectedBrandId(availableBrands[0]?.id ?? '');
+    }
+  }, [availableBrands, selectedBrandId]);
+
+  useEffect(() => {
+    if (!availableCampaigns.some(campaign => campaign.id === selectedCampaignId)) {
+      setSelectedCampaignId(availableCampaigns[0]?.id ?? '');
+    }
+  }, [availableCampaigns, selectedCampaignId]);
+
+  useEffect(() => {
+    if (!availableBriefs.some(brief => brief.id === selectedBriefId)) {
+      const approved = availableBriefs.find(brief => brief.status === 'approved_for_generation');
+      setSelectedBriefId((approved ?? availableBriefs[0])?.id ?? '');
+    }
+  }, [availableBriefs, selectedBriefId]);
 
   const createDraft = (workflowId: WorkflowId) => {
     const workflow = WORKFLOWS.find(item => item.id === workflowId);
@@ -128,6 +195,32 @@ export default function AutomationFactoryTab({
     };
     setDrafts(prev => [draft, ...prev]);
     setLastCreatedId(draft.id);
+  };
+
+  const handleGenerateContentPack = async () => {
+    setContentPackError(null);
+    setContentPackMessage(null);
+    if (!selectedClient || !selectedBrand || !selectedCampaign || !selectedBrief) {
+      setContentPackError('Select a client, brand, campaign, and brief first.');
+      return;
+    }
+    setIsGeneratingContentPack(true);
+    try {
+      const result = await onGenerateContentPack({
+        client: selectedClient,
+        brand: selectedBrand,
+        campaign: selectedCampaign,
+        brief: selectedBrief,
+        options: contentOptions,
+        requestedBy: actorLabel,
+      });
+      const source = result.mode === 'n8n' ? 'n8n workflow' : 'local mock fallback';
+      setContentPackMessage(`${result.items.length} pending approval items created via ${source}. Nothing was posted or launched.`);
+    } catch (err) {
+      setContentPackError(err instanceof Error ? err.message : 'Content Pack generation failed. No content was created.');
+    } finally {
+      setIsGeneratingContentPack(false);
+    }
   };
 
   if (!canUseFactory) {
@@ -221,13 +314,36 @@ export default function AutomationFactoryTab({
               <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.5, margin: 0 }}>
                 {workflow.description}
               </p>
-              <button
-                className="btn btn-secondary"
-                onClick={() => createDraft(workflow.id)}
-                style={{ justifyContent: 'center', fontSize: '0.82rem', marginTop: 'auto' }}
-              >
-                <Factory size={14} /> Create Local Draft
-              </button>
+              {workflow.id === 'content-pack' ? (
+                <ContentPackControls
+                  clients={clients}
+                  brands={availableBrands}
+                  campaigns={availableCampaigns}
+                  briefs={availableBriefs}
+                  selectedClientId={selectedClientId}
+                  selectedBrandId={selectedBrandId}
+                  selectedCampaignId={selectedCampaignId}
+                  selectedBriefId={selectedBriefId}
+                  options={contentOptions}
+                  isGenerating={isGeneratingContentPack}
+                  message={contentPackMessage}
+                  error={contentPackError}
+                  onClientChange={setSelectedClientId}
+                  onBrandChange={setSelectedBrandId}
+                  onCampaignChange={setSelectedCampaignId}
+                  onBriefChange={setSelectedBriefId}
+                  onOptionsChange={setContentOptions}
+                  onGenerate={handleGenerateContentPack}
+                />
+              ) : (
+                <button
+                  className="btn btn-secondary"
+                  onClick={() => createDraft(workflow.id)}
+                  style={{ justifyContent: 'center', fontSize: '0.82rem', marginTop: 'auto' }}
+                >
+                  <Factory size={14} /> Create Local Draft
+                </button>
+              )}
             </div>
           ))}
         </div>
@@ -272,5 +388,139 @@ export default function AutomationFactoryTab({
         )}
       </div>
     </div>
+  );
+}
+
+function ContentPackControls({
+  clients,
+  brands,
+  campaigns,
+  briefs,
+  selectedClientId,
+  selectedBrandId,
+  selectedCampaignId,
+  selectedBriefId,
+  options,
+  isGenerating,
+  message,
+  error,
+  onClientChange,
+  onBrandChange,
+  onCampaignChange,
+  onBriefChange,
+  onOptionsChange,
+  onGenerate,
+}: {
+  clients: Client[];
+  brands: Brand[];
+  campaigns: Campaign[];
+  briefs: CampaignBrief[];
+  selectedClientId: string;
+  selectedBrandId: string;
+  selectedCampaignId: string;
+  selectedBriefId: string;
+  options: ContentFactoryOptions;
+  isGenerating: boolean;
+  message: string | null;
+  error: string | null;
+  onClientChange: (id: string) => void;
+  onBrandChange: (id: string) => void;
+  onCampaignChange: (id: string) => void;
+  onBriefChange: (id: string) => void;
+  onOptionsChange: (options: ContentFactoryOptions) => void;
+  onGenerate: () => void;
+}) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: 'auto' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '8px' }}>
+        <CompactSelect label="Client" value={selectedClientId} onChange={onClientChange} options={clients.map(item => ({ value: item.id, label: item.name }))} />
+        <CompactSelect label="Brand" value={selectedBrandId} onChange={onBrandChange} options={brands.map(item => ({ value: item.id, label: item.name }))} />
+        <CompactSelect label="Campaign" value={selectedCampaignId} onChange={onCampaignChange} options={campaigns.map(item => ({ value: item.id, label: item.name }))} />
+        <CompactSelect
+          label="Brief"
+          value={selectedBriefId}
+          onChange={onBriefChange}
+          options={briefs.map(item => ({ value: item.id, label: `${item.brief_title || item.brand_name} (${item.status || 'draft'})` }))}
+        />
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
+        {[7, 15, 30].map(days => (
+          <button
+            key={days}
+            type="button"
+            onClick={() => onOptionsChange({ ...options, planLengthDays: days as ContentFactoryOptions['planLengthDays'] })}
+            style={{ padding: '6px 8px', borderRadius: '6px', border: options.planLengthDays === days ? '1px solid rgba(251,146,60,0.6)' : '1px solid var(--border-color)', background: options.planLengthDays === days ? 'rgba(244,122,31,0.12)' : 'rgba(255,255,255,0.02)', color: options.planLengthDays === days ? '#fb923c' : 'var(--text-secondary)', cursor: 'pointer', fontSize: '0.74rem', fontWeight: 700 }}
+          >
+            {days} days
+          </button>
+        ))}
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+        <CompactSelect
+          label="Channel"
+          value={options.channel}
+          onChange={channel => onOptionsChange({ ...options, channel: channel as ContentFactoryOptions['channel'] })}
+          options={['Facebook', 'TikTok', 'Zalo'].map(channel => ({ value: channel, label: channel }))}
+        />
+        <CompactSelect
+          label="Goal"
+          value={options.goal}
+          onChange={goal => onOptionsChange({ ...options, goal: goal as ContentFactoryOptions['goal'] })}
+          options={[
+            { value: 'branding', label: 'Branding' },
+            { value: 'sales', label: 'Sales' },
+            { value: 'khai_truong', label: 'Khai truong' },
+            { value: 'lead', label: 'Lead' },
+            { value: 'tuyen_sinh', label: 'Tuyen sinh' },
+          ]}
+        />
+      </div>
+
+      {message && <p style={{ fontSize: '0.72rem', color: '#34d399', lineHeight: 1.45, margin: 0 }}>{message}</p>}
+      {error && <p style={{ fontSize: '0.72rem', color: '#f87171', lineHeight: 1.45, margin: 0 }}>{error}</p>}
+
+      <button
+        className="btn btn-primary"
+        onClick={onGenerate}
+        disabled={isGenerating}
+        style={{ justifyContent: 'center', fontSize: '0.82rem' }}
+      >
+        <Wand2 size={14} /> {isGenerating ? 'Generating Content Pack...' : 'Generate Content Pack'}
+      </button>
+      <p style={{ fontSize: '0.68rem', color: 'var(--text-muted)', lineHeight: 1.4, margin: 0 }}>
+        Creates Pending Approval outputs only. No post, no ad launch, no platform connector.
+      </p>
+    </div>
+  );
+}
+
+function CompactSelect({
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  options: Array<{ value: string; label: string }>;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '0.68rem', color: 'var(--text-muted)' }}>
+      {label}
+      <select
+        className="form-control"
+        value={value}
+        onChange={event => onChange(event.target.value)}
+        style={{ padding: '7px 8px', borderRadius: '7px', fontSize: '0.74rem' }}
+      >
+        <option value="">Select...</option>
+        {options.map(option => (
+          <option key={option.value} value={option.value}>{option.label}</option>
+        ))}
+      </select>
+    </label>
   );
 }

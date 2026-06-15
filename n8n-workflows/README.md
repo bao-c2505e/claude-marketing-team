@@ -13,6 +13,12 @@ This directory contains placeholder JSON workflows representing the automation b
    - Evaluates design briefs, checks final approval, and schedules generation jobs on ComfyUI.
 3. **[Module Result Callback to Core](./module_result_callback_to_core.workflow.json)**:
    - Handles callbacks from specialist modules, formats payloads, and triggers the callback back to the Core webhook.
+4. **[Content Factory V1 - Content Pack](./content_factory_v1.workflow.json)**:
+   - Receives Content Pack requests from The Core UI.
+   - Validates request contract and no-post/no-ads safety flags.
+   - Uses an AI Provider Placeholder node that can be replaced with OpenAI/Claude/Gemini through n8n Credentials.
+   - Returns structured content items with `status = pending_approval` and `owner_approval_required = true`.
+   - Does not post, schedule, launch ads, or call platform publishing APIs.
 
 ---
 
@@ -45,7 +51,9 @@ After importing, configure the following environment placeholders within n8n UI 
 - `MODULE_INBOX_ASSISTANT_URL`: Endpoint for Inbox Assistant AI helper.
 - `MODULE_ANALYTICS_ENGINE_URL`: Endpoint for Analytics reports.
 - `MODULE_BILLING_MODULE_URL`: Endpoint for Billing sync services.
+- `VITE_N8N_CONTENT_FACTORY_WEBHOOK_URL`: Core frontend env value pointing to the imported Content Factory V1 webhook URL. Leave unset to use Core's local mock fallback.
 
 > [!CAUTION]
 > - Do not active production workflows in n8n unless `CORE_CALLBACK_URL` is pointing to a live, secured, and validated Core callback endpoint.
 > - Never save or commit real API credentials or tokens in the workflow JSON files. Always use n8n's native Credentials system.
+> - Content Factory V1 must not be wired to Meta/TikTok/Zalo posting, scheduling, ads, or messaging APIs.
