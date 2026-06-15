@@ -1,9 +1,15 @@
-# V2-E3 — Manual E2E + UI Bug Triage
+# V2-UI-T1 — Manual E2E + UI Bug Triage
 
 **Date:** 2026-06-15
 **Owner direction:** Pause feedback implementation; run Manual E2E + UI bug triage.
 **Scope:** Investigation + small safe fixes only (no redesign, no feedback table/RLS/UI, no
 Supabase/migration/auth changes).
+
+> **Checkpoint disambiguation:** This is **V2-UI-T1**, a *separate UI / manual smoke-test
+> triage checkpoint*. It is **not** V2-E3. **V2-E3 = PC2 Adapter Skeleton, which remains
+> 🔴 NOT STARTED / Owner-gated** (checkpoint O1). V2-UI-T1 being DONE/PASS does **not** start
+> or complete any V2-E3 PC2 adapter-skeleton work. (This note + the rename from the original
+> `v2_e3_ui_bug_triage.md` resolve a Codex-flagged naming collision.)
 **Environment:** Local demo mode — `.env.local` absent → `isSupabaseConfigured = false` →
 all repos use the `LocalStorage*` implementations. Demo user role = `owner`.
 
