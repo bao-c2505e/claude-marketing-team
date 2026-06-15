@@ -180,6 +180,14 @@ Chúng ta đang xây dựng **The Core Agency — Real Operations MVP**. Đây l
 > independent docs/spec/policy/planning work that is DONE but **does not complete or replace
 > staging verification**. V2-D2 must not be claimed fully DONE/PASS until B is unblocked and
 > verified.
+>
+> **Checkpoint B2 unblock attempt (2026-06-16): 🔴 STILL BLOCKED.** Presence-only env check
+> (no values printed) found all staging vars MISSING (`VITE_SUPABASE_URL`,
+> `VITE_SUPABASE_ANON_KEY`, `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_REF`, `DATABASE_URL`,
+> service-role) and all `.env*` files ABSENT; no linked `supabase/` project; CLI not
+> installed. No disposable staging exists → verification did **not** run (no SQL, no DB
+> connection, no production, no fake pass). See staging report §13 for the evidence table +
+> exact owner unblock steps.
 
 > **Checkpoint A ✅ PASS** (process/docs — Codex-reviewed honest blocked
 > report). **Checkpoint B verdict 🔴 BLOCKED** — DB-level verification

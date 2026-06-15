@@ -5,7 +5,7 @@
 **Executed by:** PC1 (Claude Code).
 **Commit under test:** `2f1b700` (origin/main).
 
-## STATUS: ✅ CHECKPOINT A PASS (process/docs) — 🔴 CHECKPOINT B VERDICT = BLOCKED (DB verification could not run) — Checkpoint C NOT STARTED / Owner-gated
+## STATUS: ✅ CHECKPOINT A PASS (process/docs) — 🔴 CHECKPOINT B VERDICT = BLOCKED (DB verification could not run) — 🔴 CHECKPOINT B2 UNBLOCK ATTEMPT (2026-06-16) = STILL BLOCKED (no disposable staging env — see §13) — Overall V2-D2 🟡 PARTIAL / BLOCKED ON STAGING VERIFICATION — Checkpoints C/D/E ✅ docs-spec DONE (independent; do NOT replace staging verification)
 
 > **No SQL was run. No database was connected. No staging project was created. No verification was faked.**
 > Owner approved Checkpoint A, but the execution prerequisites — a provisioned disposable Supabase staging project and its env vars — do not exist in this environment. Per the runbook §3 and the task's hard boundary ("If required Supabase staging env vars are missing, STOP and document the exact missing variables. Do not fake verification."), execution is halted pending provisioning. **Checkpoint A (the honest preflight + blocked-execution report) passed Codex review; Checkpoint B renders the verification verdict: BLOCKED** (see §10–§12). All DB-level verification sections remain **NOT EXECUTED**. Re-checked 2026-06-15: env still MISSING, `.env.local` still absent — nothing has changed since Checkpoint A.
@@ -224,3 +224,119 @@ Explicitly confirmed for this run:
 - ✅ **Approval state remains Core UI-authoritative** — transitions require authenticated Core UI actions; `completed_mock`/`ready_for_mock_callback_preview` are statuses, not approvals.
 
 **Checkpoint B verdict: BLOCKED. Checkpoint C: NOT STARTED / Owner-gated. No fake pass issued.**
+
+---
+
+## 13. Checkpoint B2 — Unblock Attempt (2026-06-16)
+
+**Goal:** Run or unblock the real disposable Supabase staging verification (schema / RLS /
+tenant hierarchy). **No fake verification.**
+
+### 13.1 Date / time
+- 2026-06-16 (local). Attempt by PC1 (Claude Code Builder).
+
+### 13.2 Environment presence check (secrets redacted — values never printed)
+Checked **presence only** (SET/MISSING); no value was read, printed, or committed.
+
+| Variable / file | Result |
+|---|---|
+| `VITE_SUPABASE_URL` (staging) | 🔴 MISSING |
+| `VITE_SUPABASE_ANON_KEY` (staging) | 🔴 MISSING |
+| `SUPABASE_ACCESS_TOKEN` (CLI) | 🔴 MISSING |
+| `SUPABASE_PROJECT_REF` (CLI) | 🔴 MISSING |
+| `DATABASE_URL` (SQL conn) | 🔴 MISSING |
+| `SUPABASE_SERVICE_ROLE_KEY` | 🔴 MISSING |
+| `.env` / `.env.local` / `.env.staging` / `.env.development` | 🔴 ALL ABSENT |
+| `supabase/` CLI config (linked project) | 🔴 ABSENT (no linked project) |
+| `supabase` CLI binary | 🔴 NOT INSTALLED |
+
+### 13.3 Did staging verification actually run?
+- 🔴 **No.** No disposable staging project, no env vars, no DB connection string, no CLI.
+  Per the hard boundary ("if disposable staging env is missing or ambiguous, STOP and
+  document the blocker; do not fake verification"), execution **halted before any DB action**.
+  **No SQL was run; nothing was connected anywhere; no production was touched.**
+
+### 13.4 Migration result
+- ⛔ **NOT EXECUTED.** Migration files identified and ordered (M1–M10, see §4/§5 above:
+  `schema_v1.sql` → Step-0 RLS enable → bootstrap → helper functions/policies →
+  `schema_v1_phase16b2/16c1/16c2/16d` extensions → idempotency re-run → role assignment).
+  None applied — no staging DB to apply them to.
+
+### 13.5 Schema verification result
+- ⛔ **NOT EXECUTED** (no DB). Target entities remain unverified at DB level: clients,
+  brands, campaigns, briefs, generations/content items, approvals, assets, asset collections,
+  callback/module output tables (Group F, present-but-unwired), assignment/role tables +
+  helper functions.
+
+### 13.6 RLS / cross-tenant matrix result
+- ⛔ **NOT EXECUTED** (no DB). All §6/§7 checks remain BLOCKED: correct-tenant read,
+  wrong-tenant denial, write-role write, read-only-role denial, inactive/expired-assignment
+  denial, parent-hierarchy mismatch rejection, brief/client/brand/campaign consistency,
+  `asset_collection_id` hierarchy validation, UUID/localStorage gating at DB, no broad
+  OR-scope bypass, active/unexpired requirement, read/write role separation.
+- **Code-level only (NOT a DB substitute):** `repoRouting.test.ts` + `coreRepository.test.ts`
+  = 45/45 PASS (UUID gating + sanitizers). These do not verify live RLS.
+
+### 13.7 Approval / callback safety result (design-verified; no runtime callback path)
+Core is a static frontend with **no HTTP listener**, so there is **no runtime callback path**
+to exercise. The following are **design/contract-verified** (code unchanged this attempt) —
+explicitly **NOT** a substitute for the BLOCKED DB-level RLS checks:
+- ✅ `generated` stays `generated` and `pending` stays `pending` unless an authenticated
+  **Core UI** action changes it.
+- ✅ PC2 / module callbacks are **metadata / log / echo only**; **no callback-driven approval
+  mutation** exists (no wiring).
+- ✅ approved-like callback maps only to metadata / `ready_for_mock_callback_preview`.
+- ✅ `completed_mock` is only the final mock-E2E status (not an approval).
+- ✅ `failed_mock` routes to failure/error handling (never into approval).
+- ✅ `needs_revision` / `rejected`-like statuses are metadata requiring human review.
+- ✅ **Approval state remains Core UI-authoritative.**
+
+### 13.8 Evidence table
+| Area | Ran? | Evidence | Verdict |
+|---|---|---|---|
+| Env presence (redacted) | ✅ | §13.2 (presence-only check) | 🔴 all MISSING/ABSENT |
+| Disposable staging target | ❌ | none exists | 🔴 NOT PROVISIONED |
+| Migration apply (M1–M10) | ❌ | not executed | 🔴 BLOCKED |
+| Schema existence | ❌ | not executed | 🔴 BLOCKED |
+| RLS / cross-tenant matrix | ❌ | not executed | 🔴 BLOCKED |
+| Approval/callback safety | design only | §13.7 + code unchanged | ✅ design-verified / 🔴 DB-level BLOCKED |
+| Build / tests (preflight) | ✅ | `npm run build` 0 TS errors; `npm run test` 45/45 | ✅ PASS (not a staging substitute) |
+| Secrets safety | ✅ | presence-only; nothing printed/committed | ✅ PASS |
+
+### 13.9 Blockers
+- **B2-1 (root blocker):** No disposable Supabase staging project exists, and none of the
+  required env vars are set (§13.2). The agent **cannot** create a Supabase project or
+  generate keys — that requires the Owner/operator's Supabase dashboard + account.
+
+### 13.10 Final Checkpoint B2 verdict
+- 🔴 **BLOCKED.** The substantive staging verification (migrations, schema, RLS, tenant
+  hierarchy) **did not run** because there is no disposable staging environment. **No fake
+  pass issued.** Overall V2-D2 remains **🟡 PARTIAL / BLOCKED ON STAGING VERIFICATION**;
+  Checkpoint B stays 🔴 **BLOCKED**.
+
+### 13.11 Exact next action (Owner/operator — to unblock)
+Set up a **disposable, non-production** Supabase project, then hand back to PC1:
+1. Create a new Supabase project named `core-agency-staging-disposable` (a throwaway,
+   **never** production).
+2. Create 4 fictional staging auth users for the roles (owner / manager / client / viewer).
+3. In repo root, create `.env.local` (already git-ignored) with the **staging** anon
+   credentials only — **no service-role key in the frontend env**:
+   - `VITE_SUPABASE_URL=<staging project URL>`
+   - `VITE_SUPABASE_ANON_KEY=<staging anon key>`
+   - (Optional, only if CLI/SQL verification is desired: `SUPABASE_ACCESS_TOKEN`,
+     `SUPABASE_PROJECT_REF`, and/or a staging `DATABASE_URL` — kept out of the repo.)
+4. Confirm the project is disposable/non-production (redacted metadata only).
+5. Notify PC1 → PC1 drives M1–M10 migration apply + §6/§7 RLS/cross-tenant matrix on the
+   disposable staging only, replaces every ⬜ with PASS/FAIL + evidence, and **re-issues the
+   Checkpoint B verdict** (target: VERIFIED, or PARTIAL/FAILED honestly).
+
+> **Until the above is provided, V2-D2 cannot move past 🟡 PARTIAL / BLOCKED ON STAGING
+> VERIFICATION.** No SQL, no DB connection, no production access, no fabricated results.
+
+### 13.12 Safety conclusion (B2)
+- ✅ No production Supabase used; no production data; no DB session occurred.
+- ✅ No secret values printed or committed (presence-only env check; only `.env.example` tracked).
+- ✅ No connector activated; no posting/ads/messaging/customer contact.
+- ✅ No callback-driven approval mutation; approval state remains Core UI-authoritative.
+- ✅ No feedback table/RLS/UI implemented; no PC2 adapter skeleton implemented; approval
+  semantics unchanged. Diff this attempt = docs/logs only.

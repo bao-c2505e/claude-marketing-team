@@ -6,6 +6,19 @@ Nhật ký theo dõi các mốc hoàn thành kỹ thuật qua các Phase.
 
 ## 📅 Nhật Ký Sự Kiện (Event Logs)
 
+### 🗓️ Ngày 16/06/2026 — V2-D2 — Checkpoint B2 Unblock Attempt 🔴 STILL BLOCKED (no disposable staging env)
+- **Sự kiện:** Owner direction = start **Checkpoint B2** (unblock disposable Supabase staging verification cho schema/RLS/tenant hierarchy). Inspect-first; KHÔNG fake verification; nếu env thiếu → STOP + document blocker.
+- **Env presence check (redacted — KHÔNG in giá trị):** `VITE_SUPABASE_URL`/`VITE_SUPABASE_ANON_KEY`/`SUPABASE_ACCESS_TOKEN`/`SUPABASE_PROJECT_REF`/`DATABASE_URL`/`SUPABASE_SERVICE_ROLE_KEY` = **tất cả MISSING**; `.env`/`.env.local`/`.env.staging`/`.env.development` = **ABSENT**; `supabase/` linked project = ABSENT; supabase CLI = NOT INSTALLED.
+- **Verification có chạy không?** 🔴 **KHÔNG.** Không có disposable staging project/env/keys → **halt trước mọi DB action**: KHÔNG chạy SQL, KHÔNG connect, KHÔNG production. Migrations/schema/RLS-cross-tenant = **NOT EXECUTED**.
+- **Approval/callback safety:** design-verified (Core = static frontend, no HTTP listener → no runtime callback path): generated/pending chỉ đổi qua Core UI action; PC2 callbacks metadata/log/echo only; no callback-driven approval mutation; `completed_mock` ≠ approval; `failed_mock` → failure route; needs_revision/rejected-like = human-review metadata; approval state Core UI-authoritative. **NOT a substitute** cho DB-level RLS (vẫn BLOCKED).
+- **Deliverable:** `08_logs/v2_d2_staging_report_20260615.md` §13 "Checkpoint B2 — Unblock Attempt" (env presence redacted, did-not-run rationale, migration/schema/RLS NOT EXECUTED, approval-safety design-verified, evidence table, blocker B2-1, **verdict = BLOCKED**, exact owner unblock steps). Status header updated.
+- **Verdict B2:** 🔴 **BLOCKED** — no fake pass. **Checkpoint B vẫn 🔴 BLOCKED**; **overall V2-D2 vẫn 🟡 PARTIAL / BLOCKED ON STAGING VERIFICATION**. C/D/E vẫn ✅ docs-spec DONE độc lập (KHÔNG replace staging verification). V2-E3 PC2 Adapter Skeleton + feedback implementation + Checkpoint F migration draft vẫn 🔴 NOT STARTED / Owner-gated.
+- **Next action (Owner/operator):** tạo disposable project `core-agency-staging-disposable` (non-production) + 4 fictional users + `.env.local` (git-ignored) chứa staging anon URL/key (KHÔNG service-role ở frontend) → notify PC1 → PC1 drive M1–M10 + §6/§7 → re-issue Checkpoint B verdict.
+- **Safety:** no production Supabase/data; no secrets printed/committed (presence-only); no connectors; no posting/ads/messaging/customer contact; no feedback table/RLS/UI; no PC2 adapter skeleton; approval semantics unchanged. Diff = docs/logs only.
+- **Build:** PASS — 0 TS errors. `npm run test`: 45/45 PASS.
+
+---
+
 ### 🗓️ Ngày 15/06/2026 — V2-D2 — Tracking truthfulness fix ✅ DONE (overall = PARTIAL / BLOCKED ON STAGING VERIFICATION)
 - **Sự kiện (Codex required fix):** Codex flag — "V2-D2 Checkpoint B remains BLOCKED, so Checkpoints A–E are not all DONE/PASS (criterion 11)." Fix tracking truthfulness — docs/logs/tracking-only.
 - **Correct status model (khớp staging report `v2_d2_staging_report_20260615.md`, verdict = BLOCKED, "No fake pass issued"):**

@@ -6,6 +6,17 @@ Nhật ký ghi lại các hành động mô phỏng của các AI Agent khi vậ
 
 ## 🗓️ Nhật Ký Hoạt Động (Simulated Activity Logs)
 
+### 🗓️ Ngày 16/06/2026 — V2-D2 — Checkpoint B2 Unblock Attempt 🔴 STILL BLOCKED (no disposable staging env)
+- **[Owner — Approver]:** Directed Checkpoint B2 — unblock the disposable Supabase staging verification (schema/RLS/tenant hierarchy). Do not fake; stop with exact blocker if env missing.
+- **[PC1 Claude Code Builder]:** Inspected repo (branch `main` = origin/main, clean, HEAD `4ac7ea4`), confirmed migration files + staging report present, then checked staging env **presence only (no values printed)**: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_REF`, `DATABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` all MISSING; `.env`/`.env.local`/`.env.staging`/`.env.development` all ABSENT; no `supabase/` linked project; supabase CLI not installed.
+- **[PC1]:** Per the hard boundary, **halted before any DB action** — ran no SQL, connected nowhere, did not touch production, did not fabricate results. Migrations / schema / RLS / cross-tenant matrix = NOT EXECUTED (no disposable staging to run against).
+- **[PC1]:** Documented approval/callback safety as **design-verified** (Core is a static frontend with no HTTP listener → no runtime callback path): generated/pending change only via Core UI; PC2 callbacks metadata/log/echo only; no callback-driven approval mutation; `completed_mock` ≠ approval; `failed_mock` → failure route; needs_revision/rejected-like = human-review metadata; approval state Core UI-authoritative. Explicitly noted this is NOT a substitute for the BLOCKED DB-level RLS checks.
+- **[PC1]:** Appended `08_logs/v2_d2_staging_report_20260615.md` §13 "Checkpoint B2 — Unblock Attempt" (redacted env table, did-not-run rationale, NOT-EXECUTED migration/schema/RLS, design-verified approval safety, evidence table, blocker B2-1, **verdict BLOCKED**, exact owner unblock steps) and updated the report STATUS header.
+- **[PC1]:** Kept tracking truthful — **Checkpoint B stays 🔴 BLOCKED; B2 = 🔴 BLOCKED (no fake pass); overall V2-D2 stays 🟡 PARTIAL / BLOCKED ON STAGING VERIFICATION.** C/D/E remain ✅ docs-spec DONE independently (do not replace staging verification). V2-E3 PC2 Adapter Skeleton + feedback implementation + Checkpoint F migration draft remain 🔴 NOT STARTED / Owner-gated.
+- **[PC1]:** Docs/logs-only — no runtime/repo/Supabase/RLS/auth/test changes; no SQL; no production/staging connection; no secrets/connectors. `npm run build` PASS (0 TS errors); `npm run test` 45/45 PASS.
+
+---
+
 ### 🗓️ Ngày 15/06/2026 — V2-D2 — Tracking truthfulness fix ✅ DONE (overall = PARTIAL / BLOCKED ON STAGING VERIFICATION)
 - **[Codex — Reviewer]:** REQUIRED FIX — "V2-D2 Checkpoint B remains BLOCKED, so Checkpoints A–E are not all DONE/PASS (criterion 11)."
 - **[PC1 Claude Code Builder]:** Re-read the staging report `08_logs/v2_d2_staging_report_20260615.md` — authoritative verdict is **Checkpoint B = BLOCKED** ("Checkpoint B verdict: BLOCKED … No fake pass issued"; DB-level §6/§7 NOT EXECUTED, no disposable staging env). Did **not** alter that verdict; did **not** fake staging verification.
