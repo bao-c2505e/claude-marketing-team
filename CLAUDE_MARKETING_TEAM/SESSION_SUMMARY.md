@@ -33,7 +33,11 @@ Chúng ta đang xây dựng **The Core Agency — Real Operations MVP**. Đây l
   - **A = YES** — client approver may submit feedback / request revision (no state mutation).
   - **B = YES, metadata only** — approved-like feedback requires Core owner/internal
     confirmation before any real approval state change (no auto-approve).
-  - **C = YES** — client viewer remains read-only.
+  - **C = YES** — client viewer remains **strictly read-only**: read scoped outputs only;
+    cannot create feedback/comment, request revision, submit approved-like/rejected-like/
+    needs_revision-like feedback, or mutate Core approval state. **No Owner-grant exception**
+    in this V2-D2 policy (Codex consistency fix — any future viewer-comment capability is a
+    separate, future Owner-gated policy change).
   - **D = YES** — future implementation uses a separate feedback table.
 - **Invariants preserved (không nới lỏng):** client feedback KHÔNG mutate Core
   `approval_status` directly; approved-like = metadata only; rejected/needs_revision-like

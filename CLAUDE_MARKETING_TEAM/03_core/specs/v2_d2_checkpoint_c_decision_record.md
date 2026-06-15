@@ -39,7 +39,8 @@ This record sits downstream of:
 
 1. Client **approver** may submit feedback, request revisions, and record approved-like /
    rejected-like **opinions as metadata only**.
-2. Client **viewer** stays read-only by default.
+2. Client **viewer** is **strictly read-only** — no feedback/comment, revision request,
+   approved-like/rejected-like signal, or approval mutation (no Owner-grant exception).
 3. `approval_status` is transitioned **only** by an authenticated Owner/Internal action in
    the Core Approvals UI.
 4. Feedback is stored in a **separate `client_feedback` table** with immutable audit fields,
@@ -61,7 +62,7 @@ These options are explicitly **rejected** as unsafe:
 |---|---|---|
 | X1 | **Client directly mutates `approval_status`** | Breaks the core invariant that approval is an Owner/Internal human action; lets a client self-approve/publish-gate. ⛔ |
 | X2 | **PC2 / module callback directly approves/rejects** | Callbacks are non-authoritative by contract (V2-E2 §4, test T9). An automated echo must never transition Core state. ⛔ |
-| X3 | **Viewer can write feedback without explicit permission** | Viewer is read-only by default; a silent write path widens attack surface and confuses the audit trail. Requires explicit Owner grant. ⛔ |
+| X3 | **Viewer can write feedback** | Viewer is **strictly read-only** in this V2-D2 policy; a viewer write path widens attack surface and confuses the audit trail. Rejected — there is **no** Owner-grant exception here; any future viewer-comment capability is a *separate, future Owner-gated policy change*, not part of this decision. ⛔ |
 | X4 | **Client feedback triggers publish / ads / send** | Publish is Owner-only and manual; no feedback (client or callback) may trigger any external action. ⛔ |
 | X5 | *(supporting)* Storing client feedback in an approval column / overloading `approval_comments` write path | Risks a feedback write touching authoritative state and complicates RLS; rejected in favor of a separate table. ⛔ |
 
@@ -73,7 +74,7 @@ These options are explicitly **rejected** as unsafe:
 |---|---|---|
 | **A** | Allow **client approver** to submit feedback / request revision **only** (no state mutation). | **A = yes** |
 | **B** | Allow **client approver** to submit **approved-like** feedback, but require Core Owner/Internal confirmation (no auto-approve). | **B = yes, but metadata only** |
-| **C** | Keep **client viewer read-only** (feedback only if explicitly granted). | **C = yes** |
+| **C** | Keep **client viewer strictly read-only** (no feedback/comment/revision/approval write; no Owner-grant exception). | **C = yes** |
 | **D** | Create a **separate feedback table** in the future implementation. | **D = yes** |
 
 ### Recommended answer (summary)
@@ -81,7 +82,8 @@ These options are explicitly **rejected** as unsafe:
 - **A = yes** — client approver: feedback + revision request only, never a transition.
 - **B = yes, but metadata only** — approved-like signal is advisory metadata; only an
   authenticated Owner/Internal action produces `approved`.
-- **C = yes** — viewer stays read-only by default.
+- **C = yes** — viewer strictly read-only; no feedback/comment/revision/approval write path,
+  no Owner-grant exception in this policy.
 - **D = yes** — separate `client_feedback` table with immutable audit + tenant-scoped,
   insert-only RLS.
 
@@ -127,8 +129,14 @@ The Owner reviewed Checkpoint C (`v2_d2_client_feedback_policy.md` + this record
 |---|---|---|
 | **A** | Client approver may submit feedback / request revision (no state mutation). | ✅ **YES** |
 | **B** | Client approver may submit **approved-like** feedback — **metadata only**, requires Core Owner/Internal confirmation before any real approval state change (no auto-approve). | ✅ **YES, metadata only** |
-| **C** | Client viewer remains **read-only**. | ✅ **YES** |
+| **C** | Client viewer remains **strictly read-only** — read scoped outputs only; **cannot** create feedback/comment, request revision, submit approved-like/rejected-like/needs_revision-like feedback, or mutate Core approval state. **No Owner-grant exception** in this policy. | ✅ **YES** |
 | **D** | Future implementation uses a **separate feedback table**. | ✅ **YES** |
+
+> **Decision C scope clarification:** the approved V2-D2 decision makes the client viewer
+> read-only with **no** "feedback allowed if the Owner grants it" exception. Any future
+> change that would let a viewer comment is **out of scope of this accepted V2-D2 decision**
+> and would require a *separate, future Owner-gated policy update* plus its own future
+> implementation checkpoint.
 
 ### 7.1 What this Owner decision means
 
@@ -155,7 +163,9 @@ The Owner decision explicitly **preserves** every safety invariant — none is r
   Owner/Internal confirmation is required before any real approval state change.
 - **Rejected-like / needs_revision-like feedback is metadata or a feedback record only** —
   it flags the item for human review; it never transitions `approval_status` on its own.
-- **Client viewer remains read-only** (Decision C) — no write path by default.
+- **Client viewer remains strictly read-only** (Decision C) — no feedback/comment, revision
+  request, approved-like/rejected-like/needs_revision-like signal, or approval mutation; no
+  Owner-grant exception in this policy.
 - **PC2 / module callbacks remain metadata / log / echo only** — non-authoritative by
   contract; a callback can never approve/reject or impersonate a human role.
 - **No feedback- or callback-driven posting, ads, messaging, or customer contact.** Publish

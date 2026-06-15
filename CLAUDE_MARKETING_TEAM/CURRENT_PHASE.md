@@ -47,8 +47,8 @@
 ### Checkpoint C — Client-Feedback Policy (✅ DOCS/SPEC DONE — 2026-06-15):
 - **Kết quả:** Checkpoint C được author **docs/spec only** (Owner-approved scope). Trước đó NOT STARTED → tạo mới, không duplicate. **Status: ✅ DONE as specification — Owner đã approve policy direction tại Checkpoint D (xem dưới); NOT implemented.**
 - **Policy cốt lõi:** Client feedback = **input cho human review**, KHÔNG phải approval / publish trigger / state transition. `approval_status` (`draft|submitted|approved|rejected|revision_requested|cancelled`) chỉ đổi bởi authenticated **Owner/Internal** action trong Core Approvals UI. **PC2/module callback non-authoritative** — status callback KHÔNG mutate approval decisions. Client/viewer KHÔNG mutate Core approval state.
-- **Khuyến nghị (Owner decision):** A=yes (client approver chỉ feedback/request-revision), B=yes nhưng **metadata only** (approved-like signal cần Owner/Internal confirm, không auto-approve), C=yes (viewer read-only default), D=yes (separate `client_feedback` table với immutable audit + tenant-scoped insert-only RLS — future phase).
-- **Rejected unsafe options:** client mutates `approval_status`; PC2 callback approves/rejects; viewer writes feedback không có explicit grant; feedback triggers publish/ads/send.
+- **Khuyến nghị (Owner decision):** A=yes (client approver chỉ feedback/request-revision), B=yes nhưng **metadata only** (approved-like signal cần Owner/Internal confirm, không auto-approve), C=yes (**viewer strictly read-only — không feedback/comment/revision/approval write, không có Owner-grant exception**), D=yes (separate `client_feedback` table với immutable audit + tenant-scoped insert-only RLS — future phase).
+- **Rejected unsafe options:** client mutates `approval_status`; PC2 callback approves/rejects; **viewer writes feedback (viewer strictly read-only — không có ngoại lệ Owner-grant trong V2-D2)**; feedback triggers publish/ads/send.
 - **No implementation:** không code/RLS/SQL/migrations/tests/secrets/connectors; không kết nối production/staging. Diff = docs/specs/logs only.
 - **Files (Checkpoint C):**
   | File | Change |

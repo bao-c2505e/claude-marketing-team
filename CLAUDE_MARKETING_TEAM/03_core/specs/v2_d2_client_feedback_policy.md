@@ -77,21 +77,20 @@ matrix can be precise and a future implementation can choose how to encode it
 | **Owner / Admin** | `owner` | Full authority. Final approval, publish, user/role management, audit, system settings. The only role that can publish. |
 | **Internal team / Editor** | `manager` | Agency-internal editor/reviewer. Creates/edits campaigns & content, runs generation, and performs approve / reject / request-revision in the Approvals UI. Holds approval authority alongside Owner. |
 | **Client approver** | `client` (designated approval contact) | Client-side stakeholder authorized to **submit feedback, request a revision, and record an approved-like / rejected-like *opinion***. This opinion is **advisory metadata** — it does **not** change `approval_status`. Scoped to its assigned tenant (client → brands) only. |
-| **Client viewer** | `viewer` | Read-only client-side stakeholder. Sees approved/pending content within its tenant. **No write path by default** (no feedback) unless the Owner explicitly grants it (see Open Decision C). |
+| **Client viewer** | `viewer` | **Strictly read-only** client-side stakeholder. Sees approved/pending content within its tenant. **No write path at all** in this V2-D2 policy: no feedback/comment, no revision request, no approved-like/rejected-like signal, no approval mutation. Any future viewer-comment capability would be a separate, future Owner-gated policy change (see Decision C). |
 | **PC2 / module callback** | service identity (no human role) | Automation backbone (n8n / modules) posting results back to Core. **Non-authoritative by contract.** May deliver previews, statuses, and notes as **metadata only**; can **never** impersonate a client or internal role, and can **never** set `approval_status`. Confirmed by V2-E2 plan §4 items 1, 4, 7 and the V2-E2 t2/t3 fix (commit `3c8f853`). |
 
 ---
 
 ## 4. Permission Matrix
 
-Legend: ✅ allowed · ⛔ denied · 🟡 allowed only as **advisory metadata** (never mutates Core state)
-· ☑️ allowed **only if Owner explicitly grants** (default = denied).
+Legend: ✅ allowed · ⛔ denied · 🟡 allowed only as **advisory metadata** (never mutates Core state).
 
 | Capability | Owner/Admin | Internal/Editor | Client approver | Client viewer | PC2/module callback |
 |---|:---:|:---:|:---:|:---:|:---:|
 | Read clients / brands / campaigns / briefs (own tenant) | ✅ (all) | ✅ (scoped) | ✅ (assigned tenant) | ✅ (assigned tenant) | ⛔ (no human-data read) |
 | Read generated outputs | ✅ (all statuses) | ✅ (all statuses, scoped) | ✅ (client-visible statuses) | ✅ (client-visible statuses) | ⛔ |
-| Create feedback / comment | ✅ | ✅ | ✅ (own tenant) | ☑️ (Owner-granted) | 🟡 (annotation metadata only, system-attributed) |
+| Create feedback / comment | ✅ | ✅ | ✅ (own tenant) | ⛔ (read-only) | 🟡 (annotation metadata only, system-attributed) |
 | Request revision | ✅ (and transitions) | ✅ (and transitions) | 🟡 (records a revision *request*; no transition) | ⛔ | 🟡 (recommendation only) |
 | Mark **approved-like** feedback | ✅ (is the approval) | ✅ (is the approval) | 🟡 (opinion metadata only) | ⛔ | 🟡 (echo/sim only) |
 | Mark **rejected-like** feedback | ✅ (is the rejection) | ✅ (is the rejection) | 🟡 (opinion metadata only) | ⛔ | 🟡 (recommendation only) |
@@ -104,12 +103,18 @@ Legend: ✅ allowed · ⛔ denied · 🟡 allowed only as **advisory metadata** 
 Notes:
 - "Publish" is **Owner-only and manual** today (`canPublishContent: ['owner']`) and remains
   so. No client action, and no callback, may trigger publish/ads/send.
-- "Mark approved-like / rejected-like" for a **client** is intentionally *not* the same
-  capability as the internal approve/reject. For internal roles the action **is** the
-  state transition; for a client it is **only an opinion recorded as metadata** that a human
-  must still action.
-- Client viewer feedback defaults to **denied** — opening it requires an explicit Owner grant
-  (Open Decision C) and must still obey all tenant-scope and immutability rules.
+- "Mark approved-like / rejected-like" for a **client approver** is intentionally *not* the
+  same capability as the internal approve/reject. For internal roles the action **is** the
+  state transition; for a client approver it is **only an opinion recorded as metadata** that
+  a human must still action.
+- **Client viewer is strictly read-only in this V2-D2 policy.** A viewer may read scoped
+  outputs only; it **cannot** create feedback/comment, request revision, submit
+  approved-like / rejected-like / needs_revision-like feedback, or mutate Core approval
+  state. There is **no** "Owner can grant viewer feedback" exception in this policy.
+- **Future-policy clarification:** any future change that would let a viewer comment is
+  **out of scope of this Owner-approved V2-D2 decision**. It would require a *separate,
+  future Owner-gated policy update* and its own future implementation checkpoint — it is not
+  part of the current accepted V2-D2 decision (Decision C = viewer read-only).
 
 ---
 
@@ -291,7 +296,7 @@ feedback write accidentally touching an approval column.
 | R1 | Client "approved-like" feedback mistaken for real approval | `feedback_status` is separate from `approval_status`; UI labels it as opinion; only human action transitions state (§5, §8). |
 | R2 | Client writes feedback outside their tenant | RLS INSERT scoped via `current_user_has_scoped_role(['client'], 'client', client_id)` + hierarchy validation (§7). |
 | R3 | PC2/module callback impersonates a client approval | Callbacks are non-authoritative by contract; distinct service identity; `source='module_callback'`; cannot set `approval_status` (V2-E2 §4, T9). |
-| R4 | Viewer silently gains write ability | Viewer feedback denied by default; requires explicit Owner grant (Decision C); still immutable + scoped. |
+| R4 | Viewer silently gains write ability | Viewer is strictly read-only in this policy (Decision C) — no feedback/comment/revision/approved-like/rejected-like/approval-write. No "Owner grant" exception exists here; any future viewer-comment capability is a separate, future Owner-gated policy change. |
 | R5 | Client edits/deletes feedback to rewrite history | Insert-only for client rows; no UPDATE/DELETE; soft-delete + hard-delete Owner/Internal only (§7). |
 | R6 | Revoked/expired client still accesses | All policies gate on `is_active = true` (+ expiry) (§7, audit finding #2). |
 | R7 | Broad OR-scope predicate leaks cross-tenant data | Forbid `resource_type`-agnostic predicates; use scoped helpers only (§7, rls_policy_plan warning). |
@@ -310,8 +315,12 @@ The core choices A–D were confirmed by the Owner at Checkpoint D (full record 
 - **B. ✅ APPROVED (YES, metadata only).** Client approver may submit an **approved-like**
   signal, but **only as metadata** requiring Core Owner/Internal confirmation before any real
   approval state change — never an auto-approve.
-- **C. ✅ APPROVED (YES, viewer read-only).** Client viewer stays read-only by default
-  (feedback only if explicitly granted).
+- **C. ✅ APPROVED (YES, viewer read-only).** Client viewer is **strictly read-only**: read
+  scoped outputs only; **cannot** create feedback/comment, request revision, submit
+  approved-like / rejected-like / needs_revision-like feedback, or mutate Core approval
+  state. **No "Owner can grant viewer feedback" exception** is part of this V2-D2 decision;
+  any future viewer-comment capability requires a *separate, future Owner-gated policy
+  update* and its own future implementation checkpoint.
 - **D. ✅ APPROVED (YES).** Future implementation uses a **separate `client_feedback` table**.
 
 Sub-decisions E/F remain **open** for the future implementation phase (no Owner answer

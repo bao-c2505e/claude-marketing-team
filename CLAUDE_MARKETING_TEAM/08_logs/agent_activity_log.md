@@ -6,6 +6,16 @@ Nhật ký ghi lại các hành động mô phỏng của các AI Agent khi vậ
 
 ## 🗓️ Nhật Ký Hoạt Động (Simulated Activity Logs)
 
+### 🗓️ Ngày 15/06/2026 — V2-D2 — Checkpoint D Codex REQUIRED FIX ✅ DONE (Decision C consistency)
+- **[Codex — Reviewer]:** Flagged REQUIRED FIX — Decision C inconsistent: accepted wording says client viewer remains read-only, but the policy/decision docs still allowed viewer feedback "if explicitly granted by Owner". Make Decision C consistent: viewer is read-only, no Owner-grant exception in V2-D2.
+- **[PC1 Claude Code Builder]:** Inspected repo (branch `main` = origin/main, clean, HEAD `8990a3e`) and grepped both spec docs + logs for every "explicit grant / Owner-grant / ☑️ / by default" reference touching the viewer.
+- **[PC1]:** Removed all viewer feedback-grant exceptions. Permission matrix now states client viewer can **read scoped outputs only** and **cannot** create feedback/comment, request revision, submit approved-like, submit rejected-like (or needs_revision-like), or mutate Core approval state. Dropped the `☑️ (Owner-granted)` legend + matrix cell → viewer feedback = ⛔ (read-only). Added a clarification (in both specs) that any future viewer-comment capability requires a **separate, future Owner-gated policy update + future implementation checkpoint** and is not part of the accepted V2-D2 decision.
+- **[PC1]:** Left the client **approver** policy unchanged (may submit feedback / request revision; approved-like = metadata only, requires Core owner/internal confirmation). Preserved every safety statement: client feedback cannot mutate `approval_status` directly; PC2/module callbacks remain metadata/log/echo only; no callback-driven approval mutation; no feedback-driven posting/ads/messaging/customer contact.
+- **[PC1]:** Docs/specs/logs-only — did not change runtime/product/repository logic, Supabase migrations/RLS/auth, tests, connectors, or secrets; no SQL; no production/staging connection.
+- **[PC1]:** `npm run build` PASS (0 TS errors); `npm run test` 45/45 PASS — docs-only diff, unchanged green.
+
+---
+
 ### 🗓️ Ngày 15/06/2026 — V2-D2 — Checkpoint D Owner Decision ✅ DONE (policy stage CLOSED)
 - **[PC1 Claude Code Builder]:** Inspected repo first — branch `main` = origin/main, tree clean, latest commit `2462875` (Checkpoint C). Confirmed the Checkpoint C policy + decision-record docs exist; this checkpoint only **records the Owner decision** and **closes the policy-decision stage** — no new spec authored, no duplication.
 - **[Owner — Approver]:** Recorded decision for Checkpoint D — **A = YES** (client approver may submit feedback/request revision), **B = YES, metadata only** (approved-like feedback requires Core owner/internal confirmation before any real approval state change), **C = YES** (client viewer read-only), **D = YES** (future implementation uses a separate feedback table).
