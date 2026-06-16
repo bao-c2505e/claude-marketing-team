@@ -62,7 +62,7 @@ import type { AssetRouteIds, ApprovalRouteIds } from './lib/core/repoRouting';
 import type { CoreDataStore, GenerationDataStore, ApprovalDataStore, AssetDataStore, ClientFormData, BrandFormData, CampaignFormData, BriefFormData } from './lib/core/coreData';
 import { loadAutomationLogData, saveAutomationLogData } from './lib/core/automationLogs';
 import type { AutomationLogStore } from './lib/core/automationLogs';
-import { runContentFactory } from './lib/core/contentFactory';
+import { runContentFactory, getContentFactoryWebhookUrl } from './lib/core/contentFactory';
 import type { ContentFactoryResult, ContentFactoryRunInput } from './lib/core/contentFactory';
 
 const manualExportBlocks = [
@@ -1676,7 +1676,7 @@ export default function App() {
                           { label: 'Brands', value: coreData.brands.length, tab: 'brands', note: 'FnB brand profiles' },
                           { label: 'Campaigns', value: coreData.campaigns.length, tab: 'campaigns', note: 'Active marketing work' },
                           { label: 'Briefs', value: coreData.briefs.length, tab: 'brief-intake', note: 'Owner-reviewed inputs' },
-                          { label: 'Automation Factory', value: genData.generationJobs.length, tab: 'automation-factory', note: 'n8n AI provider · approval-first' },
+                          { label: 'Automation Factory', value: genData.generationJobs.length, tab: 'automation-factory', note: getContentFactoryWebhookUrl() !== null ? 'n8n AI provider · approval-first' : 'Local fallback mode · approval-first' },
                           { label: 'Approval Board', value: approvalData.approvalRequests.length, tab: 'approvals', note: 'Human sign-off queue' },
                           { label: 'Asset Library', value: assetData.assets.length, tab: 'asset-library', note: 'Creative assets' },
                           { label: 'Reports', value: genData.generationJobs.length, tab: 'reports', note: 'Draft reporting workspace' },

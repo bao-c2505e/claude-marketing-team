@@ -511,7 +511,7 @@ function ContentPackControls({
       >
         <Wand2 size={14} /> {isGenerating
           ? (n8nConfigured ? 'Generating via n8n AI Provider...' : 'Generating (local fallback)...')
-          : 'Generate with n8n AI Provider'}
+          : (n8nConfigured ? 'Generate with n8n AI Provider' : 'Generate with Local fallback')}
       </button>
       <p style={{ fontSize: '0.68rem', color: 'var(--text-muted)', lineHeight: 1.4, margin: 0 }}>
         Approval-first: no auto-post, no auto-ads. Creates Pending Approval outputs only. No platform connector.
