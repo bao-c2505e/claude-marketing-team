@@ -1,0 +1,155 @@
+{
+  "name": "Video Scripts V1 - Video Scripts",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "video-scripts-v1/video-scripts",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "VideoScriptsWebhook",
+      "name": "Receive Video Script Request",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300],
+      "webhookId": "video-scripts-v1-video-scripts"
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $json.body || $json;\nconst required = ['request_id', 'workflow_type', 'generated_by', 'client', 'brand', 'campaign', 'brief', 'options', 'video_script_types', 'safety'];\nconst missing = required.filter((key) => body[key] === undefined || body[key] === null);\nconst safety = body.safety || {};\nconst safetyOk = (body.workflow_type === 'video_scripts' || body.workflow_type === 'video_script')\n  && body.owner_approval_required === true\n  && body.generate_images === false\n  && body.generate_videos === false\n  && safety.no_auto_post === true\n  && safety.no_auto_ads === true\n  && safety.no_live_connectors === true\n  && safety.no_image_generation === true\n  && safety.no_video_generation === true\n  && safety.no_secrets === true\n  && safety.owner_approval_required === true;\nif (missing.length || !safetyOk) {\n  return [{ json: {\n    ok: false,\n    request_id: body.request_id || null,\n    error: {\n      code: missing.length ? 'INVALID_CONTRACT' : 'REJECTED_BY_SAFETY',\n      message: missing.length ? `Missing required fields: ${missing.join(', ')}` : 'Safety flags rejected this request (video scripts are text/script only, no image or video generation).'\n    },\n    status: 'failed',\n    owner_approval_required: true,\n    safety\n  }}];\n}\nreturn [{ json: body }];"
+      },
+      "id": "ValidatePayload",
+      "name": "Validate Contract + Safety",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [500, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "IsValid",
+              "leftValue": "={{ $json.ok }}",
+              "rightValue": false,
+              "operator": {
+                "type": "boolean",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "IsValidRequest",
+      "name": "Valid Request?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [740, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const request = $json;\nconst channel = request.options?.channel || 'Facebook';\nconst goal = request.options?.goal || 'branding';\nconst brand = request.brand?.name || 'Brand';\nconst product = request.brief?.product_focus || request.brand?.hero_product || 'hero product';\nconst audience = request.brief?.target_audience || request.brand?.target_audience || 'core local audience';\nconst tone = request.brand?.tone_of_voice || 'warm, trustworthy';\nconst offer = request.brief?.offer || 'Assumption: feature the current campaign hero offer';\nconst specs = [\n  { key: 'hook_first_3s',            title: 'Hook / First 3 Seconds Script',                  platform: 'Reels / TikTok', format: 'First 3 seconds (9:16 vertical)', objective: 'Stop the scroll in the first 3 seconds' },\n  { key: 'short_form_script',        title: 'Short-Form Video Script (Reels/TikTok, 15-30s)', platform: 'Reels / TikTok', format: '15-30s vertical (9:16)',          objective: 'Deliver the core message in 15-30s' },\n  { key: 'voiceover_caption_script', title: 'Voiceover / Caption Script',                     platform: 'Cross-channel',  format: 'Voiceover + on-screen captions', objective: 'Spoken + caption script that lands the message' },\n  { key: 'shot_list_broll',          title: 'Shot List + B-roll Direction',                   platform: 'Production',     format: 'Shot list / B-roll plan',        objective: 'Give the shooter a clear, ordered shot list' },\n  { key: 'editor_handoff_notes',     title: 'Editor Handoff Notes',                           platform: 'Internal',       format: 'Editor handoff document',        objective: 'Hand the cut to the editor cleanly' }\n];\nconst items = specs.map((spec) => ({\n  key: spec.key,\n  title: spec.title,\n  platform: spec.platform,\n  format: spec.format,\n  objective: spec.objective,\n  target_audience: audience,\n  script_body: `Scene-by-scene script for ${brand} featuring ${product}. ${spec.objective}. Offer: ${offer}.`,\n  voiceover_text: `VO (tone: ${tone}): \"${brand} - ${spec.objective}.\" On-screen captions mirror the VO.`,\n  shot_direction: spec.key === 'shot_list_broll' ? `Ordered shots: hero ${product} close-up, prep/process B-roll, customer reaction, logo/CTA end card. Real footage only - no AI video.` : `Hold on the hero ${product}; keep the frame clean and on-brand. Real footage only - no AI video.`,\n  cta: goal === 'sales' ? 'Inbox to order' : goal === 'lead' ? 'Leave your contact' : 'Follow for more',\n  generated_by: 'n8n-ai-provider',\n  workflow_type: 'video_scripts',\n  content_type: 'video_script',\n  status: 'pending_approval',\n  owner_approval_required: true\n}));\nreturn [{ json: {\n  ok: true,\n  request_id: request.request_id,\n  workflow_type: 'video_scripts',\n  content_type: 'video_script',\n  generated_by: 'n8n-ai-provider',\n  owner_approval_required: true,\n  status: 'pending_approval',\n  job: {\n    external_execution_id: $execution.id,\n    item_count: items.length\n  },\n  items,\n  safety: request.safety\n}}];"
+      },
+      "id": "AiProviderPlaceholder",
+      "name": "AI Provider Placeholder",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [980, 220],
+      "notes": "Replace this Code node with an OpenAI/Claude/Gemini n8n node using n8n Credentials (credential-placeholder only — never commit an API key). TEXT/SCRIPT ONLY — do NOT add any image-generation or video-generation node here, and no Canva/ComfyUI/Fal.ai/Meta/TikTok/Zalo connector. Keep the Validate Contract + Safety and Return Validation Failure nodes as the safety gate. Do not commit API keys."
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "SuccessResponse",
+      "name": "Return Structured Video Scripts",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1220, 220]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 400
+        }
+      },
+      "id": "FailureResponse",
+      "name": "Return Validation Failure",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [980, 420]
+    }
+  ],
+  "connections": {
+    "Receive Video Script Request": {
+      "main": [
+        [
+          {
+            "node": "Validate Contract + Safety",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Contract + Safety": {
+      "main": [
+        [
+          {
+            "node": "Valid Request?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Valid Request?": {
+      "main": [
+        [
+          {
+            "node": "AI Provider Placeholder",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Return Validation Failure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Provider Placeholder": {
+      "main": [
+        [
+          {
+            "node": "Return Structured Video Scripts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "tags": []
+}

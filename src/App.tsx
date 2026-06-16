@@ -65,6 +65,8 @@ import type { AutomationLogStore } from './lib/core/automationLogs';
 import { runContentFactory, getContentFactoryWebhookUrl } from './lib/core/contentFactory';
 import { runDesignFactory } from './lib/core/designFactory';
 import type { DesignFactoryResult } from './lib/core/designFactory';
+import { runVideoFactory } from './lib/core/videoFactory';
+import type { VideoFactoryResult } from './lib/core/videoFactory';
 import type { ContentFactoryResult, ContentFactoryRunInput } from './lib/core/contentFactory';
 
 const manualExportBlocks = [
@@ -630,6 +632,33 @@ export default function App() {
   // Approval Board as pending items.
   const handleDesignFactoryGenerate = async (input: ContentFactoryRunInput): Promise<DesignFactoryResult> => {
     const result = await runDesignFactory(input);
+    const baseGen: GenerationDataStore = {
+      generationJobs: [result.job, ...genData.generationJobs],
+      contentItems: [...result.items, ...genData.contentItems],
+    };
+
+    let nextGen = baseGen;
+    let nextApproval = approvalData;
+    for (const item of result.items) {
+      const submitted = submitForApproval(nextApproval, nextGen, item, actorLabel, { priority: 'normal' });
+      nextApproval = submitted.approval;
+      nextGen = submitted.gen;
+    }
+
+    setGenData(nextGen);
+    saveGenerationData(nextGen);
+    setApprovalData(nextApproval);
+    saveApprovalData(nextApproval);
+    return result;
+  };
+
+  // Video Scripts Factory V1 — reuses the same external_module job/item/approval
+  // path as the Content and Design Factories. Produces video script (text/script)
+  // approval items only; never images, never video, never a live connector.
+  // Auto-submits each item for approval exactly like content/design packs, so
+  // video scripts land in the Approval Board as pending items.
+  const handleVideoFactoryGenerate = async (input: ContentFactoryRunInput): Promise<VideoFactoryResult> => {
+    const result = await runVideoFactory(input);
     const baseGen: GenerationDataStore = {
       generationJobs: [result.job, ...genData.generationJobs],
       contentItems: [...result.items, ...genData.contentItems],
@@ -1642,6 +1671,7 @@ export default function App() {
                   isSupabaseConfigured={isSupabaseConfigured}
                   onGenerateContentPack={handleContentFactoryGenerate}
                   onGenerateDesignBriefs={handleDesignFactoryGenerate}
+                  onGenerateVideoScripts={handleVideoFactoryGenerate}
                   actorLabel={actorLabel}
                 />
               )}
