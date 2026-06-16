@@ -16,7 +16,11 @@ import type { ContentPlanItem, ContentPlanJob } from '../../types/core';
 import type { ContentFactoryOptions, ContentFactoryRunInput } from './contentFactory';
 import { generateId } from './coreData';
 
-const WORKFLOW_TYPE = 'design_brief';
+// workflow_type identifies the n8n workflow / external module; content_type
+// identifies the kind of item it produces. Keeping them distinct fixes the
+// earlier metadata bug where design items showed workflow_type: content_pack.
+const WORKFLOW_TYPE = 'design_factory';
+const CONTENT_TYPE = 'design_brief';
 
 // brand_colors is a JSON map on the model; render it as a readable spec string.
 function formatBrandColors(colors: Record<string, string> | null): string | null {
@@ -45,7 +49,7 @@ const DESIGN_BRIEF_SPECS: DesignBriefSpec[] = [
 
 export interface DesignBriefRequestPayload {
   request_id: string;
-  workflow_type: 'design_brief';
+  workflow_type: 'design_factory';
   generated_by: string;
   owner_approval_required: true;
   requested_at: string;
@@ -205,8 +209,8 @@ function buildMockResult(input: ContentFactoryRunInput, payload: DesignBriefRequ
   const brand = input.brand.name;
   const product = input.brief.product_focus || input.brand.hero_product || 'hero product';
   const audience = input.brief.target_audience || input.brand.target_audience || 'core local audience';
-  const colors = formatBrandColors(input.brand.brand_colors) || 'brand primary + neutral support, high legibility';
-  const offer = input.brief.offer || 'current campaign offer (owner to confirm)';
+  const colors = formatBrandColors(input.brand.brand_colors) || 'Assumption: brand primary + neutral support, high legibility';
+  const offer = input.brief.offer || 'Assumption: feature the current campaign hero offer';
   const platformContext = input.options.channel;
 
   const items: N8nDesignBriefItem[] = DESIGN_BRIEF_SPECS.map(spec => ({
@@ -269,27 +273,53 @@ function mapDesignItem(
   generatedBy: string,
   mode: DesignFactoryResult['mode'],
 ): ContentPlanItem {
-  const spec = DESIGN_BRIEF_SPECS.find(s => s.key === item.key);
-  const title = item.title || spec?.title || 'Design Brief';
-  const platform = item.platform || item.channel || spec?.platform || input.options.channel;
-  const format = item.format || spec?.format || 'Owner to confirm format';
-  const objective = item.objective || spec?.objective || 'Owner to confirm objective';
+  // Always anchor to a canonical spec: match by key, else by sequence, else the
+  // first. This guarantees a specific title/format/objective even when an n8n AI
+  // response omits fields — so items never degrade to "Owner to confirm ...".
+  const spec = DESIGN_BRIEF_SPECS.find(s => s.key === item.key)
+    ?? DESIGN_BRIEF_SPECS[sequence - 1]
+    ?? DESIGN_BRIEF_SPECS[0];
+
+  const brand = input.brand.name;
+  const product = input.brief.product_focus || input.brand.hero_product || `${brand} hero product`;
+  const goal = input.options.goal;
+  const defaultCta = goal === 'sales' ? 'Inbox to order' : goal === 'lead' ? 'Leave your contact for a callback' : 'Follow for more';
+
+  // Prefer AI/source values; fall back to the canonical spec or a clearly-flagged
+  // "Assumption: ..." derived from the brief — never a generic "Owner to confirm".
+  const title     = item.title || spec.title;
+  const platform  = item.platform || item.channel || (spec.platform === 'Facebook' ? input.options.channel : spec.platform);
+  const format    = item.format || spec.format;
+  const objective = item.objective || spec.objective;
+  const audience  = item.target_audience || input.brief.target_audience || input.brand.target_audience || 'Assumption: core local audience for this brand';
+  const layout    = item.layout_guidance || (spec.key === 'designer_handoff_notes'
+    ? 'Provide layered source, fonts, export specs, safe margins, and where text must stay legible.'
+    : 'One clear focal point, generous safe margins, single primary message, legible at thumbnail size.');
+  const copy      = item.copy_text || `Assumption: lead with "${brand} — ${objective}".${input.brief.offer ? ` Offer: ${input.brief.offer}.` : ''}`;
+  const colors    = item.brand_style || formatBrandColors(input.brand.brand_colors) || 'Assumption: brand primary + neutral support, high legibility';
+  const imageReq  = item.image_requirements || 'Owner-provided real product photography only. No AI image generation in this V1 flow.';
+  const cta       = item.cta || defaultCta;
+  const visual    = item.visual_direction || `Hero ${product} in a clean, on-brand ${brand} frame. Tone: ${input.brand.tone_of_voice || 'warm, trustworthy'}. Real photography only — no image generation.`;
 
   const sourceLabel = mode === 'n8n' ? 'n8n' : 'local';
   const caption = [
     `Design objective: ${objective}`,
-    `Target audience: ${item.target_audience || input.brief.target_audience || 'core audience'}`,
+    `Target audience: ${audience}`,
     `Format / ratio: ${format}`,
-    `Layout guidance: ${item.layout_guidance || 'Clear focal point, legible text, generous safe margins.'}`,
-    `Copy / text to include: ${item.copy_text || 'Owner to confirm copy.'}`,
-    `Brand colors / style: ${item.brand_style || formatBrandColors(input.brand.brand_colors) || 'Brand palette (owner to confirm).'}`,
-    `Image / product requirements: ${item.image_requirements || 'Owner-provided real product photography only. No image generation in V1.'}`,
-    `CTA: ${item.cta || 'Owner to confirm CTA.'}`,
+    `Layout guidance: ${layout}`,
+    `Copy / text to include: ${copy}`,
+    `Brand colors / style: ${colors}`,
+    `Image / product requirements: ${imageReq}`,
+    `CTA: ${cta}`,
+    'Safety: text/spec only — no image generation.',
     '',
     '---',
     'Design Brief V1 metadata:',
     `generated_by: ${item.generated_by || generatedBy}`,
-    `workflow_type: ${item.workflow_type || WORKFLOW_TYPE}`,
+    // workflow_type/content_type are forced to the canonical constants (not the
+    // upstream item value) so a nonconforming AI response can never mislabel them.
+    `workflow_type: ${WORKFLOW_TYPE}`,
+    `content_type: ${CONTENT_TYPE}`,
     'status: pending_approval',
     'owner_approval_required: true',
     `source: ${sourceLabel}`,
@@ -307,13 +337,13 @@ function mapDesignItem(
     day_number: sequence,
     planned_date: null,
     channel: platform,
-    content_type: 'design_brief',
+    content_type: CONTENT_TYPE,
     pillar: 'Design Brief',
     angle: title,
     hook: `${title} — ${objective}`,
     caption,
-    visual_brief: item.visual_direction || `Visual direction for ${input.brand.name}. Owner must review before any design or use.`,
-    cta: item.cta || 'Owner to confirm CTA.',
+    visual_brief: visual,
+    cta,
     hashtags: `#${input.brand.name.replace(/\s+/g, '')} #DesignBrief`,
     status: 'needs_review',
     created_at: now,

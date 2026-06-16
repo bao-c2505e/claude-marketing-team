@@ -1205,3 +1205,14 @@ Nhật ký theo dõi các mốc hoàn thành kỹ thuật qua các Phase.
 - **Tests:** `designFactory.test.ts` (+4): payload approval-first/no-image, local fallback label, n8n external_module label + provenance, approval-first, fail-safe khi không có items.
 - **Build/Test:** `npm run build` PASS. `npm test` PASS 53/53 (+4).
 - **Trạng thái:** ✅ DONE. Real connector activation: NOT STARTED / Owner-gated. Approval semantics: unchanged.
+
+### 🗓️ Ngày 17/06/2026 (Local Time) — Design Factory V1 quality + metadata consistency
+- **Sự kiện:** Cải thiện chất lượng output + đồng nhất metadata cho Design Factory V1.
+- **Quality:** Bỏ placeholder generic "Owner to confirm objective/format/copy/CTA". Core `mapDesignItem` neo về canonical spec (match theo key, else theo thứ tự) và dùng "Assumption: ..." khi thiếu dữ liệu — không còn "Owner to confirm".
+- **Metadata:** `workflow_type: design_factory`, `content_type: design_brief` (trước đây dùng design_brief cho cả hai và bị rò `content_pack`). Core FORCE workflow_type/content_type theo hằng số nên AI response sai cũng không mislabel được.
+- **n8n workflow:** Validate node chấp nhận cả `design_factory` lẫn `design_brief` (deploy order an toàn 2 chiều); items + envelope set `workflow_type: design_factory` + `content_type: design_brief`; bỏ "owner to confirm" trong offer default.
+- **Runbook:** thêm OpenAI system prompt (5 items cụ thể, quy tắc "Assumption:", cấm image generation) + cập nhật contract design_factory/content_type + ghi chú re-import + redeploy.
+- **An toàn:** approval-first giữ nguyên (needs_review), text/spec only, no image generation, no auto-post/ads, no connector. Không đổi schema/RLS/approval logic/dependencies. Không commit secret/URL thật.
+- **Tests:** `designFactory.test.ts` cập nhật (workflow_type design_factory, content_type metadata, no "Owner to confirm", spec fallback cho item thiếu field).
+- **Build/Test:** `npm run build` PASS. `npm test` PASS 53/53.
+- **Trạng thái:** ✅ DONE (cần re-import n8n workflow + redeploy Core để áp dụng metadata mới; Validate chấp nhận cả 2 contract nên không vỡ).

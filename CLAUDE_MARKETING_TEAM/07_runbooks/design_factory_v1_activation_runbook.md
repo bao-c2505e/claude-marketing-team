@@ -17,13 +17,24 @@ What the file actually contains (verified):
 | Requirement | Present? | Where |
 |---|---|---|
 | Production webhook endpoint | ✅ Yes | Node **Receive Design Brief Request** (`n8n-nodes-base.webhook`), path `design-factory-v1/design-briefs`, `responseMode: responseNode` |
-| Contract + safety validation | ✅ Yes | Node **Validate Contract + Safety** — rejects unless `workflow_type=design_brief`, `generate_images=false`, `no_auto_post=true`, `no_auto_ads=true`, `no_image_generation=true`, `no_live_connectors=true`, `no_secrets=true`, `owner_approval_required=true` |
+| Contract + safety validation | ✅ Yes | Node **Validate Contract + Safety** — rejects unless `workflow_type` ∈ {`design_factory`,`design_brief`}, `generate_images=false`, `no_auto_post=true`, `no_auto_ads=true`, `no_image_generation=true`, `no_live_connectors=true`, `no_secrets=true`, `owner_approval_required=true` |
 | Branch on validity | ✅ Yes | Node **Valid Request?** (`if`) → success path or **Return Validation Failure** (HTTP 400) |
 | Normalize → design brief items | ✅ Yes | Node **AI Provider Placeholder** returns normalized `items[]` (5 specs) + `job.item_count` + response envelope |
 | Webhook JSON response | ✅ Yes | Node **Return Structured Design Briefs** (`respondToWebhook`) |
 | `generated_by: n8n-ai-provider` | ✅ Yes | Set on every item and on the envelope |
-| `workflow_type: design_brief`, `status: pending_approval`, `owner_approval_required: true` | ✅ Yes | Per item + envelope |
+| `workflow_type: design_factory`, `content_type: design_brief`, `status: pending_approval`, `owner_approval_required: true` | ✅ Yes | Per item + envelope |
 | Safety flags echoed (`no_auto_post`, `no_auto_ads`, …) | ✅ Yes | `safety: request.safety` in the response |
+
+> 🔁 **Contract update (2026-06-17 quality/metadata pass):** the request/response
+> `workflow_type` is now **`design_factory`** and each item carries
+> **`content_type: design_brief`** (previously both used `design_brief`). The
+> Validate node accepts **both** `design_factory` and `design_brief`, so the n8n
+> re-import and the Core redeploy can happen in either order without breakage.
+> Core also forces `workflow_type: design_factory` / `content_type: design_brief`
+> in the item metadata, so a nonconforming AI response can no longer mislabel them
+> (this fixes the earlier `workflow_type: content_pack` leak). When a field is
+> genuinely missing, items now show `Assumption: ...` instead of
+> `Owner to confirm ...`. **Re-import this workflow** to pick up the change.
 
 > ⚠️ **IMPORTANT — read before activating.** The AI step is currently a
 > **deterministic placeholder Code node** named **AI Provider Placeholder**, NOT a
@@ -73,19 +84,52 @@ What the file actually contains (verified):
 3. **Credential:** in the OpenAI node's *Credential to connect with*, select your
    existing OpenAI credential, or **＋ Create New** → paste the API key **here in
    n8n Credentials only**. (Never put the key in Core/Vercel/repo.)
-4. Prompt: instruct it to return **TEXT/SPEC ONLY** design briefs for the 5 types
-   (facebook_post, story_reels_cover, menu_promo_visual, key_visual_direction,
-   designer_handoff_notes). Explicitly forbid image generation / image URLs.
+4. **System prompt** — paste this into the OpenAI node (it produces specific,
+   designer-useful briefs and avoids generic placeholders):
+
+   ```
+   You are a senior art director writing DESIGN BRIEFS (text/spec only) for a
+   marketing team. You NEVER generate images and NEVER output image URLs.
+
+   Using the request JSON (brand, brief, campaign, options), produce EXACTLY these
+   5 design brief items, in this order, with these `key` values:
+     1. facebook_post        — Facebook Post Design Brief
+     2. story_reels_cover    — Story / Reels Cover Design Brief
+     3. menu_promo_visual    — Menu / Promo Visual Design Brief
+     4. key_visual_direction — Key Visual Direction
+     5. designer_handoff_notes — Designer Handoff Notes
+
+   For EACH item, fill ALL of these fields with specific, usable guidance derived
+   from the brand/brief: title, platform, format (ratio + px), objective,
+   target_audience, visual_direction, layout_guidance, copy_text (the actual
+   headline/lines to set), brand_style (colors/typography direction),
+   image_requirements (state: real owner-provided product photography only — no
+   image generation), cta.
+
+   If a piece of information is genuinely missing from the request, make a
+   reasonable assumption and PREFIX that value with "Assumption: ". NEVER write
+   "Owner to confirm". Keep it concrete and brand-specific.
+
+   Output ONLY valid JSON: { "items": [ {…5 items…} ] }. No prose, no markdown.
+   ```
+
 5. Add a **Code** node after OpenAI ("Normalize Design Briefs") that shapes the AI
    output into the SAME response envelope the placeholder produced — it MUST keep:
-   - `ok: true`, `request_id`, `workflow_type: 'design_brief'`,
-     `generated_by: 'n8n-ai-provider'`, `owner_approval_required: true`,
-     `status: 'pending_approval'`, `job.item_count`, `items[]`, `safety: request.safety`.
+   - `ok: true`, `request_id`, `workflow_type: 'design_factory'`,
+     `content_type: 'design_brief'`, `generated_by: 'n8n-ai-provider'`,
+     `owner_approval_required: true`, `status: 'pending_approval'`,
+     `job.item_count`, `items[]`, `safety: request.safety`.
    - Each item with: `key, title, platform, format, objective, target_audience,
      visual_direction, layout_guidance, copy_text, brand_style, image_requirements,
-     cta, generated_by:'n8n-ai-provider', workflow_type:'design_brief',
-     status:'pending_approval', owner_approval_required:true`.
+     cta, generated_by:'n8n-ai-provider', workflow_type:'design_factory',
+     content_type:'design_brief', status:'pending_approval',
+     owner_approval_required:true`.
    - **Do not** add any image/asset URL fields.
+
+   > Note: Core also force-fills any missing item field from the canonical spec
+   > (or `Assumption: ...`) and forces `workflow_type`/`content_type` — so even an
+   > imperfect AI response stays specific and correctly labelled. But a conformant
+   > Normalize node is still preferred.
 6. Connect Normalize → **Return Structured Design Briefs**. **Save**.
 
 > Keep the **Validate Contract + Safety** and **Return Validation Failure** nodes
@@ -149,8 +193,12 @@ What the file actually contains (verified):
    - `source: n8n`
    - `generated_by: n8n-ai-provider`
    - `generation_mode: external_module`
+   - `workflow_type: design_factory`
+   - `content_type: design_brief`
    - `status: pending_approval`, `owner_approval_required: true`
    - `safety: no_auto_post=true; no_auto_ads=true; no_image_generation=true`
+   - The spec body is specific (real titles/format/CTA); no `Owner to confirm …`
+     placeholders (missing data appears as `Assumption: …`).
 8. Confirm items are **text/spec only** (no image, no asset URL) and that nothing
    was posted, launched, published, or sent to ads.
 
@@ -173,9 +221,9 @@ What the file actually contains (verified):
 
 - **Core UI (Automation Factory):** "5 design brief approval items were created via
   n8n AI Provider. Nothing was posted or launched."
-- **n8n webhook response (200):** `{ "ok": true, "workflow_type": "design_brief",
-  "generated_by": "n8n-ai-provider", "status": "pending_approval", "job": {
-  "item_count": 5 }, "items": [ …5… ], "safety": { … } }`
+- **n8n webhook response (200):** `{ "ok": true, "workflow_type": "design_factory",
+  "content_type": "design_brief", "generated_by": "n8n-ai-provider", "status":
+  "pending_approval", "job": { "item_count": 5 }, "items": [ …5… ], "safety": { … } }`
 - **n8n Executions list:** a new successful execution per run.
 
 ---

@@ -110,7 +110,7 @@ describe('designFactory', () => {
   it('builds an approval-first, image-free design brief request payload', () => {
     const payload = createDesignBriefPayload(input);
 
-    expect(payload.workflow_type).toBe('design_brief');
+    expect(payload.workflow_type).toBe('design_factory');
     expect(payload.generated_by).toBe('owner@example.com');
     expect(payload.owner_approval_required).toBe(true);
     expect(payload.generate_images).toBe(false);
@@ -140,7 +140,8 @@ describe('designFactory', () => {
     expect(result.items.every(item => item.status === 'needs_review')).toBe(true);
     // Structured fields + safety land in the caption spec block.
     const first = result.items[0].caption;
-    expect(first).toContain('workflow_type: design_brief');
+    expect(first).toContain('workflow_type: design_factory');
+    expect(first).toContain('content_type: design_brief');
     expect(first).toContain('status: pending_approval');
     expect(first).toContain('Format / ratio:');
     expect(first).toContain('no_auto_post=true');
@@ -148,6 +149,10 @@ describe('designFactory', () => {
     expect(first).toContain('no_image_generation=true');
     // No image generation: explicitly states real photography only.
     expect(first).toContain('No AI image generation in this V1 flow.');
+    // Quality: no generic "Owner to confirm ..." placeholders anywhere.
+    expect(result.items.every(item => !/Owner to confirm/i.test(item.caption))).toBe(true);
+    // The first item resolves to a real, specific spec (not "Design Brief").
+    expect(result.items[0].angle).toBe('Facebook Post Design Brief');
   });
 
   it('uses external_module mode and n8n provenance when the webhook is configured', async () => {
@@ -175,6 +180,14 @@ describe('designFactory', () => {
     expect(result.items.every(item => item.status === 'needs_review')).toBe(true);
     expect(result.items[0].caption).toContain('generated_by: n8n-ai-provider');
     expect(result.items[0].caption).toContain('generation_mode: external_module');
+    // Metadata consistency: workflow_type forced to design_factory even from n8n.
+    expect(result.items.every(item => item.caption.includes('workflow_type: design_factory'))).toBe(true);
+    // Quality: the second item omits copy/cta fields — it must resolve to the
+    // canonical spec + "Assumption: ...", never a generic "Owner to confirm".
+    const handoff = result.items[1];
+    expect(handoff.angle).toBe('Handoff');
+    expect(handoff.caption).not.toMatch(/Owner to confirm/i);
+    expect(handoff.cta).not.toMatch(/Owner to confirm/i);
   });
 
   it('fails safely when the configured webhook returns no items', async () => {
