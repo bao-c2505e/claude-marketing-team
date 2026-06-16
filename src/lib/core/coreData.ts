@@ -1,4 +1,4 @@
-import type { Client, Brand, Campaign, CampaignBrief, ResourceStatus, CampaignStatus, BriefStatus, ContentPlanJob, ContentPlanItem, ContentApprovalRequest, ContentApprovalEvent, ContentApprovalComment, ContentApprovalStatus, ApprovalActionType, ApprovalPriority, AssetType, AssetSourceType, AssetApprovalStatus, AssetItem, LocalAssetCollection, LocalExportPack } from '../../types/core';
+import type { Client, Brand, Campaign, CampaignBrief, ResourceStatus, CampaignStatus, BriefStatus, ContentPlanJob, ContentPlanItem, ContentApprovalRequest, ContentApprovalEvent, ContentApprovalComment, ContentApprovalStatus, ApprovalActionType, ApprovalPriority, AssetType, AssetSourceType, AssetApprovalStatus, AssetItem, LocalAssetCollection, LocalExportPack, GenerationMode } from '../../types/core';
 
 // ---------------------------------------------------------------------------
 // Local form types for create operations
@@ -507,6 +507,32 @@ export const JOB_STATUS_COLOR: Record<string, string> = {
   completed:  '#34d399',
   failed:     '#f87171',
   archived:   '#71717a',
+};
+
+// ---------------------------------------------------------------------------
+// Generation mode display — keeps UI labels accurate to how a job was produced.
+// `external_module` = real n8n AI provider job; `mock` = local fallback used
+// when the n8n webhook env is not configured. Centralized here so every tab
+// that renders shared generation jobs shows the same truthful mode label.
+// ---------------------------------------------------------------------------
+export const GENERATION_MODE_LABEL: Record<GenerationMode, string> = {
+  mock:            'Local fallback mode',
+  ai_ready:        'AI provider',
+  external_module: 'n8n AI Provider',
+};
+
+export const GENERATION_MODE_COLOR: Record<GenerationMode, string> = {
+  mock:            '#f59e0b',
+  ai_ready:        '#60a5fa',
+  external_module: '#34d399',
+};
+
+// Source / provenance line shown under a job. Mirrors the metadata appended to
+// each content item by the Content Factory (source / generated_by).
+export const GENERATION_MODE_SOURCE: Record<GenerationMode, string> = {
+  mock:            'Source: local / generated_by: core-local-mock',
+  ai_ready:        'Source: ai / generated_by: ai-provider',
+  external_module: 'Source: n8n / generated_by: n8n-ai-provider',
 };
 
 export const CONTENT_ITEM_STATUS_LABEL: Record<string, string> = {

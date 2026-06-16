@@ -73,9 +73,9 @@ const MOCK_LOG_TEMPLATES: Array<{
     log_type: 'module',
     source: 'module',
     severity: 'success',
-    title: 'Mock Content Generation Completed',
-    message: '[Mock] Content generation job completed. No real AI API called. Local simulation only.',
-    payload_preview: '{"action":"generation_completed","mode":"mock","real_api":false}',
+    title: 'Content Generation Completed (n8n AI Provider)',
+    message: 'Content generation job completed via n8n AI Provider (external module job). Pending approval items created. Nothing was posted or launched.',
+    payload_preview: '{"action":"generation_completed","mode":"external_module","source":"n8n","generated_by":"n8n-ai-provider"}',
   },
   {
     label: 'Safety Gate Warning',

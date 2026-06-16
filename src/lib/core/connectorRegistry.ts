@@ -310,7 +310,7 @@ export const SEED_MODULES: LocalModuleRegistryItem[] = [
     module_name: 'content_auto',
     module_type: 'copywriter',
     status: 'mock_ready',
-    description: 'Tự động tạo content plan (hook, caption, CTA, hashtags) cho campaign từ brief. Phase 6+ mock generation đã hoạt động trong Core.',
+    description: 'Tự động tạo content plan (hook, caption, CTA, hashtags) cho campaign từ brief qua n8n AI Provider (external module job). Approval-first: tạo Pending Approval, không auto-post/auto-ads. Có local fallback khi webhook chưa cấu hình.',
     input_contract_name: 'ContentGenerationRequest',
     output_contract_name: 'ContentPlanItems',
     callback_endpoint_note: '/api/webhooks/content-completed',

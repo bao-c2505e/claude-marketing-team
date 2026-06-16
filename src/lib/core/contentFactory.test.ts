@@ -1,5 +1,6 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { createContentFactoryPayload, runContentFactory } from './contentFactory';
+import { GENERATION_MODE_LABEL, GENERATION_MODE_SOURCE } from './coreData';
 import type { Brand, Campaign, CampaignBrief, Client } from '../../types/core';
 
 const client: Client = {
@@ -133,5 +134,33 @@ describe('contentFactory', () => {
     expect(result.items[0].caption).toContain('workflow_type: content_pack');
     expect(result.items[0].caption).toContain('status: pending_approval');
     expect(result.items[0].caption).toContain('owner_approval_required: true');
+  });
+
+  it('uses external_module mode and n8n provenance when the webhook is configured', async () => {
+    vi.stubEnv('VITE_N8N_CONTENT_FACTORY_WEBHOOK_URL', 'https://n8n.example.com/webhook/content-factory');
+    (fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        ok: true,
+        generated_by: 'n8n-ai-provider',
+        items: [{ day_number: 1, channel: 'Facebook', hook: 'AI hook', caption: 'AI caption' }],
+      }),
+    });
+
+    const result = await runContentFactory({ ...input, options: { ...input.options, planLengthDays: 7 } });
+
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(result.mode).toBe('n8n');
+    expect(result.job.generation_mode).toBe('external_module');
+    // Production label + provenance the UI renders for an n8n job.
+    expect(GENERATION_MODE_LABEL[result.job.generation_mode]).toBe('n8n AI Provider');
+    expect(GENERATION_MODE_SOURCE[result.job.generation_mode]).toContain('generated_by: n8n-ai-provider');
+    // Approval-first preserved: n8n items are still review-gated, never auto-approved.
+    expect(result.items.every(item => item.status === 'needs_review')).toBe(true);
+  });
+
+  it('labels the local fallback job as Local fallback mode', () => {
+    expect(GENERATION_MODE_LABEL.mock).toBe('Local fallback mode');
+    expect(GENERATION_MODE_SOURCE.mock).toContain('core-local-mock');
   });
 });

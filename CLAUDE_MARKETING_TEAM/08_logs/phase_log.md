@@ -1180,3 +1180,17 @@ Nhật ký theo dõi các mốc hoàn thành kỹ thuật qua các Phase.
 - **Note:** H.7 added Owner View and Client View inside the same AI Marketing Team Workspace. Owner View keeps internal review/control information, while Client View is cleaner for client presentation and hides internal technical clutter. Client View now uses trust/scope wording such as Sample Data, Approval Required, No Live Publishing, and No Real Ads unless approved.
 - **Trạng thái Phase H.7:** ✅ DONE + CODEX PASS + FIXES APPLIED + BUILT + PUSHED + READY FOR OWNER PRODUCTION CHECK
 
+
+### 🗓️ Ngày 16/06/2026 (Local Time) — Content Factory V1 n8n AI Provider Label Cleanup
+- **Sự kiện:** Dọn nhãn UI generation cho đúng với production n8n flow (Core → n8n → OpenAI → Normalize → Core).
+- **Vấn đề:** Generation History (shared) hardcode mọi job là `Mock` kể cả n8n `external_module` job; Automation Factory header nói "do not call external APIs" (sai sau khi wiring n8n).
+- **Thay đổi (display text + mode clarity):**
+  - `coreData.ts`: thêm `GENERATION_MODE_LABEL` / `_COLOR` / `_SOURCE` (external_module → "n8n AI Provider", mock → "Local fallback mode").
+  - `ContentGenerationTab.tsx`: bảng + detail + safety banner → mode-aware, bỏ "AI API not connected".
+  - `AutomationFactoryTab.tsx`: header badge/description, card sublabel, nút chính → "Generate with n8n AI Provider"; chip "n8n AI Provider" khi webhook env có, "Local fallback mode" khi không.
+  - `App.tsx`: dashboard tile note → "n8n AI provider · approval-first".
+  - `connectorRegistry.ts` + seed logs: bỏ wording "mock / no real AI API called".
+- **An toàn:** Không auto-post/auto-ads, không thêm connector, OpenAI key chỉ trong n8n Credentials, approval-first giữ nguyên (n8n items → `needs_review`), không đổi approval logic / Supabase / dependencies / secrets.
+- **Kiểm thử:** `contentFactory.test.ts` thêm test n8n `external_module` mode + label provenance + approval-first; local fallback label.
+- **Build/Test:** `npm run build` PASS (0 errors). `npm test` PASS 49/49 (+2).
+- **Trạng thái:** ✅ DONE. Real connector activation: NOT STARTED / Owner-gated. Feedback implementation: NOT STARTED / Owner-gated. Approval semantics: unchanged.

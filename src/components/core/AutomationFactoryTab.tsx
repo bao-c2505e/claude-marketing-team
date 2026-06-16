@@ -21,6 +21,7 @@ import type {
   RoleName,
 } from '../../types/core';
 import type { ContentFactoryOptions, ContentFactoryResult, ContentFactoryRunInput } from '../../lib/core/contentFactory';
+import { getContentFactoryWebhookUrl } from '../../lib/core/contentFactory';
 
 interface Props {
   clients: Client[];
@@ -122,6 +123,9 @@ export default function AutomationFactoryTab({
   const [contentPackMessage, setContentPackMessage] = useState<string | null>(null);
   const [contentPackError, setContentPackError] = useState<string | null>(null);
   const canUseFactory = userRole === 'owner' || userRole === 'manager';
+  // n8n AI provider is active when its webhook env is configured; otherwise the
+  // Content Pack workflow runs the local fallback generator. Drives the labels.
+  const n8nConfigured = getContentFactoryWebhookUrl() !== null;
 
   const readyBriefs = useMemo(
     () => briefs.filter(brief => brief.status === 'approved_for_generation').length,
@@ -214,8 +218,8 @@ export default function AutomationFactoryTab({
         options: contentOptions,
         requestedBy: actorLabel,
       });
-      const source = result.mode === 'n8n' ? 'n8n workflow' : 'local mock fallback';
-      setContentPackMessage(`${result.items.length} pending approval items created via ${source}. Nothing was posted or launched.`);
+      const source = result.mode === 'n8n' ? 'n8n AI Provider' : 'Local fallback mode';
+      setContentPackMessage(`${result.items.length} pending approval items were created via ${source}. Nothing was posted or launched.`);
     } catch (err) {
       setContentPackError(err instanceof Error ? err.message : 'Content Pack generation failed. No content was created.');
     } finally {
@@ -245,12 +249,14 @@ export default function AutomationFactoryTab({
                 Automation Factory
               </h2>
               <span className="badge badge-amber" style={{ fontSize: '0.68rem' }}>
-                Draft workflows only
+                {n8nConfigured ? 'n8n AI Provider · Approval-first' : 'Local fallback mode · Approval-first'}
               </span>
             </div>
             <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', lineHeight: 1.55, maxWidth: '760px' }}>
-              Internal control surface for preparing draft work packages. These buttons do not call external APIs,
-              do not connect to live platforms, and do not publish or launch anything.
+              Internal control surface for generating work packages. The Content Pack workflow runs through the
+              {n8nConfigured ? ' n8n AI Provider' : ' local fallback generator'} as an external module job and creates
+              pending approval items only. Other starters create local drafts. Nothing is posted, launched, or sent to any
+              live platform connector.
             </p>
           </div>
           <span style={{ fontSize: '0.72rem', color: isSupabaseConfigured ? '#60a5fa' : '#f59e0b', background: isSupabaseConfigured ? 'rgba(96,165,250,0.1)' : 'rgba(245,158,11,0.1)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '6px', padding: '4px 9px' }}>
@@ -289,9 +295,10 @@ export default function AutomationFactoryTab({
       <div className="glass-panel" style={{ padding: '20px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', flexWrap: 'wrap', marginBottom: '16px' }}>
           <div>
-            <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '4px' }}>Draft Workflow Starters</h3>
+            <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '4px' }}>Workflow Starters</h3>
             <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: 0 }}>
-              Buttons create local UI draft records only. Real automation wiring is intentionally absent.
+              Content Pack runs through the {n8nConfigured ? 'n8n AI Provider' : 'local fallback generator'} (external
+              module job, approval-first). Other starters create local UI draft records only.
             </p>
           </div>
           <span className="badge badge-brand" style={{ fontSize: '0.68rem' }}>
@@ -308,7 +315,13 @@ export default function AutomationFactoryTab({
                 </div>
                 <div>
                   <h4 style={{ fontSize: '0.92rem', fontWeight: 700, margin: 0 }}>{workflow.title}</h4>
-                  <span style={{ fontSize: '0.68rem', color: '#f59e0b' }}>Coming next / draft workflow</span>
+                  {workflow.id === 'content-pack' ? (
+                    <span style={{ fontSize: '0.68rem', color: n8nConfigured ? '#34d399' : '#f59e0b' }}>
+                      {n8nConfigured ? 'n8n AI Provider · External module job' : 'Local fallback mode · External module job'}
+                    </span>
+                  ) : (
+                    <span style={{ fontSize: '0.68rem', color: '#f59e0b' }}>Coming next / draft workflow</span>
+                  )}
                 </div>
               </div>
               <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.5, margin: 0 }}>
@@ -328,6 +341,7 @@ export default function AutomationFactoryTab({
                   isGenerating={isGeneratingContentPack}
                   message={contentPackMessage}
                   error={contentPackError}
+                  n8nConfigured={n8nConfigured}
                   onClientChange={setSelectedClientId}
                   onBrandChange={setSelectedBrandId}
                   onCampaignChange={setSelectedCampaignId}
@@ -404,6 +418,7 @@ function ContentPackControls({
   isGenerating,
   message,
   error,
+  n8nConfigured,
   onClientChange,
   onBrandChange,
   onCampaignChange,
@@ -423,6 +438,7 @@ function ContentPackControls({
   isGenerating: boolean;
   message: string | null;
   error: string | null;
+  n8nConfigured: boolean;
   onClientChange: (id: string) => void;
   onBrandChange: (id: string) => void;
   onCampaignChange: (id: string) => void;
@@ -478,6 +494,12 @@ function ContentPackControls({
         />
       </div>
 
+      <div>
+        <span style={{ fontSize: '0.66rem', fontWeight: 700, color: n8nConfigured ? '#34d399' : '#f59e0b', background: n8nConfigured ? 'rgba(52,211,153,0.12)' : 'rgba(245,158,11,0.12)', border: `1px solid ${n8nConfigured ? 'rgba(52,211,153,0.35)' : 'rgba(245,158,11,0.35)'}`, borderRadius: '5px', padding: '2px 7px' }}>
+          {n8nConfigured ? 'n8n AI Provider' : 'Local fallback mode'}
+        </span>
+      </div>
+
       {message && <p style={{ fontSize: '0.72rem', color: '#34d399', lineHeight: 1.45, margin: 0 }}>{message}</p>}
       {error && <p style={{ fontSize: '0.72rem', color: '#f87171', lineHeight: 1.45, margin: 0 }}>{error}</p>}
 
@@ -487,10 +509,12 @@ function ContentPackControls({
         disabled={isGenerating}
         style={{ justifyContent: 'center', fontSize: '0.82rem' }}
       >
-        <Wand2 size={14} /> {isGenerating ? 'Generating Content Pack...' : 'Generate Content Pack'}
+        <Wand2 size={14} /> {isGenerating
+          ? (n8nConfigured ? 'Generating via n8n AI Provider...' : 'Generating (local fallback)...')
+          : 'Generate with n8n AI Provider'}
       </button>
       <p style={{ fontSize: '0.68rem', color: 'var(--text-muted)', lineHeight: 1.4, margin: 0 }}>
-        Creates Pending Approval outputs only. No post, no ad launch, no platform connector.
+        Approval-first: no auto-post, no auto-ads. Creates Pending Approval outputs only. No platform connector.
       </p>
     </div>
   );

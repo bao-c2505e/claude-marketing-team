@@ -9,6 +9,7 @@ import {
   JOB_STATUS_LABEL, JOB_STATUS_COLOR,
   CONTENT_ITEM_STATUS_LABEL, CONTENT_ITEM_STATUS_COLOR,
   BRIEF_STATUS_COLOR,
+  GENERATION_MODE_LABEL, GENERATION_MODE_COLOR, GENERATION_MODE_SOURCE,
 } from '../../lib/core/coreData';
 import type { GenerationDetailResult } from '../../lib/core/coreRepository';
 import { can } from '../../lib/auth/permissions';
@@ -44,10 +45,10 @@ function SafetyBanner() {
     }}>
       <AlertTriangle size={15} style={{ color: '#f59e0b', flexShrink: 0, marginTop: '1px' }} />
       <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.5, margin: 0 }}>
-        <strong style={{ color: '#f59e0b' }}>Mock Generation — AI API not connected.</strong>
-        {' '}Content is deterministic template output derived from brief fields.{' '}
+        <strong style={{ color: '#f59e0b' }}>Approval-first generation.</strong>
+        {' '}Each job is tagged with the mode it was produced in (n8n AI Provider or Local fallback).{' '}
         <strong>Generated ≠ Approved. Approved ≠ Published.</strong>{' '}
-        No auto-post. No real ads. All content requires human review before any real-world use.
+        Nothing is posted or launched automatically. All content requires human review before any real-world use.
       </p>
     </div>
   );
@@ -165,7 +166,7 @@ export default function ContentGenerationTab({
             {[
               { label: 'Plan Length', value: `${job.plan_length_days} days` },
               { label: 'Content Items', value: `${job.item_count}` },
-              { label: 'Generation Mode', value: job.generation_mode === 'mock' ? 'Mock (No AI)' : job.generation_mode },
+              { label: 'Generation Mode', value: GENERATION_MODE_LABEL[job.generation_mode] ?? job.generation_mode },
               { label: 'Created', value: new Date(job.created_at).toLocaleDateString('vi-VN') },
             ].map(item => (
               <div key={item.label} style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '10px 12px' }}>
@@ -175,10 +176,18 @@ export default function ContentGenerationTab({
             ))}
           </div>
 
-          {/* Mock badge */}
+          {/* Mode + safety badges */}
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-            <span style={{ fontSize: '0.7rem', fontWeight: 600, color: '#f59e0b', background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.25)', borderRadius: '5px', padding: '2px 8px' }}>
-              Mock Generation / AI API Not Connected
+            {(() => {
+              const color = GENERATION_MODE_COLOR[job.generation_mode] ?? '#94a3b8';
+              return (
+                <span style={{ fontSize: '0.7rem', fontWeight: 600, color, background: `${color}1a`, border: `1px solid ${color}40`, borderRadius: '5px', padding: '2px 8px' }}>
+                  {GENERATION_MODE_LABEL[job.generation_mode] ?? job.generation_mode}
+                </span>
+              );
+            })()}
+            <span style={{ fontSize: '0.7rem', fontWeight: 600, color: '#94a3b8', background: 'rgba(148,163,184,0.08)', border: '1px solid rgba(148,163,184,0.2)', borderRadius: '5px', padding: '2px 8px' }}>
+              {GENERATION_MODE_SOURCE[job.generation_mode] ?? '—'}
             </span>
             <span style={{ fontSize: '0.7rem', fontWeight: 600, color: '#f87171', background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.2)', borderRadius: '5px', padding: '2px 8px' }}>
               Generated ≠ Approved ≠ Published
@@ -535,9 +544,14 @@ export default function ContentGenerationTab({
                       {job.item_count}
                     </td>
                     <td style={{ padding: '12px 16px' }}>
-                      <span style={{ fontSize: '0.7rem', fontWeight: 600, color: '#f59e0b', background: 'rgba(245,158,11,0.1)', borderRadius: '4px', padding: '1px 6px' }}>
-                        Mock
-                      </span>
+                      {(() => {
+                        const color = GENERATION_MODE_COLOR[job.generation_mode] ?? '#94a3b8';
+                        return (
+                          <span style={{ fontSize: '0.7rem', fontWeight: 600, color, background: `${color}1a`, borderRadius: '4px', padding: '1px 6px' }}>
+                            {GENERATION_MODE_LABEL[job.generation_mode] ?? job.generation_mode}
+                          </span>
+                        );
+                      })()}
                     </td>
                     <td style={{ padding: '12px 16px' }}>
                       <StatusChip label={JOB_STATUS_LABEL[job.status] ?? job.status} color={JOB_STATUS_COLOR[job.status] ?? '#94a3b8'} />

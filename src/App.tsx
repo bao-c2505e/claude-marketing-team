@@ -1676,7 +1676,7 @@ export default function App() {
                           { label: 'Brands', value: coreData.brands.length, tab: 'brands', note: 'FnB brand profiles' },
                           { label: 'Campaigns', value: coreData.campaigns.length, tab: 'campaigns', note: 'Active marketing work' },
                           { label: 'Briefs', value: coreData.briefs.length, tab: 'brief-intake', note: 'Owner-reviewed inputs' },
-                          { label: 'Automation Factory', value: genData.generationJobs.length, tab: 'automation-factory', note: 'Draft workflows only' },
+                          { label: 'Automation Factory', value: genData.generationJobs.length, tab: 'automation-factory', note: 'n8n AI provider · approval-first' },
                           { label: 'Approval Board', value: approvalData.approvalRequests.length, tab: 'approvals', note: 'Human sign-off queue' },
                           { label: 'Asset Library', value: assetData.assets.length, tab: 'asset-library', note: 'Creative assets' },
                           { label: 'Reports', value: genData.generationJobs.length, tab: 'reports', note: 'Draft reporting workspace' },
