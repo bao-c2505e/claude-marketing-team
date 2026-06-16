@@ -1,0 +1,155 @@
+{
+  "name": "Design Factory V1 - Design Briefs",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "design-factory-v1/design-briefs",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "DesignFactoryWebhook",
+      "name": "Receive Design Brief Request",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300],
+      "webhookId": "design-factory-v1-design-briefs"
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $json.body || $json;\nconst required = ['request_id', 'workflow_type', 'generated_by', 'client', 'brand', 'campaign', 'brief', 'options', 'design_brief_types', 'safety'];\nconst missing = required.filter((key) => body[key] === undefined || body[key] === null);\nconst safety = body.safety || {};\nconst safetyOk = body.workflow_type === 'design_brief'\n  && body.owner_approval_required === true\n  && body.generate_images === false\n  && safety.no_auto_post === true\n  && safety.no_auto_ads === true\n  && safety.no_live_connectors === true\n  && safety.no_image_generation === true\n  && safety.no_secrets === true\n  && safety.owner_approval_required === true;\nif (missing.length || !safetyOk) {\n  return [{ json: {\n    ok: false,\n    request_id: body.request_id || null,\n    error: {\n      code: missing.length ? 'INVALID_CONTRACT' : 'REJECTED_BY_SAFETY',\n      message: missing.length ? `Missing required fields: ${missing.join(', ')}` : 'Safety flags rejected this request (design briefs are text/spec only, no image generation).'\n    },\n    status: 'failed',\n    owner_approval_required: true,\n    safety\n  }}];\n}\nreturn [{ json: body }];"
+      },
+      "id": "ValidatePayload",
+      "name": "Validate Contract + Safety",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [500, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "IsValid",
+              "leftValue": "={{ $json.ok }}",
+              "rightValue": false,
+              "operator": {
+                "type": "boolean",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "IsValidRequest",
+      "name": "Valid Request?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [740, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const request = $json;\nconst channel = request.options?.channel || 'Facebook';\nconst goal = request.options?.goal || 'branding';\nconst brand = request.brand?.name || 'Brand';\nconst product = request.brief?.product_focus || request.brand?.hero_product || 'hero product';\nconst audience = request.brief?.target_audience || request.brand?.target_audience || 'core local audience';\nconst colors = request.brand?.brand_colors || 'brand primary + neutral support, high legibility';\nconst offer = request.brief?.offer || 'current campaign offer (owner to confirm)';\nconst specs = [\n  { key: 'facebook_post', title: 'Facebook Post Design Brief', platform: channel, format: '1:1 square (1080x1080)', objective: 'Stop the scroll and drive feed engagement' },\n  { key: 'story_reels_cover', title: 'Story / Reels Cover Design Brief', platform: 'Story / Reels', format: '9:16 vertical (1080x1920)', objective: 'High-contrast cover that earns the tap' },\n  { key: 'menu_promo_visual', title: 'Menu / Promo Visual Design Brief', platform: channel, format: '4:5 portrait (1080x1350)', objective: 'Communicate the offer / menu clearly' },\n  { key: 'key_visual_direction', title: 'Key Visual Direction', platform: 'Cross-channel', format: 'Master key visual', objective: 'Define the campaign visual system' },\n  { key: 'designer_handoff_notes', title: 'Designer Handoff Notes', platform: 'Internal', format: 'Handoff document', objective: 'Hand the spec to the designer cleanly' }\n];\nconst items = specs.map((spec) => ({\n  key: spec.key,\n  title: spec.title,\n  platform: spec.platform,\n  format: spec.format,\n  objective: spec.objective,\n  target_audience: audience,\n  visual_direction: `Hero ${product} in a clean, appetizing ${brand} frame. No live publishing. Real photography only — no image generation.`,\n  layout_guidance: spec.key === 'designer_handoff_notes' ? 'Provide layered source, fonts, export specs, safe margins.' : 'Clear focal point, legible text, generous safe margins.',\n  copy_text: `Headline idea: ${brand} — ${spec.objective}. Offer: ${offer}.`,\n  brand_style: colors,\n  image_requirements: 'Owner-provided real product photography only. No AI image generation in this V1 flow.',\n  cta: goal === 'sales' ? 'Inbox to order' : goal === 'lead' ? 'Leave your contact' : 'Follow for more',\n  generated_by: 'n8n-ai-provider-placeholder',\n  workflow_type: 'design_brief',\n  status: 'pending_approval',\n  owner_approval_required: true\n}));\nreturn [{ json: {\n  ok: true,\n  request_id: request.request_id,\n  workflow_type: 'design_brief',\n  generated_by: 'n8n-ai-provider-placeholder',\n  owner_approval_required: true,\n  status: 'pending_approval',\n  job: {\n    external_execution_id: $execution.id,\n    item_count: items.length\n  },\n  items,\n  safety: request.safety\n}}];"
+      },
+      "id": "AiProviderPlaceholder",
+      "name": "AI Provider Placeholder",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [980, 220],
+      "notes": "Replace this Code node with OpenAI/Claude/Gemini n8n node using n8n Credentials. TEXT/SPEC ONLY — do not add any image-generation node here. Do not commit API keys."
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "SuccessResponse",
+      "name": "Return Structured Design Briefs",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1220, 220]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 400
+        }
+      },
+      "id": "FailureResponse",
+      "name": "Return Validation Failure",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [980, 420]
+    }
+  ],
+  "connections": {
+    "Receive Design Brief Request": {
+      "main": [
+        [
+          {
+            "node": "Validate Contract + Safety",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Contract + Safety": {
+      "main": [
+        [
+          {
+            "node": "Valid Request?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Valid Request?": {
+      "main": [
+        [
+          {
+            "node": "AI Provider Placeholder",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Return Validation Failure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Provider Placeholder": {
+      "main": [
+        [
+          {
+            "node": "Return Structured Design Briefs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "tags": []
+}

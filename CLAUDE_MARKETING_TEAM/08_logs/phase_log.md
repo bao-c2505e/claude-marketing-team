@@ -1194,3 +1194,14 @@ Nhật ký theo dõi các mốc hoàn thành kỹ thuật qua các Phase.
 - **Kiểm thử:** `contentFactory.test.ts` thêm test n8n `external_module` mode + label provenance + approval-first; local fallback label.
 - **Build/Test:** `npm run build` PASS (0 errors). `npm test` PASS 49/49 (+2).
 - **Trạng thái:** ✅ DONE. Real connector activation: NOT STARTED / Owner-gated. Feedback implementation: NOT STARTED / Owner-gated. Approval semantics: unchanged.
+
+### 🗓️ Ngày 17/06/2026 (Local Time) — Design Brief Generation V1
+- **Sự kiện:** Thêm flow tạo Design Brief (text/spec) approval-first qua n8n AI Provider external_module path.
+- **Output:** 1 generation job + 5 design brief items (Facebook post, Story/Reels cover, Menu/promo visual, Key visual direction, Designer handoff). content_type='design_brief', status=needs_review, auto-submit lên Approval Board.
+- **Reuse (không đổi schema):** `designFactory.ts` mirror `contentFactory.ts`; reuse ContentPlanJob/ContentPlanItem/approval model; `handleDesignFactoryGenerate` reuse wiring của content pack; reuse GENERATION_MODE_LABEL.
+- **Env:** `VITE_N8N_DESIGN_FACTORY_WEBHOOK_URL` (path riêng). Có → external_module ("n8n AI Provider"); thiếu → local fallback ("Local fallback mode"). Nút: "Generate Design Briefs with n8n AI Provider" / "...with Local fallback".
+- **n8n:** thêm `n8n-workflows/design_factory_v1.workflow.json` (additive, placeholder AI node, validate `generate_images=false` + `no_image_generation=true`).
+- **An toàn:** Text/spec only, KHÔNG image generation, KHÔNG Canva/ComfyUI/Fal.ai, KHÔNG Meta/TikTok/Zalo, KHÔNG auto-post/auto-ads. Approval-first giữ nguyên. OpenAI key chỉ trong n8n Credentials. Không đổi Supabase/approval logic/dependencies. Content Factory V1 không đổi.
+- **Tests:** `designFactory.test.ts` (+4): payload approval-first/no-image, local fallback label, n8n external_module label + provenance, approval-first, fail-safe khi không có items.
+- **Build/Test:** `npm run build` PASS. `npm test` PASS 53/53 (+4).
+- **Trạng thái:** ✅ DONE. Real connector activation: NOT STARTED / Owner-gated. Approval semantics: unchanged.

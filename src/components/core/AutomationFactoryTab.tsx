@@ -22,6 +22,8 @@ import type {
 } from '../../types/core';
 import type { ContentFactoryOptions, ContentFactoryResult, ContentFactoryRunInput } from '../../lib/core/contentFactory';
 import { getContentFactoryWebhookUrl } from '../../lib/core/contentFactory';
+import type { DesignFactoryResult } from '../../lib/core/designFactory';
+import { getDesignFactoryWebhookUrl } from '../../lib/core/designFactory';
 
 interface Props {
   clients: Client[];
@@ -36,6 +38,7 @@ interface Props {
   userRole: RoleName | null;
   isSupabaseConfigured: boolean;
   onGenerateContentPack: (input: ContentFactoryRunInput) => Promise<ContentFactoryResult>;
+  onGenerateDesignBriefs: (input: ContentFactoryRunInput) => Promise<DesignFactoryResult>;
   actorLabel: string;
 }
 
@@ -106,6 +109,7 @@ export default function AutomationFactoryTab({
   userRole,
   isSupabaseConfigured,
   onGenerateContentPack,
+  onGenerateDesignBriefs,
   actorLabel,
 }: Props) {
   const [drafts, setDrafts] = useState<DraftWorkflow[]>([]);
@@ -122,10 +126,15 @@ export default function AutomationFactoryTab({
   const [isGeneratingContentPack, setIsGeneratingContentPack] = useState(false);
   const [contentPackMessage, setContentPackMessage] = useState<string | null>(null);
   const [contentPackError, setContentPackError] = useState<string | null>(null);
+  const [isGeneratingDesign, setIsGeneratingDesign] = useState(false);
+  const [designMessage, setDesignMessage] = useState<string | null>(null);
+  const [designError, setDesignError] = useState<string | null>(null);
   const canUseFactory = userRole === 'owner' || userRole === 'manager';
   // n8n AI provider is active when its webhook env is configured; otherwise the
-  // Content Pack workflow runs the local fallback generator. Drives the labels.
+  // workflow runs the local fallback generator. Drives the labels. Content Pack
+  // and Design Brief each have their own webhook env / external_module path.
   const n8nConfigured = getContentFactoryWebhookUrl() !== null;
+  const designConfigured = getDesignFactoryWebhookUrl() !== null;
 
   const readyBriefs = useMemo(
     () => briefs.filter(brief => brief.status === 'approved_for_generation').length,
@@ -227,6 +236,32 @@ export default function AutomationFactoryTab({
     }
   };
 
+  const handleGenerateDesignBriefs = async () => {
+    setDesignError(null);
+    setDesignMessage(null);
+    if (!selectedClient || !selectedBrand || !selectedCampaign || !selectedBrief) {
+      setDesignError('Select a client, brand, campaign, and brief first.');
+      return;
+    }
+    setIsGeneratingDesign(true);
+    try {
+      const result = await onGenerateDesignBriefs({
+        client: selectedClient,
+        brand: selectedBrand,
+        campaign: selectedCampaign,
+        brief: selectedBrief,
+        options: contentOptions,
+        requestedBy: actorLabel,
+      });
+      const source = result.mode === 'n8n' ? 'n8n AI Provider' : 'Local fallback mode';
+      setDesignMessage(`${result.items.length} design brief approval items were created via ${source}. Nothing was posted or launched.`);
+    } catch (err) {
+      setDesignError(err instanceof Error ? err.message : 'Design brief generation failed. No design briefs were created.');
+    } finally {
+      setIsGeneratingDesign(false);
+    }
+  };
+
   if (!canUseFactory) {
     return (
       <div className="glass-panel" style={{ padding: '40px', textAlign: 'center' }}>
@@ -297,8 +332,10 @@ export default function AutomationFactoryTab({
           <div>
             <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '4px' }}>Workflow Starters</h3>
             <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: 0 }}>
-              Content Pack runs through the {n8nConfigured ? 'n8n AI Provider' : 'local fallback generator'} (external
-              module job, approval-first). Other starters create local UI draft records only.
+              Content Pack and Design Briefs run as external module jobs (n8n AI Provider when the webhook is
+              configured, otherwise local fallback) and create pending approval items only — approval-first, no
+              posting or launching. Design Briefs are text/spec only (no image generation). Other starters create
+              local UI draft records only.
             </p>
           </div>
           <span className="badge badge-brand" style={{ fontSize: '0.68rem' }}>
@@ -318,6 +355,10 @@ export default function AutomationFactoryTab({
                   {workflow.id === 'content-pack' ? (
                     <span style={{ fontSize: '0.68rem', color: n8nConfigured ? '#34d399' : '#f59e0b' }}>
                       {n8nConfigured ? 'n8n AI Provider · External module job' : 'Local fallback mode · External module job'}
+                    </span>
+                  ) : workflow.id === 'design-briefs' ? (
+                    <span style={{ fontSize: '0.68rem', color: designConfigured ? '#34d399' : '#f59e0b' }}>
+                      {designConfigured ? 'n8n AI Provider · External module job' : 'Local fallback mode · External module job'}
                     </span>
                   ) : (
                     <span style={{ fontSize: '0.68rem', color: '#f59e0b' }}>Coming next / draft workflow</span>
@@ -348,6 +389,16 @@ export default function AutomationFactoryTab({
                   onBriefChange={setSelectedBriefId}
                   onOptionsChange={setContentOptions}
                   onGenerate={handleGenerateContentPack}
+                />
+              ) : workflow.id === 'design-briefs' ? (
+                <DesignBriefControls
+                  isGenerating={isGeneratingDesign}
+                  message={designMessage}
+                  error={designError}
+                  designConfigured={designConfigured}
+                  selectedBriefTitle={selectedBrief?.brief_title || selectedBrief?.brand_name || null}
+                  channel={contentOptions.channel}
+                  onGenerate={handleGenerateDesignBriefs}
                 />
               ) : (
                 <button
@@ -515,6 +566,59 @@ function ContentPackControls({
       </button>
       <p style={{ fontSize: '0.68rem', color: 'var(--text-muted)', lineHeight: 1.4, margin: 0 }}>
         Approval-first: no auto-post, no auto-ads. Creates Pending Approval outputs only. No platform connector.
+      </p>
+    </div>
+  );
+}
+
+function DesignBriefControls({
+  isGenerating,
+  message,
+  error,
+  designConfigured,
+  selectedBriefTitle,
+  channel,
+  onGenerate,
+}: {
+  isGenerating: boolean;
+  message: string | null;
+  error: string | null;
+  designConfigured: boolean;
+  selectedBriefTitle: string | null;
+  channel: string;
+  onGenerate: () => void;
+}) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: 'auto' }}>
+      <p style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', lineHeight: 1.45, margin: 0 }}>
+        Generates 5 design brief specs (Facebook post, Story/Reels cover, menu/promo visual, key visual
+        direction, designer handoff). Text/spec only — no images, no Canva/ComfyUI/Fal.ai.
+      </p>
+      <p style={{ fontSize: '0.68rem', color: 'var(--text-muted)', margin: 0 }}>
+        Target: {selectedBriefTitle ?? '— select a brief in Content Pack above —'} · {channel}
+      </p>
+
+      <div>
+        <span style={{ fontSize: '0.66rem', fontWeight: 700, color: designConfigured ? '#34d399' : '#f59e0b', background: designConfigured ? 'rgba(52,211,153,0.12)' : 'rgba(245,158,11,0.12)', border: `1px solid ${designConfigured ? 'rgba(52,211,153,0.35)' : 'rgba(245,158,11,0.35)'}`, borderRadius: '5px', padding: '2px 7px' }}>
+          {designConfigured ? 'n8n AI Provider' : 'Local fallback mode'}
+        </span>
+      </div>
+
+      {message && <p style={{ fontSize: '0.72rem', color: '#34d399', lineHeight: 1.45, margin: 0 }}>{message}</p>}
+      {error && <p style={{ fontSize: '0.72rem', color: '#f87171', lineHeight: 1.45, margin: 0 }}>{error}</p>}
+
+      <button
+        className="btn btn-primary"
+        onClick={onGenerate}
+        disabled={isGenerating}
+        style={{ justifyContent: 'center', fontSize: '0.82rem' }}
+      >
+        <PenTool size={14} /> {isGenerating
+          ? (designConfigured ? 'Generating via n8n AI Provider...' : 'Generating (local fallback)...')
+          : (designConfigured ? 'Generate Design Briefs with n8n AI Provider' : 'Generate Design Briefs with Local fallback')}
+      </button>
+      <p style={{ fontSize: '0.68rem', color: 'var(--text-muted)', lineHeight: 1.4, margin: 0 }}>
+        Approval-first: design briefs only. Nothing is posted or launched. No auto-post, no auto-ads, no image generation.
       </p>
     </div>
   );
