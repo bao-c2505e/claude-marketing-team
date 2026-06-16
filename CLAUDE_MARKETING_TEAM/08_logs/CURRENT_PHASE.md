@@ -35,7 +35,9 @@
 
 ## Active Constraints
 
-- Content Factory (Automation Factory → Content Pack) and Design Brief Generation V1 (Automation Factory → Generate Design Briefs) both run via the n8n AI Provider `external_module` path in production; each falls back to a local generator when its webhook env is missing. Design briefs are text/spec only (no image generation, no Canva/ComfyUI/Fal.ai). Legacy in-tab Content Generation remains local-only. UI labels are mode-aware ("n8n AI Provider" / "Local fallback mode"). AI provider key stays only in n8n Credentials.
+- Content Factory (Automation Factory → Content Pack): production n8n AI Provider `external_module` path is ACTIVE / PASS; falls back to a local generator when its webhook env is missing.
+- Design Brief Generation V1 (Automation Factory → Generate Design Briefs): Core-side implementation is DONE / ready, but real n8n Design Factory activation is NOT STARTED / Owner-gated. It currently defaults to local fallback while the env is missing — it does NOT run in production via n8n yet. Activation requires: (1) importing the n8n Design Factory workflow, and (2) setting `VITE_N8N_DESIGN_FACTORY_WEBHOOK_URL` in Vercel. Design briefs are text/spec only (no image generation, no Canva/ComfyUI/Fal.ai).
+- Legacy in-tab Content Generation remains local-only. UI labels are mode-aware ("n8n AI Provider" / "Local fallback mode"). AI provider key stays only in n8n Credentials.
 - No auto-post. No auto-ads spending. No auto-message.
 - No secrets/API keys hardcoded. No .env commits.
 - No Supabase service role key in frontend.

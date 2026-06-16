@@ -2,9 +2,20 @@
 
 ## Status
 
-DONE. Approval-first Design Brief Generation V1 added, reusing the existing
-n8n AI Provider `external_module` path and the existing job/item/approval model.
-Build PASS, test PASS 53/53.
+Core-side implementation DONE; real n8n activation NOT STARTED / Owner-gated.
+Approval-first Design Brief Generation V1 was added on the Core side, reusing the
+existing n8n AI Provider `external_module` code path and the existing
+job/item/approval model. Build PASS, test PASS 53/53.
+
+Real n8n activation is **not** live yet:
+
+- The n8n Design Factory workflow (`n8n-workflows/design_factory_v1.workflow.json`)
+  still needs to be imported into n8n.
+- `VITE_N8N_DESIGN_FACTORY_WEBHOOK_URL` still needs to be set in Vercel.
+- The configured n8n mode is **not** live until those Owner-gated steps are
+  completed.
+- Current safe behavior: **local fallback** when the env is missing (clearly
+  labelled "Local fallback mode"). Nothing runs in production via n8n yet.
 
 ## Goal
 
