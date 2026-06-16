@@ -3,11 +3,29 @@
 Status: draft implementation spec
 Scope: Core UI -> n8n -> AI provider -> Core output queue -> Owner approval
 
+## Production Wiring Note (2026-06-16)
+
+Status: PASS for Content Factory V1 production n8n wiring.
+
+- n8n workflow name: `Content Factory V1 - Content Pack`.
+- Core/Vercel env name: `VITE_N8N_CONTENT_FACTORY_WEBHOOK_URL`.
+- The real webhook URL must stay in Vercel/n8n configuration only and must not be committed to git.
+- Local fallback works when `VITE_N8N_CONTENT_FACTORY_WEBHOOK_URL` is missing.
+- Local Core -> n8n Test URL passed.
+- Production Core -> n8n Production URL passed.
+- n8n production executions succeeded and Core created generated items from the n8n response.
+- Generated items remain approval-first: contract `pending_approval` maps to Core `needs_review`.
+- Approving content in Core does not publish, schedule, or launch the content.
+- Publishing, ads, and live social connectors remain blocked for later Owner-approved phases.
+- AI provider configuration should be added only inside n8n Credentials in a later phase, never as frontend API keys.
+
 ## Safety Rules
 
 - No auto-post.
 - No auto-ads.
 - No live Meta/TikTok/Zalo posting APIs in this phase.
+- No live social connector in this phase.
+- No API keys in frontend code or frontend env.
 - No secrets in code or workflow JSON.
 - n8n credentials must be configured inside n8n, not committed to git.
 - Every generated output must require Owner approval before use.
