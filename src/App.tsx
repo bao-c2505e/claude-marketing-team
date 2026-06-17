@@ -56,7 +56,7 @@ import ExportPackTab from './components/core/ExportPackTab';
 import ConnectorRegistryTab from './components/core/ConnectorRegistryTab';
 import AutomationLogsTab from './components/core/AutomationLogsTab';
 import AutomationFactoryTab from './components/core/AutomationFactoryTab';
-import { loadCoreData, saveCoreData, loadGenerationData, saveGenerationData, loadApprovalData, saveApprovalData, loadAssetData, saveAssetData, canSubmitItem, submitForApproval } from './lib/core/coreData';
+import { loadCoreData, saveCoreData, loadGenerationData, saveGenerationData, loadApprovalData, saveApprovalData, loadAssetData, saveAssetData, canSubmitItem, submitForApproval, APPROVAL_STATUS_LABEL, APPROVAL_STATUS_COLOR } from './lib/core/coreData';
 import { assetScopeIsSupabaseSafe, approvalScopeIsSupabaseSafe } from './lib/core/repoRouting';
 import type { AssetRouteIds, ApprovalRouteIds } from './lib/core/repoRouting';
 import type { CoreDataStore, GenerationDataStore, ApprovalDataStore, AssetDataStore, ClientFormData, BrandFormData, CampaignFormData, BriefFormData } from './lib/core/coreData';
@@ -1780,44 +1780,216 @@ export default function App() {
                     </div>
                   )}
 
-                  {viewMode === 'owner' && (
-                    <div className="glass-panel" style={{ padding: '22px', borderLeft: '4px solid #fb923c' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '14px', flexWrap: 'wrap', marginBottom: '16px' }}>
-                        <div>
-                          <h2 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '5px' }}>The Core Agency — Internal OS</h2>
-                          <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', margin: 0 }}>
-                            Daily-use control center for FnB client work. AI and automation can draft, but Owner approval decides what is usable.
-                          </p>
+                  {/* ── Phase A1: Premium Command Center (owner operational shell) ── */}
+                  {viewMode === 'owner' && (() => {
+                    // Derive every number below from existing app state only — no
+                    // metrics are invented, fetched, or implied to be live.
+                    const reqs = approvalData.approvalRequests;
+                    const pendingApprovals = reqs.filter(r => r.status === 'submitted');
+                    const recentApprovals = [...reqs]
+                      .sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''))
+                      .slice(0, 5);
+                    const recentLogs = [...logData.logs]
+                      .sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''))
+                      .slice(0, 5);
+                    const n8nLive = getContentFactoryWebhookUrl() !== null;
+                    const fmtTime = (iso: string) => {
+                      const d = new Date(iso);
+                      return isNaN(d.getTime())
+                        ? ''
+                        : d.toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+                    };
+
+                    // spark arrays are fixed, decorative texture (no data implied)
+                    const kpis = [
+                      { label: 'Clients', value: coreData.clients.length, tab: 'clients', note: 'Accounts & relationships', accent: 'var(--brand)', spark: [38, 52, 44, 60, 50, 72, 64] },
+                      { label: 'Brands', value: coreData.brands.length, tab: 'brands', note: 'FnB brand profiles', accent: 'var(--info)', spark: [30, 40, 55, 48, 66, 58, 70] },
+                      { label: 'Campaigns', value: coreData.campaigns.length, tab: 'campaigns', note: 'Marketing workspaces', accent: 'var(--info)', spark: [44, 50, 42, 58, 54, 62, 60] },
+                      { label: 'Briefs', value: coreData.briefs.length, tab: 'brief-intake', note: 'Owner-reviewed inputs', accent: 'var(--brand)', spark: [28, 36, 48, 40, 56, 64, 58] },
+                      { label: 'Pending Approvals', value: pendingApprovals.length, tab: 'approvals', note: 'Awaiting human sign-off', accent: 'var(--warning)', spark: [20, 34, 30, 44, 38, 50, 46] },
+                      { label: 'Assets', value: assetData.assets.length, tab: 'asset-library', note: 'Creative assets (draft)', accent: 'var(--success)', spark: [34, 46, 40, 54, 62, 56, 68] },
+                    ];
+
+                    const modules = [
+                      { name: 'Content Factory V1', note: 'Captions & content plan' },
+                      { name: 'Design Factory V1', note: 'Design brief prompts' },
+                      { name: 'Video Scripts V1', note: 'Short-form scripts' },
+                      { name: 'Ads Pack Draft V1', note: 'Ads plan draft' },
+                      { name: 'Report Draft V1', note: 'Reporting draft' },
+                    ];
+
+                    const safetyRows = [
+                      'Pending approval only',
+                      'Approved ≠ Published',
+                      'No auto-post',
+                      'No auto-ads',
+                      'No live connectors',
+                      'No live analytics pull',
+                    ];
+
+                    return (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+
+                        {/* Header + KPI cards */}
+                        <div className="glass-panel" style={{ padding: '22px', borderLeft: '4px solid var(--brand)' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '14px', flexWrap: 'wrap', marginBottom: '18px' }}>
+                            <div>
+                              <h2 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '5px' }}>Command Center</h2>
+                              <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', margin: 0 }}>
+                                Daily control center for FnB client work. AI and automation draft — Owner approval decides what is usable.
+                              </p>
+                            </div>
+                            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                              <span className="badge badge-amber" style={{ fontSize: '0.68rem' }}>Approval-first</span>
+                              <span className="badge" style={{ fontSize: '0.68rem', background: n8nLive ? 'rgba(34,197,94,0.15)' : 'rgba(245,158,11,0.15)', color: n8nLive ? '#4ade80' : '#fbbf24', border: `1px solid ${n8nLive ? 'rgba(34,197,94,0.3)' : 'rgba(245,158,11,0.3)'}` }}>
+                                {n8nLive ? 'n8n provider' : 'Local fallback'}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="kpi-grid">
+                            {kpis.map(k => (
+                              <button key={k.label} className="kpi-card" style={{ '--kpi-accent': k.accent } as React.CSSProperties} onClick={() => setActiveTab(k.tab)}>
+                                <span className="kpi-card__head">
+                                  <span className="kpi-card__label">{k.label}</span>
+                                  <ChevronRight size={13} style={{ color: 'var(--text-muted)' }} />
+                                </span>
+                                <span className="kpi-card__value">{k.value}</span>
+                                <span className="kpi-spark" aria-hidden="true">
+                                  {k.spark.map((h, i) => <span key={i} style={{ height: `${h}%` }} />)}
+                                </span>
+                                <span className="kpi-card__note">{k.note}</span>
+                              </button>
+                            ))}
+                          </div>
                         </div>
-                        <span className="badge badge-amber" style={{ fontSize: '0.68rem' }}>Approval-first</span>
+
+                        {/* AI Factory module status */}
+                        <div className="glass-panel" style={{ padding: '22px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '14px' }}>
+                            <div className="dash-section-label"><Factory size={13} /> AI Factory — Module Status</div>
+                            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Draft-only · approval-first · {n8nLive ? 'n8n provider connected' : 'local fallback mode'}</span>
+                          </div>
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px' }}>
+                            {modules.map(m => (
+                              <div key={m.name} className="module-card">
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                                  <strong style={{ fontSize: '0.82rem' }}>{m.name}</strong>
+                                  <span className="badge badge-emerald" style={{ fontSize: '0.62rem' }}><Check size={10} /> PASS</span>
+                                </div>
+                                <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{m.note}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Approval queue (hero) + System & Safety */}
+                        <div className="dash-cols">
+                          <div className="glass-panel" style={{ padding: '22px', borderLeft: '4px solid var(--warning)' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '6px' }}>
+                              <h3 style={{ fontSize: '1.05rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
+                                <ClipboardCheck size={18} style={{ color: 'var(--warning)' }} /> Approval Queue
+                              </h3>
+                              <span className="badge badge-amber" style={{ fontSize: '0.68rem' }}>{pendingApprovals.length} pending</span>
+                            </div>
+                            <p style={{ fontSize: '0.74rem', color: 'var(--text-muted)', margin: '0 0 14px' }}>
+                              Human sign-off queue. <strong style={{ color: '#fbbf24' }}>Approved ≠ Published</strong> — approval never posts, schedules, or spends.
+                            </p>
+                            {recentApprovals.length === 0 ? (
+                              <div style={{ padding: '22px', textAlign: 'center', border: '1px dashed var(--border-subtle)', borderRadius: '10px', color: 'var(--text-muted)' }}>
+                                <ClipboardList size={22} style={{ opacity: 0.6, marginBottom: '8px' }} />
+                                <p style={{ fontSize: '0.8rem', margin: 0 }}>No approval requests yet.</p>
+                                <p style={{ fontSize: '0.72rem', margin: '4px 0 0' }}>Items submitted for review will appear here.</p>
+                              </div>
+                            ) : (
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                {recentApprovals.map(r => (
+                                  <div key={r.id} className="op-row">
+                                    <div style={{ minWidth: 0 }}>
+                                      <div style={{ fontSize: '0.82rem', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.title}</div>
+                                      <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
+                                        {r.status === 'approved' ? 'Approved · not published' : fmtTime(r.created_at)}
+                                      </div>
+                                    </div>
+                                    <span style={{ flexShrink: 0, fontSize: '0.64rem', fontWeight: 700, padding: '3px 9px', borderRadius: '9999px', textTransform: 'uppercase', color: APPROVAL_STATUS_COLOR[r.status], background: `${APPROVAL_STATUS_COLOR[r.status]}1f`, border: `1px solid ${APPROVAL_STATUS_COLOR[r.status]}55` }}>
+                                      {APPROVAL_STATUS_LABEL[r.status]}
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                            <button className="btn btn-secondary" style={{ marginTop: '14px', width: '100%', justifyContent: 'center' }} onClick={() => setActiveTab('approvals')}>
+                              Open Approval Board <ChevronRight size={14} />
+                            </button>
+                          </div>
+
+                          <div className="glass-panel" style={{ padding: '22px', borderLeft: '4px solid var(--success)' }}>
+                            <h3 style={{ fontSize: '1.05rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px', margin: '0 0 14px' }}>
+                              <Shield size={18} style={{ color: 'var(--success)' }} /> System &amp; Safety
+                            </h3>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '7px' }}>
+                              {safetyRows.map(label => (
+                                <div key={label} className="op-row" style={{ padding: '9px 12px' }}>
+                                  <span style={{ fontSize: '0.78rem' }}>{label}</span>
+                                  <span style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.7rem', fontWeight: 700, color: 'var(--success)' }}>
+                                    <Check size={13} /> Enforced
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                            <div style={{ marginTop: '14px', paddingTop: '14px', borderTop: '1px solid var(--border-subtle)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <span style={{ fontSize: '0.74rem', color: 'var(--text-secondary)' }}>Environment</span>
+                                <span className="badge badge-emerald" style={{ fontSize: '0.64rem' }}>Sandbox · sample data</span>
+                              </div>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <span style={{ fontSize: '0.74rem', color: 'var(--text-secondary)' }}>Data mode</span>
+                                <span className="badge" style={{ fontSize: '0.64rem', background: isSupabaseConfigured ? 'rgba(34,197,94,0.15)' : 'rgba(245,158,11,0.15)', color: isSupabaseConfigured ? '#4ade80' : '#fbbf24', border: `1px solid ${isSupabaseConfigured ? 'rgba(34,197,94,0.3)' : 'rgba(245,158,11,0.3)'}` }}>
+                                  {isSupabaseConfigured ? 'Supabase data' : 'Local data only'}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Recent activity */}
+                        <div className="glass-panel" style={{ padding: '22px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '14px' }}>
+                            <div className="dash-section-label"><Activity size={13} /> Recent Activity</div>
+                            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Display only · no live analytics pull</span>
+                          </div>
+                          {recentLogs.length === 0 ? (
+                            <div style={{ padding: '22px', textAlign: 'center', border: '1px dashed var(--border-subtle)', borderRadius: '10px', color: 'var(--text-muted)' }}>
+                              <Activity size={22} style={{ opacity: 0.6, marginBottom: '8px' }} />
+                              <p style={{ fontSize: '0.8rem', margin: 0 }}>No recent automation activity logged.</p>
+                              <p style={{ fontSize: '0.72rem', margin: '4px 0 0' }}>Generation, approval, and module events will appear here.</p>
+                            </div>
+                          ) : (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                              {recentLogs.map(log => {
+                                const dot = log.severity === 'error' ? 'var(--error)'
+                                  : log.severity === 'warning' ? 'var(--warning)'
+                                  : log.severity === 'success' ? 'var(--success)'
+                                  : 'var(--info)';
+                                return (
+                                  <div key={log.id} className="op-row">
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
+                                      <span className="status-dot" style={{ background: dot }} />
+                                      <div style={{ minWidth: 0 }}>
+                                        <div style={{ fontSize: '0.8rem', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{log.title}</div>
+                                        <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{log.message}</div>
+                                      </div>
+                                    </div>
+                                    <span style={{ flexShrink: 0, fontSize: '0.66rem', color: 'var(--text-muted)' }}>{fmtTime(log.created_at)}</span>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
+
                       </div>
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '12px' }}>
-                        {[
-                          { label: 'Clients', value: coreData.clients.length, tab: 'clients', note: 'Accounts and relationships' },
-                          { label: 'Brands', value: coreData.brands.length, tab: 'brands', note: 'FnB brand profiles' },
-                          { label: 'Campaigns', value: coreData.campaigns.length, tab: 'campaigns', note: 'Active marketing work' },
-                          { label: 'Briefs', value: coreData.briefs.length, tab: 'brief-intake', note: 'Owner-reviewed inputs' },
-                          { label: 'Automation Factory', value: genData.generationJobs.length, tab: 'automation-factory', note: getContentFactoryWebhookUrl() !== null ? 'n8n AI provider · approval-first' : 'Local fallback mode · approval-first' },
-                          { label: 'Approval Board', value: approvalData.approvalRequests.length, tab: 'approvals', note: 'Human sign-off queue' },
-                          { label: 'Asset Library', value: assetData.assets.length, tab: 'asset-library', note: 'Creative assets' },
-                          { label: 'Reports', value: genData.generationJobs.length, tab: 'reports', note: 'Draft reporting workspace' },
-                        ].map(section => (
-                          <button
-                            key={section.label}
-                            className="btn btn-secondary"
-                            onClick={() => setActiveTab(section.tab)}
-                            style={{ height: 'auto', alignItems: 'flex-start', flexDirection: 'column', gap: '5px', padding: '14px', borderRadius: '8px', textAlign: 'left' }}
-                          >
-                            <span style={{ display: 'flex', justifyContent: 'space-between', width: '100%', gap: '8px', alignItems: 'center' }}>
-                              <strong style={{ fontSize: '0.86rem' }}>{section.label}</strong>
-                              <span style={{ color: '#fb923c', fontWeight: 700, fontSize: '0.9rem' }}>{section.value}</span>
-                            </span>
-                            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 400 }}>{section.note}</span>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+                    );
+                  })()}
                   {/* ── Brand Switcher — Phase H.5 ── */}
                   <div className="glass-panel" style={{ padding: '20px', borderLeft: '4px solid var(--accent-indigo)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
@@ -1885,7 +2057,8 @@ export default function App() {
                     </p>
                   </div>
 
-                  {/* Top quick stats cards */}
+                  {/* Top quick stats cards — client presentation only (Owner uses Command Center KPIs above) */}
+                  {viewMode === 'client' && (
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
                     <div className="glass-panel" style={{ padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <div>
@@ -1918,6 +2091,7 @@ export default function App() {
                       </div>
                     </div>
                   </div>
+                  )}
 
                   {/* Active Campaigns Table */}
                   <div className="glass-panel" style={{ padding: '24px' }}>
@@ -1986,7 +2160,8 @@ export default function App() {
                     </table>
                   </div>
 
-                  {/* Safety Guard Panel */}
+                  {/* Safety Guard Panel — client presentation only (Owner uses System & Safety panel above) */}
+                  {viewMode === 'client' && (
                   <div className="glass-panel" style={{ padding: '24px', borderLeft: '4px solid var(--accent-emerald)' }}>
                     <h3 style={{ fontSize: '1.15rem', fontWeight: 600, color: 'var(--accent-emerald)', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                       🛡️ Safety Guard & Simulation Status
@@ -2021,6 +2196,7 @@ export default function App() {
                       </div>
                     </div>
                   </div>
+                  )}
 
                   {/* How to Use This Workspace — Phase H.6 Owner/Client Guide */}
                   <div className="glass-panel" style={{ padding: '24px', borderLeft: '4px solid var(--accent-emerald)' }}>

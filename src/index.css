@@ -394,6 +394,153 @@ aside.glass-panel .btn svg {
 }
 
 /* ---------------------------------------------------------------------------
+   Phase A1 — Premium dashboard shell (additive; uses existing tokens only).
+   KPI cards, AI Factory module status cards, and operational rows. These are
+   display-only: no metrics are computed here and the mini bars are decorative
+   texture, never a real chart.
+--------------------------------------------------------------------------- */
+.dash-section-label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(168px, 1fr));
+  gap: 14px;
+}
+
+.kpi-card {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  padding: 15px 16px 14px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 14px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.035) 0%, rgba(255, 255, 255, 0) 58%),
+    var(--surface);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  cursor: pointer;
+  text-align: left;
+  font-family: var(--font-body);
+  transition: var(--transition-smooth);
+}
+
+.kpi-card::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--kpi-accent, var(--brand));
+  opacity: 0.85;
+}
+
+.kpi-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(244, 122, 31, 0.35);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 10px 28px rgba(0, 0, 0, 0.4);
+}
+
+.kpi-card:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--brand-glow);
+}
+
+.kpi-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.kpi-card__label {
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.kpi-card__value {
+  font-family: var(--font-title);
+  font-size: 1.7rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--text-primary);
+}
+
+.kpi-card__note {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  line-height: 1.35;
+}
+
+/* Decorative mini bars — texture only, no data is represented. */
+.kpi-spark {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 18px;
+  opacity: 0.4;
+}
+
+.kpi-spark span {
+  flex: 1;
+  border-radius: 2px 2px 0 0;
+  background: var(--kpi-accent, var(--brand));
+}
+
+.module-card {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 14px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(34, 197, 94, 0.05) 0%, rgba(255, 255, 255, 0) 70%), var(--surface);
+}
+
+.dash-cols {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap: 18px;
+  align-items: start;
+}
+
+.op-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 11px 12px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.02);
+  transition: var(--transition-smooth);
+}
+
+.op-row:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(244, 122, 31, 0.25);
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* ---------------------------------------------------------------------------
    Responsive — V2-E3 mobile polish (small, safe; desktop layout unchanged).
    Only narrow viewports are affected. Collapses the fixed 260px sidebar grid,
    relaxes container padding, lets the header wrap, and makes 2-col form grids
@@ -431,6 +578,11 @@ aside.glass-panel .btn svg {
 
   /* Forms and 2-up grids go single-column to avoid cramped fields. */
   .form-grid-2 {
+    grid-template-columns: 1fr;
+  }
+
+  /* Premium dashboard: stack the two-column operational row on narrow screens. */
+  .dash-cols {
     grid-template-columns: 1fr;
   }
 
