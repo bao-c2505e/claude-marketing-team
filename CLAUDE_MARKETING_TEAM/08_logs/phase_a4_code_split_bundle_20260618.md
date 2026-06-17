@@ -79,7 +79,7 @@ are the natural target if further entry-size reduction is ever wanted.
 
 ## Commit hash
 
-`eb4c94c`
+`725f5d2`
 
 ## Recommended next phase (A5)
 
