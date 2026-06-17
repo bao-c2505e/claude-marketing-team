@@ -203,36 +203,196 @@ export async function runContentFactory(input: ContentFactoryRunInput): Promise<
   return buildResultFromItems(input, payload, data.items, 'n8n', data.generated_by || 'n8n-ai-provider');
 }
 
+// ── Phase B1: senior-FnB local fallback content (natural Vietnamese) ──
+// Used when no n8n webhook is configured (dev / demo / offline). Produces a
+// 7-day content pack that reads like a Vietnamese FnB agency wrote it, not
+// generic AI. It NEVER invents prices, discounts, addresses, phone numbers,
+// awards, customer counts, or performance metrics — anything unknown stays an
+// Owner-confirm note. Item shape, count, the metadata block, and approval-first
+// semantics are unchanged. (Production quality comes from the n8n OpenAI node;
+// see CLAUDE_MARKETING_TEAM/07_runbooks/content_factory_v1_activation_runbook.md.)
+
+const GOAL_LABEL_VI: Record<ContentFactoryGoal, string> = {
+  branding:    'Tăng nhận diện thương hiệu',
+  sales:       'Tăng đơn / chốt đơn',
+  khai_truong: 'Khai trương',
+  lead:        'Thu data khách quan tâm',
+  tuyen_sinh:  'Tuyển sinh / tuyển dụng',
+};
+
+const OWNER_REVIEW_NOTE =
+  'Ghi chú duyệt (Owner): bản nháp — cần Owner duyệt trước khi đăng. Xác nhận giá / ưu đãi / địa chỉ / SĐT / số liệu nếu có nhắc tới. Không tự đăng, không chạy ads. (Draft only · Pending approval · Not published)';
+
+interface PlayContext {
+  brand: string;
+  product: string;
+  audience: string | null;
+  offer: string | null;
+  mustInclude: string | null;
+  message: string | null;
+  channel: ContentFactoryChannel;
+}
+
+interface FnbPlay {
+  pillar: string;
+  objective: string;
+  build: (c: PlayContext) => { hook: string; bodyLines: string[]; visual: string; cta: string };
+}
+
+function orderCta(channel: ContentFactoryChannel): string {
+  if (channel === 'Zalo') return 'Nhắn Zalo để đặt món / giữ chỗ';
+  if (channel === 'TikTok') return 'Bình luận "MÓN" để được nhắn cách đặt';
+  return 'Inbox Trang để đặt món & nhận tư vấn';
+}
+
+// Platform-aware caption: a short shootable script for TikTok, a lead-with-hook
+// social caption for Facebook / Zalo.
+function assembleCaption(channel: ContentFactoryChannel, hook: string, bodyLines: string[], cta: string): string {
+  if (channel === 'TikTok') {
+    return [
+      '🎬 Kịch bản TikTok ngắn (15–25s):',
+      `• 0–2s (Hook): ${hook}`,
+      `• 3–12s (Thân): ${bodyLines.join(' ')}`,
+      `• 12–20s (Chốt): ${cta}`,
+    ].join('\n');
+  }
+  return [hook, '', ...bodyLines, '', `👉 ${cta}`].join('\n');
+}
+
+// 7 reusable FnB "plays" cycled across the pack. Each adapts to brand / product
+// / audience / offer from the brief and to the chosen platform.
+const FNB_PLAYS: FnbPlay[] = [
+  {
+    pillar: 'Món signature',
+    objective: 'Khoe món chủ lực, kích thích vị giác',
+    build: (c) => ({
+      hook: `${c.product} – món "tủ" của ${c.brand} đây rồi 😋`,
+      bodyLines: [
+        'Làm nóng tới đâu phục vụ tới đó, ăn là thấy mê.',
+        c.message ? `${c.message}.` : `Một lần thử là nhớ vị ${c.brand}.`,
+      ],
+      visual: `Cận cảnh ${c.product}: thấy rõ topping/độ tươi, khói bốc nhẹ, ánh sáng tự nhiên, nền gỗ hoặc khay quán. 3–5 ảnh hoặc clip 10s xoay quanh món.`,
+      cta: orderCta(c.channel),
+    }),
+  },
+  {
+    pillar: 'Câu chuyện thương hiệu',
+    objective: 'Kể lý do ra đời & giá trị quán',
+    build: (c) => ({
+      hook: `Vì sao ${c.brand} làm ${c.product} theo kiểu "chậm mà chất"?`,
+      bodyLines: [
+        'Tụi mình muốn mỗi phần ăn đều tươi, sạch và đúng vị.',
+        c.audience ? `Hợp với ${c.audience} thích ăn ngon mà yên tâm.` : 'Hợp với người thích ăn ngon mà yên tâm.',
+      ],
+      visual: 'Ảnh/clip chủ quán & gian bếp, khoảnh khắc chế biến thật, không gian quán ấm cúng.',
+      cta: c.channel === 'TikTok' ? 'Theo dõi để xem hành trình làm món mỗi ngày' : 'Theo dõi Trang để không bỏ lỡ món mới',
+    }),
+  },
+  {
+    pillar: 'Combo & ưu đãi',
+    objective: 'Giới thiệu combo tiện lợi (giá do Owner xác nhận)',
+    build: (c) => ({
+      hook: `Đói mà lười nghĩ? Để ${c.brand} lo combo cho!`,
+      bodyLines: [
+        c.offer ? `Gợi ý theo brief: ${c.offer}.` : 'Combo no nê cho bữa trưa/tối, hợp ăn một mình hay rủ thêm bạn.',
+        'Tiện – gọn – đủ vị. (Để trống giá/ưu đãi tới khi Owner xác nhận.)',
+      ],
+      visual: 'Set combo bày đầy đặn trên khay, thấy rõ từng món, tông màu ấm. Có thể gắn nhãn "Combo" — không ghi giá nếu chưa được duyệt.',
+      cta: orderCta(c.channel),
+    }),
+  },
+  {
+    pillar: 'Tương tác & UGC',
+    objective: 'Khơi tương tác, mời khách chia sẻ (không bịa review)',
+    build: (c) => ({
+      hook: `Team "ăn là phải ngon" điểm danh! Bạn hợp món nào ở ${c.brand}?`,
+      bodyLines: [
+        'Comment món bạn mê nhất, hoặc tag đứa bạn hay rủ đi ăn 👇',
+        'Tụi mình hóng gợi ý để ra thêm món mới.',
+      ],
+      visual: 'Ảnh nhóm bạn ăn uống vui vẻ quanh bàn món của quán; hoặc vài món xếp cạnh nhau để khách "chọn phe".',
+      cta: c.channel === 'Zalo' ? 'Nhắn Zalo nếu muốn đặt thử món bạn chọn' : 'Comment + tag bạn bè nhé',
+    }),
+  },
+  {
+    pillar: 'Hậu trường & nguyên liệu',
+    objective: 'Tạo niềm tin bằng quy trình & độ tươi',
+    build: (c) => ({
+      hook: `Ngon là có lý do: nhìn cách ${c.brand} chuẩn bị ${c.product} nè 👀`,
+      bodyLines: [
+        'Nguyên liệu chọn trong ngày, sơ chế sạch, làm nóng tới đâu phục vụ tới đó.',
+        c.message ? `${c.message}.` : 'Quán giữ vệ sinh & chất lượng ổn định cho từng phần ăn.',
+      ],
+      visual: 'Clip ngắn/ảnh các bước sơ chế, nguyên liệu tươi, khu bếp gọn gàng. Tránh quay thông tin nhạy cảm.',
+      cta: 'Lưu bài để ghé thử khi tiện',
+    }),
+  },
+  {
+    pillar: 'Giờ vàng & giao hàng',
+    objective: 'Đẩy đơn theo khung giờ, gợi ý đặt giao',
+    build: (c) => ({
+      hook: c.channel === 'TikTok'
+        ? 'Trưa đói mà chưa biết ăn gì? 3… 2… 1…'
+        : `Tới giờ ăn rồi — ${c.product} của ${c.brand} sẵn sàng phục vụ!`,
+      bodyLines: [
+        c.mustInclude ? `Khu vực phục vụ/giao: ${c.mustInclude} (Owner xác nhận lại).` : 'Nhận giao quanh khu vực quán (Owner xác nhận khu vực).',
+        'Đặt sớm giờ cao điểm để khỏi chờ lâu nha.',
+      ],
+      visual: 'Ảnh phần ăn đóng gói gọn gàng, chắc chắn, sẵn sàng giao; hoặc ảnh món nóng giờ trưa/tối.',
+      cta: orderCta(c.channel),
+    }),
+  },
+  {
+    pillar: 'Nhắc nhớ & chốt tuần',
+    objective: 'Nhắc nhớ thương hiệu, mời ghé cuối tuần',
+    build: (c) => ({
+      hook: `Cuối tuần ăn gì chưa? ${c.brand} gợi ý liền 👇`,
+      bodyLines: [
+        `Gợi ý vài món hợp gọi cuối tuần tại ${c.brand}.`,
+        c.audience ? `Rủ ${c.audience} ghé đổi vị nhé.` : 'Rủ hội bạn ghé đổi vị nhé.',
+      ],
+      visual: 'Ghép 3–4 món nổi bật thành 1 ảnh lưới (collage), tông màu đồng nhất với thương hiệu.',
+      cta: c.channel === 'Zalo' ? 'Nhắn Zalo đặt bàn/đặt món cuối tuần' : 'Lưu bài & ghé quán cuối tuần',
+    }),
+  },
+];
+
 function buildMockResult(input: ContentFactoryRunInput, payload: ContentFactoryRequestPayload): ContentFactoryResult {
   const items: N8nContentItem[] = [];
-  const pillars = input.brief.content_pillars?.length ? input.brief.content_pillars : ['Product', 'Offer', 'Trust', 'Lifestyle'];
-  const messages = input.brief.key_messages?.length ? input.brief.key_messages : ['Quality first', 'Owner-approved offer', 'Clear customer benefit'];
+  const brand = input.brand.name;
+  const product = input.brief.product_focus || input.brand.hero_product || 'món chủ lực';
+  const audience = input.brief.target_audience || input.brand.target_audience || null;
+  const messages = input.brief.key_messages?.length ? input.brief.key_messages : [];
+  const briefPillars = input.brief.content_pillars?.length ? input.brief.content_pillars : [];
+  const goalVi = GOAL_LABEL_VI[input.options.goal];
+  const channel = input.options.channel;
+
   for (let day = 1; day <= input.options.planLengthDays; day++) {
     const planned = new Date();
     planned.setDate(planned.getDate() + day);
-    const pillar = pillars[(day - 1) % pillars.length];
-    const message = messages[(day - 1) % messages.length];
-    const brand = input.brand.name;
-    const product = input.brief.product_focus || input.brand.hero_product || 'hero product';
+    const play = FNB_PLAYS[(day - 1) % FNB_PLAYS.length];
+    const message = messages.length ? messages[(day - 1) % messages.length] : null;
+    const briefPillar = briefPillars.length ? briefPillars[(day - 1) % briefPillars.length] : null;
+    const built = play.build({
+      brand, product, audience, channel,
+      offer: input.brief.offer,
+      mustInclude: input.brief.must_include,
+      message,
+    });
+    const caption = `${assembleCaption(channel, built.hook, built.bodyLines, built.cta)}\n\n${OWNER_REVIEW_NOTE}`;
+
     items.push({
       day_number: day,
       planned_date: planned.toISOString().slice(0, 10),
-      channel: input.options.channel,
-      content_type: input.options.channel === 'TikTok' ? 'video_script' : 'caption',
-      pillar,
-      angle: `${goalLabel(input.options.goal)} / ${pillar}`,
-      hook: `${brand}: ${message}`,
-      caption: [
-        `${product}`,
-        '',
-        `Goal: ${goalLabel(input.options.goal)}.`,
-        `Draft angle for ${input.options.channel}: ${message}.`,
-        input.brief.offer ? `Offer: ${input.brief.offer}` : null,
-        input.brief.must_include ? `Must include: ${input.brief.must_include}` : null,
-      ].filter(Boolean).join('\n'),
-      visual_brief: `Create a ${input.options.channel} creative direction for ${brand}. Keep brand tone: ${input.brand.tone_of_voice || input.brief.tone_of_voice || 'brand-safe'}.`,
-      cta: input.options.goal === 'lead' ? 'Leave your contact for consultation.' : input.options.goal === 'sales' ? 'Message us to order.' : 'Follow for the next update.',
-      hashtags: `#${brand.replace(/\s+/g, '')} #TheCoreAgency #${input.options.channel}`,
+      channel,
+      content_type: channel === 'TikTok' ? 'video_script' : 'caption',
+      pillar: play.pillar,
+      angle: `${goalVi} · ${play.objective}${briefPillar ? ` · ${briefPillar}` : ''}`,
+      hook: built.hook,
+      caption,
+      visual_brief: built.visual,
+      cta: built.cta,
+      hashtags: [`#${brand.replace(/\s+/g, '')}`, '#monngon', '#quanngon', '#FnB', `#${channel}`].join(' '),
     });
   }
   return buildResultFromItems(input, payload, items, 'local_mock', 'core-local-mock');
@@ -304,13 +464,13 @@ function mapFactoryItem(
     planned_date: item.planned_date ?? null,
     channel: item.channel || input.options.channel,
     content_type: item.content_type || 'caption',
-    pillar: item.pillar || 'Content Factory',
+    pillar: item.pillar || 'Nội dung FnB',
     angle: item.angle || goalLabel(input.options.goal),
-    hook: item.hook || `${input.brand.name} content draft`,
-    caption: `${item.caption || 'Draft content generated by Content Factory V1.'}${metadata}`,
-    visual_brief: item.visual_brief || 'Owner must review this draft before use.',
-    cta: item.cta || 'Owner to confirm CTA.',
-    hashtags: item.hashtags || `#${input.brand.name.replace(/\s+/g, '')}`,
+    hook: item.hook || `Bản nháp nội dung cho ${input.brand.name}`,
+    caption: `${item.caption || `Bản nháp nội dung do Content Factory V1 tạo cho ${input.brand.name}. Owner duyệt trước khi đăng — không tự đăng, không chạy ads.`}${metadata}`,
+    visual_brief: item.visual_brief || 'Gợi ý hình ảnh: ảnh/clip món thật của quán, ánh sáng tự nhiên, đúng nhận diện thương hiệu. Owner duyệt trước khi dùng.',
+    cta: item.cta || 'Inbox/Zalo để đặt món (Owner xác nhận CTA & thông tin liên hệ).',
+    hashtags: item.hashtags || `#${input.brand.name.replace(/\s+/g, '')} #monngon #FnB`,
     status: 'needs_review',
     created_at: now,
     updated_at: now,
@@ -318,12 +478,5 @@ function mapFactoryItem(
 }
 
 function goalLabel(goal: ContentFactoryGoal): string {
-  const labels: Record<ContentFactoryGoal, string> = {
-    branding: 'Branding',
-    sales: 'Sales',
-    khai_truong: 'Khai truong',
-    lead: 'Lead generation',
-    tuyen_sinh: 'Tuyen sinh',
-  };
-  return labels[goal];
+  return GOAL_LABEL_VI[goal];
 }
