@@ -69,6 +69,8 @@ import { runVideoFactory } from './lib/core/videoFactory';
 import type { VideoFactoryResult } from './lib/core/videoFactory';
 import { runAdsFactory } from './lib/core/adsFactory';
 import type { AdsFactoryResult } from './lib/core/adsFactory';
+import { runReportFactory } from './lib/core/reportFactory';
+import type { ReportFactoryResult } from './lib/core/reportFactory';
 import type { ContentFactoryResult, ContentFactoryRunInput } from './lib/core/contentFactory';
 
 const manualExportBlocks = [
@@ -689,6 +691,33 @@ export default function App() {
   // Approval Board as pending items.
   const handleAdsFactoryGenerate = async (input: ContentFactoryRunInput): Promise<AdsFactoryResult> => {
     const result = await runAdsFactory(input);
+    const baseGen: GenerationDataStore = {
+      generationJobs: [result.job, ...genData.generationJobs],
+      contentItems: [...result.items, ...genData.contentItems],
+    };
+
+    let nextGen = baseGen;
+    let nextApproval = approvalData;
+    for (const item of result.items) {
+      const submitted = submitForApproval(nextApproval, nextGen, item, actorLabel, { priority: 'normal' });
+      nextApproval = submitted.approval;
+      nextGen = submitted.gen;
+    }
+
+    setGenData(nextGen);
+    saveGenerationData(nextGen);
+    setApprovalData(nextApproval);
+    saveApprovalData(nextApproval);
+    return result;
+  };
+
+  // Report Draft Factory V1 — reuses the same external_module job/item/approval
+  // path as the other packs. Produces report draft (notes/spec) approval items
+  // only; never pulls live analytics, never claims unverified metrics, never
+  // images/video, never a live connector. Auto-submits each item for approval, so
+  // report drafts land in the Approval Board as pending items.
+  const handleReportFactoryGenerate = async (input: ContentFactoryRunInput): Promise<ReportFactoryResult> => {
+    const result = await runReportFactory(input);
     const baseGen: GenerationDataStore = {
       generationJobs: [result.job, ...genData.generationJobs],
       contentItems: [...result.items, ...genData.contentItems],
@@ -1703,6 +1732,7 @@ export default function App() {
                   onGenerateDesignBriefs={handleDesignFactoryGenerate}
                   onGenerateVideoScripts={handleVideoFactoryGenerate}
                   onGenerateAdsPack={handleAdsFactoryGenerate}
+                  onGenerateReportDraft={handleReportFactoryGenerate}
                   actorLabel={actorLabel}
                 />
               )}

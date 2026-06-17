@@ -28,6 +28,8 @@ import type { VideoFactoryResult } from '../../lib/core/videoFactory';
 import { getVideoFactoryWebhookUrl } from '../../lib/core/videoFactory';
 import type { AdsFactoryResult } from '../../lib/core/adsFactory';
 import { getAdsFactoryWebhookUrl } from '../../lib/core/adsFactory';
+import type { ReportFactoryResult } from '../../lib/core/reportFactory';
+import { getReportFactoryWebhookUrl } from '../../lib/core/reportFactory';
 
 interface Props {
   clients: Client[];
@@ -45,6 +47,7 @@ interface Props {
   onGenerateDesignBriefs: (input: ContentFactoryRunInput) => Promise<DesignFactoryResult>;
   onGenerateVideoScripts: (input: ContentFactoryRunInput) => Promise<VideoFactoryResult>;
   onGenerateAdsPack: (input: ContentFactoryRunInput) => Promise<AdsFactoryResult>;
+  onGenerateReportDraft: (input: ContentFactoryRunInput) => Promise<ReportFactoryResult>;
   actorLabel: string;
 }
 
@@ -118,6 +121,7 @@ export default function AutomationFactoryTab({
   onGenerateDesignBriefs,
   onGenerateVideoScripts,
   onGenerateAdsPack,
+  onGenerateReportDraft,
   actorLabel,
 }: Props) {
   const [drafts, setDrafts] = useState<DraftWorkflow[]>([]);
@@ -143,6 +147,9 @@ export default function AutomationFactoryTab({
   const [isGeneratingAds, setIsGeneratingAds] = useState(false);
   const [adsMessage, setAdsMessage] = useState<string | null>(null);
   const [adsError, setAdsError] = useState<string | null>(null);
+  const [isGeneratingReport, setIsGeneratingReport] = useState(false);
+  const [reportMessage, setReportMessage] = useState<string | null>(null);
+  const [reportError, setReportError] = useState<string | null>(null);
   const canUseFactory = userRole === 'owner' || userRole === 'manager';
   // n8n AI provider is active when its webhook env is configured; otherwise the
   // workflow runs the local fallback generator. Drives the labels. Content Pack
@@ -151,6 +158,7 @@ export default function AutomationFactoryTab({
   const designConfigured = getDesignFactoryWebhookUrl() !== null;
   const videoConfigured = getVideoFactoryWebhookUrl() !== null;
   const adsConfigured = getAdsFactoryWebhookUrl() !== null;
+  const reportConfigured = getReportFactoryWebhookUrl() !== null;
 
   const readyBriefs = useMemo(
     () => briefs.filter(brief => brief.status === 'approved_for_generation').length,
@@ -330,6 +338,32 @@ export default function AutomationFactoryTab({
     }
   };
 
+  const handleGenerateReportDraft = async () => {
+    setReportError(null);
+    setReportMessage(null);
+    if (!selectedClient || !selectedBrand || !selectedCampaign || !selectedBrief) {
+      setReportError('Select a client, brand, campaign, and brief first.');
+      return;
+    }
+    setIsGeneratingReport(true);
+    try {
+      const result = await onGenerateReportDraft({
+        client: selectedClient,
+        brand: selectedBrand,
+        campaign: selectedCampaign,
+        brief: selectedBrief,
+        options: contentOptions,
+        requestedBy: actorLabel,
+      });
+      const source = result.mode === 'n8n' ? 'n8n AI Provider' : 'Local fallback mode';
+      setReportMessage(`${result.items.length} report draft approval items were created via ${source}. These are drafts only — no live analytics were pulled and nothing was posted or launched.`);
+    } catch (err) {
+      setReportError(err instanceof Error ? err.message : 'Report draft generation failed. No report draft items were created and no analytics were pulled.');
+    } finally {
+      setIsGeneratingReport(false);
+    }
+  };
+
   if (!canUseFactory) {
     return (
       <div className="glass-panel" style={{ padding: '40px', textAlign: 'center' }}>
@@ -400,11 +434,12 @@ export default function AutomationFactoryTab({
           <div>
             <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '4px' }}>Workflow Starters</h3>
             <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: 0 }}>
-              Content Pack, Design Briefs, Video Scripts, and Ads Pack run as external module jobs (n8n AI Provider
-              when the webhook is configured, otherwise local fallback) and create pending approval items only —
-              approval-first, no posting or launching. Design Briefs, Video Scripts, and Ads Pack are text/spec/draft
-              only (no image or video generation; Ads Pack creates, launches, schedules, and spends nothing). Other
-              starters create local UI draft records only.
+              Content Pack, Design Briefs, Video Scripts, Ads Pack, and Report Draft run as external module jobs
+              (n8n AI Provider when the webhook is configured, otherwise local fallback) and create pending approval
+              items only — approval-first, no posting or launching. Design Briefs, Video Scripts, Ads Pack, and Report
+              Draft are text/spec/draft only (no image or video generation; Ads Pack creates, launches, schedules, and
+              spends nothing; Report Draft pulls no live analytics and claims no unverified metrics). Other starters
+              create local UI draft records only.
             </p>
           </div>
           <span className="badge badge-brand" style={{ fontSize: '0.68rem' }}>
@@ -436,6 +471,10 @@ export default function AutomationFactoryTab({
                   ) : workflow.id === 'ads-pack' ? (
                     <span style={{ fontSize: '0.68rem', color: adsConfigured ? '#34d399' : '#f59e0b' }}>
                       {adsConfigured ? 'n8n AI Provider · External module job' : 'Local fallback mode · External module job'}
+                    </span>
+                  ) : workflow.id === 'report-draft' ? (
+                    <span style={{ fontSize: '0.68rem', color: reportConfigured ? '#34d399' : '#f59e0b' }}>
+                      {reportConfigured ? 'n8n AI Provider · External module job' : 'Local fallback mode · External module job'}
                     </span>
                   ) : (
                     <span style={{ fontSize: '0.68rem', color: '#f59e0b' }}>Coming next / draft workflow</span>
@@ -496,6 +535,16 @@ export default function AutomationFactoryTab({
                   selectedBriefTitle={selectedBrief?.brief_title || selectedBrief?.brand_name || null}
                   channel={contentOptions.channel}
                   onGenerate={handleGenerateAdsPack}
+                />
+              ) : workflow.id === 'report-draft' ? (
+                <ReportDraftControls
+                  isGenerating={isGeneratingReport}
+                  message={reportMessage}
+                  error={reportError}
+                  reportConfigured={reportConfigured}
+                  selectedBriefTitle={selectedBrief?.brief_title || selectedBrief?.brand_name || null}
+                  channel={contentOptions.channel}
+                  onGenerate={handleGenerateReportDraft}
                 />
               ) : (
                 <button
@@ -823,6 +872,60 @@ function AdsPackControls({
       </button>
       <p style={{ fontSize: '0.68rem', color: 'var(--text-muted)', lineHeight: 1.4, margin: 0 }}>
         Approval-first: ads drafts only. Nothing is posted or launched. No auto-post, no auto-ads, no platform launch. Approved ≠ Published.
+      </p>
+    </div>
+  );
+}
+
+function ReportDraftControls({
+  isGenerating,
+  message,
+  error,
+  reportConfigured,
+  selectedBriefTitle,
+  channel,
+  onGenerate,
+}: {
+  isGenerating: boolean;
+  message: string | null;
+  error: string | null;
+  reportConfigured: boolean;
+  selectedBriefTitle: string | null;
+  channel: string;
+  onGenerate: () => void;
+}) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: 'auto' }}>
+      <p style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', lineHeight: 1.45, margin: 0 }}>
+        Generates 5 report draft items (campaign status summary, performance insight notes, content &amp; creative
+        review, risks/learnings/next actions, owner/client report handoff). Report draft notes only — no live
+        analytics is pulled and no real metrics are claimed unless owner-provided.
+      </p>
+      <p style={{ fontSize: '0.68rem', color: 'var(--text-muted)', margin: 0 }}>
+        Target: {selectedBriefTitle ?? '— select a brief in Content Pack above —'} · {channel}
+      </p>
+
+      <div>
+        <span style={{ fontSize: '0.66rem', fontWeight: 700, color: reportConfigured ? '#34d399' : '#f59e0b', background: reportConfigured ? 'rgba(52,211,153,0.12)' : 'rgba(245,158,11,0.12)', border: `1px solid ${reportConfigured ? 'rgba(52,211,153,0.35)' : 'rgba(245,158,11,0.35)'}`, borderRadius: '5px', padding: '2px 7px' }}>
+          {reportConfigured ? 'n8n AI Provider' : 'Local fallback mode'}
+        </span>
+      </div>
+
+      {message && <p style={{ fontSize: '0.72rem', color: '#34d399', lineHeight: 1.45, margin: 0 }}>{message}</p>}
+      {error && <p style={{ fontSize: '0.72rem', color: '#f87171', lineHeight: 1.45, margin: 0 }}>{error}</p>}
+
+      <button
+        className="btn btn-primary"
+        onClick={onGenerate}
+        disabled={isGenerating}
+        style={{ justifyContent: 'center', fontSize: '0.82rem' }}
+      >
+        <FileText size={14} /> {isGenerating
+          ? (reportConfigured ? 'Generating via n8n AI Provider...' : 'Generating (local fallback)...')
+          : (reportConfigured ? 'Generate Report Draft with n8n AI Provider' : 'Generate Report Draft with Local fallback')}
+      </button>
+      <p style={{ fontSize: '0.68rem', color: 'var(--text-muted)', lineHeight: 1.4, margin: 0 }}>
+        Approval-first: report drafts only. No live analytics pull, no unverified metrics. Nothing is posted or launched. Approved ≠ Published.
       </p>
     </div>
   );

@@ -1,0 +1,155 @@
+{
+  "name": "Report Draft V1 - Report Draft",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "report-draft-v1/report-draft",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "ReportDraftWebhook",
+      "name": "Receive Report Draft Request",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300],
+      "webhookId": "report-draft-v1-report-draft"
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $json.body || $json;\nconst required = ['request_id', 'workflow_type', 'generated_by', 'client', 'brand', 'campaign', 'brief', 'options', 'report_draft_types', 'safety'];\nconst missing = required.filter((key) => body[key] === undefined || body[key] === null);\nconst safety = body.safety || {};\nconst safetyOk = body.workflow_type === 'report_draft'\n  && body.owner_approval_required === true\n  && body.generate_images === false\n  && body.generate_videos === false\n  && body.pull_live_analytics === false\n  && body.use_unverified_metrics === false\n  && safety.no_auto_post === true\n  && safety.no_auto_ads === true\n  && safety.no_live_connectors === true\n  && safety.no_platform_launch === true\n  && safety.no_image_generation === true\n  && safety.no_video_generation === true\n  && safety.no_live_analytics_pull === true\n  && safety.no_unverified_metrics === true\n  && safety.no_secrets === true\n  && safety.owner_approval_required === true;\nif (missing.length || !safetyOk) {\n  return [{ json: {\n    ok: false,\n    request_id: body.request_id || null,\n    error: {\n      code: missing.length ? 'INVALID_CONTRACT' : 'REJECTED_BY_SAFETY',\n      message: missing.length ? `Missing required fields: ${missing.join(', ')}` : 'Safety flags rejected this request (report draft is notes only — no live analytics is pulled, no unverified metrics are claimed, and no image or video generation).'\n    },\n    status: 'failed',\n    owner_approval_required: true,\n    safety\n  }}];\n}\nreturn [{ json: body }];"
+      },
+      "id": "ValidatePayload",
+      "name": "Validate Contract + Safety",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [500, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "IsValid",
+              "leftValue": "={{ $json.ok }}",
+              "rightValue": false,
+              "operator": {
+                "type": "boolean",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "IsValidRequest",
+      "name": "Valid Request?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [740, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const request = $json;\nconst channel = request.options?.channel || 'Facebook';\nconst goal = request.options?.goal || 'branding';\nconst brand = request.brand?.name || 'Brand';\nconst campaign = request.campaign?.name || 'Campaign';\nconst dataBasis = 'No live analytics were pulled. Any figures must be owner-provided; unverified metrics are not claimed.';\nconst specs = [\n  { key: 'campaign_status_summary', title: 'Campaign Status Summary Draft',       focus: 'Status overview',      objective: 'Summarize campaign status from the brief & approvals (no live data pulled)' },\n  { key: 'performance_insight',     title: 'Performance Insight Notes',           focus: 'Insight framing',      objective: 'Frame performance insight notes using only owner-provided figures (no metrics invented)' },\n  { key: 'content_creative_review', title: 'Content & Creative Review Notes',     focus: 'Content & creative',   objective: 'Review content/creative items already in Core for the owner' },\n  { key: 'risks_learnings_actions', title: 'Risks, Learnings & Next Actions',     focus: 'Risks & next actions', objective: 'Draft risks, learnings, and suggested next actions for owner review' },\n  { key: 'report_handoff',          title: 'Owner / Client Report Handoff Draft', focus: 'Report handoff',       objective: 'Assemble an owner/client-ready report draft skeleton for manual review' }\n];\nconst items = specs.map((spec) => ({\n  key: spec.key,\n  title: spec.title,\n  focus: spec.focus,\n  objective: spec.objective,\n  period: 'Assumption: current campaign window (owner to set exact dates)',\n  data_basis: dataBasis,\n  summary_body: `Report draft notes for ${brand} - \"${campaign}\" on ${channel}. ${spec.objective}. No live analytics pulled.`,\n  key_points: `Key draft points for ${brand} (${spec.focus}). Owner reviews and validates any figures.`,\n  next_actions: spec.key === 'risks_learnings_actions' ? 'Draft next actions for owner review: confirm real figures, prioritize top creative, decide next test.' : 'Owner reviews this draft and supplies/validates any figures before it is shared.',\n  generated_by: 'n8n-ai-provider',\n  workflow_type: 'report_draft',\n  content_type: 'report_draft',\n  status: 'pending_approval',\n  owner_approval_required: true\n}));\nreturn [{ json: {\n  ok: true,\n  request_id: request.request_id,\n  workflow_type: 'report_draft',\n  content_type: 'report_draft',\n  generated_by: 'n8n-ai-provider',\n  owner_approval_required: true,\n  status: 'pending_approval',\n  job: {\n    external_execution_id: $execution.id,\n    item_count: items.length\n  },\n  items,\n  safety: request.safety\n}}];"
+      },
+      "id": "AiProviderPlaceholder",
+      "name": "AI Provider Placeholder",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [980, 220],
+      "notes": "Replace this Code node with an OpenAI/Claude/Gemini n8n node using n8n Credentials (credential-placeholder only — never commit an API key). REPORT DRAFT NOTES ONLY — do NOT add any node that pulls live analytics or platform metrics (no Meta/TikTok/Zalo/Google Ads/GA4/CRM), and never claim real metrics unless they are provided in the Core request. No image/video generation node. No Canva/ComfyUI/Fal.ai connector. No publishing/posting/ad-launch/spend node. Keep the Validate Contract + Safety and Return Validation Failure nodes as the safety gate. Do not commit API keys."
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "SuccessResponse",
+      "name": "Return Structured Report Draft",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1220, 220]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 400
+        }
+      },
+      "id": "FailureResponse",
+      "name": "Return Validation Failure",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [980, 420]
+    }
+  ],
+  "connections": {
+    "Receive Report Draft Request": {
+      "main": [
+        [
+          {
+            "node": "Validate Contract + Safety",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Contract + Safety": {
+      "main": [
+        [
+          {
+            "node": "Valid Request?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Valid Request?": {
+      "main": [
+        [
+          {
+            "node": "AI Provider Placeholder",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Return Validation Failure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Provider Placeholder": {
+      "main": [
+        [
+          {
+            "node": "Return Structured Report Draft",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "tags": []
+}
