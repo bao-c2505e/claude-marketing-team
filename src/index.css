@@ -472,7 +472,7 @@ aside.glass-panel .btn svg {
 
 .kpi-card__value {
   font-family: var(--font-title);
-  font-size: 1.7rem;
+  font-size: clamp(1.4rem, 1.15rem + 1.1vw, 1.7rem);
   font-weight: 700;
   line-height: 1;
   color: var(--text-primary);
@@ -503,10 +503,11 @@ aside.glass-panel .btn svg {
   display: flex;
   flex-direction: column;
   gap: 7px;
-  padding: 14px;
+  padding: 15px 16px;
   border: 1px solid var(--border-subtle);
-  border-radius: 12px;
+  border-radius: 14px;
   background: linear-gradient(180deg, rgba(34, 197, 94, 0.05) 0%, rgba(255, 255, 255, 0) 70%), var(--surface);
+  transition: var(--transition-smooth);
 }
 
 .dash-cols {
@@ -694,6 +695,68 @@ aside.glass-panel .btn svg {
 }
 
 /* ---------------------------------------------------------------------------
+   Phase A3 — Visual refinement + responsive polish (additive; tokens only).
+   Consistency (hover/focus), fluid headings, a demo-safe copy ribbon, and a
+   scroll wrapper for wide tables. No behavior is introduced here.
+--------------------------------------------------------------------------- */
+
+/* Subtle hover on the (non-clickable) AI Factory status cards — keeps the
+   dashboard alive without implying they are buttons. */
+.module-card:hover {
+  border-color: rgba(255, 255, 255, 0.16);
+  background: linear-gradient(180deg, rgba(34, 197, 94, 0.08) 0%, rgba(255, 255, 255, 0) 72%), var(--surface);
+}
+
+/* Keyboard focus rings for the approval review controls. */
+.appr-tab:focus-visible,
+.appr-toggle:focus-visible,
+.appr-card:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--brand-glow);
+}
+
+/* Demo-safe copy strip — small, muted, wraps cleanly. Each item gets a tiny
+   green safety dot. Pure copy; nothing here changes behavior. */
+.safety-ribbon {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 14px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-subtle);
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.safety-ribbon span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.safety-ribbon span::before {
+  content: '';
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--success);
+  opacity: 0.75;
+}
+
+/* Horizontal scroll wrapper so wide tables never break narrow layouts. */
+.table-scroll {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table-scroll table {
+  min-width: 520px;
+}
+
+/* ---------------------------------------------------------------------------
    Responsive — V2-E3 mobile polish (small, safe; desktop layout unchanged).
    Only narrow viewports are affected. Collapses the fixed 260px sidebar grid,
    relaxes container padding, lets the header wrap, and makes 2-col form grids
@@ -705,6 +768,18 @@ aside.glass-panel .btn svg {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 14px;
+}
+
+/* Tablet — stack the dashboard's two-column operational row and relax padding
+   so the System & Safety panel never gets squeezed. */
+@media (max-width: 1024px) {
+  .app-container {
+    padding: 18px;
+  }
+
+  .dash-cols {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 768px) {
@@ -734,14 +809,31 @@ aside.glass-panel .btn svg {
     grid-template-columns: 1fr;
   }
 
-  /* Premium dashboard: stack the two-column operational row on narrow screens. */
-  .dash-cols {
-    grid-template-columns: 1fr;
-  }
-
   /* Trim panel padding/radius a touch so content isn't boxed-in on phones. */
   .glass-panel {
     border-radius: 14px;
+  }
+}
+
+/* Large phone — single-row scrollable status tabs, wrapping review cards,
+   a denser 2-up KPI grid, and a smaller header title. */
+@media (max-width: 640px) {
+  .app-header h1 {
+    font-size: 1.2rem !important;
+  }
+
+  .kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .appr-tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+  }
+
+  .appr-card {
+    flex-wrap: wrap;
   }
 }
 

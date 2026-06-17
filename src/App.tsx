@@ -1148,7 +1148,7 @@ export default function App() {
             <h1 style={{ fontSize: '1.5rem', fontWeight: 700, letterSpacing: '0.02em', background: 'linear-gradient(135deg, #fff 40%, #fdba74)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
               The Core Agency — Internal OS
             </h1>
-            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>FnB agency control center · Owner-approved workflows only</p>
+            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Approval-first command center · generated drafts only, nothing is auto-published</p>
           </div>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-end' }}>
@@ -1834,9 +1834,9 @@ export default function App() {
                         <div className="glass-panel" style={{ padding: '22px', borderLeft: '4px solid var(--brand)' }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '14px', flexWrap: 'wrap', marginBottom: '18px' }}>
                             <div>
-                              <h2 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '5px' }}>Command Center</h2>
+                              <h2 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '5px' }}>Approval-first Command Center</h2>
                               <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', margin: 0 }}>
-                                Daily control center for FnB client work. AI and automation draft — Owner approval decides what is usable.
+                                Generated drafts only — Owner approval decides what is usable. Nothing is published from this screen.
                               </p>
                             </div>
                             <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
@@ -1846,7 +1846,14 @@ export default function App() {
                               </span>
                             </div>
                           </div>
-                          <div className="kpi-grid">
+                          <div className="safety-ribbon">
+                            <span>Generated drafts only</span>
+                            <span>Approved ≠ Published</span>
+                            <span>No auto-post</span>
+                            <span>No auto-ads</span>
+                            <span>No live analytics pull</span>
+                          </div>
+                          <div className="kpi-grid" style={{ marginTop: '16px' }}>
                             {kpis.map(k => (
                               <button key={k.label} className="kpi-card" style={{ '--kpi-accent': k.accent } as React.CSSProperties} onClick={() => setActiveTab(k.tab)}>
                                 <span className="kpi-card__head">
@@ -2118,6 +2125,7 @@ export default function App() {
                       </div>
                     </div>
 
+                    <div className="table-scroll">
                     <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
                       <thead>
                         <tr style={{ borderBottom: '1px solid var(--border-color)', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
@@ -2158,6 +2166,7 @@ export default function App() {
                         ))}
                       </tbody>
                     </table>
+                    </div>
                   </div>
 
                   {/* Safety Guard Panel — client presentation only (Owner uses System & Safety panel above) */}
