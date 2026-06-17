@@ -40,11 +40,11 @@ interface DesignBriefSpec {
 }
 
 const DESIGN_BRIEF_SPECS: DesignBriefSpec[] = [
-  { key: 'facebook_post',         title: 'Facebook Post Design Brief',        platform: 'Facebook',      format: '1:1 square (1080x1080)',  objective: 'Stop the scroll and drive feed engagement' },
-  { key: 'story_reels_cover',     title: 'Story / Reels Cover Design Brief',  platform: 'Story / Reels', format: '9:16 vertical (1080x1920)', objective: 'High-contrast cover that earns the tap' },
-  { key: 'menu_promo_visual',     title: 'Menu / Promo Visual Design Brief',  platform: 'Facebook',      format: '4:5 portrait (1080x1350)', objective: 'Communicate the offer / menu clearly' },
-  { key: 'key_visual_direction',  title: 'Key Visual Direction',              platform: 'Cross-channel', format: 'Master key visual',        objective: 'Define the campaign visual system' },
-  { key: 'designer_handoff_notes',title: 'Designer Handoff Notes',            platform: 'Internal',      format: 'Handoff document',         objective: 'Hand the spec to the designer cleanly' },
+  { key: 'facebook_post',          title: 'Facebook Post Design Brief',        platform: 'Facebook',      format: '4:5 dọc (1080x1350) — tối ưu diện tích feed',          objective: 'Dừng lướt & tạo tương tác ở feed' },
+  { key: 'story_reels_cover',      title: 'Story / Reels Cover Design Brief',  platform: 'Story / Reels', format: '9:16 dọc (1080x1920)',                                  objective: 'Cover tương phản cao để khách bấm xem' },
+  { key: 'menu_promo_visual',      title: 'Menu / Promo Visual Design Brief',  platform: 'Facebook',      format: 'A5 in (148×210mm, 300dpi) + bản 4:5 cho social',        objective: 'Truyền đạt menu / ưu đãi rõ ràng' },
+  { key: 'key_visual_direction',   title: 'Key Visual Direction',              platform: 'Cross-channel', format: 'Key visual chủ đạo (suy ra 4:5 / 9:16 / banner ngang)',  objective: 'Định hình hệ hình ảnh chủ đạo của chiến dịch' },
+  { key: 'designer_handoff_notes', title: 'Designer Handoff Notes',            platform: 'Internal',      format: 'Tài liệu bàn giao (handoff)',                           objective: 'Bàn giao spec gọn gàng cho designer' },
 ];
 
 export interface DesignBriefRequestPayload {
@@ -96,11 +96,18 @@ interface N8nDesignBriefItem {
   format?: string;
   objective?: string;
   target_audience?: string;
+  customer_insight?: string;
+  key_message?: string;
   visual_direction?: string;
+  food_styling?: string;
   layout_guidance?: string;
+  typography?: string;
   copy_text?: string;
+  copy_placement?: string;
   brand_style?: string;
   image_requirements?: string;
+  designer_notes?: string;
+  owner_checklist?: string;
   cta?: string;
   generated_by?: string;
   workflow_type?: string;
@@ -198,39 +205,90 @@ export async function runDesignFactory(input: ContentFactoryRunInput): Promise<D
   if (data.ok === false) {
     throw new DesignFactoryError(data.error?.message || 'n8n Design Factory returned a failure response.');
   }
-  if (!Array.isArray(data.items) || data.items.length === 0) {
-    throw new DesignFactoryError('n8n Design Factory returned no design brief items.');
+  if (!Array.isArray(data.items)) {
+    throw new DesignFactoryError('n8n Design Factory returned invalid design brief items.');
   }
 
   return buildResult(input, payload, data.items, 'n8n', data.generated_by || 'n8n-ai-provider');
 }
 
-function buildMockResult(input: ContentFactoryRunInput, payload: DesignBriefRequestPayload): DesignFactoryResult {
+// ── Phase B2: senior-FnB Vietnamese design-brief defaults ──
+// Derived from the brand/brief only — NEVER invents prices, discounts,
+// addresses, phones, awards, testimonials, or metrics (missing info becomes an
+// "Owner xác nhận" note). Shared by the local fallback and by mapDesignItem's
+// per-field fallbacks, so an n8n response that omits fields still reads like a
+// real senior creative-director brief. Text/spec only — no image generation.
+function fnbDesignDefaults(input: ContentFactoryRunInput, spec: DesignBriefSpec) {
   const brand = input.brand.name;
-  const product = input.brief.product_focus || input.brand.hero_product || 'hero product';
-  const audience = input.brief.target_audience || input.brand.target_audience || 'core local audience';
-  const colors = formatBrandColors(input.brand.brand_colors) || 'Assumption: brand primary + neutral support, high legibility';
-  const offer = input.brief.offer || 'Assumption: feature the current campaign hero offer';
-  const platformContext = input.options.channel;
+  const product = input.brief.product_focus || input.brand.hero_product || `món chủ lực của ${brand}`;
+  const audience = input.brief.target_audience || input.brand.target_audience || 'khách địa phương mục tiêu của quán';
+  const tone = input.brand.tone_of_voice || 'ấm áp, đáng tin, ngon mắt';
+  const colors = formatBrandColors(input.brand.brand_colors) || 'Assumption: màu thương hiệu chính + nền trung tính, tương phản cao, dễ đọc';
+  const offer = input.brief.offer || null;
+  const keyMessage = input.brief.key_messages?.[0] || `${product} chuẩn vị, tươi mỗi ngày tại ${brand}`;
+  const isHandoff = spec.key === 'designer_handoff_notes';
 
-  const items: N8nDesignBriefItem[] = DESIGN_BRIEF_SPECS.map(spec => ({
-    key: spec.key,
-    title: spec.title,
-    platform: spec.platform === 'Facebook' ? platformContext : spec.platform,
-    format: spec.format,
-    objective: spec.objective,
-    target_audience: audience,
-    visual_direction: `Hero ${product} in a clean, appetizing ${brand} frame. Tone: ${input.brand.tone_of_voice || 'warm, trustworthy'}. No stock-looking clutter.`,
-    layout_guidance: spec.key === 'designer_handoff_notes'
-      ? 'Provide layered source, fonts, and export specs. List safe margins and where text must stay readable.'
-      : 'Clear focal point, generous safe margins, one primary message. Keep text legible at thumbnail size.',
-    copy_text: `Headline idea: ${brand} — ${spec.objective}. Offer: ${offer}.`,
-    brand_style: colors,
-    image_requirements: 'Use owner-provided real product photography only. No AI image generation in this V1 flow.',
-    cta: input.options.goal === 'sales' ? 'Inbox to order' : input.options.goal === 'lead' ? 'Leave your contact' : 'Follow for more',
-  }));
+  return {
+    audience,
+    colors,
+    keyMessage,
+    customerInsight: `${audience} chọn chỗ ăn trong vài giây lướt điện thoại — hình ${product} phải "ngon mắt" ngay từ cái nhìn đầu tiên và chữ phải đọc được trên màn hình nhỏ.`,
+    visual: `Lấy ${product} làm nhân vật chính trong khung hình ${brand} sạch, ngon mắt. Tông: ${tone}. Dùng ảnh thật của quán, không dàn dựng quá đà, không tạo ảnh AI.`,
+    foodStyling: `Chụp cận ${product}: thấy rõ độ tươi/nước sốt/độ nóng (khói nhẹ nếu món nóng). Nền mộc (gỗ/giấy kraft), props tối giản, ánh sáng tự nhiên; tránh filter làm món trông "giả".`,
+    layout: isHandoff
+      ? 'Kèm file gốc phân lớp, font, thông số xuất, vùng an toàn và chỗ chữ phải luôn đọc rõ.'
+      : 'Một điểm nhấn rõ ràng, chừa lề an toàn rộng, một thông điệp chính; chữ đọc rõ ở cỡ thumbnail.',
+    typography: 'Tiêu đề sans-serif đậm, dễ đọc trên mobile; phụ đề mảnh hơn; tránh font uốn lượn khó đọc. Giá/ưu đãi (nếu có, Owner xác nhận) để cỡ lớn, tương phản cao.',
+    copyText: `Headline gợi ý: "${keyMessage}".${offer ? ` Ưu đãi (Owner xác nhận): ${offer}.` : ' (Để trống giá/ưu đãi tới khi Owner xác nhận.)'}`,
+    copyPlacement: 'Headline ở 1/3 trên; tên món + điểm hấp dẫn gần hero; CTA ở đáy. Chữ không đè lên phần ngon nhất của món; chừa vùng an toàn cho khung Story/Reels.',
+    designerNotes: `Xuất đúng tỉ lệ ${spec.format}; giữ vùng an toàn cho text; chuẩn bị thêm 1 bản không chữ để tái sử dụng.${spec.key === 'menu_promo_visual' ? ' Bản in A5: 300dpi + chừa bleed 3mm.' : ''}`,
+    ownerChecklist: '[ ] đúng nhận diện thương hiệu  [ ] ảnh món thật, không AI  [ ] giá/ưu đãi/địa chỉ đã xác nhận nếu có nhắc tới  [ ] đúng chính tả & dấu tiếng Việt  [ ] dễ đọc trên mobile',
+    imageRequirements: 'Chỉ dùng ảnh/clip món thật do quán cung cấp. No AI image generation in this V1 flow.',
+    cta: input.options.goal === 'sales' ? 'Inbox/Zalo để đặt món' : input.options.goal === 'lead' ? 'Để lại liên hệ để quán tư vấn' : 'Theo dõi để xem món mới',
+  };
+}
+
+function buildMockResult(input: ContentFactoryRunInput, payload: DesignBriefRequestPayload): DesignFactoryResult {
+  const items: N8nDesignBriefItem[] = DESIGN_BRIEF_SPECS.map(spec => createFallbackDesignBriefItem(input, spec));
 
   return buildResult(input, payload, items, 'local_mock', 'core-local-mock');
+}
+
+function createFallbackDesignBriefItem(input: ContentFactoryRunInput, spec: DesignBriefSpec): N8nDesignBriefItem {
+  const d = fnbDesignDefaults(input, spec);
+  return {
+    key: spec.key,
+    title: spec.title,
+    platform: spec.platform === 'Facebook' ? input.options.channel : spec.platform,
+    format: spec.format,
+    objective: spec.objective,
+    target_audience: d.audience,
+    customer_insight: d.customerInsight,
+    key_message: d.keyMessage,
+    visual_direction: d.visual,
+    food_styling: d.foodStyling,
+    layout_guidance: d.layout,
+    typography: d.typography,
+    copy_text: d.copyText,
+    copy_placement: d.copyPlacement,
+    brand_style: d.colors,
+    image_requirements: d.imageRequirements,
+    designer_notes: d.designerNotes,
+    owner_checklist: d.ownerChecklist,
+    cta: d.cta,
+  };
+}
+
+function normalizeDesignBriefItems(input: ContentFactoryRunInput, sourceItems: N8nDesignBriefItem[]): N8nDesignBriefItem[] {
+  const items = sourceItems
+    .filter(item => item && typeof item === 'object')
+    .slice(0, DESIGN_BRIEF_SPECS.length);
+
+  while (items.length < DESIGN_BRIEF_SPECS.length) {
+    items.push(createFallbackDesignBriefItem(input, DESIGN_BRIEF_SPECS[items.length]));
+  }
+
+  return items;
 }
 
 function buildResult(
@@ -242,7 +300,8 @@ function buildResult(
 ): DesignFactoryResult {
   const now = new Date().toISOString();
   const jobId = generateId('job');
-  const items = sourceItems.map((item, idx) => mapDesignItem(input, item, jobId, idx + 1, now, generatedBy, mode));
+  const normalizedItems = normalizeDesignBriefItems(input, sourceItems);
+  const items = normalizedItems.map((item, idx) => mapDesignItem(input, item, jobId, idx + 1, now, generatedBy, mode));
 
   const job: ContentPlanJob = {
     id: jobId,
@@ -280,38 +339,48 @@ function mapDesignItem(
     ?? DESIGN_BRIEF_SPECS[sequence - 1]
     ?? DESIGN_BRIEF_SPECS[0];
 
-  const brand = input.brand.name;
-  const product = input.brief.product_focus || input.brand.hero_product || `${brand} hero product`;
-  const goal = input.options.goal;
-  const defaultCta = goal === 'sales' ? 'Inbox to order' : goal === 'lead' ? 'Leave your contact for a callback' : 'Follow for more';
+  const d = fnbDesignDefaults(input, spec);
 
-  // Prefer AI/source values; fall back to the canonical spec or a clearly-flagged
-  // "Assumption: ..." derived from the brief — never a generic "Owner to confirm".
-  const title     = item.title || spec.title;
-  const platform  = item.platform || item.channel || (spec.platform === 'Facebook' ? input.options.channel : spec.platform);
-  const format    = item.format || spec.format;
-  const objective = item.objective || spec.objective;
-  const audience  = item.target_audience || input.brief.target_audience || input.brand.target_audience || 'Assumption: core local audience for this brand';
-  const layout    = item.layout_guidance || (spec.key === 'designer_handoff_notes'
-    ? 'Provide layered source, fonts, export specs, safe margins, and where text must stay legible.'
-    : 'One clear focal point, generous safe margins, single primary message, legible at thumbnail size.');
-  const copy      = item.copy_text || `Assumption: lead with "${brand} — ${objective}".${input.brief.offer ? ` Offer: ${input.brief.offer}.` : ''}`;
-  const colors    = item.brand_style || formatBrandColors(input.brand.brand_colors) || 'Assumption: brand primary + neutral support, high legibility';
-  const imageReq  = item.image_requirements || 'Owner-provided real product photography only. No AI image generation in this V1 flow.';
-  const cta       = item.cta || defaultCta;
-  const visual    = item.visual_direction || `Hero ${product} in a clean, on-brand ${brand} frame. Tone: ${input.brand.tone_of_voice || 'warm, trustworthy'}. Real photography only — no image generation.`;
+  // Prefer AI/source values; fall back to senior-FnB Vietnamese defaults derived
+  // from the brand/brief — never a generic "Owner to confirm".
+  const title         = item.title || spec.title;
+  const platform      = item.platform || item.channel || (spec.platform === 'Facebook' ? input.options.channel : spec.platform);
+  const format        = item.format || spec.format;
+  const objective     = item.objective || spec.objective;
+  const audience      = item.target_audience || d.audience;
+  const insight       = item.customer_insight || d.customerInsight;
+  const keyMsg        = item.key_message || d.keyMessage;
+  const visual        = item.visual_direction || d.visual;
+  const foodStyling   = item.food_styling || d.foodStyling;
+  const layout        = item.layout_guidance || d.layout;
+  const typography    = item.typography || d.typography;
+  const copy          = item.copy_text || d.copyText;
+  const placement     = item.copy_placement || d.copyPlacement;
+  const colors        = item.brand_style || d.colors;
+  const imageReq      = item.image_requirements || d.imageRequirements;
+  const designerNotes = item.designer_notes || d.designerNotes;
+  const ownerChecklist = item.owner_checklist || d.ownerChecklist;
+  const cta           = item.cta || d.cta;
 
   const sourceLabel = mode === 'n8n' ? 'n8n' : 'local';
   const caption = [
-    `Design objective: ${objective}`,
-    `Target audience: ${audience}`,
+    `Mục tiêu thiết kế: ${objective}`,
+    `Khách hàng mục tiêu: ${audience}`,
+    `Insight khách hàng: ${insight}`,
+    `Key message: ${keyMsg}`,
+    `Concept hình ảnh: ${visual}`,
+    `Food styling / hero món: ${foodStyling}`,
+    `Bố cục (layout): ${layout}`,
+    `Bảng màu: ${colors}`,
+    `Typography: ${typography}`,
     `Format / ratio: ${format}`,
-    `Layout guidance: ${layout}`,
-    `Copy / text to include: ${copy}`,
-    `Brand colors / style: ${colors}`,
-    `Image / product requirements: ${imageReq}`,
+    `Vị trí copy (text placement): ${placement}`,
+    `Nội dung copy gợi ý: ${copy}`,
+    `Ghi chú cho designer: ${designerNotes}`,
+    `Checklist Owner duyệt: ${ownerChecklist}`,
+    `Yêu cầu hình ảnh: ${imageReq}`,
     `CTA: ${cta}`,
-    'Safety: text/spec only — no image generation.',
+    'An toàn: Draft design brief only · Pending approval · Not generated as image · Not published.',
     '',
     '---',
     'Design Brief V1 metadata:',

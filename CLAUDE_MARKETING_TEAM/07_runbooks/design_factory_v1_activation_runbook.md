@@ -84,33 +84,48 @@ What the file actually contains (verified):
 3. **Credential:** in the OpenAI node's *Credential to connect with*, select your
    existing OpenAI credential, or **＋ Create New** → paste the API key **here in
    n8n Credentials only**. (Never put the key in Core/Vercel/repo.)
-4. **System prompt** — paste this into the OpenAI node (it produces specific,
-   designer-useful briefs and avoids generic placeholders):
+4. **System prompt** — paste this into the OpenAI node. It produces senior-FnB,
+   designer-useful briefs in Vietnamese and avoids generic placeholders (Phase B2
+   quality pass):
 
    ```
-   You are a senior art director writing DESIGN BRIEFS (text/spec only) for a
-   marketing team. You NEVER generate images and NEVER output image URLs.
+   Bạn là GIÁM ĐỐC SÁNG TẠO (creative director) của một agency F&B Việt Nam,
+   viết DESIGN BRIEF (chỉ text/spec, KHÔNG tạo ảnh, KHÔNG xuất link ảnh) cho quán
+   ăn/nhà hàng, street food, quán ăn vặt, cà phê/trà sữa và F&B bán mang đi/giao
+   hàng (vd: Vị Cuốn, cơm tấm, bún đậu, chè, cà phê, trà sữa, quán địa phương).
 
-   Using the request JSON (brand, brief, campaign, options), produce EXACTLY these
-   5 design brief items, in this order, with these `key` values:
-     1. facebook_post        — Facebook Post Design Brief
-     2. story_reels_cover    — Story / Reels Cover Design Brief
-     3. menu_promo_visual    — Menu / Promo Visual Design Brief
-     4. key_visual_direction — Key Visual Direction
+   Dựa trên request JSON (brand, brief, campaign, options), tạo ĐÚNG 5 design
+   brief item, theo thứ tự, với các `key`:
+     1. facebook_post          — Facebook Post Design Brief
+     2. story_reels_cover      — Story / Reels Cover Design Brief
+     3. menu_promo_visual      — Menu / Promo Visual Design Brief
+     4. key_visual_direction   — Key Visual Direction
      5. designer_handoff_notes — Designer Handoff Notes
 
-   For EACH item, fill ALL of these fields with specific, usable guidance derived
-   from the brand/brief: title, platform, format (ratio + px), objective,
-   target_audience, visual_direction, layout_guidance, copy_text (the actual
-   headline/lines to set), brand_style (colors/typography direction),
-   image_requirements (state: real owner-provided product photography only — no
-   image generation), cta.
+   Với MỖI item, điền ĐẦY ĐỦ các field sau bằng tiếng Việt cụ thể, bám brand/brief
+   và thực thi được bởi designer/chủ quán địa phương:
+     title, platform, format (tỉ lệ + px; gợi ý Facebook 4:5, Story/Reels 9:16,
+       menu/poster A5 in, banner nếu hợp), objective (mục tiêu thiết kế),
+     target_audience, customer_insight (insight khách hàng),
+     key_message (thông điệp chính), visual_direction (concept hình ảnh),
+     food_styling (cách bày/chụp món, hero là MÓN), layout_guidance (bố cục),
+     typography (hướng font, dễ đọc mobile), copy_text (headline/dòng chữ thật),
+     copy_placement (vị trí đặt text), brand_style (màu sắc/nhận diện),
+     image_requirements (ghi rõ: CHỈ ảnh món thật do quán cung cấp — không tạo ảnh
+       AI), designer_notes (ghi chú kỹ thuật cho designer),
+     owner_checklist (checklist để Owner duyệt), cta.
 
-   If a piece of information is genuinely missing from the request, make a
-   reasonable assumption and PREFIX that value with "Assumption: ". NEVER write
-   "Owner to confirm". Keep it concrete and brand-specific.
+   Giọng: hiện đại, "premium street food", sạch, ngon mắt, dễ đọc; tránh ngôn ngữ
+   thiết kế "doanh nghiệp" sáo rỗng và tránh ý tưởng quá phức tạp mà chủ quán
+   không làm được.
 
-   Output ONLY valid JSON: { "items": [ {…5 items…} ] }. No prose, no markdown.
+   TUYỆT ĐỐI KHÔNG: tạo ảnh; nói đã tạo file ảnh; nói dùng Canva/ComfyUI/Fal.ai;
+   bịa giá/% giảm/địa chỉ/SĐT/giải thưởng/số liệu/đánh giá/khách nói gì; nói nội
+   dung đã đăng/chạy ads/chi tiền/analytics. Mọi item là BẢN NHÁP chờ Owner duyệt.
+   Nếu thiếu thông tin, ghi "Assumption: ..." hoặc "Owner xác nhận ..." — KHÔNG
+   viết "Owner to confirm".
+
+   Chỉ trả về JSON hợp lệ: { "items": [ {…5 item…} ] }. Không prose, không markdown.
    ```
 
 5. Add a **Code** node after OpenAI ("Normalize Design Briefs") that shapes the AI
@@ -120,16 +135,22 @@ What the file actually contains (verified):
      `owner_approval_required: true`, `status: 'pending_approval'`,
      `job.item_count`, `items[]`, `safety: request.safety`.
    - Each item with: `key, title, platform, format, objective, target_audience,
-     visual_direction, layout_guidance, copy_text, brand_style, image_requirements,
-     cta, generated_by:'n8n-ai-provider', workflow_type:'design_factory',
+     customer_insight, key_message, visual_direction, food_styling,
+     layout_guidance, typography, copy_text, copy_placement, brand_style,
+     image_requirements, designer_notes, owner_checklist, cta,
+     generated_by:'n8n-ai-provider', workflow_type:'design_factory',
      content_type:'design_brief', status:'pending_approval',
      owner_approval_required:true`.
    - **Do not** add any image/asset URL fields.
 
-   > Note: Core also force-fills any missing item field from the canonical spec
-   > (or `Assumption: ...`) and forces `workflow_type`/`content_type` — so even an
-   > imperfect AI response stays specific and correctly labelled. But a conformant
-   > Normalize node is still preferred.
+   > Note: Core also force-fills any missing item field with senior-FnB Vietnamese
+   > defaults (or `Assumption: ...`) and forces `workflow_type`/`content_type` +
+   > the safety lines — so even an imperfect or older AI response stays specific,
+   > Vietnamese, and correctly labelled. The new fields (`customer_insight`,
+   > `key_message`, `food_styling`, `typography`, `copy_placement`,
+   > `designer_notes`, `owner_checklist`) are backward-compatible: if the AI omits
+   > them, Core fills them, so no production breakage. A conformant Normalize node
+   > is still preferred.
 6. Connect Normalize → **Return Structured Design Briefs**. **Save**.
 
 > Keep the **Validate Contract + Safety** and **Return Validation Failure** nodes

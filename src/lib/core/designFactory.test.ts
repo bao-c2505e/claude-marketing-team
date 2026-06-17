@@ -101,6 +101,8 @@ const input = {
   },
 };
 
+const unsafeExecutionCopy = /(image file (created|generated)|created image|generated image|was published|were published|published live|ads? launched|spend occurred|spent budget|live analytics|analytics were pulled)/i;
+
 describe('designFactory', () => {
   beforeEach(() => {
     vi.stubGlobal('fetch', vi.fn());
@@ -175,25 +177,98 @@ describe('designFactory', () => {
     expect(result.mode).toBe('n8n');
     expect(result.job.generation_mode).toBe('external_module');
     expect(GENERATION_MODE_LABEL[result.job.generation_mode]).toBe('n8n AI Provider');
+    // V1 always normalizes to the fixed set of 5 design brief approval items.
+    expect(result.items).toHaveLength(5);
+    expect(result.job.item_count).toBe(5);
     expect(result.items.every(item => item.content_type === 'design_brief')).toBe(true);
     // Approval-first preserved on the n8n path too.
     expect(result.items.every(item => item.status === 'needs_review')).toBe(true);
-    expect(result.items[0].caption).toContain('generated_by: n8n-ai-provider');
-    expect(result.items[0].caption).toContain('generation_mode: external_module');
+    expect(result.items.every(item => item.caption.includes('generated_by: n8n-ai-provider'))).toBe(true);
+    expect(result.items.every(item => item.caption.includes('source: n8n'))).toBe(true);
+    expect(result.items.every(item => item.caption.includes('generation_mode: external_module'))).toBe(true);
     // Metadata consistency: workflow_type forced to design_factory even from n8n.
     expect(result.items.every(item => item.caption.includes('workflow_type: design_factory'))).toBe(true);
     // Quality: the second item omits copy/cta fields — it must resolve to the
     // canonical spec + "Assumption: ...", never a generic "Owner to confirm".
     const handoff = result.items[1];
     expect(handoff.angle).toBe('Handoff');
-    expect(handoff.caption).not.toMatch(/Owner to confirm/i);
-    expect(handoff.cta).not.toMatch(/Owner to confirm/i);
+    expect(result.items.every(item => !/Owner to confirm/i.test(item.caption))).toBe(true);
+    expect(result.items.every(item => !/Owner to confirm/i.test(item.cta))).toBe(true);
+    expect(result.items.every(item => !unsafeExecutionCopy.test(item.caption))).toBe(true);
   });
 
-  it('fails safely when the configured webhook returns no items', async () => {
+  it('caps n8n design brief output to exactly 5 approval items', async () => {
     vi.stubEnv('VITE_N8N_DESIGN_FACTORY_WEBHOOK_URL', 'https://n8n.example.com/webhook/design-factory');
-    (fetch as ReturnType<typeof vi.fn>).mockResolvedValue({ ok: true, json: async () => ({ ok: true, items: [] }) });
+    (fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        ok: true,
+        generated_by: 'n8n-ai-provider',
+        items: Array.from({ length: 10 }, (_, idx) => ({
+          key: `extra_${idx + 1}`,
+          title: `Returned Brief ${idx + 1}`,
+          objective: `Objective ${idx + 1}`,
+          visual_direction: `Safe text/spec direction ${idx + 1}`,
+        })),
+      }),
+    });
 
-    await expect(runDesignFactory(input)).rejects.toThrow(/no design brief items/i);
+    const result = await runDesignFactory(input);
+
+    expect(result.items).toHaveLength(5);
+    expect(result.job.item_count).toBe(5);
+    expect(result.items[0].angle).toBe('Returned Brief 1');
+    expect(result.items[4].angle).toBe('Returned Brief 5');
+    expect(result.items.some(item => item.angle === 'Returned Brief 6')).toBe(false);
+    expect(result.items.every(item => item.status === 'needs_review')).toBe(true);
+    expect(result.items.every(item => item.caption.includes('source: n8n'))).toBe(true);
+    expect(result.items.every(item => item.caption.includes('generation_mode: external_module'))).toBe(true);
+    expect(result.items.every(item => !unsafeExecutionCopy.test(item.caption))).toBe(true);
+  });
+
+  it('pads short n8n design brief output with safe fallback approval items', async () => {
+    vi.stubEnv('VITE_N8N_DESIGN_FACTORY_WEBHOOK_URL', 'https://n8n.example.com/webhook/design-factory');
+    (fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        ok: true,
+        generated_by: 'n8n-ai-provider',
+        items: [
+          { key: 'facebook_post', title: 'FB Post Brief', format: '4:5', objective: 'feed engagement', visual_direction: 'real food photo only' },
+          { key: 'story_reels_cover', title: 'Story Cover Brief', format: '9:16', objective: 'story tap', visual_direction: 'real food photo only' },
+        ],
+      }),
+    });
+
+    const result = await runDesignFactory(input);
+
+    expect(result.items).toHaveLength(5);
+    expect(result.job.item_count).toBe(5);
+    expect(result.items[0].angle).toBe('FB Post Brief');
+    expect(result.items[1].angle).toBe('Story Cover Brief');
+    expect(result.items[2].angle).toBe('Menu / Promo Visual Design Brief');
+    expect(result.items[3].angle).toBe('Key Visual Direction');
+    expect(result.items[4].angle).toBe('Designer Handoff Notes');
+    expect(result.items.every(item => item.status === 'needs_review')).toBe(true);
+    expect(result.items.every(item => item.caption.includes('pending_approval'))).toBe(true);
+    expect(result.items.every(item => item.caption.includes('generated_by: n8n-ai-provider'))).toBe(true);
+    expect(result.items.every(item => item.caption.includes('source: n8n'))).toBe(true);
+    expect(result.items.every(item => item.caption.includes('generation_mode: external_module'))).toBe(true);
+    expect(result.items.every(item => item.caption.includes('No AI image generation in this V1 flow.'))).toBe(true);
+    expect(result.items.every(item => !unsafeExecutionCopy.test(item.caption))).toBe(true);
+  });
+
+  it('pads empty n8n design brief output with safe fallback approval items', async () => {
+    vi.stubEnv('VITE_N8N_DESIGN_FACTORY_WEBHOOK_URL', 'https://n8n.example.com/webhook/design-factory');
+    (fetch as ReturnType<typeof vi.fn>).mockResolvedValue({ ok: true, json: async () => ({ ok: true, generated_by: 'n8n-ai-provider', items: [] }) });
+
+    const result = await runDesignFactory(input);
+
+    expect(result.items).toHaveLength(5);
+    expect(result.job.item_count).toBe(5);
+    expect(result.items.every(item => item.status === 'needs_review')).toBe(true);
+    expect(result.items.every(item => item.caption.includes('source: n8n'))).toBe(true);
+    expect(result.items.every(item => item.caption.includes('generation_mode: external_module'))).toBe(true);
+    expect(result.items.every(item => !unsafeExecutionCopy.test(item.caption))).toBe(true);
   });
 });
