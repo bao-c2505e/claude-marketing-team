@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, Suspense, lazy } from 'react';
 import {
   LayoutDashboard,
   Users,
@@ -42,20 +42,7 @@ import { LocalStorageApprovalRepository, LocalStorageAssetRepository } from './l
 import type { BriefUpdatePatch, GenerationDetailResult, ResolvingApprovalAction, ApprovalRepository, AssetRepository, AssetCreateInput, AssetUpdatePatch, AssetScopedParams } from './lib/core/coreRepository';
 import type { Client, Brand, Campaign as CoreCampaign, CampaignBrief as CoreCampaignBrief, PlanLengthDays, ContentPlanItem, ContentApprovalRequest, AssetItem } from './types/core';
 import LoginScreen from './components/auth/LoginScreen';
-import ClientsTab from './components/core/ClientsTab';
-import BrandsTab from './components/core/BrandsTab';
-import CampaignsTab from './components/core/CampaignsTab';
-import BriefIntakeTab from './components/core/BriefIntakeTab';
-import ContentGenerationTab from './components/core/ContentGenerationTab';
-import ContentCalendarTab from './components/core/ContentCalendarTab';
-import ApprovalsTab from './components/core/ApprovalsTab';
-import ClientViewTab from './components/core/ClientViewTab';
-import AssetLibraryTab from './components/core/AssetLibraryTab';
-import ReportsTab from './components/core/ReportsTab';
-import ExportPackTab from './components/core/ExportPackTab';
-import ConnectorRegistryTab from './components/core/ConnectorRegistryTab';
-import AutomationLogsTab from './components/core/AutomationLogsTab';
-import AutomationFactoryTab from './components/core/AutomationFactoryTab';
+// Phase A4: the core tab sections are lazy-loaded — see the React.lazy block after imports.
 import { loadCoreData, saveCoreData, loadGenerationData, saveGenerationData, loadApprovalData, saveApprovalData, loadAssetData, saveAssetData, canSubmitItem, submitForApproval, APPROVAL_STATUS_LABEL, APPROVAL_STATUS_COLOR } from './lib/core/coreData';
 import { assetScopeIsSupabaseSafe, approvalScopeIsSupabaseSafe } from './lib/core/repoRouting';
 import type { AssetRouteIds, ApprovalRouteIds } from './lib/core/repoRouting';
@@ -72,6 +59,26 @@ import type { AdsFactoryResult } from './lib/core/adsFactory';
 import { runReportFactory } from './lib/core/reportFactory';
 import type { ReportFactoryResult } from './lib/core/reportFactory';
 import type { ContentFactoryResult, ContentFactoryRunInput } from './lib/core/contentFactory';
+
+// ── Phase A4: lazy-loaded tab sections ──
+// Each major tab is code-split into its own chunk so it loads on demand instead
+// of bloating the initial bundle. Props, handlers, state flows, and behavior are
+// unchanged — only the import mechanism differs. All are rendered inside a single
+// <Suspense> boundary in the content area below.
+const ClientsTab            = lazy(() => import('./components/core/ClientsTab'));
+const BrandsTab             = lazy(() => import('./components/core/BrandsTab'));
+const CampaignsTab          = lazy(() => import('./components/core/CampaignsTab'));
+const BriefIntakeTab        = lazy(() => import('./components/core/BriefIntakeTab'));
+const ContentGenerationTab  = lazy(() => import('./components/core/ContentGenerationTab'));
+const ContentCalendarTab    = lazy(() => import('./components/core/ContentCalendarTab'));
+const ApprovalsTab          = lazy(() => import('./components/core/ApprovalsTab'));
+const ClientViewTab         = lazy(() => import('./components/core/ClientViewTab'));
+const AssetLibraryTab       = lazy(() => import('./components/core/AssetLibraryTab'));
+const ReportsTab            = lazy(() => import('./components/core/ReportsTab'));
+const ExportPackTab         = lazy(() => import('./components/core/ExportPackTab'));
+const ConnectorRegistryTab  = lazy(() => import('./components/core/ConnectorRegistryTab'));
+const AutomationLogsTab     = lazy(() => import('./components/core/AutomationLogsTab'));
+const AutomationFactoryTab  = lazy(() => import('./components/core/AutomationFactoryTab'));
 
 const manualExportBlocks = [
   {
@@ -1528,7 +1535,13 @@ export default function App() {
           )}
 
           {!isSimulating && (
-            <>
+            <Suspense fallback={
+              <div className="glass-panel" style={{ padding: '40px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '14px' }}>
+                <div className="spinner" />
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', margin: 0 }}>Loading workspace…</p>
+                <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', margin: 0 }}>Drafts only · nothing is published</p>
+              </div>
+            }>
               {/* ── Phase 4: Clients Tab ── */}
               {activeTab === 'clients' && (
                 <ClientsTab
@@ -4200,7 +4213,7 @@ export default function App() {
 
                 </div>
               )}
-            </>
+            </Suspense>
           )}
 
         </main>
