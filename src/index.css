@@ -541,6 +541,159 @@ aside.glass-panel .btn svg {
 }
 
 /* ---------------------------------------------------------------------------
+   Phase A2 — Approval queue review experience (additive; tokens only).
+   Segmented status tabs, search/filter controls, demo-cleanup toggle, item
+   badges, and review cards. Display-only styling — no behavior is here.
+--------------------------------------------------------------------------- */
+.appr-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 4px;
+  background: var(--surface-soft);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+}
+
+.appr-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 14px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: var(--font-title);
+  font-weight: 600;
+  font-size: 0.8rem;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+  white-space: nowrap;
+}
+
+.appr-tab:hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.appr-tab.active {
+  color: #fff;
+  background: linear-gradient(135deg, var(--brand), var(--brand-hover));
+  box-shadow: 0 2px 10px rgba(244, 122, 31, 0.3);
+}
+
+.appr-tab__count {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 1px 7px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-muted);
+}
+
+.appr-tab.active .appr-tab__count {
+  background: rgba(255, 255, 255, 0.22);
+  color: #fff;
+}
+
+.appr-search {
+  width: 100%;
+  background: var(--surface-soft);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  padding: 7px 10px 7px 30px;
+}
+
+.appr-search::placeholder { color: var(--text-muted); }
+
+.appr-search:focus {
+  outline: none;
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px var(--brand-glow);
+}
+
+.appr-select {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  padding: 7px 9px;
+  cursor: pointer;
+}
+
+.appr-select:focus {
+  outline: none;
+  border-color: var(--brand);
+}
+
+.appr-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border-subtle);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-secondary);
+  font-family: var(--font-title);
+  font-size: 0.76rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+}
+
+.appr-toggle:hover {
+  border-color: rgba(244, 122, 31, 0.4);
+  color: var(--text-primary);
+}
+
+.appr-toggle.active {
+  background: rgba(52, 211, 153, 0.12);
+  border-color: rgba(52, 211, 153, 0.4);
+  color: #34d399;
+}
+
+.appr-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.64rem;
+  font-weight: 700;
+  border-radius: 5px;
+  padding: 2px 7px;
+  white-space: nowrap;
+  letter-spacing: 0.02em;
+}
+
+.appr-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 15px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+}
+
+.appr-card:hover {
+  border-color: rgba(244, 122, 31, 0.35);
+  background: rgba(255, 255, 255, 0.035);
+  transform: translateY(-1px);
+}
+
+.appr-card.selected {
+  background: rgba(244, 122, 31, 0.08);
+  border-color: rgba(244, 122, 31, 0.45);
+}
+
+/* ---------------------------------------------------------------------------
    Responsive — V2-E3 mobile polish (small, safe; desktop layout unchanged).
    Only narrow viewports are affected. Collapses the fixed 260px sidebar grid,
    relaxes container padding, lets the header wrap, and makes 2-col form grids

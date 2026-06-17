@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import {
   ClipboardCheck, AlertTriangle, ChevronRight, ArrowLeft,
   CheckCircle, XCircle, RotateCcw, MessageSquare, Send, X,
-  Clock, Filter, Info, User,
+  Clock, Filter, Info, User, Search, Factory, Zap, FlaskConical, Layers,
 } from 'lucide-react';
 import type {
   Client, Brand, Campaign, ContentPlanItem, RoleName,
@@ -42,6 +42,89 @@ interface Props {
 // ---------------------------------------------------------------------------
 
 type ViewMode = 'list' | 'detail';
+
+// ---------------------------------------------------------------------------
+// Phase A2 — Module / source / content-type classification (display only).
+//
+// Every AI Factory V1 module appends a metadata block to the content item's
+// caption (workflow_type / generation_mode / source) and sets a clean
+// content_type. We read those signals to label each approval item — we never
+// mutate any record. Classification is purely for review ergonomics.
+// ---------------------------------------------------------------------------
+
+type ModuleKey = 'content' | 'design' | 'video' | 'ads' | 'report' | 'other';
+type SourceKey = 'n8n' | 'local' | 'legacy';
+
+interface RequestClass {
+  module: ModuleKey;
+  source: SourceKey;
+}
+
+const MODULE_META: Record<ModuleKey, { label: string; contentType: string; color: string; safety: string }> = {
+  content: { label: 'Content Factory', contentType: 'content_pack', color: '#60a5fa', safety: 'Draft only — no auto-post.' },
+  design:  { label: 'Design Factory',  contentType: 'design_brief', color: '#a78bfa', safety: 'Brief / spec only — no image generation.' },
+  video:   { label: 'Video Scripts',   contentType: 'video_script', color: '#f472b6', safety: 'Script / spec only — no video generation.' },
+  ads:     { label: 'Ads Pack Draft',  contentType: 'ads_draft',    color: '#fb923c', safety: 'Draft / spec only — no auto-ads, no spend.' },
+  report:  { label: 'Report Draft',    contentType: 'report_draft', color: '#34d399', safety: 'Draft only — no live analytics pull, no unverified metrics.' },
+  other:   { label: 'Other / Legacy',  contentType: 'other',        color: '#94a3b8', safety: 'Draft only — review before any use.' },
+};
+
+const SOURCE_META: Record<SourceKey, { label: string; color: string }> = {
+  n8n:    { label: 'n8n AI Provider', color: '#34d399' },
+  local:  { label: 'Local demo',      color: '#f59e0b' },
+  legacy: { label: 'Legacy / mock',   color: '#94a3b8' },
+};
+
+const WORKFLOW_TO_MODULE: Record<string, ModuleKey> = {
+  content_pack:   'content',
+  design_factory: 'design',
+  video_scripts:  'video',
+  ads_pack:       'ads',
+  report_draft:   'report',
+};
+
+const CONTENT_TYPE_TO_MODULE: Record<string, ModuleKey> = {
+  content_pack: 'content',
+  caption:      'content',
+  design_brief: 'design',
+  video_script: 'video',
+  ads_draft:    'ads',
+  report_draft: 'report',
+};
+
+function readMetaLine(caption: string, key: string): string | undefined {
+  const m = caption.match(new RegExp(`^${key}:\\s*(.+)$`, 'm'));
+  return m ? m[1].trim() : undefined;
+}
+
+function classifyRequest(item: ContentPlanItem | undefined): RequestClass {
+  const caption = item?.caption ?? '';
+  const workflowType = readMetaLine(caption, 'workflow_type');
+  const generationMode = readMetaLine(caption, 'generation_mode');
+  const metaSource = readMetaLine(caption, 'source');
+
+  // Module — prefer the explicit workflow_type tag, then the structured
+  // content_type field, else treat as legacy/other.
+  let module: ModuleKey = 'other';
+  if (workflowType && WORKFLOW_TO_MODULE[workflowType]) {
+    module = WORKFLOW_TO_MODULE[workflowType];
+  } else if (item?.content_type && CONTENT_TYPE_TO_MODULE[item.content_type]) {
+    module = CONTENT_TYPE_TO_MODULE[item.content_type];
+  }
+
+  // Source — n8n if the metadata says so; local if it carries any V1 factory
+  // metadata but ran in fallback; legacy/mock otherwise (old demo seed data).
+  let source: SourceKey;
+  if (generationMode === 'external_module' || metaSource === 'n8n') {
+    source = 'n8n';
+  } else if (workflowType || generationMode === 'mock' || metaSource === 'local_mock') {
+    source = 'local';
+  } else {
+    source = 'legacy';
+  }
+
+  return { module, source };
+}
 
 // ---------------------------------------------------------------------------
 // Mini helpers
@@ -89,6 +172,28 @@ function PriorityChip({ priority }: { priority: ApprovalPriority }) {
   );
 }
 
+// Module / content-type / source badges (display only)
+function ClassBadges({ cls, showType = true }: { cls: RequestClass; showType?: boolean }) {
+  const m = MODULE_META[cls.module];
+  const s = SOURCE_META[cls.source];
+  const SourceIcon = cls.source === 'n8n' ? Zap : cls.source === 'local' ? FlaskConical : Layers;
+  return (
+    <>
+      <span className="appr-badge" style={{ color: m.color, background: `${m.color}18`, border: `1px solid ${m.color}40` }} title={`Module: ${m.label}`}>
+        <Factory size={10} /> {m.label}
+      </span>
+      {showType && (
+        <span className="appr-badge" style={{ color: 'var(--text-muted)', background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border-color)' }} title="Content type">
+          {m.contentType}
+        </span>
+      )}
+      <span className="appr-badge" style={{ color: s.color, background: `${s.color}18`, border: `1px solid ${s.color}40` }} title={`Source: ${s.label}`}>
+        <SourceIcon size={10} /> {s.label}
+      </span>
+    </>
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Safety Banner
 // ---------------------------------------------------------------------------
@@ -107,45 +212,64 @@ function ApprovalSafetyBanner() {
         <strong style={{ color: '#f59e0b' }}>Approval Workflow — Planning Gate Only.</strong>
         {' '}Generated ≠ Approved. Approved ≠ Published.{' '}
         <strong>Approval here only unlocks the next workflow stage — it does NOT publish content.</strong>
-        {' '}No auto-post. No real ads. No real customer messaging. Publishing is blocked until a later phase.
+        {' '}No auto-post. No auto-ads. No real customer messaging. No live analytics pull. Publishing is blocked until a later phase.
       </p>
     </div>
   );
 }
 
 // ---------------------------------------------------------------------------
-// Filter bar
+// Review Toolbar — status tabs + search + module/scope filters + demo cleanup
 // ---------------------------------------------------------------------------
 
 interface Filters {
   clientId: string;
   brandId: string;
   campaignId: string;
-  status: string;
+  status: string;   // '' = all
   priority: string;
+  module: string;   // '' = all
+  search: string;
 }
 
-function FilterBar({
-  filters, onChange, clients, brands, campaigns, total, shown,
+const EMPTY_FILTERS: Filters = { clientId: '', brandId: '', campaignId: '', status: '', priority: '', module: '', search: '' };
+
+const STATUS_TABS: { key: string; label: string; countKey: 'all' | ContentApprovalStatus }[] = [
+  { key: '',                    label: 'All',            countKey: 'all' },
+  { key: 'submitted',           label: 'Pending',        countKey: 'submitted' },
+  { key: 'approved',            label: 'Approved',       countKey: 'approved' },
+  { key: 'revision_requested',  label: 'Needs revision', countKey: 'revision_requested' },
+  { key: 'rejected',            label: 'Rejected',       countKey: 'rejected' },
+];
+
+const MODULE_OPTIONS: { key: string; label: string }[] = [
+  { key: '',        label: 'All modules' },
+  { key: 'content', label: 'Content Factory' },
+  { key: 'design',  label: 'Design Factory' },
+  { key: 'video',   label: 'Video Scripts' },
+  { key: 'ads',     label: 'Ads Pack Draft' },
+  { key: 'report',  label: 'Report Draft' },
+  { key: 'other',   label: 'Other / Legacy' },
+];
+
+type StatusCounts = { all: number } & Record<ContentApprovalStatus, number>;
+
+function ReviewToolbar({
+  filters, onChange, hideLocalDemo, onToggleDemo, localDemoTotal,
+  clients, brands, campaigns, statusCounts, total, shown,
 }: {
   filters: Filters;
   onChange: (f: Filters) => void;
+  hideLocalDemo: boolean;
+  onToggleDemo: () => void;
+  localDemoTotal: number;
   clients: Client[];
   brands: Brand[];
   campaigns: Campaign[];
+  statusCounts: StatusCounts;
   total: number;
   shown: number;
 }) {
-  const sel: React.CSSProperties = {
-    background: 'rgba(255,255,255,0.04)',
-    border: '1px solid var(--border-color)',
-    borderRadius: '6px',
-    color: 'var(--text-secondary)',
-    fontSize: '0.78rem',
-    padding: '5px 8px',
-    cursor: 'pointer',
-  };
-
   const set = (key: keyof Filters) => (e: React.ChangeEvent<HTMLSelectElement>) => {
     const val = e.target.value;
     const next = { ...filters, [key]: val };
@@ -159,45 +283,81 @@ function FilterBar({
     : filters.clientId ? campaigns.filter(c => c.client_id === filters.clientId)
     : campaigns;
 
-  const hasActive = Object.values(filters).some(Boolean);
-
-  const STATUSES: ContentApprovalStatus[] = ['submitted', 'approved', 'rejected', 'revision_requested', 'cancelled'];
   const PRIORITIES: ApprovalPriority[] = ['low', 'normal', 'high'];
 
+  const hasActive = !!(filters.clientId || filters.brandId || filters.campaignId || filters.status
+    || filters.priority || filters.module || filters.search || hideLocalDemo);
+
   return (
-    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center', padding: '12px 16px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-color)', borderRadius: '8px' }}>
-      <Filter size={13} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
-      <select style={sel} value={filters.clientId}   onChange={set('clientId')}>
-        <option value="">All Clients</option>
-        {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-      </select>
-      <select style={sel} value={filters.brandId}    onChange={set('brandId')}>
-        <option value="">All Brands</option>
-        {visBrands.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
-      </select>
-      <select style={sel} value={filters.campaignId} onChange={set('campaignId')}>
-        <option value="">All Campaigns</option>
-        {visCampaigns.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-      </select>
-      <select style={sel} value={filters.status}     onChange={set('status')}>
-        <option value="">All Statuses</option>
-        {STATUSES.map(s => <option key={s} value={s}>{APPROVAL_STATUS_LABEL[s]}</option>)}
-      </select>
-      <select style={sel} value={filters.priority}   onChange={set('priority')}>
-        <option value="">All Priorities</option>
-        {PRIORITIES.map(p => <option key={p} value={p}>{APPROVAL_PRIORITY_LABEL[p]}</option>)}
-      </select>
-      {hasActive && (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+
+      {/* Status tabs */}
+      <div className="appr-tabs">
+        {STATUS_TABS.map(tab => (
+          <button
+            key={tab.key || 'all'}
+            className={`appr-tab${filters.status === tab.key ? ' active' : ''}`}
+            onClick={() => onChange({ ...filters, status: tab.key })}
+          >
+            {tab.label}
+            <span className="appr-tab__count">{statusCounts[tab.countKey]}</span>
+          </button>
+        ))}
+      </div>
+
+      {/* Filter row */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}>
+        <div style={{ position: 'relative', flex: 1, minWidth: '200px', display: 'flex', alignItems: 'center' }}>
+          <Search size={13} style={{ position: 'absolute', left: '10px', color: 'var(--text-muted)', pointerEvents: 'none' }} />
+          <input
+            className="appr-search"
+            value={filters.search}
+            onChange={e => onChange({ ...filters, search: e.target.value })}
+            placeholder="Search title, client, brand, campaign…"
+          />
+        </div>
+
+        <select className="appr-select" value={filters.module} onChange={set('module')} title="Module / workflow">
+          {MODULE_OPTIONS.map(o => <option key={o.key} value={o.key}>{o.label}</option>)}
+        </select>
+        <select className="appr-select" value={filters.clientId} onChange={set('clientId')}>
+          <option value="">All Clients</option>
+          {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+        </select>
+        <select className="appr-select" value={filters.brandId} onChange={set('brandId')}>
+          <option value="">All Brands</option>
+          {visBrands.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+        </select>
+        <select className="appr-select" value={filters.campaignId} onChange={set('campaignId')}>
+          <option value="">All Campaigns</option>
+          {visCampaigns.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+        </select>
+        <select className="appr-select" value={filters.priority} onChange={set('priority')}>
+          <option value="">All Priorities</option>
+          {PRIORITIES.map(p => <option key={p} value={p}>{APPROVAL_PRIORITY_LABEL[p]}</option>)}
+        </select>
+
         <button
-          onClick={() => onChange({ clientId: '', brandId: '', campaignId: '', status: '', priority: '' })}
-          style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'transparent', border: 'none', color: '#f87171', fontSize: '0.75rem', cursor: 'pointer' }}
+          className={`appr-toggle${hideLocalDemo ? ' active' : ''}`}
+          onClick={onToggleDemo}
+          title="Display-only. Hides local/demo and legacy/mock items so you can focus on n8n-generated AI Factory output. Nothing is deleted."
         >
-          <X size={12} /> Clear
+          <Zap size={12} /> {hideLocalDemo ? 'n8n-only' : 'Hide local/demo'}
+          {localDemoTotal > 0 && <span style={{ fontSize: '0.66rem', opacity: 0.85 }}>({localDemoTotal})</span>}
         </button>
-      )}
-      <span style={{ marginLeft: 'auto', fontSize: '0.73rem', color: 'var(--text-muted)' }}>
-        {shown} / {total} requests
-      </span>
+
+        {hasActive && (
+          <button
+            onClick={() => { onChange({ ...EMPTY_FILTERS }); if (hideLocalDemo) onToggleDemo(); }}
+            style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'transparent', border: 'none', color: '#f87171', fontSize: '0.75rem', cursor: 'pointer' }}
+          >
+            <X size={12} /> Clear
+          </button>
+        )}
+        <span style={{ marginLeft: 'auto', fontSize: '0.73rem', color: 'var(--text-muted)' }}>
+          {shown} / {total} requests
+        </span>
+      </div>
     </div>
   );
 }
@@ -281,38 +441,33 @@ function SubmitPanel({ items, approvalData, canSubmit, onSubmit, clientName, bra
 // ---------------------------------------------------------------------------
 
 function RequestCard({
-  request, item, onClick, isSelected,
+  request, item, cls, onClick, isSelected,
 }: {
   request: ContentApprovalRequest;
   item: ContentPlanItem | undefined;
+  cls: RequestClass;
   onClick: () => void;
   isSelected: boolean;
 }) {
   const statusColor = APPROVAL_STATUS_COLOR[request.status];
   const statusLabel = APPROVAL_STATUS_LABEL[request.status];
+  const isApproved = request.status === 'approved';
 
   return (
-    <div
-      onClick={onClick}
-      style={{
-        display: 'flex', alignItems: 'center', gap: '10px',
-        padding: '12px 14px',
-        background: isSelected ? 'rgba(244, 122, 31,0.08)' : 'rgba(255,255,255,0.02)',
-        border: `1px solid ${isSelected ? 'rgba(244, 122, 31,0.4)' : 'var(--border-color)'}`,
-        borderRadius: '8px',
-        cursor: 'pointer',
-        transition: 'all 0.15s',
-      }}
-    >
+    <div onClick={onClick} className={`appr-card${isSelected ? ' selected' : ''}`}>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <div title={item?.hook ?? request.title} style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {item?.hook ?? request.title}
         </div>
-        <div style={{ display: 'flex', gap: '6px', marginTop: '4px', flexWrap: 'wrap', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: '6px', marginTop: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
+          <ClassBadges cls={cls} />
           {item?.channel && (
             <span style={{ fontSize: '0.68rem', color: '#60a5fa', background: 'rgba(96,165,250,0.1)', borderRadius: '4px', padding: '1px 6px' }}>
               {item.channel}
             </span>
+          )}
+          {isApproved && (
+            <span style={{ fontSize: '0.66rem', fontWeight: 700, color: '#34d399' }}>· not published</span>
           )}
           <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
             {formatDate(request.created_at)}
@@ -336,6 +491,7 @@ function RequestCard({
 interface DetailViewProps {
   request: ContentApprovalRequest;
   item: ContentPlanItem | undefined;
+  cls: RequestClass;
   events: ContentApprovalEvent[];
   comments: ContentApprovalComment[];
   canApprove: boolean;
@@ -349,7 +505,7 @@ interface DetailViewProps {
 }
 
 function DetailView({
-  request, item, events, comments,
+  request, item, cls, events, comments,
   canApprove, canSubmitAction,
   onAction, onComment, onBack,
   clientName, brandName, campaignName,
@@ -366,6 +522,7 @@ function DetailView({
 
   const statusColor = APPROVAL_STATUS_COLOR[request.status];
   const statusLabel = APPROVAL_STATUS_LABEL[request.status];
+  const moduleMeta = MODULE_META[cls.module];
 
   const fieldStyle: React.CSSProperties = {
     fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.6, whiteSpace: 'pre-wrap', wordBreak: 'break-word',
@@ -415,6 +572,18 @@ function DetailView({
     }
   };
 
+  // Status-context safety line shown for resolved (non-active) requests so the
+  // "Approved ≠ Published" guarantee is always visible, not only while pending.
+  const resolvedSafety = request.status === 'approved'
+    ? 'Approved — not published. This unlocked the next workflow stage only; nothing was posted, launched, scheduled, sent to ads, or spent.'
+    : request.status === 'rejected'
+    ? 'Rejected. No content was published or used.'
+    : request.status === 'revision_requested'
+    ? 'Revision requested. Draft returned for edits — nothing was published.'
+    : request.status === 'cancelled'
+    ? 'Request cancelled. No content was published or used.'
+    : null;
+
   const btnBase: React.CSSProperties = {
     display: 'flex', alignItems: 'center', gap: '6px',
     padding: '7px 14px', borderRadius: '7px', fontSize: '0.8rem', fontWeight: 700,
@@ -436,11 +605,11 @@ function DetailView({
 
       {/* Header card */}
       <div className="glass-panel" style={{ padding: '20px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
-          <div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
+          <div style={{ minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
               <ClipboardCheck size={16} style={{ color: '#fb923c' }} />
-              <h2 style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0 }}>Approval Request</h2>
+              <h2 style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0 }}>{request.title}</h2>
             </div>
             <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: 0 }}>
               {clientName(request.client_id)} → {brandName(request.brand_id)} → {campaignName(request.campaign_id)}
@@ -452,10 +621,20 @@ function DetailView({
           </div>
         </div>
 
+        {/* Module / source / content-type badges + per-module safety note */}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'center', marginBottom: '14px' }}>
+          <ClassBadges cls={cls} />
+          <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+            <Info size={11} /> {moduleMeta.safety}
+          </span>
+        </div>
+
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '10px' }}>
           {[
             { label: 'Submitted by', value: request.requested_by },
             { label: 'Assigned to', value: request.assigned_to_role ?? 'Manager' },
+            { label: 'Module', value: moduleMeta.label },
+            { label: 'Source', value: SOURCE_META[cls.source].label },
             { label: 'Due Date', value: formatDate(request.due_date) },
             { label: 'Created', value: formatDate(request.created_at) },
             { label: 'Resolved', value: formatDate(request.resolved_at) },
@@ -467,6 +646,13 @@ function DetailView({
             </div>
           ))}
         </div>
+
+        {/* Resolved-state safety line (always visible once a decision is recorded) */}
+        {resolvedSafety && (
+          <div style={{ marginTop: '14px', padding: '9px 12px', background: `${statusColor}10`, border: `1px solid ${statusColor}33`, borderRadius: '7px', fontSize: '0.74rem', color: 'var(--text-secondary)' }}>
+            <strong style={{ color: statusColor }}>{statusLabel}.</strong> {resolvedSafety}
+          </div>
+        )}
       </div>
 
       {/* Content preview */}
@@ -571,7 +757,7 @@ function DetailView({
           )}
 
           <div style={{ marginTop: '10px', padding: '8px 12px', background: 'rgba(248,113,113,0.06)', border: '1px solid rgba(248,113,113,0.2)', borderRadius: '6px', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-            <strong style={{ color: '#f87171' }}>Approved ≠ Published.</strong> Approval here only unlocks the next workflow stage. Publishing requires a separate final step (not enabled in this MVP).
+            <strong style={{ color: '#f87171' }}>Approved ≠ Published.</strong> Approval here only unlocks the next workflow stage. Publishing requires a separate final step (not enabled in this MVP). {moduleMeta.safety}
           </div>
         </div>
       )}
@@ -679,24 +865,66 @@ export default function ApprovalsTab({
 
   const [viewMode, setViewMode]       = useState<ViewMode>('list');
   const [selectedReqId, setSelectedReqId] = useState<string | null>(null);
-  const [filters, setFilters]         = useState<Filters>({ clientId: '', brandId: '', campaignId: '', status: '', priority: '' });
+  const [filters, setFilters]         = useState<Filters>({ ...EMPTY_FILTERS });
+  const [hideLocalDemo, setHideLocalDemo] = useState(false);
 
   const clientName   = (id: string | null) => id ? (clients.find(c => c.id === id)?.name ?? '—') : '—';
   const brandName    = (id: string | null) => id ? (brands.find(b => b.id === id)?.name ?? '—') : '—';
   const campaignName = (id: string) => campaigns.find(c => c.id === id)?.name ?? '—';
   const itemFor      = (id: string) => contentItems.find(i => i.id === id);
 
-  // Filtered approval requests
-  const filteredRequests = useMemo(() => {
+  // Classify every request once (module + source) — display only, no mutation.
+  const classOf = useMemo(() => {
+    const map = new Map<string, RequestClass>();
+    for (const r of approvalData.approvalRequests) {
+      map.set(r.id, classifyRequest(contentItems.find(i => i.id === r.content_item_id)));
+    }
+    return map;
+  }, [approvalData.approvalRequests, contentItems]);
+
+  // Requests matching everything EXCEPT the status tab (so tab counts stay
+  // meaningful in the current scope/search/module/demo context).
+  const scopeFiltered = useMemo(() => {
+    const q = filters.search.trim().toLowerCase();
     return approvalData.approvalRequests.filter(r => {
       if (filters.clientId   && r.client_id   !== filters.clientId)   return false;
-      if (filters.brandId    && r.brand_id     !== filters.brandId)    return false;
-      if (filters.campaignId && r.campaign_id  !== filters.campaignId) return false;
-      if (filters.status     && r.status       !== filters.status)    return false;
-      if (filters.priority   && r.priority     !== filters.priority)  return false;
+      if (filters.brandId    && r.brand_id    !== filters.brandId)    return false;
+      if (filters.campaignId && r.campaign_id !== filters.campaignId) return false;
+      if (filters.priority   && r.priority    !== filters.priority)   return false;
+      const cls = classOf.get(r.id);
+      if (filters.module && cls?.module !== filters.module) return false;
+      if (hideLocalDemo && cls?.source !== 'n8n') return false;
+      if (q) {
+        const item = itemFor(r.content_item_id);
+        const hay = [r.title, item?.hook, clientName(r.client_id), brandName(r.brand_id), campaignName(r.campaign_id)]
+          .filter(Boolean).join(' ').toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
       return true;
-    }).sort((a, b) => b.created_at.localeCompare(a.created_at));
-  }, [approvalData.approvalRequests, filters]);
+    });
+  }, [approvalData.approvalRequests, contentItems, clients, brands, campaigns,
+      filters.clientId, filters.brandId, filters.campaignId, filters.priority,
+      filters.module, filters.search, hideLocalDemo, classOf]);
+
+  const statusCounts = useMemo<StatusCounts>(() => {
+    const c: StatusCounts = { all: scopeFiltered.length, draft: 0, submitted: 0, approved: 0, rejected: 0, revision_requested: 0, cancelled: 0 };
+    for (const r of scopeFiltered) c[r.status] += 1;
+    return c;
+  }, [scopeFiltered]);
+
+  const filteredRequests = useMemo(() => {
+    const base = filters.status ? scopeFiltered.filter(r => r.status === filters.status) : scopeFiltered;
+    return [...base].sort((a, b) => b.created_at.localeCompare(a.created_at));
+  }, [scopeFiltered, filters.status]);
+
+  const localDemoTotal = useMemo(() => {
+    let n = 0;
+    for (const r of approvalData.approvalRequests) {
+      const cls = classOf.get(r.id);
+      if (cls && cls.source !== 'n8n') n += 1;
+    }
+    return n;
+  }, [approvalData.approvalRequests, classOf]);
 
   // Permission gate
   if (!canView) {
@@ -726,6 +954,7 @@ export default function ApprovalsTab({
       <DetailView
         request={request}
         item={item}
+        cls={classOf.get(request.id) ?? classifyRequest(item)}
         events={events}
         comments={comments}
         canApprove={canApprove}
@@ -744,25 +973,31 @@ export default function ApprovalsTab({
 
   const submittedCount       = approvalData.approvalRequests.filter(r => r.status === 'submitted').length;
   const eligibleToSubmit     = contentItems.filter(i => canSubmitItem(approvalData, i));
+  const n8nCount             = approvalData.approvalRequests.length - localDemoTotal;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
 
       {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '8px' }}>
         <div>
           <h2 style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
             <ClipboardCheck size={20} style={{ color: '#fb923c' }} />
-            Approvals
+            Approval Review Center
           </h2>
           <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: '4px 0 0' }}>
-            Submit content for review and record approval decisions.
+            Review AI Factory drafts and record approval decisions. Approval is a planning gate — it never publishes.
           </p>
         </div>
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
           {submittedCount > 0 && (
             <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#60a5fa', background: 'rgba(96,165,250,0.12)', border: '1px solid rgba(96,165,250,0.3)', borderRadius: '5px', padding: '2px 8px' }}>
               {submittedCount} pending review
+            </span>
+          )}
+          {n8nCount > 0 && (
+            <span style={{ fontSize: '0.68rem', fontWeight: 700, color: '#34d399', background: 'rgba(52,211,153,0.1)', border: '1px solid rgba(52,211,153,0.3)', borderRadius: '5px', padding: '2px 8px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+              <Zap size={11} /> {n8nCount} n8n-generated
             </span>
           )}
           <span style={{ fontSize: '0.68rem', fontWeight: 700, color: '#f59e0b', background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.3)', borderRadius: '5px', padding: '2px 8px' }}>
@@ -793,33 +1028,54 @@ export default function ApprovalsTab({
         </div>
       )}
 
-      {/* Filter */}
-      <FilterBar
-        filters={filters}
-        onChange={setFilters}
-        clients={clients}
-        brands={brands}
-        campaigns={campaigns}
-        total={approvalData.approvalRequests.length}
-        shown={filteredRequests.length}
-      />
+      {/* Toolbar — status tabs + filters + search + demo cleanup */}
+      {approvalData.approvalRequests.length > 0 && (
+        <ReviewToolbar
+          filters={filters}
+          onChange={setFilters}
+          hideLocalDemo={hideLocalDemo}
+          onToggleDemo={() => setHideLocalDemo(v => !v)}
+          localDemoTotal={localDemoTotal}
+          clients={clients}
+          brands={brands}
+          campaigns={campaigns}
+          statusCounts={statusCounts}
+          total={approvalData.approvalRequests.length}
+          shown={filteredRequests.length}
+        />
+      )}
+
+      {/* Demo-cleanup notice (display-only; nothing deleted) */}
+      {hideLocalDemo && localDemoTotal > 0 && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 14px', background: 'rgba(52,211,153,0.06)', border: '1px solid rgba(52,211,153,0.25)', borderRadius: '8px', fontSize: '0.74rem', color: 'var(--text-secondary)' }}>
+          <Zap size={13} style={{ color: '#34d399', flexShrink: 0 }} />
+          Showing n8n-generated items only — <strong style={{ color: '#34d399' }}>{localDemoTotal}</strong> local/demo &amp; legacy item{localDemoTotal !== 1 ? 's' : ''} hidden. Display-only filter; nothing was deleted.
+        </div>
+      )}
 
       {/* Request list */}
       {approvalData.approvalRequests.length === 0 ? (
         <div className="glass-panel" style={{ padding: '56px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
           <ClipboardCheck size={36} style={{ color: 'var(--text-muted)' }} />
-          <div style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-secondary)' }}>No approval requests yet</div>
-          <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', maxWidth: '360px' }}>
+          <div style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-secondary)' }}>No approvals yet</div>
+          <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', maxWidth: '380px' }}>
             {eligibleToSubmit.length > 0
               ? 'Use the "Submit for Approval" buttons above to start the review process.'
-              : 'Generate content from an approved brief first, then submit items for approval.'}
+              : 'Generate a new AI Factory pack (Content, Design, Video, Ads, or Report) and submit items here to review. Nothing is ever published from this screen.'}
           </div>
         </div>
       ) : filteredRequests.length === 0 ? (
-        <div className="glass-panel" style={{ padding: '40px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
+        <div className="glass-panel" style={{ padding: '44px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
           <Filter size={28} style={{ color: 'var(--text-muted)' }} />
-          <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>No requests match the current filters.</div>
-          <button onClick={() => setFilters({ clientId: '', brandId: '', campaignId: '', status: '', priority: '' })} style={{ fontSize: '0.78rem', color: '#fb923c', background: 'transparent', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>
+          <div style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
+            {filters.status === 'submitted' ? 'No pending approvals' : 'No requests match the current view'}
+          </div>
+          <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', maxWidth: '360px' }}>
+            {filters.status === 'submitted'
+              ? 'Generate a new AI Factory pack to review.'
+              : 'Try adjusting the status tab, search, module, or scope filters.'}
+          </div>
+          <button onClick={() => { setFilters({ ...EMPTY_FILTERS }); setHideLocalDemo(false); }} style={{ fontSize: '0.78rem', color: '#fb923c', background: 'transparent', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>
             Clear filters
           </button>
         </div>
@@ -830,6 +1086,7 @@ export default function ApprovalsTab({
               key={req.id}
               request={req}
               item={itemFor(req.content_item_id)}
+              cls={classOf.get(req.id) ?? classifyRequest(itemFor(req.content_item_id))}
               isSelected={selectedReqId === req.id}
               onClick={() => { setSelectedReqId(req.id); setViewMode('detail'); }}
             />
@@ -850,6 +1107,7 @@ export default function ApprovalsTab({
               </span>
             );
           })}
+          <span style={{ marginLeft: 'auto' }}>Approved ≠ Published — no auto-post, no auto-ads, no live analytics pull.</span>
         </div>
       )}
 
