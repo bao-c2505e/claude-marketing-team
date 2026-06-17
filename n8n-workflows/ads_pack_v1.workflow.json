@@ -1,0 +1,155 @@
+{
+  "name": "Ads Pack Draft V1 - Ads Pack",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "ads-pack-v1/ads-pack",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "AdsPackWebhook",
+      "name": "Receive Ads Pack Request",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300],
+      "webhookId": "ads-pack-v1-ads-pack"
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $json.body || $json;\nconst required = ['request_id', 'workflow_type', 'generated_by', 'client', 'brand', 'campaign', 'brief', 'options', 'ads_pack_types', 'safety'];\nconst missing = required.filter((key) => body[key] === undefined || body[key] === null);\nconst safety = body.safety || {};\nconst safetyOk = body.workflow_type === 'ads_pack'\n  && body.owner_approval_required === true\n  && body.generate_images === false\n  && body.generate_videos === false\n  && body.create_ads === false\n  && body.launch_ads === false\n  && safety.no_auto_post === true\n  && safety.no_auto_ads === true\n  && safety.no_live_connectors === true\n  && safety.no_platform_launch === true\n  && safety.no_image_generation === true\n  && safety.no_video_generation === true\n  && safety.no_secrets === true\n  && safety.owner_approval_required === true;\nif (missing.length || !safetyOk) {\n  return [{ json: {\n    ok: false,\n    request_id: body.request_id || null,\n    error: {\n      code: missing.length ? 'INVALID_CONTRACT' : 'REJECTED_BY_SAFETY',\n      message: missing.length ? `Missing required fields: ${missing.join(', ')}` : 'Safety flags rejected this request (ads pack is strategy/draft notes only — no ads are created, launched, scheduled, or spent, and no image or video generation).'\n    },\n    status: 'failed',\n    owner_approval_required: true,\n    safety\n  }}];\n}\nreturn [{ json: body }];"
+      },
+      "id": "ValidatePayload",
+      "name": "Validate Contract + Safety",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [500, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "IsValid",
+              "leftValue": "={{ $json.ok }}",
+              "rightValue": false,
+              "operator": {
+                "type": "boolean",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "IsValidRequest",
+      "name": "Valid Request?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [740, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const request = $json;\nconst channel = request.options?.channel || 'Facebook';\nconst goal = request.options?.goal || 'branding';\nconst brand = request.brand?.name || 'Brand';\nconst product = request.brief?.product_focus || request.brand?.hero_product || 'hero product';\nconst audience = request.brief?.target_audience || request.brand?.target_audience || 'core local audience';\nconst offer = request.brief?.offer || 'Assumption: feature the current campaign hero offer';\nconst cta = goal === 'sales' ? 'Inbox to order' : goal === 'lead' ? 'Leave your contact' : 'Learn more';\nconst specs = [\n  { key: 'campaign_angle_offer', title: 'Campaign Angle & Offer Draft',  focus: 'Positioning & offer',      objective: 'Define the core campaign angle and the offer to test' },\n  { key: 'ad_copy_variants',     title: 'Ad Copy Variants Draft',        focus: 'Primary text & headlines', objective: 'Draft multiple ad copy variants for the owner to A/B test' },\n  { key: 'audience_targeting',   title: 'Audience & Targeting Notes',    focus: 'Audience strategy',        objective: 'Outline audience segments & targeting notes (no audiences are created)' },\n  { key: 'budget_testing_plan',  title: 'Budget & Testing Plan Draft',   focus: 'Budget & test structure',  objective: 'Draft a budget split and testing plan for owner review (no budget is set or spent)' },\n  { key: 'ads_manager_handoff',  title: 'Ads Manager Handoff Checklist', focus: 'Manual handoff',           objective: 'Checklist for a human to set up manually in Ads Manager after approval' }\n];\nconst items = specs.map((spec) => ({\n  key: spec.key,\n  title: spec.title,\n  focus: spec.focus,\n  objective: spec.objective,\n  target_audience: audience,\n  draft_body: `Draft notes for ${brand} (${product}) on ${channel}. ${spec.objective}. Offer to test: ${offer}. Draft only - no ads are created or launched.`,\n  key_points: `Key draft points for ${brand} (${spec.focus}). Owner reviews and decides.`,\n  testing_note: spec.key === 'budget_testing_plan' ? 'Draft only: small test budget split for owner review. No budget is set, scheduled, or spent.' : 'Draft note for owner review - nothing is created, launched, or scheduled.',\n  cta,\n  generated_by: 'n8n-ai-provider',\n  workflow_type: 'ads_pack',\n  content_type: 'ads_draft',\n  status: 'pending_approval',\n  owner_approval_required: true\n}));\nreturn [{ json: {\n  ok: true,\n  request_id: request.request_id,\n  workflow_type: 'ads_pack',\n  content_type: 'ads_draft',\n  generated_by: 'n8n-ai-provider',\n  owner_approval_required: true,\n  status: 'pending_approval',\n  job: {\n    external_execution_id: $execution.id,\n    item_count: items.length\n  },\n  items,\n  safety: request.safety\n}}];"
+      },
+      "id": "AiProviderPlaceholder",
+      "name": "AI Provider Placeholder",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [980, 220],
+      "notes": "Replace this Code node with an OpenAI/Claude/Gemini n8n node using n8n Credentials (credential-placeholder only — never commit an API key). STRATEGY/DRAFT NOTES ONLY — do NOT add any node that creates campaigns, ad sets, ads, audiences, budgets, pixels, posts, or scheduled launches, and no image/video generation node. Do NOT add any Meta/TikTok/Zalo/Google Ads/Canva/ComfyUI/Fal.ai connector. Keep the Validate Contract + Safety and Return Validation Failure nodes as the safety gate. Do not commit API keys."
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "SuccessResponse",
+      "name": "Return Structured Ads Pack",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1220, 220]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 400
+        }
+      },
+      "id": "FailureResponse",
+      "name": "Return Validation Failure",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [980, 420]
+    }
+  ],
+  "connections": {
+    "Receive Ads Pack Request": {
+      "main": [
+        [
+          {
+            "node": "Validate Contract + Safety",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Contract + Safety": {
+      "main": [
+        [
+          {
+            "node": "Valid Request?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Valid Request?": {
+      "main": [
+        [
+          {
+            "node": "AI Provider Placeholder",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Return Validation Failure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Provider Placeholder": {
+      "main": [
+        [
+          {
+            "node": "Return Structured Ads Pack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "tags": []
+}

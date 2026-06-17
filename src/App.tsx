@@ -67,6 +67,8 @@ import { runDesignFactory } from './lib/core/designFactory';
 import type { DesignFactoryResult } from './lib/core/designFactory';
 import { runVideoFactory } from './lib/core/videoFactory';
 import type { VideoFactoryResult } from './lib/core/videoFactory';
+import { runAdsFactory } from './lib/core/adsFactory';
+import type { AdsFactoryResult } from './lib/core/adsFactory';
 import type { ContentFactoryResult, ContentFactoryRunInput } from './lib/core/contentFactory';
 
 const manualExportBlocks = [
@@ -659,6 +661,34 @@ export default function App() {
   // video scripts land in the Approval Board as pending items.
   const handleVideoFactoryGenerate = async (input: ContentFactoryRunInput): Promise<VideoFactoryResult> => {
     const result = await runVideoFactory(input);
+    const baseGen: GenerationDataStore = {
+      generationJobs: [result.job, ...genData.generationJobs],
+      contentItems: [...result.items, ...genData.contentItems],
+    };
+
+    let nextGen = baseGen;
+    let nextApproval = approvalData;
+    for (const item of result.items) {
+      const submitted = submitForApproval(nextApproval, nextGen, item, actorLabel, { priority: 'normal' });
+      nextApproval = submitted.approval;
+      nextGen = submitted.gen;
+    }
+
+    setGenData(nextGen);
+    saveGenerationData(nextGen);
+    setApprovalData(nextApproval);
+    saveApprovalData(nextApproval);
+    return result;
+  };
+
+  // Ads Pack Draft Factory V1 — reuses the same external_module job/item/approval
+  // path as the Content / Design / Video factories. Produces ads draft
+  // (strategy/spec) approval items only; never creates, launches, schedules, or
+  // spends ads, never images/video, never a live connector. Auto-submits each
+  // item for approval exactly like the other packs, so ads drafts land in the
+  // Approval Board as pending items.
+  const handleAdsFactoryGenerate = async (input: ContentFactoryRunInput): Promise<AdsFactoryResult> => {
+    const result = await runAdsFactory(input);
     const baseGen: GenerationDataStore = {
       generationJobs: [result.job, ...genData.generationJobs],
       contentItems: [...result.items, ...genData.contentItems],
@@ -1672,6 +1702,7 @@ export default function App() {
                   onGenerateContentPack={handleContentFactoryGenerate}
                   onGenerateDesignBriefs={handleDesignFactoryGenerate}
                   onGenerateVideoScripts={handleVideoFactoryGenerate}
+                  onGenerateAdsPack={handleAdsFactoryGenerate}
                   actorLabel={actorLabel}
                 />
               )}

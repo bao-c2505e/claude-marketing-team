@@ -26,6 +26,8 @@ import type { DesignFactoryResult } from '../../lib/core/designFactory';
 import { getDesignFactoryWebhookUrl } from '../../lib/core/designFactory';
 import type { VideoFactoryResult } from '../../lib/core/videoFactory';
 import { getVideoFactoryWebhookUrl } from '../../lib/core/videoFactory';
+import type { AdsFactoryResult } from '../../lib/core/adsFactory';
+import { getAdsFactoryWebhookUrl } from '../../lib/core/adsFactory';
 
 interface Props {
   clients: Client[];
@@ -42,6 +44,7 @@ interface Props {
   onGenerateContentPack: (input: ContentFactoryRunInput) => Promise<ContentFactoryResult>;
   onGenerateDesignBriefs: (input: ContentFactoryRunInput) => Promise<DesignFactoryResult>;
   onGenerateVideoScripts: (input: ContentFactoryRunInput) => Promise<VideoFactoryResult>;
+  onGenerateAdsPack: (input: ContentFactoryRunInput) => Promise<AdsFactoryResult>;
   actorLabel: string;
 }
 
@@ -114,6 +117,7 @@ export default function AutomationFactoryTab({
   onGenerateContentPack,
   onGenerateDesignBriefs,
   onGenerateVideoScripts,
+  onGenerateAdsPack,
   actorLabel,
 }: Props) {
   const [drafts, setDrafts] = useState<DraftWorkflow[]>([]);
@@ -136,6 +140,9 @@ export default function AutomationFactoryTab({
   const [isGeneratingVideo, setIsGeneratingVideo] = useState(false);
   const [videoMessage, setVideoMessage] = useState<string | null>(null);
   const [videoError, setVideoError] = useState<string | null>(null);
+  const [isGeneratingAds, setIsGeneratingAds] = useState(false);
+  const [adsMessage, setAdsMessage] = useState<string | null>(null);
+  const [adsError, setAdsError] = useState<string | null>(null);
   const canUseFactory = userRole === 'owner' || userRole === 'manager';
   // n8n AI provider is active when its webhook env is configured; otherwise the
   // workflow runs the local fallback generator. Drives the labels. Content Pack
@@ -143,6 +150,7 @@ export default function AutomationFactoryTab({
   const n8nConfigured = getContentFactoryWebhookUrl() !== null;
   const designConfigured = getDesignFactoryWebhookUrl() !== null;
   const videoConfigured = getVideoFactoryWebhookUrl() !== null;
+  const adsConfigured = getAdsFactoryWebhookUrl() !== null;
 
   const readyBriefs = useMemo(
     () => briefs.filter(brief => brief.status === 'approved_for_generation').length,
@@ -296,6 +304,32 @@ export default function AutomationFactoryTab({
     }
   };
 
+  const handleGenerateAdsPack = async () => {
+    setAdsError(null);
+    setAdsMessage(null);
+    if (!selectedClient || !selectedBrand || !selectedCampaign || !selectedBrief) {
+      setAdsError('Select a client, brand, campaign, and brief first.');
+      return;
+    }
+    setIsGeneratingAds(true);
+    try {
+      const result = await onGenerateAdsPack({
+        client: selectedClient,
+        brand: selectedBrand,
+        campaign: selectedCampaign,
+        brief: selectedBrief,
+        options: contentOptions,
+        requestedBy: actorLabel,
+      });
+      const source = result.mode === 'n8n' ? 'n8n AI Provider' : 'Local fallback mode';
+      setAdsMessage(`${result.items.length} ads draft approval items were created via ${source}. These are drafts only — no ads were created, launched, scheduled, or spent.`);
+    } catch (err) {
+      setAdsError(err instanceof Error ? err.message : 'Ads pack generation failed. No ads draft items were created and no ads were launched.');
+    } finally {
+      setIsGeneratingAds(false);
+    }
+  };
+
   if (!canUseFactory) {
     return (
       <div className="glass-panel" style={{ padding: '40px', textAlign: 'center' }}>
@@ -366,10 +400,11 @@ export default function AutomationFactoryTab({
           <div>
             <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '4px' }}>Workflow Starters</h3>
             <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: 0 }}>
-              Content Pack, Design Briefs, and Video Scripts run as external module jobs (n8n AI Provider when the
-              webhook is configured, otherwise local fallback) and create pending approval items only — approval-first,
-              no posting or launching. Design Briefs and Video Scripts are text/spec only (no image or video
-              generation). Other starters create local UI draft records only.
+              Content Pack, Design Briefs, Video Scripts, and Ads Pack run as external module jobs (n8n AI Provider
+              when the webhook is configured, otherwise local fallback) and create pending approval items only —
+              approval-first, no posting or launching. Design Briefs, Video Scripts, and Ads Pack are text/spec/draft
+              only (no image or video generation; Ads Pack creates, launches, schedules, and spends nothing). Other
+              starters create local UI draft records only.
             </p>
           </div>
           <span className="badge badge-brand" style={{ fontSize: '0.68rem' }}>
@@ -397,6 +432,10 @@ export default function AutomationFactoryTab({
                   ) : workflow.id === 'video-scripts' ? (
                     <span style={{ fontSize: '0.68rem', color: videoConfigured ? '#34d399' : '#f59e0b' }}>
                       {videoConfigured ? 'n8n AI Provider · External module job' : 'Local fallback mode · External module job'}
+                    </span>
+                  ) : workflow.id === 'ads-pack' ? (
+                    <span style={{ fontSize: '0.68rem', color: adsConfigured ? '#34d399' : '#f59e0b' }}>
+                      {adsConfigured ? 'n8n AI Provider · External module job' : 'Local fallback mode · External module job'}
                     </span>
                   ) : (
                     <span style={{ fontSize: '0.68rem', color: '#f59e0b' }}>Coming next / draft workflow</span>
@@ -447,6 +486,16 @@ export default function AutomationFactoryTab({
                   selectedBriefTitle={selectedBrief?.brief_title || selectedBrief?.brand_name || null}
                   channel={contentOptions.channel}
                   onGenerate={handleGenerateVideoScripts}
+                />
+              ) : workflow.id === 'ads-pack' ? (
+                <AdsPackControls
+                  isGenerating={isGeneratingAds}
+                  message={adsMessage}
+                  error={adsError}
+                  adsConfigured={adsConfigured}
+                  selectedBriefTitle={selectedBrief?.brief_title || selectedBrief?.brand_name || null}
+                  channel={contentOptions.channel}
+                  onGenerate={handleGenerateAdsPack}
                 />
               ) : (
                 <button
@@ -720,6 +769,60 @@ function VideoScriptControls({
       </button>
       <p style={{ fontSize: '0.68rem', color: 'var(--text-muted)', lineHeight: 1.4, margin: 0 }}>
         Approval-first: video scripts only. Nothing is posted or launched. No auto-post, no auto-ads, no image or video generation.
+      </p>
+    </div>
+  );
+}
+
+function AdsPackControls({
+  isGenerating,
+  message,
+  error,
+  adsConfigured,
+  selectedBriefTitle,
+  channel,
+  onGenerate,
+}: {
+  isGenerating: boolean;
+  message: string | null;
+  error: string | null;
+  adsConfigured: boolean;
+  selectedBriefTitle: string | null;
+  channel: string;
+  onGenerate: () => void;
+}) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: 'auto' }}>
+      <p style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', lineHeight: 1.45, margin: 0 }}>
+        Generates 5 ads draft items (campaign angle &amp; offer, ad copy variants, audience &amp; targeting notes,
+        budget &amp; testing plan, Ads Manager handoff checklist). Strategy/draft notes only — no ads are created,
+        launched, scheduled, or spent. No Meta/TikTok/Zalo/Google Ads connector.
+      </p>
+      <p style={{ fontSize: '0.68rem', color: 'var(--text-muted)', margin: 0 }}>
+        Target: {selectedBriefTitle ?? '— select a brief in Content Pack above —'} · {channel}
+      </p>
+
+      <div>
+        <span style={{ fontSize: '0.66rem', fontWeight: 700, color: adsConfigured ? '#34d399' : '#f59e0b', background: adsConfigured ? 'rgba(52,211,153,0.12)' : 'rgba(245,158,11,0.12)', border: `1px solid ${adsConfigured ? 'rgba(52,211,153,0.35)' : 'rgba(245,158,11,0.35)'}`, borderRadius: '5px', padding: '2px 7px' }}>
+          {adsConfigured ? 'n8n AI Provider' : 'Local fallback mode'}
+        </span>
+      </div>
+
+      {message && <p style={{ fontSize: '0.72rem', color: '#34d399', lineHeight: 1.45, margin: 0 }}>{message}</p>}
+      {error && <p style={{ fontSize: '0.72rem', color: '#f87171', lineHeight: 1.45, margin: 0 }}>{error}</p>}
+
+      <button
+        className="btn btn-primary"
+        onClick={onGenerate}
+        disabled={isGenerating}
+        style={{ justifyContent: 'center', fontSize: '0.82rem' }}
+      >
+        <Megaphone size={14} /> {isGenerating
+          ? (adsConfigured ? 'Generating via n8n AI Provider...' : 'Generating (local fallback)...')
+          : (adsConfigured ? 'Generate Ads Pack with n8n AI Provider' : 'Generate Ads Pack with Local fallback')}
+      </button>
+      <p style={{ fontSize: '0.68rem', color: 'var(--text-muted)', lineHeight: 1.4, margin: 0 }}>
+        Approval-first: ads drafts only. Nothing is posted or launched. No auto-post, no auto-ads, no platform launch. Approved ≠ Published.
       </p>
     </div>
   );
