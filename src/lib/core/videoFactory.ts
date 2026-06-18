@@ -32,12 +32,15 @@ interface VideoScriptSpec {
   objective: string;
 }
 
+// Platforms cover the short-form surfaces a Vietnamese FnB brand actually uses:
+// TikTok, Facebook Reels, YouTube Shorts and Zalo short video. Formats are
+// phone-shootable (9:16 vertical), not studio productions.
 const VIDEO_SCRIPT_SPECS: VideoScriptSpec[] = [
-  { key: 'hook_first_3s',          title: 'Hook / First 3 Seconds Script',                platform: 'Reels / TikTok', format: 'First 3 seconds (9:16 vertical)', objective: 'Stop the scroll in the first 3 seconds' },
-  { key: 'short_form_script',      title: 'Short-Form Video Script (Reels/TikTok, 15–30s)', platform: 'Reels / TikTok', format: '15–30s vertical (9:16)',          objective: 'Deliver the core message in 15–30s' },
-  { key: 'voiceover_caption_script', title: 'Voiceover / Caption Script',                 platform: 'Cross-channel',  format: 'Voiceover + on-screen captions',  objective: 'Spoken + caption script that lands the message' },
-  { key: 'shot_list_broll',        title: 'Shot List + B-roll Direction',                 platform: 'Production',     format: 'Shot list / B-roll plan',         objective: 'Give the shooter a clear, ordered shot list' },
-  { key: 'editor_handoff_notes',   title: 'Editor Handoff Notes',                         platform: 'Internal',       format: 'Editor handoff document',         objective: 'Hand the cut to the editor cleanly' },
+  { key: 'hook_first_3s',            title: 'Hook / First 3 Seconds Script',                  platform: 'TikTok / Facebook Reels',                          format: '3 giây đầu của video dọc 9:16',              objective: 'Chặn lướt trong 1–3 giây đầu' },
+  { key: 'short_form_script',        title: 'Short-Form Video Script (Reels/TikTok, 15–30s)', platform: 'TikTok / Facebook Reels / YouTube Shorts',         format: '15–30s dọc 9:16',                            objective: 'Kể trọn thông điệp trong 15–30s' },
+  { key: 'voiceover_caption_script', title: 'Voiceover / Caption Script',                     platform: 'Đa kênh (TikTok · Reels · YouTube Shorts · Zalo)', format: '20–35s dọc 9:16, VO + caption khớp nhau',    objective: 'VO + caption khớp nhau, dẫn người xem tới CTA' },
+  { key: 'shot_list_broll',          title: 'Shot List + B-roll Direction',                   platform: 'Production — quay bằng điện thoại',                format: 'Shot list / B-roll cho video 15–30s',        objective: 'Danh sách cảnh quay rõ ràng, quay được bằng điện thoại' },
+  { key: 'editor_handoff_notes',     title: 'Editor Handoff Notes',                           platform: 'Internal — bàn giao dựng',                        format: 'Tài liệu bàn giao dựng (9:16)',              objective: 'Bàn giao bản dựng gọn cho người edit' },
 ];
 
 export interface VideoScriptRequestPayload {
@@ -90,10 +93,19 @@ interface N8nVideoScriptItem {
   format?: string;
   objective?: string;
   target_audience?: string;
+  customer_insight?: string;
+  hook?: string;
+  // scene_script is the preferred field; script_body is kept as a backward-compat
+  // alias for the original V1 contract.
+  scene_script?: string;
   script_body?: string;
   voiceover_text?: string;
+  on_screen_text?: string;
   shot_direction?: string;
+  food_styling?: string;
+  duration?: string;
   cta?: string;
+  owner_checklist?: string;
   generated_by?: string;
   workflow_type?: string;
   status?: string;
@@ -191,53 +203,155 @@ export async function runVideoFactory(input: ContentFactoryRunInput): Promise<Vi
   if (data.ok === false) {
     throw new VideoFactoryError(data.error?.message || 'n8n Video Scripts returned a failure response.');
   }
-  if (!Array.isArray(data.items) || data.items.length === 0) {
-    throw new VideoFactoryError('n8n Video Scripts returned no video script items.');
+  // Exact-five enforcement: a non-array response is a contract breach (throw),
+  // but an empty/short/overlong array is normalized to exactly 5 approval items
+  // in buildResult — so the Approval Board always gets the expected 5 drafts.
+  if (!Array.isArray(data.items)) {
+    throw new VideoFactoryError('n8n Video Scripts returned invalid video script items.');
   }
 
   return buildResult(input, payload, data.items, 'n8n', data.generated_by || 'n8n-ai-provider');
 }
 
-function buildMockResult(input: ContentFactoryRunInput, payload: VideoScriptRequestPayload): VideoFactoryResult {
+// ── Phase B3: senior-FnB Vietnamese short-form video defaults ──
+// Written like a senior short-form video strategist for Vietnamese restaurants /
+// local food brands (premium street food, modern, appetizing, visual-first). All
+// scripts are phone-shootable by a small team — no impossible production. Derived
+// from the brand/brief only: NEVER invents prices, discounts, addresses, phones,
+// awards, testimonials, views/likes/reach/ROAS, or any metric (missing info
+// becomes an "Owner xác nhận" / "Assumption" note). Shared by the local fallback
+// and by mapVideoItem's per-field fallbacks, so an n8n response that omits fields
+// still reads like a real strategist wrote it. Text/script only — no video gen.
+function fnbVideoDefaults(input: ContentFactoryRunInput, spec: VideoScriptSpec) {
   const brand = input.brand.name;
-  const product = input.brief.product_focus || input.brand.hero_product || 'hero product';
-  const audience = input.brief.target_audience || input.brand.target_audience || 'core local audience';
-  const offer = input.brief.offer || 'Assumption: feature the current campaign hero offer';
-  const tone = input.brand.tone_of_voice || 'warm, trustworthy';
+  const product = input.brief.product_focus || input.brand.hero_product || `món chủ lực của ${brand}`;
+  const audience = input.brief.target_audience || input.brand.target_audience || 'khách địa phương mục tiêu của quán';
+  const tone = input.brand.tone_of_voice || 'ấm áp, đáng tin, thèm ăn';
+  const offer = input.brief.offer || null;
+  const keyMessage = input.brief.key_messages?.[0] || `${product} chuẩn vị, tươi nóng mỗi ngày tại ${brand}`;
+  const goal = input.options.goal;
 
-  const items: N8nVideoScriptItem[] = VIDEO_SCRIPT_SPECS.map(spec => ({
+  const cta =
+    goal === 'sales'       ? 'Inbox/Zalo để đặt món ngay (Owner xác nhận thông tin liên hệ)' :
+    goal === 'lead'        ? 'Để lại liên hệ để quán tư vấn & giữ chỗ' :
+    goal === 'khai_truong' ? 'Lưu bài & ghé quán dịp khai trương nha' :
+    goal === 'tuyen_sinh'  ? 'Nhắn tin để được tư vấn ngay' :
+                             'Theo dõi quán để xem món mới mỗi ngày';
+
+  // Shared across all 5 specs.
+  const customerInsight = `${audience} thường vừa lướt điện thoại vừa đói, quyết định xem tiếp hay lướt qua chỉ trong 1–2 giây. Hình ${product} nóng/tươi kèm chuyển động (chan nước sốt, kéo sợi, cắt, rót) giữ chân tốt hơn lời giới thiệu dài dòng.`;
+  const foodStyling = `Hero là MÓN: quay cận ${product} lúc ngon nhất — khói bốc nhẹ nếu nóng, nước sốt bóng, topping rõ. Nền mộc (gỗ/khay quán), ánh sáng tự nhiên gần cửa sổ. Quay món thật của quán, KHÔNG dàn dựng giả, KHÔNG tạo video/ảnh bằng AI.`;
+  const ownerChecklist = '[ ] đúng nhận diện & giọng thương hiệu  [ ] quay món thật của quán (không AI)  [ ] giá/ưu đãi/địa chỉ/SĐT đã xác nhận nếu có nhắc tới  [ ] đúng chính tả & dấu tiếng Việt  [ ] nhạc nền hợp & không vi phạm bản quyền  [ ] caption + CTA đúng kênh đăng';
+
+  // Per-spec script detail. Each stays shootable by phone / a small content team.
+  let hook: string;
+  let scenes: string;
+  let voiceover: string;
+  let onScreenText: string;
+  let shotList: string;
+  let duration: string;
+
+  switch (spec.key) {
+    case 'hook_first_3s':
+      hook = `0–1s: cận cảnh ${product} đang "bốc khói" / chan nước sốt kèm tiếng động thật (ASMR). Chữ to: "Khoan đã 👀".`;
+      scenes = `Chỉ tập trung 3 giây đầu — làm 2–3 biến thể để test: (A) cận động tác chan/kéo/cắt ${product}; (B) tay bưng món đặt xuống "cộp"; (C) khách vừa cắn vừa gật gù. Mỗi biến thể gắn 1 dòng chữ tò mò khác nhau.`;
+      voiceover = `Gợi ý VO (giọng ${tone}): "Đợi đã… nhìn ${product} này đã rồi hẵng lướt." Hoặc bỏ VO, để tiếng động thật của món làm hook.`;
+      onScreenText = `"Khoan đã 👀" / "Đợi xíu, ngon nè" — chữ to, tương phản cao, đặt 1/3 trên khung, tránh che phần ngon nhất của món.`;
+      shotList = `1 cú cận duy nhất, lia chậm hoặc giữ yên; quay dọc 9:16 bằng điện thoại, khóa nét vào món, lau ống kính trước khi quay.`;
+      duration = '3 giây đầu (trong tổng video 15–30s)';
+      break;
+    case 'short_form_script':
+      hook = `0–3s: cận ${product} ngon mắt + chữ "${keyMessage}".`;
+      scenes = `0–3s Hook: cận ${product} + chuyển động ngon mắt. 3–10s: khoe món + 1 lý do nên thử (tươi/nóng/đặc trưng của quán). 10–22s: cảnh ăn thật & phản ứng khách${offer ? `, nhắc ưu đãi (Owner xác nhận): ${offer}` : ''}. 22–30s: end card tên ${brand} + CTA.`;
+      voiceover = `VO ngắn theo từng cảnh (giọng ${tone}): câu hook → "đây là ${product}" → vì sao đáng thử → câu chốt CTA. Mỗi câu một hơi, nói tự nhiên như đang rủ bạn đi ăn.`;
+      onScreenText = `Caption chạy theo VO; tên món + điểm hấp dẫn ở giữa video;${offer ? ' ưu đãi (Owner xác nhận) hiện ở đoạn 10–22s;' : ''} CTA hiện ở cảnh cuối.`;
+      shotList = `4–6 cảnh ngắn 2–4s: (1) cận món, (2) thao tác chế biến/bày, (3) bưng ra, (4) ăn & phản ứng, (5) không gian quán, (6) end card. Quay dọc 9:16 bằng điện thoại.`;
+      duration = '15–30s (dọc 9:16)';
+      break;
+    case 'voiceover_caption_script':
+      hook = `Câu mở VO: "${keyMessage}" — đọc trong lúc màn hình hiện cận ${product}.`;
+      scenes = `Kịch bản theo từng câu, mỗi câu = 1 cảnh 2–4s + 1 dòng caption khớp: (1) Hook. (2) Đây là gì — ${product}. (3) Vì sao đáng thử (tươi/nóng/đặc trưng). (4) ${offer ? `Ưu đãi (Owner xác nhận): ${offer}` : 'Điểm đặc trưng của quán'}. (5) Câu chốt + CTA.`;
+      voiceover = `Toàn bộ lời đọc, giọng ${tone}, ngắt câu rõ để dễ khớp caption. Đọc chậm vừa, thân thiện, không "đọc quảng cáo".`;
+      onScreenText = `Caption bám sát VO từng câu (sub chạy), từ khóa quan trọng tô đậm; chừa vùng an toàn cho khung TikTok/Reels/Shorts (tránh nút che chữ).`;
+      shotList = `Mỗi câu VO một cảnh: cận món, thao tác, bưng ra, khách ăn, end card. Có thể tái dùng cảnh từ kịch bản 15–30s.`;
+      duration = '20–35s (dọc 9:16, VO + caption)';
+      break;
+    case 'shot_list_broll':
+      hook = `(Phần này là hướng dẫn quay, không phải video đăng.) Ưu tiên quay cảnh hero ${product} trước để chắc chắn có "miếng" đẹp nhất.`;
+      scenes = `Danh sách cảnh theo thứ tự quay: 1) cận ${product} (hero) — chan/kéo/cắt; 2) B-roll sơ chế/chế biến thật; 3) bưng món ra bàn; 4) khách ăn & phản ứng thật; 5) không gian / biển hiệu quán; 6) chỗ trống cho end card + CTA. Quay mỗi cảnh 2–3 lần cho an toàn khi dựng.`;
+      voiceover = `Chưa cần VO ở bước quay — ghi chú giọng dự kiến (${tone}) để người dựng đọc đè sau. Nhớ thu vài đoạn tiếng động thật (xèo, rót, cắt) làm ASMR.`;
+      onScreenText = `Chừa "đất trống" trong khung (1/3 trên hoặc dưới) để khi dựng chèn chữ mà không che món.`;
+      shotList = `Thiết bị: điện thoại quay dọc 9:16, lau ống kính, khóa nét & khóa sáng, quay gần cửa sổ. Tránh zoom số — lại gần thay vì zoom. Quay ngang tầm món + thêm 1–2 góc 45° và top-down.`;
+      duration = 'Đủ cảnh cho video 15–30s (quay dư ~2–3× thời lượng)';
+      break;
+    case 'editor_handoff_notes':
+    default:
+      hook = `(Tài liệu nội bộ cho người dựng.) Mục tiêu: bản dựng dọc 9:16 giữ chân trong 3 giây đầu và rõ CTA ở cuối.`;
+      scenes = `Trình tự dựng: hook (3s) → thân (khoe ${product} + lý do nên thử) → cao trào (ăn & phản ứng${offer ? ' + nhắc ưu đãi' : ''}) → end card CTA. Cắt nhịp nhanh ở mở đầu, giữ cảnh ăn lâu hơn một nhịp.`;
+      voiceover = `Lồng VO (nếu có) ở mức vừa, hạ nhạc nền xuống dưới giọng (ducking). Nếu không có VO thì để tiếng động món + nhạc nhẹ.`;
+      onScreenText = `Sub/caption burn-in, font dễ đọc trên mobile, tương phản cao; tên món${offer ? ' & ưu đãi (Owner xác nhận)' : ''} & CTA hiện đủ lâu để đọc. Đúng chính tả & dấu tiếng Việt.`;
+      shotList = `Thông số xuất: dọc 9:16 (1080×1920), H.264, ~30fps; chừa vùng an toàn tránh nút của TikTok/Reels/Shorts. Xuất kèm 1 bản không chữ để tái dùng.`;
+      duration = 'Bản dựng cuối 15–30s (dọc 9:16)';
+      break;
+  }
+
+  return {
+    audience,
+    customerInsight,
+    foodStyling,
+    ownerChecklist,
+    keyMessage,
+    hook,
+    scenes,
+    voiceover,
+    onScreenText,
+    shotList,
+    duration,
+    cta,
+  };
+}
+
+function createFallbackVideoScriptItem(input: ContentFactoryRunInput, spec: VideoScriptSpec): N8nVideoScriptItem {
+  const d = fnbVideoDefaults(input, spec);
+  return {
     key: spec.key,
     title: spec.title,
     platform: spec.platform,
     format: spec.format,
     objective: spec.objective,
-    target_audience: audience,
-    script_body: buildMockScriptBody(spec.key, brand, product, offer),
-    voiceover_text: `VO (tone: ${tone}): "${brand} — ${spec.objective}." Keep it natural and concise.`,
-    shot_direction: spec.key === 'shot_list_broll'
-      ? `Ordered shots: 1) hero ${product} close-up, 2) prep/process B-roll, 3) happy customer reaction, 4) logo/CTA end card. Real footage only.`
-      : `Hold on the hero ${product}; keep the frame clean and on-brand. Real footage only — no AI video.`,
-    cta: input.options.goal === 'sales' ? 'Inbox to order' : input.options.goal === 'lead' ? 'Leave your contact' : 'Follow for more',
-  }));
+    target_audience: d.audience,
+    customer_insight: d.customerInsight,
+    hook: d.hook,
+    scene_script: d.scenes,
+    voiceover_text: d.voiceover,
+    on_screen_text: d.onScreenText,
+    shot_direction: d.shotList,
+    food_styling: d.foodStyling,
+    duration: d.duration,
+    cta: d.cta,
+    owner_checklist: d.ownerChecklist,
+  };
+}
+
+function buildMockResult(input: ContentFactoryRunInput, payload: VideoScriptRequestPayload): VideoFactoryResult {
+  const items: N8nVideoScriptItem[] = VIDEO_SCRIPT_SPECS.map(spec => createFallbackVideoScriptItem(input, spec));
 
   return buildResult(input, payload, items, 'local_mock', 'core-local-mock');
 }
 
-function buildMockScriptBody(key: string, brand: string, product: string, offer: string): string {
-  switch (key) {
-    case 'hook_first_3s':
-      return `0–3s: Open on ${product}. On-screen text: "${brand} — wait for it". Punchy line that promises the payoff.`;
-    case 'short_form_script':
-      return `0–3s hook → 3–10s show ${product} + the offer (${offer}) → 10–25s proof / quick benefit → 25–30s CTA end card.`;
-    case 'voiceover_caption_script':
-      return `VO + captions, line by line: 1) Hook line. 2) What it is (${product}). 3) Why it matters. 4) Offer: ${offer}. 5) CTA line.`;
-    case 'shot_list_broll':
-      return `Shot list: hero ${product} close-up, prep/process B-roll, customer reaction, end card. Note durations and safe margins per shot.`;
-    case 'editor_handoff_notes':
-      return `Editor notes: aspect 9:16, captions burned-in, music ducked under VO, brand colors on end card, export H.264 1080x1920.`;
-    default:
-      return `Scene-by-scene script for ${brand} featuring ${product}.`;
+// Exact-five enforcement: drop non-object entries, cap an overlong response to
+// the first 5, and pad a short/empty response with safe fallback video script
+// drafts — so every run yields exactly 5 approval items.
+function normalizeVideoScriptItems(input: ContentFactoryRunInput, sourceItems: N8nVideoScriptItem[]): N8nVideoScriptItem[] {
+  const items = sourceItems
+    .filter(item => item && typeof item === 'object')
+    .slice(0, VIDEO_SCRIPT_SPECS.length);
+
+  while (items.length < VIDEO_SCRIPT_SPECS.length) {
+    items.push(createFallbackVideoScriptItem(input, VIDEO_SCRIPT_SPECS[items.length]));
   }
+
+  return items;
 }
 
 function buildResult(
@@ -249,7 +363,8 @@ function buildResult(
 ): VideoFactoryResult {
   const now = new Date().toISOString();
   const jobId = generateId('job');
-  const items = sourceItems.map((item, idx) => mapVideoItem(input, item, jobId, idx + 1, now, generatedBy, mode));
+  const normalizedItems = normalizeVideoScriptItems(input, sourceItems);
+  const items = normalizedItems.map((item, idx) => mapVideoItem(input, item, jobId, idx + 1, now, generatedBy, mode));
 
   const job: ContentPlanJob = {
     id: jobId,
@@ -281,42 +396,47 @@ function mapVideoItem(
   mode: VideoFactoryResult['mode'],
 ): ContentPlanItem {
   // Always anchor to a canonical spec: match by key, else by sequence, else the
-  // first. This guarantees a specific title/format/objective even when an n8n AI
+  // first. This guarantees a specific title/platform/objective even when an n8n AI
   // response omits fields — so items never degrade to "Owner to confirm ...".
   const spec = VIDEO_SCRIPT_SPECS.find(s => s.key === item.key)
     ?? VIDEO_SCRIPT_SPECS[sequence - 1]
     ?? VIDEO_SCRIPT_SPECS[0];
 
-  const brand = input.brand.name;
-  const product = input.brief.product_focus || input.brand.hero_product || `${brand} hero product`;
-  const goal = input.options.goal;
-  const defaultCta = goal === 'sales' ? 'Inbox to order' : goal === 'lead' ? 'Leave your contact for a callback' : 'Follow for more';
-  const tone = input.brand.tone_of_voice || 'warm, trustworthy';
+  const d = fnbVideoDefaults(input, spec);
 
-  // Prefer AI/source values; fall back to the canonical spec or a clearly-flagged
-  // "Assumption: ..." derived from the brief — never a generic "Owner to confirm".
-  const title     = item.title || spec.title;
-  const platform  = item.platform || item.channel || spec.platform;
-  const format    = item.format || spec.format;
-  const objective = item.objective || spec.objective;
-  const audience  = item.target_audience || input.brief.target_audience || input.brand.target_audience || 'Assumption: core local audience for this brand';
-  const script    = item.script_body || `Assumption: scene-by-scene script for "${brand} — ${objective}", featuring ${product}.${input.brief.offer ? ` Offer: ${input.brief.offer}.` : ''}`;
-  const voiceover = item.voiceover_text || `Assumption: VO (tone: ${tone}) — "${brand} — ${objective}." On-screen captions mirror the VO.`;
-  const shots     = item.shot_direction || (spec.key === 'shot_list_broll'
-    ? `Ordered shots: hero ${product} close-up, prep/process B-roll, customer reaction, logo/CTA end card. Real footage only — no AI video.`
-    : `Hold on the hero ${product}; keep the frame clean and on-brand. Real footage only — no AI video.`);
-  const cta       = item.cta || defaultCta;
+  // Prefer AI/source values; fall back to senior-FnB Vietnamese defaults derived
+  // from the brand/brief — never a generic "Owner to confirm".
+  const title        = item.title || spec.title;
+  const platform     = item.platform || item.channel || spec.platform;
+  const objective    = item.objective || spec.objective;
+  const audience     = item.target_audience || d.audience;
+  const insight      = item.customer_insight || d.customerInsight;
+  const hook         = item.hook || d.hook;
+  const scenes       = item.scene_script || item.script_body || d.scenes;
+  const voiceover    = item.voiceover_text || d.voiceover;
+  const onScreenText = item.on_screen_text || d.onScreenText;
+  const shotList     = item.shot_direction || d.shotList;
+  const foodStyling  = item.food_styling || d.foodStyling;
+  const duration     = item.duration || item.format || d.duration;
+  const cta          = item.cta || d.cta;
+  const ownerChecklist = item.owner_checklist || d.ownerChecklist;
 
   const sourceLabel = mode === 'n8n' ? 'n8n' : 'local';
   const caption = [
-    `Video objective: ${objective}`,
-    `Target audience: ${audience}`,
-    `Format / duration: ${format}`,
-    `Script / scene breakdown: ${script}`,
-    `Voiceover / on-screen text: ${voiceover}`,
-    `Shot / B-roll direction: ${shots}`,
+    `Mục tiêu video: ${objective}`,
+    `Nền tảng đề xuất: ${platform}`,
+    `Khách hàng mục tiêu: ${audience}`,
+    `Insight khách hàng: ${insight}`,
+    `Hook 1–3 giây đầu: ${hook}`,
+    `Kịch bản theo cảnh: ${scenes}`,
+    `Voiceover / lời thoại: ${voiceover}`,
+    `Chữ trên màn hình (on-screen text): ${onScreenText}`,
+    `Shot list / hướng dẫn quay: ${shotList}`,
+    `Food styling / hero món: ${foodStyling}`,
+    `Thời lượng đề xuất: ${duration}`,
     `CTA: ${cta}`,
-    'Safety: text/script only — no image or video generation.',
+    `Checklist Owner duyệt: ${ownerChecklist}`,
+    'An toàn: Draft video script only · Pending approval · Not generated as video · Not published.',
     '',
     '---',
     'Video Scripts V1 metadata:',
@@ -347,7 +467,7 @@ function mapVideoItem(
     angle: title,
     hook: `${title} — ${objective}`,
     caption,
-    visual_brief: shots,
+    visual_brief: shotList,
     cta,
     hashtags: `#${input.brand.name.replace(/\s+/g, '')} #VideoScript`,
     status: 'needs_review',

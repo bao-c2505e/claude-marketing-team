@@ -74,10 +74,15 @@ auto-post. No auto-ads.
 5. **Editor Handoff Notes**
 
 Each is a `ContentPlanItem` with `content_type = 'video_script'`, auto-submitted
-for approval (`status: needs_review`). The caption carries a readable spec block
-(objective, target audience, format/duration, script/scene breakdown,
-voiceover/on-screen text, shot/B-roll direction, CTA, safety note) plus a
-metadata footer.
+for approval (`status: needs_review`). The caption carries a senior-FnB readable
+spec block — video objective · platform suggestion (TikTok / Facebook Reels /
+YouTube Shorts / Zalo) · target customer + **insight** · **1–3s opening hook** ·
+**scene-by-scene script** · voiceover/lời thoại · **on-screen text** · shot list /
+camera direction · **food styling / hero món** · suggested duration · CTA ·
+**Owner approval checklist** · safety label ("Draft video script only · Pending
+approval · Not generated as video · Not published.") — plus a metadata footer.
+Modern Vietnamese, premium-street-food, phone-shootable; never invents prices,
+addresses, phones, awards, testimonials, or metrics.
 
 ### Metadata (per item + envelope)
 
@@ -121,16 +126,74 @@ metadata footer.
 3. **Credential:** select your existing OpenAI credential or **＋ Create New** →
    paste the API key **here in n8n Credentials only**. Never put the key in
    Core/Vercel/repo.
-4. System prompt must instruct: produce EXACTLY the 5 video script items above, in
-   order, text/script only, NEVER generate video or images and NEVER output media
-   URLs; if information is missing, prefix the value with `Assumption: ` (never
-   "Owner to confirm").
+4. **System prompt** — paste this into the OpenAI node. It produces senior-FnB,
+   shootable short-form video scripts in Vietnamese and avoids generic placeholders
+   (Phase B3 quality pass):
+
+   ```
+   Bạn là CHIẾN LƯỢC GIA VIDEO NGẮN (short-form video strategist) của một agency
+   F&B Việt Nam, viết KỊCH BẢN VIDEO (chỉ text/script/spec, KHÔNG tạo video,
+   KHÔNG tạo ảnh, KHÔNG xuất link media) cho quán ăn/nhà hàng, street food, quán
+   ăn vặt, cà phê/trà sữa và F&B bán mang đi/giao hàng (vd: Vị Cuốn, cơm tấm, bún
+   đậu, chè, cà phê, trà sữa, quán địa phương).
+
+   Dựa trên request JSON (brand, brief, campaign, options), tạo ĐÚNG 5 video
+   script item, theo thứ tự, với các `key`:
+     1. hook_first_3s            — Hook / First 3 Seconds Script
+     2. short_form_script        — Short-Form Video Script (Reels/TikTok, 15–30s)
+     3. voiceover_caption_script — Voiceover / Caption Script
+     4. shot_list_broll          — Shot List + B-roll Direction
+     5. editor_handoff_notes     — Editor Handoff Notes
+
+   Với MỖI item, điền ĐẦY ĐỦ các field sau bằng tiếng Việt cụ thể, bám brand/brief
+   và QUAY ĐƯỢC bằng điện thoại / nhóm content nhỏ (không ý tưởng sản xuất bất khả
+   thi):
+     title, platform (gợi ý TikTok / Facebook Reels / YouTube Shorts / Zalo video
+       short tuỳ kênh), objective (mục tiêu video),
+     target_audience, customer_insight (insight khách hàng),
+     hook (câu/khung hình 1–3 giây đầu để chặn lướt),
+     scene_script (kịch bản theo từng cảnh), voiceover_text (lời thoại/VO),
+     on_screen_text (chữ hiện trên màn hình), shot_direction (shot list / hướng
+       dẫn quay), food_styling (cách bày & quay món, hero là MÓN),
+     duration (thời lượng đề xuất), owner_checklist (checklist Owner duyệt), cta.
+
+   Giọng: hiện đại, "premium street food", ngon mắt, visual-first; tránh ngôn ngữ
+   "influencer" sáo rỗng và tránh ý tưởng quá phức tạp mà quán nhỏ không quay được.
+
+   TUYỆT ĐỐI KHÔNG: tạo video/ảnh; nói đã tạo file video/ảnh; nói đã đăng
+   TikTok/Facebook/Zalo/YouTube; nói dùng Canva/ComfyUI/Fal.ai; bịa giá/% giảm/
+   địa chỉ/SĐT/giải thưởng/đánh giá/khách nói gì; nói đã chạy ads/chi tiền/
+   analytics; bịa lượt xem/like/comment/reach/ROAS. Mọi item là KỊCH BẢN NHÁP chờ
+   Owner duyệt. Nếu thiếu thông tin, ghi "Assumption: ..." hoặc "Owner xác nhận ..."
+   — KHÔNG viết "Owner to confirm".
+
+   Chỉ trả về JSON hợp lệ: { "items": [ {…5 item…} ] }. Không prose, không markdown.
+   ```
+
 5. Add a **Code** node after OpenAI ("Normalize Video Scripts") that shapes the AI
-   output into the SAME envelope the placeholder produced — keep `ok: true`,
-   `request_id`, `workflow_type: 'video_scripts'`, `content_type: 'video_script'`,
-   `generated_by: 'n8n-ai-provider'`, `owner_approval_required: true`,
-   `status: 'pending_approval'`, `job.item_count`, `items[]`,
-   `safety: request.safety`. **Do not** add any image/video/asset URL field.
+   output into the SAME envelope the placeholder produced — it MUST keep:
+   - `ok: true`, `request_id`, `workflow_type: 'video_scripts'`,
+     `content_type: 'video_script'`, `generated_by: 'n8n-ai-provider'`,
+     `owner_approval_required: true`, `status: 'pending_approval'`,
+     `job.item_count`, `items[]`, `safety: request.safety`.
+   - Each item with: `key, title, platform, objective, target_audience,
+     customer_insight, hook, scene_script, voiceover_text, on_screen_text,
+     shot_direction, food_styling, duration, owner_checklist, cta,
+     generated_by:'n8n-ai-provider', workflow_type:'video_scripts',
+     content_type:'video_script', status:'pending_approval',
+     owner_approval_required:true`.
+   - **Do not** add any image / video / asset URL field.
+
+   > Note: Core enforces EXACTLY 5 items (caps an overlong response to the first 5,
+   > pads a short/empty response with safe fallback drafts) and force-fills any
+   > missing item field with senior-FnB Vietnamese defaults (or `Assumption: ...`),
+   > forcing `workflow_type`/`content_type` + the safety lines — so even an
+   > imperfect or older AI response stays specific, Vietnamese, and correctly
+   > labelled. The new fields (`customer_insight`, `hook`, `scene_script`,
+   > `on_screen_text`, `food_styling`, `duration`, `owner_checklist`) are
+   > backward-compatible: if the AI omits them, Core fills them, so no production
+   > breakage. `script_body` is still accepted as an alias for `scene_script`. A
+   > conformant Normalize node is still preferred.
 6. Connect Normalize → **Return Structured Video Scripts**. **Save**.
 
 > Keep **Validate Contract + Safety** and **Return Validation Failure** exactly

@@ -101,6 +101,10 @@ const input = {
   },
 };
 
+// Guards against the module ever claiming an action it must not perform: real
+// video/image creation, publishing, posting to a channel, ad spend, or metrics.
+const unsafeExecutionCopy = /(video file (created|generated)|created (a )?video|generated (a )?video|image file (created|generated)|was published|were published|published live|posted to (tiktok|facebook|zalo|youtube)|ads? launched|spend occurred|spent budget|live analytics|fake (views|likes))/i;
+
 describe('videoFactory', () => {
   beforeEach(() => {
     vi.stubGlobal('fetch', vi.fn());
@@ -140,19 +144,28 @@ describe('videoFactory', () => {
     expect(result.items.every(item => item.content_type === 'video_script')).toBe(true);
     // Approval-first: every item is review-gated, never auto-approved.
     expect(result.items.every(item => item.status === 'needs_review')).toBe(true);
-    // Structured fields + safety land in the caption spec block.
+    // Structured senior-FnB fields + safety land in the caption spec block.
     const first = result.items[0].caption;
     expect(first).toContain('workflow_type: video_scripts');
     expect(first).toContain('content_type: video_script');
     expect(first).toContain('status: pending_approval');
-    expect(first).toContain('Format / duration:');
-    expect(first).toContain('Script / scene breakdown:');
+    expect(first).toContain('Nền tảng đề xuất:');
+    expect(first).toContain('Insight khách hàng:');
+    expect(first).toContain('Hook 1–3 giây đầu:');
+    expect(first).toContain('Kịch bản theo cảnh:');
+    expect(first).toContain('Chữ trên màn hình (on-screen text):');
+    expect(first).toContain('Shot list / hướng dẫn quay:');
+    expect(first).toContain('Food styling / hero món:');
+    expect(first).toContain('Thời lượng đề xuất:');
+    expect(first).toContain('Checklist Owner duyệt:');
     expect(first).toContain('no_auto_post=true');
     expect(first).toContain('no_auto_ads=true');
     expect(first).toContain('no_image_generation=true');
     expect(first).toContain('no_video_generation=true');
-    // No image or video generation: explicitly states real footage only.
-    expect(first).toContain('no image or video generation');
+    // Safety label: draft-only, not generated as video, not published.
+    expect(first).toContain('Draft video script only · Pending approval · Not generated as video · Not published.');
+    // Honest by construction: no fake execution / posting / metrics claims.
+    expect(result.items.every(item => !unsafeExecutionCopy.test(item.caption))).toBe(true);
     // Quality: no generic "Owner to confirm ..." placeholders anywhere.
     expect(result.items.every(item => !/Owner to confirm/i.test(item.caption))).toBe(true);
     // The first item resolves to a real, specific spec (not a generic label).
@@ -167,8 +180,8 @@ describe('videoFactory', () => {
         ok: true,
         generated_by: 'n8n-ai-provider',
         items: [
-          { key: 'hook_first_3s', title: 'Hook Script', format: '3s', objective: 'stop the scroll', script_body: '0-3s open on dish' },
-          { key: 'editor_handoff_notes', title: 'Editor Handoff', format: 'doc', objective: 'clean handoff' },
+          { key: 'hook_first_3s', title: 'Hook Script', objective: 'stop the scroll', scene_script: '0-3s open on dish' },
+          { key: 'editor_handoff_notes', title: 'Editor Handoff', objective: 'clean handoff' },
         ],
       }),
     });
@@ -179,25 +192,98 @@ describe('videoFactory', () => {
     expect(result.mode).toBe('n8n');
     expect(result.job.generation_mode).toBe('external_module');
     expect(GENERATION_MODE_LABEL[result.job.generation_mode]).toBe('n8n AI Provider');
+    // V1 always normalizes to the fixed set of 5 video script approval items.
+    expect(result.items).toHaveLength(5);
+    expect(result.job.item_count).toBe(5);
     expect(result.items.every(item => item.content_type === 'video_script')).toBe(true);
     // Approval-first preserved on the n8n path too.
     expect(result.items.every(item => item.status === 'needs_review')).toBe(true);
-    expect(result.items[0].caption).toContain('generated_by: n8n-ai-provider');
-    expect(result.items[0].caption).toContain('generation_mode: external_module');
+    expect(result.items.every(item => item.caption.includes('generated_by: n8n-ai-provider'))).toBe(true);
+    expect(result.items.every(item => item.caption.includes('source: n8n'))).toBe(true);
+    expect(result.items.every(item => item.caption.includes('generation_mode: external_module'))).toBe(true);
     // Metadata consistency: workflow_type forced to video_scripts even from n8n.
     expect(result.items.every(item => item.caption.includes('workflow_type: video_scripts'))).toBe(true);
-    // Quality: the second item omits script/cta fields — it must resolve to the
-    // canonical spec + "Assumption: ...", never a generic "Owner to confirm".
+    // Quality: the second item omits most fields — it must resolve to the
+    // canonical spec + senior-FnB defaults, never a generic "Owner to confirm".
     const handoff = result.items[1];
     expect(handoff.angle).toBe('Editor Handoff');
-    expect(handoff.caption).not.toMatch(/Owner to confirm/i);
-    expect(handoff.cta).not.toMatch(/Owner to confirm/i);
+    expect(result.items.every(item => !/Owner to confirm/i.test(item.caption))).toBe(true);
+    expect(result.items.every(item => !/Owner to confirm/i.test(item.cta))).toBe(true);
+    expect(result.items.every(item => !unsafeExecutionCopy.test(item.caption))).toBe(true);
   });
 
-  it('fails safely when the configured webhook returns no items', async () => {
+  it('caps n8n video script output to exactly 5 approval items', async () => {
     vi.stubEnv('VITE_N8N_VIDEO_SCRIPTS_WEBHOOK_URL', 'https://n8n.example.com/webhook/video-scripts');
-    (fetch as ReturnType<typeof vi.fn>).mockResolvedValue({ ok: true, json: async () => ({ ok: true, items: [] }) });
+    (fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        ok: true,
+        generated_by: 'n8n-ai-provider',
+        items: Array.from({ length: 10 }, (_, idx) => ({
+          key: `extra_${idx + 1}`,
+          title: `Returned Script ${idx + 1}`,
+          objective: `Objective ${idx + 1}`,
+          scene_script: `Safe text/script scene ${idx + 1}`,
+        })),
+      }),
+    });
 
-    await expect(runVideoFactory(input)).rejects.toThrow(/no video script items/i);
+    const result = await runVideoFactory(input);
+
+    expect(result.items).toHaveLength(5);
+    expect(result.job.item_count).toBe(5);
+    expect(result.items[0].angle).toBe('Returned Script 1');
+    expect(result.items[4].angle).toBe('Returned Script 5');
+    expect(result.items.some(item => item.angle === 'Returned Script 6')).toBe(false);
+    expect(result.items.every(item => item.status === 'needs_review')).toBe(true);
+    expect(result.items.every(item => item.caption.includes('source: n8n'))).toBe(true);
+    expect(result.items.every(item => item.caption.includes('generation_mode: external_module'))).toBe(true);
+    expect(result.items.every(item => !unsafeExecutionCopy.test(item.caption))).toBe(true);
+  });
+
+  it('pads short n8n video script output with safe fallback approval items', async () => {
+    vi.stubEnv('VITE_N8N_VIDEO_SCRIPTS_WEBHOOK_URL', 'https://n8n.example.com/webhook/video-scripts');
+    (fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        ok: true,
+        generated_by: 'n8n-ai-provider',
+        items: [
+          { key: 'hook_first_3s', title: 'Hook Script', objective: 'stop the scroll', scene_script: '0-3s open on dish' },
+          { key: 'short_form_script', title: 'Short-Form Script', objective: 'tell the story', scene_script: 'hook → product → CTA' },
+        ],
+      }),
+    });
+
+    const result = await runVideoFactory(input);
+
+    expect(result.items).toHaveLength(5);
+    expect(result.job.item_count).toBe(5);
+    expect(result.items[0].angle).toBe('Hook Script');
+    expect(result.items[1].angle).toBe('Short-Form Script');
+    expect(result.items[2].angle).toBe('Voiceover / Caption Script');
+    expect(result.items[3].angle).toBe('Shot List + B-roll Direction');
+    expect(result.items[4].angle).toBe('Editor Handoff Notes');
+    expect(result.items.every(item => item.status === 'needs_review')).toBe(true);
+    expect(result.items.every(item => item.caption.includes('pending_approval'))).toBe(true);
+    expect(result.items.every(item => item.caption.includes('generated_by: n8n-ai-provider'))).toBe(true);
+    expect(result.items.every(item => item.caption.includes('source: n8n'))).toBe(true);
+    expect(result.items.every(item => item.caption.includes('generation_mode: external_module'))).toBe(true);
+    expect(result.items.every(item => item.caption.includes('Not generated as video · Not published.'))).toBe(true);
+    expect(result.items.every(item => !unsafeExecutionCopy.test(item.caption))).toBe(true);
+  });
+
+  it('pads empty n8n video script output with safe fallback approval items', async () => {
+    vi.stubEnv('VITE_N8N_VIDEO_SCRIPTS_WEBHOOK_URL', 'https://n8n.example.com/webhook/video-scripts');
+    (fetch as ReturnType<typeof vi.fn>).mockResolvedValue({ ok: true, json: async () => ({ ok: true, generated_by: 'n8n-ai-provider', items: [] }) });
+
+    const result = await runVideoFactory(input);
+
+    expect(result.items).toHaveLength(5);
+    expect(result.job.item_count).toBe(5);
+    expect(result.items.every(item => item.status === 'needs_review')).toBe(true);
+    expect(result.items.every(item => item.caption.includes('source: n8n'))).toBe(true);
+    expect(result.items.every(item => item.caption.includes('generation_mode: external_module'))).toBe(true);
+    expect(result.items.every(item => !unsafeExecutionCopy.test(item.caption))).toBe(true);
   });
 });
