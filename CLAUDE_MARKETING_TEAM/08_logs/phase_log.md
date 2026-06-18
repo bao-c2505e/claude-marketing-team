@@ -1240,3 +1240,17 @@ Nhật ký theo dõi các mốc hoàn thành kỹ thuật qua các Phase.
 - **An toàn:** approval-first giữ nguyên; Approved ≠ Published rõ hơn; no auto-post/auto-ads/publish/schedule/launch/spend; no live connector; no image/video gen; no live analytics pull; no fake metric; OpenAI key chỉ ở n8n; no secret/webhook URL committed; n8n workflow JSON không đổi.
 - **Build/Test:** `npm run build` PASS (1583 modules, entry 357.71 kB, no >500 kB warning, 0 TS error). `npm run test` PASS **90/90** (+15). `node contracts/tools/validate_contracts.js` ALL PASS. `git diff --check` clean. Secrets/webhook scan clean.
 - **Trạng thái:** ✅ DONE / PASS. Approval semantics: unchanged. Real connector activation: NOT STARTED / Owner-gated.
+
+### 🗓️ Ngày 18/06/2026 (Local Time) — Phase E: Manual Delivery / Publishing Tracker UI
+- **Sự kiện:** Thêm tracker NỘI BỘ, THỦ CÔNG để Owner/staff ghi nhận điều gì xảy ra với output SAU khi approve (đã gửi client / đăng tay ngoài Core / lưu trữ…). **KHÔNG phải automation — Core KHÔNG post/schedule/launch/spend/gọi platform nào.**
+- **Thiết kế (theo constraint):** lưu ở localStorage riêng `core_agency_manual_delivery_v1` (key theo approval request id), **độc lập hoàn toàn** với approval state machine / repository / Supabase / RLS / network. KHÔNG đổi DB schema, KHÔNG đổi auth/routing/RLS, KHÔNG đổi n8n workflow JSON, KHÔNG đổi App.tsx.
+- **E1 — Status labels:** Not delivered / Ready for manual delivery / Delivered to client / Manually posted outside Core / Archived. `DeliveryChip` hiện trên card (chỉ khi khác default) + detail tracker.
+- **E2 — Safe controls (detail, owner/manager `canApprove`):** set status buttons + add manual post/reference link + add delivery note + clear/reset. Chỉ ghi vào local store; KHÔNG external call/publish/schedule/launch/spend. Viewer read-only.
+- **E3 — Messaging:** approved = "Approved for internal use. Not published or launched by Core."; khi manually posted = "Marked as manually posted outside Core by Owner/staff." (Core không bao giờ bị ngụ ý là đã đăng).
+- **E4 — Delivery view filter:** dropdown UI-only (All / Approved · not delivered / Delivered to client / Manually posted outside Core / Pending approval / Needs revision) qua `matchesDeliveryView()`, AND với các filter sẵn có.
+- **E5 — Detail "Manual Delivery Tracker":** status, reference link (clickable CHỈ khi http/https an toàn qua `isSafeHttpLink`, còn lại hiện text; Core không bao giờ mở/fetch), note, last-updated, safety note "Core does not auto-post or launch ads."
+- **E6 — Docs:** `08_logs/phase_e_manual_delivery_publishing_tracker_20260618.md`.
+- **Files:** `src/lib/core/manualDelivery.ts` (new), `src/lib/core/manualDelivery.test.ts` (new, +10 test), `src/components/core/ApprovalsTab.tsx`. Không thêm CSS class/dependency/App.tsx change.
+- **An toàn:** approval-first giữ nguyên; Approved ≠ Published rõ ("by Core"); manually posted = ngoài Core; no auto-post/auto-ads/publish/schedule/launch/spend; no live connector; link chỉ là text; no image/video gen; no live analytics; no fake metric; no secret/webhook/env committed; n8n workflow JSON không đổi; repo/RLS/auth không đổi.
+- **Build/Test:** `npm run build` PASS (1583 modules, entry 357.71 kB, no >500 kB warning, 0 TS error). `npm run test` PASS **100/100** (+10). `node contracts/tools/validate_contracts.js` ALL PASS. `git diff --check HEAD^ HEAD` clean. Secrets/webhook scan clean.
+- **Trạng thái:** ✅ DONE / PASS. Approval semantics: unchanged. Cross-device delivery sync (DB table + RLS): NOT STARTED / Owner-gated (out of scope phase này).

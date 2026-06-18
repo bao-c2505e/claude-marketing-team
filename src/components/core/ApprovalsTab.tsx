@@ -3,6 +3,7 @@ import {
   ClipboardCheck, AlertTriangle, ChevronRight, ArrowLeft,
   CheckCircle, XCircle, RotateCcw, MessageSquare, Send, X,
   Clock, Filter, Info, User, Search, Factory, Zap, FlaskConical, Layers, ShieldCheck,
+  Truck, Link2, ExternalLink, Trash2, PackageCheck,
 } from 'lucide-react';
 import type {
   Client, Brand, Campaign, ContentPlanItem, RoleName,
@@ -25,6 +26,14 @@ import {
   classifyRequest, modulePreviewLabel,
   splitCaption, parseItemMetadata, moduleFieldLabels,
 } from '../../lib/core/approvalClassify';
+import type { ManualDeliveryMap, ManualDeliveryRecord, ManualDeliveryStatus } from '../../lib/core/manualDelivery';
+import {
+  MANUAL_DELIVERY_LABEL, MANUAL_DELIVERY_COLOR,
+  DEFAULT_MANUAL_DELIVERY_STATUS,
+  loadManualDelivery, saveManualDelivery,
+  setDeliveryStatus, setDeliveryLink, setDeliveryNote, clearDelivery,
+  getDeliveryRecord, getDeliveryStatus, isSafeHttpLink,
+} from '../../lib/core/manualDelivery';
 
 // ---------------------------------------------------------------------------
 // Props
@@ -101,6 +110,22 @@ function MetaChip({ label, value }: { label: string; value: string }) {
   );
 }
 
+// Manual delivery status chip (Phase E). Display only — reflects what the Owner
+// manually recorded happened OUTSIDE Core; never implies Core posted anything.
+function DeliveryChip({ status }: { status: ManualDeliveryStatus }) {
+  const color = MANUAL_DELIVERY_COLOR[status];
+  return (
+    <span style={{
+      fontSize: '0.66rem', fontWeight: 700,
+      color, background: `${color}18`, border: `1px solid ${color}40`,
+      borderRadius: '5px', padding: '2px 7px', whiteSpace: 'nowrap',
+      display: 'inline-flex', alignItems: 'center', gap: '4px',
+    }}>
+      <Truck size={10} /> {MANUAL_DELIVERY_LABEL[status]}
+    </span>
+  );
+}
+
 function PriorityChip({ priority }: { priority: ApprovalPriority }) {
   const color = APPROVAL_PRIORITY_COLOR[priority];
   return (
@@ -173,10 +198,11 @@ interface Filters {
   priority: string;
   module: string;   // '' = all
   source: string;   // '' = all
+  delivery: string; // '' = all  (manual delivery view — Phase E)
   search: string;
 }
 
-const EMPTY_FILTERS: Filters = { clientId: '', brandId: '', campaignId: '', status: '', priority: '', module: '', source: '', search: '' };
+const EMPTY_FILTERS: Filters = { clientId: '', brandId: '', campaignId: '', status: '', priority: '', module: '', source: '', delivery: '', search: '' };
 
 const STATUS_TABS: { key: string; label: string; countKey: 'all' | ContentApprovalStatus }[] = [
   { key: '',                    label: 'All',            countKey: 'all' },
@@ -202,6 +228,31 @@ const SOURCE_OPTIONS: { key: string; label: string }[] = [
   { key: 'local',  label: 'Local demo' },
   { key: 'legacy', label: 'Legacy / mock' },
 ];
+
+// Phase E — manual delivery "view" presets (combine approval + manual status).
+const DELIVERY_VIEW_OPTIONS: { key: string; label: string }[] = [
+  { key: '',                      label: 'All delivery' },
+  { key: 'approved_not_delivered', label: 'Approved · not delivered' },
+  { key: 'delivered_to_client',    label: 'Delivered to client' },
+  { key: 'manually_posted',        label: 'Manually posted outside Core' },
+  { key: 'pending_approval',       label: 'Pending approval' },
+  { key: 'needs_revision',         label: 'Needs revision' },
+];
+
+// Does a request match the selected delivery-view preset? Pure helper so the
+// filter logic stays readable and the deps array is explicit.
+function matchesDeliveryView(view: string, approvalStatus: ContentApprovalStatus, deliveryStatus: ManualDeliveryStatus): boolean {
+  switch (view) {
+    case '': return true;
+    case 'approved_not_delivered':
+      return approvalStatus === 'approved' && (deliveryStatus === 'not_delivered' || deliveryStatus === 'ready_for_delivery');
+    case 'delivered_to_client': return deliveryStatus === 'delivered_to_client';
+    case 'manually_posted':     return deliveryStatus === 'manually_posted';
+    case 'pending_approval':    return approvalStatus === 'submitted';
+    case 'needs_revision':      return approvalStatus === 'revision_requested';
+    default: return true;
+  }
+}
 
 type StatusCounts = { all: number } & Record<ContentApprovalStatus, number>;
 
@@ -237,7 +288,7 @@ function ReviewToolbar({
   const PRIORITIES: ApprovalPriority[] = ['low', 'normal', 'high'];
 
   const hasActive = !!(filters.clientId || filters.brandId || filters.campaignId || filters.status
-    || filters.priority || filters.module || filters.source || filters.search || hideLocalDemo);
+    || filters.priority || filters.module || filters.source || filters.delivery || filters.search || hideLocalDemo);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -273,6 +324,9 @@ function ReviewToolbar({
         </select>
         <select className="appr-select" value={filters.source} onChange={set('source')} title="Source / provider">
           {SOURCE_OPTIONS.map(o => <option key={o.key} value={o.key}>{o.label}</option>)}
+        </select>
+        <select className="appr-select" value={filters.delivery} onChange={set('delivery')} title="Manual delivery view">
+          {DELIVERY_VIEW_OPTIONS.map(o => <option key={o.key} value={o.key}>{o.label}</option>)}
         </select>
         <select className="appr-select" value={filters.clientId} onChange={set('clientId')}>
           <option value="">All Clients</option>
@@ -395,11 +449,12 @@ function SubmitPanel({ items, approvalData, canSubmit, onSubmit, clientName, bra
 // ---------------------------------------------------------------------------
 
 function RequestCard({
-  request, item, cls, onClick, isSelected,
+  request, item, cls, delivery, onClick, isSelected,
 }: {
   request: ContentApprovalRequest;
   item: ContentPlanItem | undefined;
   cls: RequestClass;
+  delivery: ManualDeliveryRecord | undefined;
   onClick: () => void;
   isSelected: boolean;
 }) {
@@ -423,6 +478,9 @@ function RequestCard({
           {isApproved && (
             <span style={{ fontSize: '0.66rem', fontWeight: 700, color: '#34d399' }}>· internal use — not published or launched</span>
           )}
+          {delivery && delivery.status !== DEFAULT_MANUAL_DELIVERY_STATUS && (
+            <DeliveryChip status={delivery.status} />
+          )}
           <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
             {formatDate(request.created_at)}
           </span>
@@ -434,6 +492,178 @@ function RequestCard({
       <PriorityChip priority={request.priority} />
       <StatusChip label={statusLabel} color={statusColor} />
       <ChevronRight size={14} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Manual Delivery Tracker (Phase E) — detail-view section (E2/E5)
+//
+// Records what a HUMAN did with an approved output OUTSIDE Core (delivered to the
+// client / manually posted / archived). Updates touch ONLY the local delivery
+// store — never the approval state machine, never a repository, never a network
+// call. Core never posts, schedules, launches, or spends.
+// ---------------------------------------------------------------------------
+
+function ManualDeliveryTracker({
+  delivery, canEdit, onSetStatus, onSetLink, onSetNote, onClear,
+}: {
+  delivery: ManualDeliveryRecord | undefined;
+  canEdit: boolean;
+  onSetStatus: (s: ManualDeliveryStatus) => void;
+  onSetLink: (l: string) => void;
+  onSetNote: (n: string) => void;
+  onClear: () => void;
+}) {
+  const status = delivery?.status ?? DEFAULT_MANUAL_DELIVERY_STATUS;
+  const [linkDraft, setLinkDraft] = useState(delivery?.link ?? '');
+  const [noteDraft, setNoteDraft] = useState(delivery?.note ?? '');
+
+  const labelStyle: React.CSSProperties = {
+    fontSize: '0.67rem', color: 'var(--text-muted)', fontWeight: 700,
+    textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '4px',
+  };
+  const inputStyle: React.CSSProperties = {
+    flex: 1, minWidth: 0, background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border-color)',
+    borderRadius: '6px', color: 'var(--text-primary)', fontSize: '0.8rem', padding: '7px 10px',
+  };
+  const saveBtn: React.CSSProperties = {
+    display: 'flex', alignItems: 'center', gap: '5px', padding: '7px 12px', borderRadius: '6px',
+    fontSize: '0.76rem', fontWeight: 700, background: 'rgba(96,165,250,0.16)',
+    border: '1px solid rgba(96,165,250,0.4)', color: '#60a5fa', cursor: 'pointer', flexShrink: 0,
+  };
+
+  // Status buttons (excluding the default "not delivered" — Reset returns to that).
+  const STATUS_BUTTONS: ManualDeliveryStatus[] = ['ready_for_delivery', 'delivered_to_client', 'manually_posted', 'archived'];
+
+  return (
+    <div className="glass-panel" style={{ padding: '16px' }}>
+      <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+        <Truck size={15} style={{ color: '#a78bfa' }} /> Manual Delivery Tracker
+      </div>
+      <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '12px', display: 'flex', alignItems: 'flex-start', gap: '5px' }}>
+        <ShieldCheck size={12} style={{ color: '#34d399', flexShrink: 0, marginTop: '1px' }} />
+        Internal record of what a human did <strong>outside Core</strong>. Core does not auto-post or launch ads — nothing here posts, schedules, launches, or spends.
+      </div>
+
+      {/* Current status */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+        <span style={labelStyle}>Status</span>
+        <DeliveryChip status={status} />
+        {delivery?.updatedAt && (
+          <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
+            updated {formatDateTime(delivery.updatedAt)}{delivery.updatedBy ? ` · ${delivery.updatedBy}` : ''}
+          </span>
+        )}
+      </div>
+
+      {/* E3 — manually-posted clarification */}
+      {status === 'manually_posted' && (
+        <div style={{ marginBottom: '12px', padding: '8px 12px', background: 'rgba(167,139,250,0.08)', border: '1px solid rgba(167,139,250,0.3)', borderRadius: '7px', fontSize: '0.74rem', color: 'var(--text-secondary)' }}>
+          <strong style={{ color: '#a78bfa' }}>Marked as manually posted outside Core by Owner/staff.</strong> Core did not post, schedule, launch, or spend — this is a manual record only.
+        </div>
+      )}
+
+      {canEdit ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {/* Status controls */}
+          <div>
+            <div style={labelStyle}>Set manual status</div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+              {STATUS_BUTTONS.map(s => {
+                const active = status === s;
+                const c = MANUAL_DELIVERY_COLOR[s];
+                return (
+                  <button
+                    key={s}
+                    onClick={() => onSetStatus(s)}
+                    style={{
+                      display: 'inline-flex', alignItems: 'center', gap: '5px',
+                      fontSize: '0.74rem', fontWeight: 700, padding: '6px 11px', borderRadius: '6px',
+                      cursor: 'pointer',
+                      color: active ? '#0b0f17' : c,
+                      background: active ? c : `${c}14`,
+                      border: `1px solid ${c}${active ? '' : '40'}`,
+                    }}
+                  >
+                    {s === 'manually_posted' ? <ExternalLink size={12} /> : s === 'delivered_to_client' ? <PackageCheck size={12} /> : <Truck size={12} />}
+                    {MANUAL_DELIVERY_LABEL[s]}
+                  </button>
+                );
+              })}
+              {delivery && (
+                <button
+                  onClick={onClear}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '0.74rem', fontWeight: 700, padding: '6px 11px', borderRadius: '6px', cursor: 'pointer', color: 'var(--text-muted)', background: 'transparent', border: '1px solid var(--border-color)' }}
+                  title="Clear/reset the manual delivery record for this item"
+                >
+                  <Trash2 size={12} /> Reset
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Manual post / reference link */}
+          <div>
+            <div style={labelStyle}>Manual post / reference link</div>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <input
+                style={inputStyle}
+                value={linkDraft}
+                onChange={e => setLinkDraft(e.target.value)}
+                placeholder="https://… (reference only — Core never opens or fetches this)"
+              />
+              <button style={saveBtn} onClick={() => onSetLink(linkDraft)}>
+                <Link2 size={13} /> Save link
+              </button>
+            </div>
+          </div>
+
+          {/* Delivery note */}
+          <div>
+            <div style={labelStyle}>Delivery note</div>
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+              <textarea
+                style={{ ...inputStyle, minHeight: '52px', resize: 'vertical' }}
+                value={noteDraft}
+                onChange={e => setNoteDraft(e.target.value)}
+                placeholder="e.g. Sent pack to client over Zalo; Owner posted to Facebook page manually."
+              />
+              <button style={{ ...saveBtn, alignSelf: 'flex-start' }} onClick={() => onSetNote(noteDraft)}>
+                <Send size={13} /> Save note
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
+          You don't have permission to update manual delivery status. (View only.)
+        </div>
+      )}
+
+      {/* Read-only display of stored link/note (visible to all viewers) */}
+      {(delivery?.link || delivery?.note) && (
+        <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {delivery?.link && (
+            <div>
+              <div style={labelStyle}>Reference link</div>
+              {isSafeHttpLink(delivery.link) ? (
+                <a href={delivery.link} target="_blank" rel="noopener noreferrer nofollow" style={{ fontSize: '0.78rem', color: '#60a5fa', wordBreak: 'break-all', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  <ExternalLink size={12} /> {delivery.link}
+                </a>
+              ) : (
+                <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', wordBreak: 'break-all' }}>{delivery.link}</div>
+              )}
+            </div>
+          )}
+          {delivery?.note && (
+            <div>
+              <div style={labelStyle}>Note</div>
+              <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.5, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{delivery.note}</div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -456,6 +686,13 @@ interface DetailViewProps {
   clientName: (id: string | null) => string;
   brandName: (id: string | null) => string;
   campaignName: (id: string) => string;
+  // Phase E — manual delivery tracker (local, display/notes only).
+  delivery: ManualDeliveryRecord | undefined;
+  canEditDelivery: boolean;
+  onSetDeliveryStatus: (status: ManualDeliveryStatus) => void;
+  onSetDeliveryLink: (link: string) => void;
+  onSetDeliveryNote: (note: string) => void;
+  onClearDelivery: () => void;
 }
 
 function DetailView({
@@ -463,6 +700,8 @@ function DetailView({
   canApprove, canSubmitAction,
   onAction, onComment, onBack,
   clientName, brandName, campaignName,
+  delivery, canEditDelivery,
+  onSetDeliveryStatus, onSetDeliveryLink, onSetDeliveryNote, onClearDelivery,
 }: DetailViewProps) {
   const [commentText, setCommentText] = useState('');
   const [actionComment, setActionComment] = useState('');
@@ -531,7 +770,7 @@ function DetailView({
   // Status-context safety line shown for resolved (non-active) requests so the
   // "Approved ≠ Published" guarantee is always visible, not only while pending.
   const resolvedSafety = request.status === 'approved'
-    ? 'Approved for internal use. Not published or launched. This unlocked the next workflow stage only — nothing was posted, scheduled, sent to ads, or spent.'
+    ? 'Approved for internal use. Not published or launched by Core. This unlocked the next workflow stage only — nothing was posted, scheduled, sent to ads, or spent.'
     : request.status === 'rejected'
     ? 'Rejected. No content was published or used.'
     : request.status === 'revision_requested'
@@ -692,6 +931,18 @@ function DetailView({
         </div>
         );
       })()}
+
+      {/* Manual Delivery Tracker (Phase E) — keyed by request id so the link/note
+          drafts reset when switching between requests. */}
+      <ManualDeliveryTracker
+        key={request.id}
+        delivery={delivery}
+        canEdit={canEditDelivery}
+        onSetStatus={onSetDeliveryStatus}
+        onSetLink={onSetDeliveryLink}
+        onSetNote={onSetDeliveryNote}
+        onClear={onClearDelivery}
+      />
 
       {/* Action buttons */}
       {isActive && (
@@ -873,6 +1124,15 @@ export default function ApprovalsTab({
   const [filters, setFilters]         = useState<Filters>({ ...EMPTY_FILTERS });
   const [hideLocalDemo, setHideLocalDemo] = useState(false);
 
+  // Phase E — manual delivery tracker. Lives ONLY in browser localStorage; it is
+  // a human-maintained internal note and is intentionally independent of the
+  // approval state machine, the repositories, Supabase, and any network. Core
+  // never posts/launches — these records only describe what a human did outside
+  // Core. canApprove (owner/manager) may edit; everyone with view access can read.
+  const [deliveryMap, setDeliveryMap] = useState<ManualDeliveryMap>(() => loadManualDelivery());
+  const persistDelivery = (next: ManualDeliveryMap) => { setDeliveryMap(next); saveManualDelivery(next); };
+  const actorLabel = userRole ?? undefined;
+
   const clientName   = (id: string | null) => id ? (clients.find(c => c.id === id)?.name ?? '—') : '—';
   const brandName    = (id: string | null) => id ? (brands.find(b => b.id === id)?.name ?? '—') : '—';
   const campaignName = (id: string) => campaigns.find(c => c.id === id)?.name ?? '—';
@@ -900,6 +1160,7 @@ export default function ApprovalsTab({
       if (filters.module && cls?.module !== filters.module) return false;
       if (filters.source && cls?.source !== filters.source) return false;
       if (hideLocalDemo && cls?.source !== 'n8n') return false;
+      if (filters.delivery && !matchesDeliveryView(filters.delivery, r.status, getDeliveryStatus(deliveryMap, r.id))) return false;
       if (q) {
         const item = itemFor(r.content_item_id);
         const hay = [r.title, item?.hook, clientName(r.client_id), brandName(r.brand_id), campaignName(r.campaign_id)]
@@ -910,7 +1171,7 @@ export default function ApprovalsTab({
     });
   }, [approvalData.approvalRequests, contentItems, clients, brands, campaigns,
       filters.clientId, filters.brandId, filters.campaignId, filters.priority,
-      filters.module, filters.source, filters.search, hideLocalDemo, classOf]);
+      filters.module, filters.source, filters.delivery, filters.search, hideLocalDemo, classOf, deliveryMap]);
 
   const statusCounts = useMemo<StatusCounts>(() => {
     const c: StatusCounts = { all: scopeFiltered.length, draft: 0, submitted: 0, approved: 0, rejected: 0, revision_requested: 0, cancelled: 0 };
@@ -971,6 +1232,12 @@ export default function ApprovalsTab({
         clientName={clientName}
         brandName={brandName}
         campaignName={campaignName}
+        delivery={getDeliveryRecord(deliveryMap, request.id)}
+        canEditDelivery={canApprove}
+        onSetDeliveryStatus={(status) => persistDelivery(setDeliveryStatus(deliveryMap, request.id, status, actorLabel))}
+        onSetDeliveryLink={(link) => persistDelivery(setDeliveryLink(deliveryMap, request.id, link, actorLabel))}
+        onSetDeliveryNote={(note) => persistDelivery(setDeliveryNote(deliveryMap, request.id, note, actorLabel))}
+        onClearDelivery={() => persistDelivery(clearDelivery(deliveryMap, request.id))}
       />
     );
   }
@@ -1093,6 +1360,7 @@ export default function ApprovalsTab({
               request={req}
               item={itemFor(req.content_item_id)}
               cls={classOf.get(req.id) ?? classifyRequest(itemFor(req.content_item_id))}
+              delivery={getDeliveryRecord(deliveryMap, req.id)}
               isSelected={selectedReqId === req.id}
               onClick={() => { setSelectedReqId(req.id); setViewMode('detail'); }}
             />
