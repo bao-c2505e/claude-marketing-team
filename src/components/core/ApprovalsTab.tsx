@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import {
   ClipboardCheck, AlertTriangle, ChevronRight, ArrowLeft,
   CheckCircle, XCircle, RotateCcw, MessageSquare, Send, X,
-  Clock, Filter, Info, User, Search, Factory, Zap, FlaskConical, Layers,
+  Clock, Filter, Info, User, Search, Factory, Zap, FlaskConical, Layers, ShieldCheck,
 } from 'lucide-react';
 import type {
   Client, Brand, Campaign, ContentPlanItem, RoleName,
@@ -19,6 +19,12 @@ import {
 } from '../../lib/core/coreData';
 import type { ResolvingApprovalAction } from '../../lib/core/coreRepository';
 import { can } from '../../lib/auth/permissions';
+import type { RequestClass } from '../../lib/core/approvalClassify';
+import {
+  MODULE_META, SOURCE_META,
+  classifyRequest, modulePreviewLabel,
+  splitCaption, parseItemMetadata, moduleFieldLabels,
+} from '../../lib/core/approvalClassify';
 
 // ---------------------------------------------------------------------------
 // Props
@@ -44,87 +50,10 @@ interface Props {
 type ViewMode = 'list' | 'detail';
 
 // ---------------------------------------------------------------------------
-// Phase A2 — Module / source / content-type classification (display only).
-//
-// Every AI Factory V1 module appends a metadata block to the content item's
-// caption (workflow_type / generation_mode / source) and sets a clean
-// content_type. We read those signals to label each approval item — we never
-// mutate any record. Classification is purely for review ergonomics.
+// Module / source / content-type classification + caption/metadata helpers live
+// in src/lib/core/approvalClassify.ts (extracted in Phase D so they are reusable
+// and unit-tested). They are READ-ONLY — labels and layout only, never mutation.
 // ---------------------------------------------------------------------------
-
-type ModuleKey = 'content' | 'design' | 'video' | 'ads' | 'report' | 'other';
-type SourceKey = 'n8n' | 'local' | 'legacy';
-
-interface RequestClass {
-  module: ModuleKey;
-  source: SourceKey;
-}
-
-const MODULE_META: Record<ModuleKey, { label: string; contentType: string; color: string; safety: string }> = {
-  content: { label: 'Content Factory', contentType: 'content_pack', color: '#60a5fa', safety: 'Draft only — no auto-post.' },
-  design:  { label: 'Design Factory',  contentType: 'design_brief', color: '#a78bfa', safety: 'Brief / spec only — no image generation.' },
-  video:   { label: 'Video Scripts',   contentType: 'video_script', color: '#f472b6', safety: 'Script / spec only — no video generation.' },
-  ads:     { label: 'Ads Pack Draft',  contentType: 'ads_draft',    color: '#fb923c', safety: 'Draft / spec only — no auto-ads, no spend.' },
-  report:  { label: 'Report Draft',    contentType: 'report_draft', color: '#34d399', safety: 'Draft only — no live analytics pull, no unverified metrics.' },
-  other:   { label: 'Other / Legacy',  contentType: 'other',        color: '#94a3b8', safety: 'Draft only — review before any use.' },
-};
-
-const SOURCE_META: Record<SourceKey, { label: string; color: string }> = {
-  n8n:    { label: 'n8n AI Provider', color: '#34d399' },
-  local:  { label: 'Local demo',      color: '#f59e0b' },
-  legacy: { label: 'Legacy / mock',   color: '#94a3b8' },
-};
-
-const WORKFLOW_TO_MODULE: Record<string, ModuleKey> = {
-  content_pack:   'content',
-  design_factory: 'design',
-  video_scripts:  'video',
-  ads_pack:       'ads',
-  report_draft:   'report',
-};
-
-const CONTENT_TYPE_TO_MODULE: Record<string, ModuleKey> = {
-  content_pack: 'content',
-  caption:      'content',
-  design_brief: 'design',
-  video_script: 'video',
-  ads_draft:    'ads',
-  report_draft: 'report',
-};
-
-function readMetaLine(caption: string, key: string): string | undefined {
-  const m = caption.match(new RegExp(`^${key}:\\s*(.+)$`, 'm'));
-  return m ? m[1].trim() : undefined;
-}
-
-function classifyRequest(item: ContentPlanItem | undefined): RequestClass {
-  const caption = item?.caption ?? '';
-  const workflowType = readMetaLine(caption, 'workflow_type');
-  const generationMode = readMetaLine(caption, 'generation_mode');
-  const metaSource = readMetaLine(caption, 'source');
-
-  // Module — prefer the explicit workflow_type tag, then the structured
-  // content_type field, else treat as legacy/other.
-  let module: ModuleKey = 'other';
-  if (workflowType && WORKFLOW_TO_MODULE[workflowType]) {
-    module = WORKFLOW_TO_MODULE[workflowType];
-  } else if (item?.content_type && CONTENT_TYPE_TO_MODULE[item.content_type]) {
-    module = CONTENT_TYPE_TO_MODULE[item.content_type];
-  }
-
-  // Source — n8n if the metadata says so; local if it carries any V1 factory
-  // metadata but ran in fallback; legacy/mock otherwise (old demo seed data).
-  let source: SourceKey;
-  if (generationMode === 'external_module' || metaSource === 'n8n') {
-    source = 'n8n';
-  } else if (workflowType || generationMode === 'mock' || metaSource === 'local_mock') {
-    source = 'local';
-  } else {
-    source = 'legacy';
-  }
-
-  return { module, source };
-}
 
 // ---------------------------------------------------------------------------
 // Mini helpers
@@ -154,6 +83,20 @@ function StatusChip({ label, color }: { label: string; color: string }) {
       borderRadius: '5px', padding: '2px 7px', whiteSpace: 'nowrap',
     }}>
       {label}
+    </span>
+  );
+}
+
+// Small "label: value" chip used in the detail preview header + provenance row.
+function MetaChip({ label, value }: { label: string; value: string }) {
+  return (
+    <span style={{
+      fontSize: '0.66rem', color: 'var(--text-muted)',
+      background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-color)',
+      borderRadius: '5px', padding: '2px 8px', whiteSpace: 'nowrap',
+    }}>
+      <span style={{ color: 'var(--text-muted)', opacity: 0.75 }}>{label}: </span>
+      <strong style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>{value}</strong>
     </span>
   );
 }
@@ -229,10 +172,11 @@ interface Filters {
   status: string;   // '' = all
   priority: string;
   module: string;   // '' = all
+  source: string;   // '' = all
   search: string;
 }
 
-const EMPTY_FILTERS: Filters = { clientId: '', brandId: '', campaignId: '', status: '', priority: '', module: '', search: '' };
+const EMPTY_FILTERS: Filters = { clientId: '', brandId: '', campaignId: '', status: '', priority: '', module: '', source: '', search: '' };
 
 const STATUS_TABS: { key: string; label: string; countKey: 'all' | ContentApprovalStatus }[] = [
   { key: '',                    label: 'All',            countKey: 'all' },
@@ -250,6 +194,13 @@ const MODULE_OPTIONS: { key: string; label: string }[] = [
   { key: 'ads',     label: 'Ads Pack Draft' },
   { key: 'report',  label: 'Report Draft' },
   { key: 'other',   label: 'Other / Legacy' },
+];
+
+const SOURCE_OPTIONS: { key: string; label: string }[] = [
+  { key: '',       label: 'All sources' },
+  { key: 'n8n',    label: 'n8n AI Provider' },
+  { key: 'local',  label: 'Local demo' },
+  { key: 'legacy', label: 'Legacy / mock' },
 ];
 
 type StatusCounts = { all: number } & Record<ContentApprovalStatus, number>;
@@ -286,7 +237,7 @@ function ReviewToolbar({
   const PRIORITIES: ApprovalPriority[] = ['low', 'normal', 'high'];
 
   const hasActive = !!(filters.clientId || filters.brandId || filters.campaignId || filters.status
-    || filters.priority || filters.module || filters.search || hideLocalDemo);
+    || filters.priority || filters.module || filters.source || filters.search || hideLocalDemo);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -319,6 +270,9 @@ function ReviewToolbar({
 
         <select className="appr-select" value={filters.module} onChange={set('module')} title="Module / workflow">
           {MODULE_OPTIONS.map(o => <option key={o.key} value={o.key}>{o.label}</option>)}
+        </select>
+        <select className="appr-select" value={filters.source} onChange={set('source')} title="Source / provider">
+          {SOURCE_OPTIONS.map(o => <option key={o.key} value={o.key}>{o.label}</option>)}
         </select>
         <select className="appr-select" value={filters.clientId} onChange={set('clientId')}>
           <option value="">All Clients</option>
@@ -467,7 +421,7 @@ function RequestCard({
             </span>
           )}
           {isApproved && (
-            <span style={{ fontSize: '0.66rem', fontWeight: 700, color: '#34d399' }}>· not published</span>
+            <span style={{ fontSize: '0.66rem', fontWeight: 700, color: '#34d399' }}>· internal use — not published or launched</span>
           )}
           <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
             {formatDate(request.created_at)}
@@ -523,6 +477,8 @@ function DetailView({
   const statusColor = APPROVAL_STATUS_COLOR[request.status];
   const statusLabel = APPROVAL_STATUS_LABEL[request.status];
   const moduleMeta = MODULE_META[cls.module];
+  const previewTitle = modulePreviewLabel(cls.module);
+  const fieldLabels = moduleFieldLabels(cls.module);
 
   const fieldStyle: React.CSSProperties = {
     fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.6, whiteSpace: 'pre-wrap', wordBreak: 'break-word',
@@ -575,7 +531,7 @@ function DetailView({
   // Status-context safety line shown for resolved (non-active) requests so the
   // "Approved ≠ Published" guarantee is always visible, not only while pending.
   const resolvedSafety = request.status === 'approved'
-    ? 'Approved — not published. This unlocked the next workflow stage only; nothing was posted, launched, scheduled, sent to ads, or spent.'
+    ? 'Approved for internal use. Not published or launched. This unlocked the next workflow stage only — nothing was posted, scheduled, sent to ads, or spent.'
     : request.status === 'rejected'
     ? 'Rejected. No content was published or used.'
     : request.status === 'revision_requested'
@@ -655,28 +611,47 @@ function DetailView({
         )}
       </div>
 
-      {/* Content preview */}
-      {item && (
+      {/* Module-aware output preview (D1 header + D3 per-type layout). All rich
+          module content is rendered from existing item fields; the metadata block
+          is split out into a Provenance & Safety panel rather than dumped inline. */}
+      {item && (() => {
+        const { body, metadata } = splitCaption(item.caption);
+        const meta = parseItemMetadata(item.caption);
+        return (
         <div className="glass-panel" style={{ padding: '20px' }}>
-          <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#fb923c', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            Content Preview — Day {item.day_number} · {item.channel} · {formatDate(item.planned_date)}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', marginBottom: '14px' }}>
+            <div style={{ fontSize: '0.85rem', fontWeight: 700, color: moduleMeta.color, display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <Factory size={14} /> {previewTitle}
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'center' }}>
+              {item.pillar && <MetaChip label="Pillar" value={item.pillar} />}
+              {item.channel && <MetaChip label="Channel" value={item.channel} />}
+              <MetaChip label="Item" value={`#${item.day_number}`} />
+              {item.planned_date && <MetaChip label="Planned" value={formatDate(item.planned_date)} />}
+            </div>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             <div>
-              <div style={labelStyle}>Hook</div>
+              <div style={labelStyle}>{fieldLabels.headline}</div>
               <div style={{ ...fieldStyle, fontWeight: 500, color: 'var(--text-primary)' }}>{item.hook}</div>
             </div>
+            {item.angle && (
+              <div>
+                <div style={labelStyle}>Objective / Angle</div>
+                <div style={fieldStyle}>{item.angle}</div>
+              </div>
+            )}
             <div>
-              <div style={labelStyle}>Caption</div>
-              <pre style={{ ...fieldStyle, fontFamily: 'inherit', margin: 0, background: 'rgba(255,255,255,0.02)', borderRadius: '6px', padding: '10px 12px', border: '1px solid var(--border-color)' }}>{item.caption}</pre>
+              <div style={labelStyle}>{fieldLabels.body}</div>
+              <pre style={{ ...fieldStyle, fontFamily: 'inherit', margin: 0, background: 'rgba(255,255,255,0.02)', borderRadius: '6px', padding: '10px 12px', border: '1px solid var(--border-color)' }}>{body || item.caption}</pre>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
               <div>
-                <div style={labelStyle}>Visual Brief</div>
+                <div style={labelStyle}>{fieldLabels.visual}</div>
                 <div style={fieldStyle}>{item.visual_brief}</div>
               </div>
               <div>
-                <div style={labelStyle}>CTA</div>
+                <div style={labelStyle}>{fieldLabels.cta}</div>
                 <div style={fieldStyle}>{item.cta}</div>
               </div>
             </div>
@@ -685,8 +660,38 @@ function DetailView({
               <div style={{ ...fieldStyle, color: '#a78bfa' }}>{item.hashtags}</div>
             </div>
           </div>
+
+          {/* Provenance & Safety — parsed from the draft's own metadata block.
+              Display only; nothing here is editable or live. */}
+          {(meta.safetyFlags.length > 0 || metadata) && (
+            <div style={{ marginTop: '16px', paddingTop: '14px', borderTop: '1px solid var(--border-color)' }}>
+              <div style={{ ...labelStyle, marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                <ShieldCheck size={11} /> Provenance &amp; Safety
+              </div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: meta.safetyFlags.length ? '8px' : 0 }}>
+                {meta.workflowType && <MetaChip label="Workflow" value={meta.workflowType} />}
+                {meta.source && <MetaChip label="Source" value={meta.source} />}
+                {meta.generationMode && <MetaChip label="Mode" value={meta.generationMode} />}
+                {meta.status && <MetaChip label="Status" value={meta.status} />}
+                {meta.ownerApprovalRequired && <MetaChip label="Owner approval" value={meta.ownerApprovalRequired} />}
+              </div>
+              {meta.safetyFlags.length > 0 && (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
+                  {meta.safetyFlags.map((flag, i) => (
+                    <span key={i} style={{ fontSize: '0.66rem', fontWeight: 600, color: '#34d399', background: 'rgba(52,211,153,0.1)', border: '1px solid rgba(52,211,153,0.3)', borderRadius: '4px', padding: '2px 7px' }}>
+                      {flag}
+                    </span>
+                  ))}
+                </div>
+              )}
+              <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '8px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                <Info size={11} /> {moduleMeta.safety} These flags come from the draft itself — display only.
+              </div>
+            </div>
+          )}
         </div>
-      )}
+        );
+      })()}
 
       {/* Action buttons */}
       {isActive && (
@@ -893,6 +898,7 @@ export default function ApprovalsTab({
       if (filters.priority   && r.priority    !== filters.priority)   return false;
       const cls = classOf.get(r.id);
       if (filters.module && cls?.module !== filters.module) return false;
+      if (filters.source && cls?.source !== filters.source) return false;
       if (hideLocalDemo && cls?.source !== 'n8n') return false;
       if (q) {
         const item = itemFor(r.content_item_id);
@@ -904,7 +910,7 @@ export default function ApprovalsTab({
     });
   }, [approvalData.approvalRequests, contentItems, clients, brands, campaigns,
       filters.clientId, filters.brandId, filters.campaignId, filters.priority,
-      filters.module, filters.search, hideLocalDemo, classOf]);
+      filters.module, filters.source, filters.search, hideLocalDemo, classOf]);
 
   const statusCounts = useMemo<StatusCounts>(() => {
     const c: StatusCounts = { all: scopeFiltered.length, draft: 0, submitted: 0, approved: 0, rejected: 0, revision_requested: 0, cancelled: 0 };

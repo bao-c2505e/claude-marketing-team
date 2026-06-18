@@ -1227,3 +1227,16 @@ Nhật ký theo dõi các mốc hoàn thành kỹ thuật qua các Phase.
 - **Tests:** `designFactory.test.ts` cập nhật (workflow_type design_factory, content_type metadata, no "Owner to confirm", spec fallback cho item thiếu field).
 - **Build/Test:** `npm run build` PASS. `npm test` PASS 53/53.
 - **Trạng thái:** ✅ DONE (cần re-import n8n workflow + redeploy Core để áp dụng metadata mới; Validate chấp nhận cả 2 contract nên không vỡ).
+
+### 🗓️ Ngày 18/06/2026 (Local Time) — Phase D: Approval Queue / Output Review UX Polish
+- **Sự kiện:** Polish trải nghiệm review/approval khi cả 5 module AI Factory V1 (Content/Design/Video/Ads/Report) đã tạo pending approval item thật. **Display-only** — KHÔNG đổi approval state machine, repository, routing, Supabase RLS, auth, webhook URL, env, credentials, n8n workflow.
+- **D1 — Preview header theo module:** detail preview header dùng `modulePreviewLabel(module)` → Content Preview / Design Brief Preview / Video Script Preview / Ads Draft Preview / Report Draft Preview, fallback "Output Preview". Module detect từ `workflow_type` metadata rồi `content_type` (hoạt động cho mọi item, không hardcode 1 item test).
+- **D2 — Filters:** đã có sẵn từ Phase A2 (status tabs, search, module, client/brand/campaign, priority, toggle hide local/demo). Phase D thêm **Source filter** (All / n8n AI Provider / Local demo / Legacy) — UI-only, không đổi schema, degrade an toàn khi thiếu dữ liệu.
+- **D3 — Detail layout per type:** `splitCaption()` tách body (đọc được) khỏi metadata block; panel **Provenance & Safety** parse từ chính metadata của draft (workflow/source/mode/status/owner-approval + safety flags). `moduleFieldLabels(module)` đổi nhãn field dùng chung theo module (KHÔNG bịa field mới). Hiện thêm pillar/angle/channel/day chip.
+- **D4 — Approved ≠ Published rõ hơn:** approved detail ghi "Approved for internal use. Not published or launched."; card approved ghi "· internal use — not published or launched". KHÔNG thêm nút publish/launch/schedule/spend.
+- **D5 — Docs:** `08_logs/phase_d_approval_queue_review_ux_polish_20260618.md` (gồm Phase C smoke-test PASS rollup + Phase D summary + safety + files changed + validation).
+- **Refactor:** tách classifier Phase A2 ra `src/lib/core/approvalClassify.ts` (reusable + test được), thêm helper D1/D3. `approvalClassify.test.ts` (+15 test).
+- **Files:** `src/lib/core/approvalClassify.ts` (new), `src/lib/core/approvalClassify.test.ts` (new), `src/components/core/ApprovalsTab.tsx`. Không thêm CSS class mới, không thêm dependency.
+- **An toàn:** approval-first giữ nguyên; Approved ≠ Published rõ hơn; no auto-post/auto-ads/publish/schedule/launch/spend; no live connector; no image/video gen; no live analytics pull; no fake metric; OpenAI key chỉ ở n8n; no secret/webhook URL committed; n8n workflow JSON không đổi.
+- **Build/Test:** `npm run build` PASS (1583 modules, entry 357.71 kB, no >500 kB warning, 0 TS error). `npm run test` PASS **90/90** (+15). `node contracts/tools/validate_contracts.js` ALL PASS. `git diff --check` clean. Secrets/webhook scan clean.
+- **Trạng thái:** ✅ DONE / PASS. Approval semantics: unchanged. Real connector activation: NOT STARTED / Owner-gated.
