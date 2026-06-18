@@ -75,10 +75,20 @@ creation.** No image generation. No video generation. No Canva / ComfyUI / Fal.a
 5. **Ads Manager Handoff Checklist**
 
 Each is a `ContentPlanItem` with `content_type = 'ads_draft'`, auto-submitted for
-approval (`status: needs_review`). The caption carries a readable spec block
-(objective, focus, target audience notes, draft, key points/variants, budget/testing
-note, CTA, safety note) plus a metadata footer. **These are strategy/draft notes
-only — no ads are created, launched, scheduled, or spent.**
+approval (`status: needs_review`). The caption carries a senior-FnB readable spec
+block — suggested campaign objective (awareness / engagement / messages·inbox /
+traffic / local-store-visit / delivery·order intent) · target audience hypothesis ·
+customer insight · offer/message angle · primary text draft · headline draft ·
+description draft · creative direction (food hero / combo·menu / store atmosphere /
+founder·story / UGC·review) · suggested placement (Facebook Feed/Reels, Instagram
+Reels, Zalo/social as draft idea only) · CTA · Owner approval checklist · safety
+label ("Draft ads concept only · Pending approval · Not launched · No spend · No
+live ad account connection.") — plus a metadata footer. Modern Vietnamese,
+local-restaurant-practical, conversion-aware; never invents prices, discounts,
+addresses, phones, awards, testimonials, customer counts, or any metric
+(CPM/CPC/CTR/ROAS/reach/clicks/orders), and avoids fake urgency / impossible
+targeting / performance promises. **These are strategy/draft notes only — no ads
+are created, launched, scheduled, or spent.**
 
 ### Metadata (per item + envelope)
 
@@ -124,17 +134,81 @@ only — no ads are created, launched, scheduled, or spent.**
 3. **Credential:** select your existing OpenAI credential or **＋ Create New** →
    paste the API key **here in n8n Credentials only**. Never put the key in
    Core/Vercel/repo.
-4. System prompt must instruct: produce EXACTLY the 5 ads draft items above, in
-   order, strategy/draft notes only; NEVER create, launch, schedule, or spend ads;
-   NEVER generate images or video; NEVER call any platform connector; if information
-   is missing, prefix the value with `Assumption: ` (never "Owner to confirm").
+4. **System prompt** — paste this into the OpenAI node. It produces senior-FnB,
+   local-restaurant-practical ads drafts in Vietnamese and avoids generic
+   placeholders (Phase B4 quality pass):
+
+   ```
+   Bạn là CHUYÊN GIA PERFORMANCE MARKETING (quảng cáo) của một agency F&B Việt
+   Nam, viết BẢN NHÁP QUẢNG CÁO (chỉ text/strategy/spec — KHÔNG tạo chiến dịch,
+   KHÔNG tạo ad set, KHÔNG tạo/đăng/lên lịch quảng cáo, KHÔNG set hay chi ngân
+   sách, KHÔNG tạo ảnh/video, KHÔNG gọi tài khoản quảng cáo thật) cho quán
+   ăn/nhà hàng, street food, quán ăn vặt, cà phê/trà sữa và F&B bán mang đi/giao
+   hàng (vd: Vị Cuốn, cơm tấm, bún đậu, chè, cà phê, trà sữa, quán địa phương).
+
+   Dựa trên request JSON (brand, brief, campaign, options), tạo ĐÚNG 5 ads draft
+   item, theo thứ tự, với các `key`:
+     1. campaign_angle_offer — Campaign Angle & Offer Draft
+     2. ad_copy_variants     — Ad Copy Variants Draft
+     3. audience_targeting   — Audience & Targeting Notes
+     4. budget_testing_plan  — Budget & Testing Plan Draft
+     5. ads_manager_handoff  — Ads Manager Handoff Checklist
+
+   Với MỖI item, điền ĐẦY ĐỦ các field sau bằng tiếng Việt cụ thể, bám brand/brief
+   và THỰC TẾ với quán địa phương:
+     title, focus, objective (mục đích của bản nháp này),
+     campaign_objective (mục tiêu chiến dịch đề xuất — chọn trong: nhận diện
+       /awareness, tương tác/engagement, tin nhắn·inbox/messages, traffic, ghé
+       quán/local store visit, đặt món·giao hàng/delivery·order intent),
+     target_audience (giả thuyết tệp khách), customer_insight (insight khách hàng),
+     offer_angle (góc tiếp cận / thông điệp), primary_text (nháp primary text),
+     headline (nháp headline), description (nháp description nếu hợp),
+     creative_direction (food hero / combo·menu / không gian quán / câu chuyện chủ
+       quán / UGC·review-style), placement (Facebook Feed / Facebook Reels /
+       Instagram·Reels nếu hợp / Zalo·social chỉ là ý tưởng nháp),
+     cta, owner_checklist (checklist Owner duyệt).
+
+   Giọng: hiện đại, ngon mắt, hướng chuyển đổi nhưng không "giật"; viết như một
+   marketer giỏi cho quán địa phương, không generic AI.
+
+   TUYỆT ĐỐI KHÔNG: tạo/đăng/lên lịch/bật quảng cáo; tạo chiến dịch hay ad set;
+   set hay chi ngân sách; nói đã chạy ads/đã tiêu tiền; tạo ảnh/video hay nói đã
+   tạo file; nói đã kết nối/đăng Meta·TikTok·Zalo·Google Ads·Canva·ComfyUI·Fal.ai;
+   bịa giá/% giảm/địa chỉ/SĐT/giải thưởng/đánh giá/lượng khách; bịa số liệu
+   CPM/CPC/CTR/ROAS/reach/impressions/clicks/messages/orders; tạo cảm giác khan
+   hiếm giả hay khuyến mãi giả; hứa hẹn kết quả / nhắm mục tiêu bất khả thi. Mọi
+   item là BẢN NHÁP chờ Owner duyệt. Nếu thiếu thông tin, ghi "Assumption: ..."
+   hoặc "Owner xác nhận ..." — KHÔNG viết "Owner to confirm".
+
+   Chỉ trả về JSON hợp lệ: { "items": [ {…5 item…} ] }. Không prose, không markdown.
+   ```
+
 5. Add a **Code** node after OpenAI ("Normalize Ads Pack") that shapes the AI output
-   into the SAME envelope the placeholder produced — keep `ok: true`, `request_id`,
-   `workflow_type: 'ads_pack'`, `content_type: 'ads_draft'`,
-   `generated_by: 'n8n-ai-provider'`, `owner_approval_required: true`,
-   `status: 'pending_approval'`, `job.item_count`, `items[]`,
-   `safety: request.safety`. **Do not** add any image/video/asset URL field or any
-   campaign/ad/audience/budget object.
+   into the SAME envelope the placeholder produced — it MUST keep:
+   - `ok: true`, `request_id`, `workflow_type: 'ads_pack'`,
+     `content_type: 'ads_draft'`, `generated_by: 'n8n-ai-provider'`,
+     `owner_approval_required: true`, `status: 'pending_approval'`,
+     `job.item_count`, `items[]`, `safety: request.safety`.
+   - Each item with: `key, title, focus, objective, campaign_objective,
+     target_audience, customer_insight, offer_angle, primary_text, headline,
+     description, creative_direction, placement, cta, owner_checklist,
+     generated_by:'n8n-ai-provider', workflow_type:'ads_pack',
+     content_type:'ads_draft', status:'pending_approval',
+     owner_approval_required:true`.
+   - **Do not** add any image/video/asset URL field or any campaign/ad/ad-set/
+     audience/budget object — drafts only.
+
+   > Note: Core enforces EXACTLY 5 items (caps an overlong response to the first 5,
+   > pads a short/empty response with safe fallback drafts) and force-fills any
+   > missing item field with senior-FnB Vietnamese defaults (or `Assumption: ...`),
+   > forcing `workflow_type`/`content_type` + the safety lines — so even an
+   > imperfect or older AI response stays specific, Vietnamese, and correctly
+   > labelled. The new fields (`campaign_objective`, `customer_insight`,
+   > `offer_angle`, `primary_text`, `headline`, `description`,
+   > `creative_direction`, `placement`, `owner_checklist`) are
+   > backward-compatible: if the AI omits them, Core fills them, so no production
+   > breakage. `draft_body` is still accepted as an alias for `primary_text` and
+   > `key_points` for `offer_angle`. A conformant Normalize node is still preferred.
 6. Connect Normalize → **Return Structured Ads Pack**. **Save**.
 
 > Keep **Validate Contract + Safety** and **Return Validation Failure** exactly

@@ -101,6 +101,11 @@ const input = {
   },
 };
 
+// Guards against the module ever claiming an action it must not perform: real ad
+// launch / campaign / ad-set creation, publishing, posting to a channel, ad
+// spend, a live ad-account connection, or fabricated performance metrics.
+const unsafeExecutionCopy = /(ads? (were|was) launched|launched (an? )?ads?\b|campaign (was )?launched|ad set was created|budget was spent|spend occurred|was published|were published|published live|posted to (facebook|tiktok|zalo|instagram)|connected to (a )?live ad account|fake (cpm|cpc|ctr|roas|reach|impressions)|guaranteed (sales|orders|roas))/i;
+
 describe('adsFactory', () => {
   beforeEach(() => {
     vi.stubGlobal('fetch', vi.fn());
@@ -143,20 +148,31 @@ describe('adsFactory', () => {
     expect(result.items.every(item => item.content_type === 'ads_draft')).toBe(true);
     // Approval-first: every item is review-gated, never auto-approved.
     expect(result.items.every(item => item.status === 'needs_review')).toBe(true);
-    // Structured fields + safety land in the caption spec block.
+    // Senior-FnB structured fields + safety land in the caption spec block.
     const first = result.items[0].caption;
     expect(first).toContain('workflow_type: ads_pack');
     expect(first).toContain('content_type: ads_draft');
     expect(first).toContain('status: pending_approval');
-    expect(first).toContain('Draft:');
-    expect(first).toContain('Key points / variants:');
+    expect(first).toContain('Mục tiêu chiến dịch đề xuất:');
+    expect(first).toContain('Tệp khách mục tiêu (giả định):');
+    expect(first).toContain('Insight khách hàng:');
+    expect(first).toContain('Góc tiếp cận / thông điệp (offer angle):');
+    expect(first).toContain('Primary text (nháp):');
+    expect(first).toContain('Headline (nháp):');
+    expect(first).toContain('Description (nháp):');
+    expect(first).toContain('Hướng sáng tạo (creative direction):');
+    expect(first).toContain('Vị trí hiển thị đề xuất (placement):');
+    expect(first).toContain('CTA:');
+    expect(first).toContain('Checklist Owner duyệt:');
     expect(first).toContain('no_auto_post=true');
     expect(first).toContain('no_auto_ads=true');
     expect(first).toContain('no_platform_launch=true');
     expect(first).toContain('no_image_generation=true');
     expect(first).toContain('no_video_generation=true');
-    // No ads are launched: explicitly states draft notes only.
-    expect(first).toContain('no ads created, launched, scheduled, or spent');
+    // Safety label: draft concept only, not launched, no spend, no live ad account.
+    expect(first).toContain('Draft ads concept only · Pending approval · Not launched · No spend · No live ad account connection.');
+    // Honest by construction: no fake launch / spend / publish / metrics claims.
+    expect(result.items.every(item => !unsafeExecutionCopy.test(item.caption))).toBe(true);
     // Quality: no generic "Owner to confirm ..." placeholders anywhere.
     expect(result.items.every(item => !/Owner to confirm/i.test(item.caption))).toBe(true);
     // The first item resolves to a real, specific spec (not a generic label).
@@ -171,7 +187,7 @@ describe('adsFactory', () => {
         ok: true,
         generated_by: 'n8n-ai-provider',
         items: [
-          { key: 'campaign_angle_offer', title: 'Angle Draft', objective: 'pick the angle', draft_body: 'Lead with the offer' },
+          { key: 'campaign_angle_offer', title: 'Angle Draft', objective: 'pick the angle', primary_text: 'Lead with the offer' },
           { key: 'ads_manager_handoff', title: 'Handoff Checklist', objective: 'manual setup' },
         ],
       }),
@@ -183,25 +199,105 @@ describe('adsFactory', () => {
     expect(result.mode).toBe('n8n');
     expect(result.job.generation_mode).toBe('external_module');
     expect(GENERATION_MODE_LABEL[result.job.generation_mode]).toBe('n8n AI Provider');
+    // V1 always normalizes to the fixed set of 5 ads draft approval items.
+    expect(result.items).toHaveLength(5);
+    expect(result.job.item_count).toBe(5);
     expect(result.items.every(item => item.content_type === 'ads_draft')).toBe(true);
     // Approval-first preserved on the n8n path too.
     expect(result.items.every(item => item.status === 'needs_review')).toBe(true);
-    expect(result.items[0].caption).toContain('generated_by: n8n-ai-provider');
-    expect(result.items[0].caption).toContain('generation_mode: external_module');
+    expect(result.items.every(item => item.caption.includes('generated_by: n8n-ai-provider'))).toBe(true);
+    expect(result.items.every(item => item.caption.includes('source: n8n'))).toBe(true);
+    expect(result.items.every(item => item.caption.includes('generation_mode: external_module'))).toBe(true);
     // Metadata consistency: workflow_type forced to ads_pack even from n8n.
     expect(result.items.every(item => item.caption.includes('workflow_type: ads_pack'))).toBe(true);
-    // Quality: the second item omits draft/cta fields — it must resolve to the
-    // canonical spec + "Assumption: ...", never a generic "Owner to confirm".
+    // Quality: the second item omits most fields — it must resolve to the
+    // canonical spec + senior-FnB defaults, never a generic "Owner to confirm".
     const handoff = result.items[1];
     expect(handoff.angle).toBe('Handoff Checklist');
-    expect(handoff.caption).not.toMatch(/Owner to confirm/i);
-    expect(handoff.cta).not.toMatch(/Owner to confirm/i);
+    expect(result.items.every(item => !/Owner to confirm/i.test(item.caption))).toBe(true);
+    expect(result.items.every(item => !/Owner to confirm/i.test(item.cta))).toBe(true);
+    expect(result.items.every(item => !unsafeExecutionCopy.test(item.caption))).toBe(true);
   });
 
-  it('fails safely when the configured webhook returns no items', async () => {
+  it('caps n8n ads pack output to exactly 5 approval items', async () => {
     vi.stubEnv('VITE_N8N_ADS_PACK_WEBHOOK_URL', 'https://n8n.example.com/webhook/ads-pack');
-    (fetch as ReturnType<typeof vi.fn>).mockResolvedValue({ ok: true, json: async () => ({ ok: true, items: [] }) });
+    (fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        ok: true,
+        generated_by: 'n8n-ai-provider',
+        items: Array.from({ length: 9 }, (_, idx) => ({
+          key: `extra_${idx + 1}`,
+          title: `Returned Ads Draft ${idx + 1}`,
+          objective: `Objective ${idx + 1}`,
+          primary_text: `Safe draft ad copy ${idx + 1}`,
+        })),
+      }),
+    });
 
-    await expect(runAdsFactory(input)).rejects.toThrow(/no ads draft items/i);
+    const result = await runAdsFactory(input);
+
+    expect(result.items).toHaveLength(5);
+    expect(result.job.item_count).toBe(5);
+    expect(result.items[0].angle).toBe('Returned Ads Draft 1');
+    expect(result.items[4].angle).toBe('Returned Ads Draft 5');
+    expect(result.items.some(item => item.angle === 'Returned Ads Draft 6')).toBe(false);
+    expect(result.items.every(item => item.status === 'needs_review')).toBe(true);
+    expect(result.items.every(item => item.caption.includes('source: n8n'))).toBe(true);
+    expect(result.items.every(item => item.caption.includes('generation_mode: external_module'))).toBe(true);
+    expect(result.items.every(item => !unsafeExecutionCopy.test(item.caption))).toBe(true);
+  });
+
+  it('pads short n8n ads pack output with safe fallback approval items', async () => {
+    vi.stubEnv('VITE_N8N_ADS_PACK_WEBHOOK_URL', 'https://n8n.example.com/webhook/ads-pack');
+    (fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        ok: true,
+        generated_by: 'n8n-ai-provider',
+        items: [
+          { key: 'campaign_angle_offer', title: 'Angle Draft', objective: 'pick the angle', primary_text: 'Lead with the offer' },
+          { key: 'ad_copy_variants', title: 'Copy Variants', objective: 'draft A/B copy' },
+        ],
+      }),
+    });
+
+    const result = await runAdsFactory(input);
+
+    expect(result.items).toHaveLength(5);
+    expect(result.job.item_count).toBe(5);
+    expect(result.items[0].angle).toBe('Angle Draft');
+    expect(result.items[1].angle).toBe('Copy Variants');
+    expect(result.items[2].angle).toBe('Audience & Targeting Notes');
+    expect(result.items[3].angle).toBe('Budget & Testing Plan Draft');
+    expect(result.items[4].angle).toBe('Ads Manager Handoff Checklist');
+    expect(result.items.every(item => item.status === 'needs_review')).toBe(true);
+    expect(result.items.every(item => item.caption.includes('pending_approval'))).toBe(true);
+    expect(result.items.every(item => item.caption.includes('generated_by: n8n-ai-provider'))).toBe(true);
+    expect(result.items.every(item => item.caption.includes('source: n8n'))).toBe(true);
+    expect(result.items.every(item => item.caption.includes('generation_mode: external_module'))).toBe(true);
+    expect(result.items.every(item => item.caption.includes('Not launched · No spend · No live ad account connection.'))).toBe(true);
+    expect(result.items.every(item => !unsafeExecutionCopy.test(item.caption))).toBe(true);
+  });
+
+  it('pads empty n8n ads pack output with safe fallback approval items', async () => {
+    vi.stubEnv('VITE_N8N_ADS_PACK_WEBHOOK_URL', 'https://n8n.example.com/webhook/ads-pack');
+    (fetch as ReturnType<typeof vi.fn>).mockResolvedValue({ ok: true, json: async () => ({ ok: true, generated_by: 'n8n-ai-provider', items: [] }) });
+
+    const result = await runAdsFactory(input);
+
+    expect(result.items).toHaveLength(5);
+    expect(result.job.item_count).toBe(5);
+    expect(result.items.every(item => item.status === 'needs_review')).toBe(true);
+    expect(result.items.every(item => item.caption.includes('source: n8n'))).toBe(true);
+    expect(result.items.every(item => item.caption.includes('generation_mode: external_module'))).toBe(true);
+    expect(result.items.every(item => !unsafeExecutionCopy.test(item.caption))).toBe(true);
+  });
+
+  it('rejects a non-array items response as a contract breach', async () => {
+    vi.stubEnv('VITE_N8N_ADS_PACK_WEBHOOK_URL', 'https://n8n.example.com/webhook/ads-pack');
+    (fetch as ReturnType<typeof vi.fn>).mockResolvedValue({ ok: true, json: async () => ({ ok: true, items: { not: 'an array' } }) });
+
+    await expect(runAdsFactory(input)).rejects.toThrow(/invalid ads draft items/i);
   });
 });
