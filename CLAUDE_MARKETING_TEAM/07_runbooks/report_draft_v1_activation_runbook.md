@@ -77,11 +77,21 @@ auto-post. No auto-ads. No platform launch.
 5. **Owner / Client Report Handoff Draft**
 
 Each is a `ContentPlanItem` with `content_type = 'report_draft'`, auto-submitted
-for approval (`status: needs_review`). The caption carries a readable spec block
-(objective, focus, period, **data basis**, summary draft, key points/insights,
-next actions, safety note) plus a metadata footer. **These are report draft notes
-only — no live analytics is pulled and no real metric is claimed unless provided
-in the Core request.**
+for approval (`status: needs_review`). The caption carries a senior-FnB readable
+spec block — report objective · reporting period (owner-provided placeholder) ·
+**data source status** (provided / simulated / missing / owner-input-required) ·
+executive summary (no invented numbers) · key observations (provided data only,
+else labelled assumptions) · content & creative review · campaign/ads review
+(draft, no fake performance numbers) · customer/order insight (only if data
+provided) · recommended next actions · questions for owner/client before
+finalizing · Owner approval checklist · safety label ("Draft report only ·
+Pending approval · No live analytics pull · No unverified metrics · Not
+published.") — plus a metadata footer. Modern Vietnamese agency tone,
+local-restaurant-friendly. **These are report draft notes only — no live
+analytics is pulled, no data source is claimed, and NO number (spend / revenue /
+ROAS / clicks / impressions / reach / views / likes / comments / messages /
+orders / conversion rate / customer counts) and no testimonial is invented;
+missing figures stay labelled "Owner cấp" / Assumption.**
 
 ### Metadata (per item + envelope)
 
@@ -129,20 +139,84 @@ in the Core request.**
 3. **Credential:** select your existing OpenAI credential or **＋ Create New** →
    paste the API key **here in n8n Credentials only**. Never put the key in
    Core/Vercel/repo.
-4. System prompt must instruct: produce EXACTLY the 5 report draft items above, in
-   order, report NOTES only; **NEVER pull or invent metrics — only use figures
-   explicitly provided in the request**; if a figure is missing, leave a labelled
-   placeholder (`owner to supply`) and never fabricate a number; label any
-   non-live data as `Assumption: ` / owner-provided / simulated-demo; NEVER
-   generate images or video and NEVER call any analytics/platform connector.
+4. **System prompt** — paste this into the OpenAI node. It produces senior-FnB,
+   client-friendly report drafts in Vietnamese and is metric-safe by construction
+   (Phase B5 quality pass):
+
+   ```
+   Bạn là CHIẾN LƯỢC GIA (strategist) cấp cao của một agency F&B Việt Nam, soạn
+   BẢN NHÁP BÁO CÁO (chỉ text/notes/spec) cho quán ăn/nhà hàng, street food, cà
+   phê/trà sữa, chè, cơm tấm, bún đậu, quán địa phương (vd: Vị Cuốn). Giọng: hiện
+   đại, thân thiện với khách, KHÔNG quá "doanh nghiệp"; giúp Owner hiểu cần kiểm
+   tra gì tiếp theo.
+
+   Dựa trên request JSON (brand, brief, campaign, options), tạo ĐÚNG 5 report
+   draft item, theo thứ tự, với các `key`:
+     1. campaign_status_summary — Campaign Status Summary Draft
+     2. performance_insight     — Performance Insight Notes
+     3. content_creative_review — Content & Creative Review Notes
+     4. risks_learnings_actions — Risks, Learnings & Next Actions
+     5. report_handoff          — Owner / Client Report Handoff Draft
+
+   Với MỖI item, điền ĐẦY ĐỦ các field sau bằng tiếng Việt cụ thể:
+     title, focus, objective (mục tiêu báo cáo),
+     period (kỳ báo cáo — chỉ là placeholder, ghi "Owner cấp ngày" nếu chưa có,
+       KHÔNG suy đoán ngày),
+     data_status (tình trạng nguồn dữ liệu — nêu rõ 4 trạng thái: provided data /
+       simulated data / missing data / owner input required),
+     exec_summary (tóm tắt điều hành — KHÔNG có số bịa),
+     key_observations (quan sát chính — chỉ dựa trên dữ liệu được cấp, nếu không
+       có thì ghi rõ là giả định/cần Owner cấp),
+     content_review (rà soát nội dung & sáng tạo),
+     campaign_ads_review (rà soát chiến dịch/quảng cáo — bản nháp, KHÔNG số liệu
+       hiệu suất giả),
+     customer_insight (insight khách/đơn — CHỈ điền khi có dữ liệu Owner cấp),
+     next_actions (hành động đề xuất tiếp theo),
+     owner_questions (câu hỏi cho Owner/khách trước khi chốt),
+     owner_checklist (checklist Owner duyệt).
+
+   TUYỆT ĐỐI KHÔNG: kéo/giả vờ kéo analytics; nói có quyền truy cập dữ liệu
+   Meta/TikTok/Zalo/Google/Google Analytics/POS/ShopeeFood/GrabFood/CRM; bịa bất
+   kỳ con số nào — chi phí, doanh thu, ROAS, click, hiển thị, tiếp cận, lượt
+   xem/like/comment, tin nhắn, đơn, tỉ lệ chuyển đổi, số khách; bịa đánh
+   giá/testimonial; nói đã chạy ads/đã đăng bài/đã gửi báo cáo cho khách; thêm
+   hành vi connector live; tạo ảnh/video. Nếu thiếu số liệu, để placeholder có
+   nhãn "Owner cấp" / "Assumption: ..." — KHÔNG bịa số, KHÔNG viết "Owner to
+   confirm". Chỉ kết luận hiệu quả khi có số liệu thật do Owner cấp; nếu không có,
+   nói rõ "chưa có dữ liệu để kết luận".
+
+   Chỉ trả về JSON hợp lệ: { "items": [ {…5 item…} ] }. Không prose, không markdown.
+   ```
+
 5. Add a **Code** node after OpenAI ("Normalize Report Draft") that shapes the AI
-   output into the SAME envelope the placeholder produced — keep `ok: true`,
-   `request_id`, `workflow_type: 'report_draft'`, `content_type: 'report_draft'`,
-   `generated_by: 'n8n-ai-provider'`, `owner_approval_required: true`,
-   `status: 'pending_approval'`, `job.item_count`, `items[]`,
-   `safety: request.safety`. Each item must keep a `data_basis` that states no live
-   analytics were pulled. **Do not** add any analytics/metrics/asset field beyond
-   owner-provided values.
+   output into the SAME envelope the placeholder produced — it MUST keep:
+   - `ok: true`, `request_id`, `workflow_type: 'report_draft'`,
+     `content_type: 'report_draft'`, `generated_by: 'n8n-ai-provider'`,
+     `owner_approval_required: true`, `status: 'pending_approval'`,
+     `job.item_count`, `items[]`, `safety: request.safety`.
+   - Each item with: `key, title, focus, objective, period, data_status,
+     exec_summary, key_observations, content_review, campaign_ads_review,
+     customer_insight, next_actions, owner_questions, owner_checklist,
+     generated_by:'n8n-ai-provider', workflow_type:'report_draft',
+     content_type:'report_draft', status:'pending_approval',
+     owner_approval_required:true`.
+   - Keep a `data_status` (or legacy `data_basis`) that states no live analytics
+     were pulled. **Do not** add any analytics/metrics/asset field beyond
+     owner-provided values, and never inject a fabricated number.
+
+   > Note: Core enforces EXACTLY 5 items (caps an overlong response to the first 5,
+   > pads a short/empty response with safe fallback drafts) and force-fills any
+   > missing item field with senior-FnB Vietnamese defaults (or "Owner cấp" /
+   > `Assumption: ...`), forcing `workflow_type`/`content_type`, the
+   > no-live-analytics data status, and the safety lines — so even an imperfect or
+   > older AI response stays specific, Vietnamese, metric-safe, and correctly
+   > labelled. The new fields (`data_status`, `exec_summary`, `key_observations`,
+   > `content_review`, `campaign_ads_review`, `customer_insight`,
+   > `owner_questions`, `owner_checklist`) are backward-compatible: if the AI omits
+   > them, Core fills them, so no production breakage. `data_basis` is still
+   > accepted as an alias for `data_status`, `summary_body` for `exec_summary`, and
+   > `key_points` for `key_observations`. A conformant Normalize node is still
+   > preferred.
 6. Connect Normalize → **Return Structured Report Draft**. **Save**.
 
 > Keep **Validate Contract + Safety** and **Return Validation Failure** exactly

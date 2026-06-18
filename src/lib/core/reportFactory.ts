@@ -6,8 +6,9 @@
 // REPORT DRAFT NOTES ONLY: it never pulls live analytics, never claims real
 // metrics (unless they are explicitly provided in the Core request), never
 // generates images or video, and never touches any live Meta / TikTok / Zalo /
-// Google Ads / GA4 / CRM / Canva / ComfyUI / Fal.ai connector. Output is
-// approval-first text drafts only — nothing is posted, launched, or spent.
+// Google Ads / GA4 / CRM / POS / ShopeeFood / GrabFood / Canva / ComfyUI /
+// Fal.ai connector. Output is approval-first text drafts only — nothing is
+// posted, launched, spent, or sent to a client.
 //
 // Reuse: the existing ContentPlanJob / ContentPlanItem / approval model carries
 // report drafts unchanged (content_type = 'report_draft'), so there is NO DB
@@ -16,7 +17,7 @@
 // the Content, Design, Video, and Ads factories already use).
 // ---------------------------------------------------------------------------
 import type { ContentPlanItem, ContentPlanJob } from '../../types/core';
-import type { ContentFactoryOptions, ContentFactoryRunInput } from './contentFactory';
+import type { ContentFactoryGoal, ContentFactoryOptions, ContentFactoryRunInput } from './contentFactory';
 import { generateId } from './coreData';
 
 // workflow_type identifies the n8n workflow / external module; content_type
@@ -35,11 +36,11 @@ interface ReportDraftSpec {
 }
 
 const REPORT_DRAFT_SPECS: ReportDraftSpec[] = [
-  { key: 'campaign_status_summary', title: 'Campaign Status Summary Draft',      focus: 'Status overview',        objective: 'Summarize campaign status from the brief & approvals (no live data pulled)' },
-  { key: 'performance_insight',     title: 'Performance Insight Notes',          focus: 'Insight framing',        objective: 'Frame performance insight notes using only owner-provided figures (no metrics invented)' },
-  { key: 'content_creative_review', title: 'Content & Creative Review Notes',    focus: 'Content & creative',     objective: 'Review content/creative items already in Core for the owner' },
-  { key: 'risks_learnings_actions', title: 'Risks, Learnings & Next Actions',    focus: 'Risks & next actions',   objective: 'Draft risks, learnings, and suggested next actions for owner review' },
-  { key: 'report_handoff',          title: 'Owner / Client Report Handoff Draft', focus: 'Report handoff',         objective: 'Assemble an owner/client-ready report draft skeleton for manual review' },
+  { key: 'campaign_status_summary', title: 'Campaign Status Summary Draft',      focus: 'Tổng quan trạng thái',   objective: 'Tổng hợp trạng thái chiến dịch từ brief & tiến độ duyệt (không kéo dữ liệu live)' },
+  { key: 'performance_insight',     title: 'Performance Insight Notes',          focus: 'Khung trình bày insight', objective: 'Dựng khung insight hiệu suất chỉ bằng số liệu Owner cấp (không bịa chỉ số)' },
+  { key: 'content_creative_review', title: 'Content & Creative Review Notes',    focus: 'Rà soát nội dung & sáng tạo', objective: 'Rà soát định tính nội dung/sáng tạo đã có trong Core cho Owner' },
+  { key: 'risks_learnings_actions', title: 'Risks, Learnings & Next Actions',    focus: 'Rủi ro & việc cần làm',  objective: 'Nháp rủi ro, bài học và hành động tiếp theo để Owner duyệt' },
+  { key: 'report_handoff',          title: 'Owner / Client Report Handoff Draft', focus: 'Khung báo cáo bàn giao', objective: 'Lắp khung báo cáo Owner/khách để rà soát & điền số liệu thủ công' },
 ];
 
 export interface ReportDraftRequestPayload {
@@ -97,10 +98,23 @@ interface N8nReportItem {
   focus?: string;
   objective?: string;
   period?: string;
+  // Phase B5 senior-FnB fields. data_status is the explicit data-source status
+  // (provided / simulated / missing / owner-input-required); the rest are the
+  // draft report sections.
+  data_status?: string;
+  exec_summary?: string;
+  key_observations?: string;
+  content_review?: string;
+  campaign_ads_review?: string;
+  customer_insight?: string;
+  next_actions?: string;
+  owner_questions?: string;
+  owner_checklist?: string;
+  // Backward-compat aliases from the original V1 contract: data_basis →
+  // data_status, summary_body → exec_summary, key_points → key_observations.
   data_basis?: string;
   summary_body?: string;
   key_points?: string;
-  next_actions?: string;
   generated_by?: string;
   workflow_type?: string;
   status?: string;
@@ -203,71 +217,170 @@ export async function runReportFactory(input: ContentFactoryRunInput): Promise<R
   if (data.ok === false) {
     throw new ReportFactoryError(data.error?.message || 'n8n Report Draft returned a failure response.');
   }
-  if (!Array.isArray(data.items) || data.items.length === 0) {
-    throw new ReportFactoryError('n8n Report Draft returned no report draft items.');
+  // Exact-five enforcement: a non-array response is a contract breach (throw),
+  // but an empty/short/overlong array is normalized to exactly 5 approval items
+  // in buildResult — so the Approval Board always gets the expected 5 report
+  // drafts.
+  if (!Array.isArray(data.items)) {
+    throw new ReportFactoryError('n8n Report Draft returned invalid report draft items.');
   }
 
   return buildResult(input, payload, data.items, 'n8n', data.generated_by || 'n8n-ai-provider');
 }
 
-// Local fallback: builds the same 5 approval-first report draft items WITHOUT any
-// live data. Every item's data basis explicitly states that no platform data was
-// pulled and that figures are simulated/demo for structure only.
-function buildMockResult(input: ContentFactoryRunInput, payload: ReportDraftRequestPayload): ReportFactoryResult {
+// ── Phase B5: senior-FnB Vietnamese report-draft defaults ──
+// Written like a senior agency strategist preparing a client-facing report draft
+// for a Vietnamese FnB brand (local restaurants / street food / cà phê / trà sữa
+// / chè / cơm tấm / bún đậu). REPORT DRAFT NOTES ONLY — NEVER pulls live
+// analytics, NEVER claims access to Meta/TikTok/Zalo/Google/GA4/POS/ShopeeFood/
+// GrabFood/CRM data, and NEVER invents any number (spend, revenue, ROAS, clicks,
+// impressions, reach, views, likes, comments, messages, orders, conversion rate,
+// customer counts) or testimonials. Missing figures stay labelled "Owner cấp" /
+// "Assumption" — never fabricated, never "Owner to confirm". Shared by the local
+// fallback and by mapReportItem's per-field fallbacks, so an n8n response that
+// omits fields still reads like a real strategist wrote it and stays metric-safe.
+function fnbReportDefaults(input: ContentFactoryRunInput, spec: ReportDraftSpec) {
   const brand = input.brand.name;
   const campaign = input.campaign.name;
-  const goal = input.options.goal;
+  const product = input.brief.product_focus || input.brand.hero_product || `món chủ lực của ${brand}`;
+  const audience = input.brief.target_audience || input.brand.target_audience || 'khách địa phương mục tiêu của quán';
   const channel = input.options.channel;
+  const goal: ContentFactoryGoal = input.options.goal;
+  const goalVi =
+    goal === 'sales'       ? 'tăng đơn / chốt đơn' :
+    goal === 'lead'        ? 'thu liên hệ khách quan tâm' :
+    goal === 'khai_truong' ? 'khai trương quán' :
+    goal === 'tuyen_sinh'  ? 'tuyển sinh / tuyển dụng' :
+                             'tăng nhận diện thương hiệu';
 
-  const items: N8nReportItem[] = REPORT_DRAFT_SPECS.map(spec => ({
+  // #2 Reporting period — placeholder, owner-provided needed (never guessed).
+  const period = 'Owner cấp ngày bắt đầu–kết thúc kỳ báo cáo (chưa có nên để trống — không suy đoán ngày).';
+
+  // #3 Data source status — the 4 states (provided / simulated / missing / owner
+  // input required). Local fallback has no real data, so it states that plainly.
+  const dataStatus = 'Provided data (số liệu thật Owner cấp): CHƯA CÓ · Simulated data: chỉ là cấu trúc/demo minh hoạ bố cục, không phải số thật · Missing data: số liệu hiệu suất (tiếp cận, tương tác, tin nhắn, đơn, chi phí…) · Owner input required: CÓ — Owner cần cấp số liệu thật trước khi chốt. Không số liệu nào được kéo từ nền tảng và không số nào bị bịa.';
+
+  // #11 Owner approval checklist (shared).
+  const ownerChecklist = '[ ] mọi số liệu đều do Owner cấp & đã kiểm chứng (không số bịa)  [ ] đúng kỳ báo cáo  [ ] đúng nhận diện & giọng thương hiệu  [ ] đúng chính tả & dấu tiếng Việt  [ ] phần chưa có dữ liệu được đánh dấu rõ "cần Owner cấp"  [ ] đã trả lời các câu hỏi cho Owner/khách trước khi gửi';
+
+  // #10 Questions for owner/client before finalizing (shared base).
+  const ownerQuestions = `Kỳ báo cáo chính xác từ ngày nào đến ngày nào? Có số liệu thật từ kênh nào không (Facebook/Zalo/đơn tại quán/giao hàng)? Kỳ này ưu tiên mục tiêu gì (đang giả định: ${goalVi})? Có chi phí/ngân sách thực tế để đối chiếu không? Ai là người nhận bản cuối (Owner hay khách)?`;
+
+  // Per-spec sections. Every field is filled for every spec (no generic "Owner to
+  // confirm"), tailored to what that report draft is for. Sections that need data
+  // (customer/order insight, campaign/ads numbers) stay empty-by-default with a
+  // clear "chỉ điền khi Owner cấp dữ liệu" note rather than any fabricated figure.
+  let reportObjective: string;
+  let execSummary: string;
+  let keyObservations: string;
+  let contentReview: string;
+  let campaignAdsReview: string;
+  let customerInsight: string;
+  let nextActions: string;
+
+  switch (spec.key) {
+    case 'campaign_status_summary':
+      reportObjective = `Tổng hợp trạng thái chiến dịch "${campaign}" của ${brand} dựa trên brief & tiến độ duyệt trong Core (KHÔNG kéo dữ liệu nền tảng).`;
+      execSummary = `Tóm tắt điều hành (nháp, không số bịa): nêu chiến dịch đang ở giai đoạn nào, đã có bao nhiêu brief/nội dung được tạo & đang chờ duyệt (đếm từ Core — Owner xác nhận con số), mục tiêu đang hướng tới (${goalVi}). CHƯA kết luận hiệu quả vì chưa có số liệu thật.`;
+      keyObservations = `Quan sát chính (chỉ từ dữ liệu có trong Core): trạng thái brief, các mục nội dung đã tạo/đang chờ duyệt, kênh dự kiến (${channel}). Mọi nhận định về kết quả để trống tới khi Owner cấp số liệu; phần nào không có dữ liệu thì ghi rõ "giả định / cần Owner cấp".`;
+      contentReview = `Điểm nhanh nội dung đã tạo cho chiến dịch này (đã duyệt / chờ duyệt) — chi tiết ở mục "Content & Creative Review".`;
+      campaignAdsReview = `Trạng thái ads dạng nháp: chưa có số liệu quảng cáo thật, KHÔNG ghi tiếp cận/chi phí/ROAS. Owner cấp số nếu có chạy.`;
+      customerInsight = `Chỉ điền khi Owner cung cấp dữ liệu đơn/khách (đơn tại quán, giao hàng, tin nhắn). Chưa có → để trống, KHÔNG suy đoán số khách/đơn.`;
+      nextActions = `Chốt kỳ báo cáo; thu thập số liệu thật từ Owner; ưu tiên duyệt các mục đang chờ. Owner duyệt trước khi hành động.`;
+      break;
+    case 'performance_insight':
+      reportObjective = `Dựng KHUNG trình bày insight hiệu suất cho ${brand} — chừa đúng chỗ để điền số liệu Owner cấp; TUYỆT ĐỐI không bịa chỉ số.`;
+      execSummary = `Tóm tắt điều hành: phần này chỉ dựng khung cho các chỉ số (tiếp cận, tương tác, tin nhắn, đơn, chi phí) — mỗi ô đánh dấu "Owner cấp". Không có số liệu → không có kết luận hiệu quả.`;
+      keyObservations = `Quan sát chính: để trống ô số liệu và ghi rõ "cần Owner cấp" cho từng chỉ số. Nếu Owner đã cấp vài số, chỉ nhận định trong đúng phạm vi số đó — không ngoại suy, không làm tròn lên.`;
+      contentReview = `Khi có dữ liệu, gắn insight với nội dung cụ thể; hiện chỉ ghi giả thuyết "nội dung X có thể hợp tệp ${audience}", chờ số liệu kiểm chứng.`;
+      campaignAdsReview = `Khung cho chỉ số ads (chỉ khi Owner chạy & cấp số): chi phí, kết quả — để trống, không bịa CPM/CPC/CTR/ROAS/tiếp cận.`;
+      customerInsight = `Chỉ điền khi có dữ liệu đơn/khách thật từ Owner; chưa có → để trống.`;
+      nextActions = `Owner cấp số liệu thật theo từng ô; thống nhất cách đo; chỉ kết luận sau khi có số đã kiểm chứng.`;
+      break;
+    case 'content_creative_review':
+      reportObjective = `Rà soát định tính các nội dung/sáng tạo đã có trong Core cho ${brand}, giúp Owner biết nên giữ / sửa gì.`;
+      execSummary = `Tóm tắt: điểm qua nội dung đã tạo (đã duyệt / chờ duyệt), nhận xét định tính về thông điệp, hình ${product}, tính nhất quán thương hiệu — KHÔNG gắn lượt xem/like/tương tác vì chưa có dữ liệu.`;
+      keyObservations = `Quan sát định tính: mục nào thông điệp rõ & ngon mắt, mục nào cần làm lại, có nhất quán nhận diện & giọng ${brand} không. Không xếp hạng theo "hiệu suất" vì chưa có số thật.`;
+      contentReview = `(Mục chính.) Liệt kê từng nội dung: tên/angle, trạng thái duyệt, nhận xét, đề xuất giữ/sửa. Thiếu thông tin → ghi "cần Owner xác nhận", không bịa.`;
+      campaignAdsReview = `Nếu có creative dùng cho ads: nhận xét định tính bản nháp; không gắn số liệu quảng cáo.`;
+      customerInsight = `Phản hồi khách chỉ đưa vào khi Owner có ảnh chụp bình luận/tin nhắn thật; chưa có → để trống, KHÔNG bịa review/đánh giá/testimonial.`;
+      nextActions = `Chọn nội dung nổi bật để đẩy mạnh, sửa mục chưa đạt, bổ sung mục còn thiếu. Owner duyệt.`;
+      break;
+    case 'risks_learnings_actions':
+      reportObjective = `Nêu rủi ro, bài học (cần kiểm chứng) và việc cần làm tiếp cho "${campaign}" — bản nháp để Owner quyết.`;
+      execSummary = `Tóm tắt: liệt kê rủi ro (vd: thiếu số liệu thật, nhiều mục còn chờ duyệt), giả thuyết bài học (CHƯA khẳng định vì thiếu dữ liệu), và danh sách hành động ưu tiên.`;
+      keyObservations = `Quan sát: phân biệt rõ "đã biết chắc" (từ Core) và "giả định / cần kiểm chứng". Không biến giả định thành kết luận, không gán số chưa có.`;
+      contentReview = `Rủi ro phía nội dung: mục tồn đọng chờ duyệt, thiếu nhất quán, thông tin chưa xác nhận (giá/ưu đãi/địa chỉ/SĐT).`;
+      campaignAdsReview = `Rủi ro phía ads (nháp): chưa có số để đánh giá; nhắc không chạy / không tiêu tiền tới khi Owner duyệt. Không số liệu giả.`;
+      customerInsight = `Chỉ nêu khi Owner có dữ liệu đơn/khách thật; nếu không, ghi "cần Owner cấp".`;
+      nextActions = `(Mục chính.) Danh sách hành động ưu tiên: xác nhận số liệu thật, ưu tiên mục chờ duyệt, quyết định thử nghiệm tiếp theo. Owner duyệt trước khi thực hiện.`;
+      break;
+    case 'report_handoff':
+    default:
+      reportObjective = `Lắp khung báo cáo Owner/khách (skeleton) để Owner điền số liệu đã kiểm chứng rồi duyệt trước khi gửi.`;
+      execSummary = `Tóm tắt: bộ khung gồm tiêu đề, kỳ báo cáo, tóm tắt điều hành, insight, rà soát nội dung, rủi ro & hành động — mỗi phần ghi rõ chỗ "Owner cấp số liệu". Không điền số thay Owner.`;
+      keyObservations = `Nhắc: mọi số liệu phải kiểm chứng trước khi đưa vào bản gửi; phần chưa có dữ liệu để trống có nhãn, không bịa.`;
+      contentReview = `Khung mục rà soát nội dung — kéo nội dung từ "Content & Creative Review".`;
+      campaignAdsReview = `Khung mục ads — chỉ điền khi có số liệu Owner cấp; mặc định ghi "chưa có dữ liệu".`;
+      customerInsight = `Khung mục đơn/khách — chỉ điền khi Owner cấp dữ liệu thật.`;
+      nextActions = `Owner điền số liệu đã kiểm chứng → duyệt → mới gửi khách. Approved ≠ Published: duyệt trong Core KHÔNG tự gửi báo cáo cho khách.`;
+      break;
+  }
+
+  return {
+    period,
+    dataStatus,
+    reportObjective,
+    execSummary,
+    keyObservations,
+    contentReview,
+    campaignAdsReview,
+    customerInsight,
+    nextActions,
+    ownerQuestions,
+    ownerChecklist,
+  };
+}
+
+function createFallbackReportItem(input: ContentFactoryRunInput, spec: ReportDraftSpec): N8nReportItem {
+  const d = fnbReportDefaults(input, spec);
+  return {
     key: spec.key,
     title: spec.title,
     focus: spec.focus,
     objective: spec.objective,
-    period: 'Assumption: current campaign window (owner to set exact dates)',
-    data_basis: 'Local fallback / simulated demo structure only — NO live analytics were pulled and NO real metrics are claimed. Replace with owner-provided data before sharing.',
-    summary_body: buildMockSummaryBody(spec.key, brand, campaign, channel),
-    key_points: buildMockKeyPoints(spec.key, brand, goal),
-    next_actions: spec.key === 'risks_learnings_actions'
-      ? 'Draft next actions for owner review: confirm real figures, prioritize top creative, decide next test. Owner approves before anything is acted on.'
-      : 'Owner reviews this draft and supplies/validates any figures before it is shared.',
-  }));
+    period: d.period,
+    data_status: d.dataStatus,
+    exec_summary: d.execSummary,
+    key_observations: d.keyObservations,
+    content_review: d.contentReview,
+    campaign_ads_review: d.campaignAdsReview,
+    customer_insight: d.customerInsight,
+    next_actions: d.nextActions,
+    owner_questions: d.ownerQuestions,
+    owner_checklist: d.ownerChecklist,
+  };
+}
+
+function buildMockResult(input: ContentFactoryRunInput, payload: ReportDraftRequestPayload): ReportFactoryResult {
+  const items: N8nReportItem[] = REPORT_DRAFT_SPECS.map(spec => createFallbackReportItem(input, spec));
 
   return buildResult(input, payload, items, 'local_mock', 'core-local-mock');
 }
 
-function buildMockSummaryBody(key: string, brand: string, campaign: string, channel: string): string {
-  switch (key) {
-    case 'campaign_status_summary':
-      return `Status draft for ${brand} — "${campaign}" on ${channel}: summarize approved briefs, generated items, and approval progress from Core. No live platform data is pulled.`;
-    case 'performance_insight':
-      return `Insight framing only: structure where owner-provided figures would go (reach, engagement, leads). No metrics are invented — fields stay blank until the owner supplies real numbers.`;
-    case 'content_creative_review':
-      return `Review notes for the content/creative items already in Core: what was produced, what is pending approval, and qualitative notes. No external data.`;
-    case 'risks_learnings_actions':
-      return `Draft risks (e.g., unconfirmed data, pending approvals), learnings to validate with the owner, and suggested next actions. All subject to owner review.`;
-    case 'report_handoff':
-      return `Owner/client report skeleton: title, period, summary, insight, creative review, next steps — ready for the owner to fill verified data and approve before sharing.`;
-    default:
-      return `Report draft notes for ${brand} — "${campaign}".`;
-  }
-}
+// Exact-five enforcement: drop non-object entries, cap an overlong response to
+// the first 5, and pad a short/empty response with safe fallback report drafts —
+// so every run yields exactly 5 approval items.
+function normalizeReportItems(input: ContentFactoryRunInput, sourceItems: N8nReportItem[]): N8nReportItem[] {
+  const items = sourceItems
+    .filter(item => item && typeof item === 'object')
+    .slice(0, REPORT_DRAFT_SPECS.length);
 
-function buildMockKeyPoints(key: string, brand: string, goal: string): string {
-  switch (key) {
-    case 'campaign_status_summary':
-      return `Briefs approved, items generated, approvals pending — counts to be confirmed from Core. Goal context: ${goal}.`;
-    case 'performance_insight':
-      return `Placeholders for owner-provided metrics only. Mark each as "owner to supply" — never fabricate a number.`;
-    case 'content_creative_review':
-      return `Top items to highlight, items needing rework, consistency notes for ${brand}.`;
-    case 'risks_learnings_actions':
-      return `Risk list, learning hypotheses (to validate), and a short prioritized next-action list.`;
-    case 'report_handoff':
-      return `Section checklist + reminder that Approved ≠ Published and figures must be verified before sharing.`;
-    default:
-      return `Key draft points for ${brand}.`;
+  while (items.length < REPORT_DRAFT_SPECS.length) {
+    items.push(createFallbackReportItem(input, REPORT_DRAFT_SPECS[items.length]));
   }
+
+  return items;
 }
 
 function buildResult(
@@ -279,7 +392,8 @@ function buildResult(
 ): ReportFactoryResult {
   const now = new Date().toISOString();
   const jobId = generateId('job');
-  const items = sourceItems.map((item, idx) => mapReportItem(input, item, jobId, idx + 1, now, generatedBy, mode));
+  const normalizedItems = normalizeReportItems(input, sourceItems);
+  const items = normalizedItems.map((item, idx) => mapReportItem(input, item, jobId, idx + 1, now, generatedBy, mode));
 
   const job: ContentPlanJob = {
     id: jobId,
@@ -317,32 +431,42 @@ function mapReportItem(
     ?? REPORT_DRAFT_SPECS[sequence - 1]
     ?? REPORT_DRAFT_SPECS[0];
 
-  const brand = input.brand.name;
-  const campaign = input.campaign.name;
+  const d = fnbReportDefaults(input, spec);
 
-  // Prefer AI/source values; fall back to the canonical spec or a clearly-flagged
-  // "Assumption: ..." derived from the request — never a generic "Owner to confirm".
-  const title     = item.title || spec.title;
-  const focus     = item.focus || spec.focus;
-  const objective = item.objective || spec.objective;
-  const period    = item.period || 'Assumption: current campaign window (owner to set exact dates)';
-  // data_basis is forced to always state no-live-analytics if the source omits it,
-  // so a report draft can never imply that real platform data was pulled.
-  const dataBasis = item.data_basis || 'No live analytics were pulled. Any figures must be owner-provided; unverified metrics are not claimed.';
-  const summary   = item.summary_body || `Assumption: report draft notes for "${brand} — ${campaign}". ${objective}.`;
-  const keyPoints = item.key_points || `Assumption: key draft points for ${brand} (${focus}). Owner reviews and validates.`;
-  const actions   = item.next_actions || 'Owner reviews this draft and supplies/validates any figures before it is shared.';
+  // Prefer AI/source values; fall back to senior-FnB Vietnamese defaults derived
+  // from the request — never a generic "Owner to confirm". data_basis/summary_body
+  // /key_points are accepted as backward-compat aliases. data_status is forced to
+  // always state no-live-analytics if the source omits it, so a report draft can
+  // never imply that real platform data was pulled.
+  const title           = item.title || spec.title;
+  const focus           = item.focus || spec.focus;
+  const objective       = item.objective || spec.objective;
+  const period          = item.period || d.period;
+  const dataStatus      = item.data_status || item.data_basis || d.dataStatus;
+  const reportObjective = item.objective || d.reportObjective;
+  const execSummary     = item.exec_summary || item.summary_body || d.execSummary;
+  const keyObs          = item.key_observations || item.key_points || d.keyObservations;
+  const contentReview   = item.content_review || d.contentReview;
+  const adsReview       = item.campaign_ads_review || d.campaignAdsReview;
+  const customerInsight = item.customer_insight || d.customerInsight;
+  const nextActions     = item.next_actions || d.nextActions;
+  const ownerQuestions  = item.owner_questions || d.ownerQuestions;
+  const ownerChecklist  = item.owner_checklist || d.ownerChecklist;
 
   const sourceLabel = mode === 'n8n' ? 'n8n' : 'local';
   const caption = [
-    `Report objective: ${objective}`,
-    `Focus: ${focus}`,
-    `Period: ${period}`,
-    `Data basis: ${dataBasis}`,
-    `Summary draft: ${summary}`,
-    `Key points / insights: ${keyPoints}`,
-    `Next actions: ${actions}`,
-    'Safety: report draft notes only — no live analytics pulled; no metrics claimed unless owner-provided in the request. Nothing is posted, launched, or spent.',
+    `Mục tiêu báo cáo: ${reportObjective}`,
+    `Kỳ báo cáo: ${period}`,
+    `Tình trạng nguồn dữ liệu: ${dataStatus}`,
+    `Tóm tắt điều hành (không bịa số): ${execSummary}`,
+    `Quan sát chính (chỉ từ dữ liệu được cấp, hoặc nêu rõ là giả định): ${keyObs}`,
+    `Rà soát nội dung & sáng tạo: ${contentReview}`,
+    `Rà soát chiến dịch/quảng cáo (bản nháp, không số liệu giả): ${adsReview}`,
+    `Insight khách hàng / đơn hàng (chỉ khi có dữ liệu): ${customerInsight}`,
+    `Hành động đề xuất tiếp theo: ${nextActions}`,
+    `Câu hỏi cho Owner/khách trước khi chốt: ${ownerQuestions}`,
+    `Checklist Owner duyệt: ${ownerChecklist}`,
+    'An toàn: Draft report only · Pending approval · No live analytics pull · No unverified metrics · Not published.',
     '',
     '---',
     'Report Draft V1 metadata:',
@@ -373,7 +497,7 @@ function mapReportItem(
     angle: title,
     hook: `${title} — ${objective}`,
     caption,
-    visual_brief: keyPoints,
+    visual_brief: `${focus} · ${keyObs}`,
     cta: 'Owner review',
     hashtags: `#${input.brand.name.replace(/\s+/g, '')} #ReportDraft`,
     status: 'needs_review',
