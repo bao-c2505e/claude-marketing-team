@@ -6,6 +6,17 @@ Nhật ký theo dõi các mốc hoàn thành kỹ thuật qua các Phase.
 
 ## 📅 Nhật Ký Sự Kiện (Event Logs)
 
+### 🗓️ Ngày 18/06/2026 — Phase C — Manual n8n Prompt Update Pack / Owner Activation Pass ✅ DONE / PASS (docs-only)
+- **Sự kiện:** Tạo Owner activation pack để Owner **thủ công** cập nhật 5 production n8n OpenAI prompt bằng chất lượng FnB đã tune ở Phase B — copy → paste → Save → activate → smoke test, hoàn toàn là **n8n-only edit**.
+- **File mới:** `07_runbooks/phase_c_manual_n8n_prompt_update_owner_activation_pass.md` (Sections A–G: checklist trước khi sửa n8n; bảng cập nhật 5 OpenAI node; 5 khối "COPY THIS PROMPT" verbatim; smoke test plan; expected counts; rollback; PASS/FAIL) + log `08_logs/phase_c_manual_n8n_prompt_update_pack_20260618.md`.
+- **Prompt provenance:** KHÔNG bịa prompt mới — mỗi prompt trích **nguyên văn** từ runbook Phase B tương ứng (Content Factory §1; Design/Video/Ads/Report §2 Path B step 4). Workflow/node names verify theo `n8n-workflows/*_v1.workflow.json`.
+- **Per-module status (ghi trung thực trong pack):** Content Factory V1 = production-active (OpenAI node thật) → paste trực tiếp; Design/Video/Ads/Report = Owner-gated, production đang chạy Local fallback + placeholder trong n8n → prompt dùng khi Owner kích hoạt Path B (hoặc paste vào OpenAI node nếu đã thêm). Counts: Content = 7-day pack (7 items); 4 module còn lại = đúng 5 items.
+- **An toàn:** approval-first; Approved ≠ Published; no auto-post/auto-ads/schedule/spend/publish; no live connectors; no image/video generation; no live analytics pull; no fake metrics; OpenAI key chỉ ở n8n Credentials; **không commit secret/webhook URL**; **không đổi workflow JSON** (không re-import, không Core redeploy, không Vercel env change); smoke test qua Core UI, không lộ webhook.
+- **Validation:** `npm run build` PASS (index ~357.71 kB / gzip ~89.67, no >500 kB warning); `npm run test` PASS 75/75 (7 files); `node contracts/tools/validate_contracts.js` ALL PASS; secrets/webhook scan clean; workflow JSON unchanged.
+- **Git:** commit `3656059` (Phase B rollup) đã được push lên `origin/main` từ trước (local == origin, 0 ahead/0 behind). Phase C commit thêm lên trên + push `origin main`, no history rewrite.
+
+---
+
 ### 🗓️ Ngày 16/06/2026 — V2-E3 PC2 Adapter Skeleton — START GATED 🔴 (prerequisite gate FAILS; NOT started)
 - **Sự kiện:** Owner direction = start V2-E3 PC2 Adapter Skeleton **chỉ nếu prerequisite gate pass**. Inspect-first gate check. **Kết quả: GATE FAILS → KHÔNG start V2-E3.** No adapter code, no tests, no spec created.
 - **Gate inputs (inspected):** (1) **B2 verdict = 🔴 BLOCKED** (staging report §13.10 + §14; env re-confirm presence-only = tất cả MISSING). (2) **Overall V2-D2 = 🟡 PARTIAL / BLOCKED ON STAGING VERIFICATION** (KHÔNG VERIFIED/PASS). (3) **V2-UI-T2 / manual product E2E = không tồn tại** (chưa start, Route B kỳ trước). (4) **4-file consistency = nhất quán** — tất cả ghi `V2-E3 PC2 Adapter Skeleton 🔴 NOT STARTED / Owner-gated (checkpoint O1)`.

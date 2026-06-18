@@ -22,6 +22,36 @@ Chúng ta đang xây dựng **The Core Agency — Real Operations MVP**. Đây l
 
 ---
 
+## ✅ Phase C — Manual n8n Prompt Update Pack / Owner Activation Pass ✅ DONE / PASS (2026-06-18)
+
+> **Phase C ✅ DONE / PASS — docs/runbook only.** Following Phase B (AI Factory V1
+> FnB Output Quality Tuning ✅ PASS), Phase C delivers an Owner activation pack to
+> manually push the upgraded Phase B prompts into the 5 production n8n OpenAI nodes.
+
+- **Mục tiêu:** Owner mở pack → copy mỗi prompt → paste vào đúng production n8n
+  OpenAI node → Save → activate → smoke test. Toàn bộ là **n8n-only edit**.
+- **Deliverables:** `07_runbooks/phase_c_manual_n8n_prompt_update_owner_activation_pass.md`
+  (Sections A–G) + `08_logs/phase_c_manual_n8n_prompt_update_pack_20260618.md`.
+- **Prompt provenance:** mỗi prompt trích **nguyên văn** từ runbook Phase B tương
+  ứng — KHÔNG bịa prompt mới (Content Factory §1; Design/Video/Ads/Report §2 Path B
+  step 4).
+- **Per-module status (trung thực):** Content Factory V1 = production-active (OpenAI
+  node thật) → paste trực tiếp, expect **7-day pack (7 items)**. Design/Video/Ads/
+  Report = Owner-gated, production chạy **Local fallback** + placeholder trong n8n →
+  prompt dùng khi Owner kích hoạt Path B, mỗi module expect **đúng 5 items**.
+- **Không cần:** re-import workflow JSON, Core redeploy, hay Vercel env change cho
+  việc cập nhật prompt. **OpenAI key chỉ ở n8n Credentials.**
+- **Safety:** approval-first; **Approved ≠ Published**; no auto-post/auto-ads/
+  schedule/spend/publish; no live connectors; no image/video generation; no live
+  analytics pull; no fake metrics; no secrets/webhook URL committed; no workflow
+  JSON changed. Smoke test qua Core UI (không lộ webhook).
+- **Validation:** `npm run build` PASS (no >500 kB warning); `npm run test` 75/75
+  PASS; contract validation ALL PASS.
+- **Git:** `3656059` (Phase B rollup) đã push `origin/main` từ trước; Phase C commit
+  thêm lên trên + push, no history rewrite.
+
+---
+
 ## ✅ V2-UI-T1 — Manual E2E + UI Bug Triage ✅ DONE / PASS (2026-06-15)
 
 > **V2-UI-T1 ✅ DONE / PASS — small safe fixes only.** Owner paused feedback

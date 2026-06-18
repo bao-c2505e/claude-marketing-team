@@ -6,6 +6,17 @@ Nhật ký ghi lại các hành động mô phỏng của các AI Agent khi vậ
 
 ## 🗓️ Nhật Ký Hoạt Động (Simulated Activity Logs)
 
+### 🗓️ Ngày 18/06/2026 — Phase C — Manual n8n Prompt Update Pack / Owner Activation Pass ✅ DONE / PASS
+- **[Owner — Approver]:** Directed: build a clear Owner activation pack so the 5 production n8n OpenAI prompts can be manually updated with the Phase B upgraded FnB quality — without re-importing workflow JSON, redeploying Core, or changing Vercel env, and with the OpenAI key staying only in n8n Credentials.
+- **[PC1 Claude Code Builder]:** Verified git first — commit `3656059` (Phase B rollup) already pushed to `origin/main` (local `main` == `origin/main`, 0 ahead/0 behind, tree clean); no push of `3656059` needed, no history rewrite.
+- **[PC1]:** Extracted each upgraded prompt **verbatim** from its Phase B runbook (Content Factory §1; Design/Video/Ads/Report §2 Path B step 4) — invented no new prompt — and verified production workflow/node names against `n8n-workflows/*_v1.workflow.json`.
+- **[PC1]:** Authored `07_runbooks/phase_c_manual_n8n_prompt_update_owner_activation_pass.md` (Sections A–G) + `08_logs/phase_c_manual_n8n_prompt_update_pack_20260618.md`. Recorded honestly that only Content Factory V1 has a live OpenAI node to edit today; Design/Video/Ads/Report run Local fallback (placeholder in n8n) and the prompt applies at their Owner-gated Path B activation.
+- **[PC1]:** Smoke-test plan uses the Core UI Automation Factory cards (existing safe Owner-approved trigger) — no webhook URL exposed. Expected counts: Content = 7-day pack (7 items); Design/Video/Ads/Report = exactly 5 each, all `needs_review`.
+- **[PC1]:** Preserved all safety boundaries — approval-first; Approved ≠ Published; no auto-post/auto-ads/schedule/spend/publish; no live connectors; no image/video generation; no live analytics pull; no fake metrics. No secrets/webhook URLs committed; no n8n workflow JSON changed; no Core redeploy; no Vercel env change.
+- **[PC1]:** Docs/logs-only diff. `npm run build` PASS (index ~357.71 kB / gzip ~89.67, no >500 kB warning); `npm run test` 75/75 PASS (7 files); `node contracts/tools/validate_contracts.js` ALL PASS; secrets/webhook scan clean.
+
+---
+
 ### 🗓️ Ngày 16/06/2026 — V2-E3 PC2 Adapter Skeleton — START GATED 🔴 (prerequisite gate FAILS; NOT started)
 - **[Owner — Approver]:** Directed: start V2-E3 PC2 Adapter Skeleton **only if** the prerequisite gate is satisfied; if B2 is BLOCKED/FAILED or unsafe, do not start — report the blocker and stop.
 - **[PC1 Claude Code Builder]:** Ran the gate inspection (no code touched): B2 verdict = 🔴 **BLOCKED** (staging report §13.10/§14; presence-only env re-check = all staging vars MISSING, `.env*` ABSENT); overall V2-D2 = 🟡 PARTIAL / BLOCKED ON STAGING VERIFICATION (not VERIFIED/PASS); no V2-UI-T2 file (manual product E2E not started); all four tracking files consistent — `V2-E3 PC2 Adapter Skeleton 🔴 NOT STARTED / Owner-gated (checkpoint O1)`.
