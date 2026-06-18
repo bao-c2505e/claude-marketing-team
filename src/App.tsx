@@ -29,6 +29,7 @@ import {
   FolderOpen,
   BarChart2,
   Package,
+  PackageCheck,
   Network,
   Activity,
   Factory,
@@ -76,6 +77,7 @@ const ClientViewTab         = lazy(() => import('./components/core/ClientViewTab
 const AssetLibraryTab       = lazy(() => import('./components/core/AssetLibraryTab'));
 const ReportsTab            = lazy(() => import('./components/core/ReportsTab'));
 const ExportPackTab         = lazy(() => import('./components/core/ExportPackTab'));
+const ClientHandoffTab      = lazy(() => import('./components/core/ClientHandoffTab'));
 const ConnectorRegistryTab  = lazy(() => import('./components/core/ConnectorRegistryTab'));
 const AutomationLogsTab     = lazy(() => import('./components/core/AutomationLogsTab'));
 const AutomationFactoryTab  = lazy(() => import('./components/core/AutomationFactoryTab'));
@@ -1335,6 +1337,14 @@ export default function App() {
             </button>
 
             <button
+              className={`btn btn-secondary ${activeTab === 'client-handoff' ? 'active' : ''}`}
+              style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'client-handoff' ? '1px solid rgba(52,211,153,0.5)' : '', background: activeTab === 'client-handoff' ? 'rgba(52,211,153,0.1)' : '' }}
+              onClick={() => setActiveTab('client-handoff')}
+            >
+              <PackageCheck size={18} /> Client Handoff
+            </button>
+
+            <button
               className={`btn btn-secondary ${activeTab === 'connector-registry' ? 'active' : ''}`}
               style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'connector-registry' ? '1px solid rgba(251, 146, 60,0.5)' : '', background: activeTab === 'connector-registry' ? 'rgba(244, 122, 31,0.1)' : '' }}
               onClick={() => setActiveTab('connector-registry')}
@@ -1709,6 +1719,20 @@ export default function App() {
                   genData={genData}
                   approvalData={approvalData}
                   assetData={assetData}
+                  userRole={user?.role ?? null}
+                  actorLabel={actorLabel}
+                  isSupabaseConfigured={isSupabaseConfigured}
+                />
+              )}
+
+              {/* ── Phase F: Client Handoff Pack Tab ── */}
+              {activeTab === 'client-handoff' && (
+                <ClientHandoffTab
+                  clients={coreData.clients}
+                  brands={coreData.brands}
+                  campaigns={coreData.campaigns}
+                  contentItems={genData.contentItems}
+                  approvalData={approvalData}
                   userRole={user?.role ?? null}
                   actorLabel={actorLabel}
                   isSupabaseConfigured={isSupabaseConfigured}
