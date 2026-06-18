@@ -30,6 +30,7 @@ import {
   BarChart2,
   Package,
   PackageCheck,
+  MessageSquare,
   Network,
   Activity,
   Factory,
@@ -78,6 +79,7 @@ const AssetLibraryTab       = lazy(() => import('./components/core/AssetLibraryT
 const ReportsTab            = lazy(() => import('./components/core/ReportsTab'));
 const ExportPackTab         = lazy(() => import('./components/core/ExportPackTab'));
 const ClientHandoffTab      = lazy(() => import('./components/core/ClientHandoffTab'));
+const FeedbackRevisionTab   = lazy(() => import('./components/core/FeedbackRevisionTab'));
 const ConnectorRegistryTab  = lazy(() => import('./components/core/ConnectorRegistryTab'));
 const AutomationLogsTab     = lazy(() => import('./components/core/AutomationLogsTab'));
 const AutomationFactoryTab  = lazy(() => import('./components/core/AutomationFactoryTab'));
@@ -869,7 +871,7 @@ export default function App() {
   const handleViewModeSwitch = (mode: 'owner' | 'client') => {
     setViewMode(mode);
     if (mode === 'client') {
-      const ownerOnlyTabs = ['new-campaign', 'team-board', 'manual-export', 'client-demo', 'automation-factory', 'automation-logs'];
+      const ownerOnlyTabs = ['new-campaign', 'team-board', 'manual-export', 'client-demo', 'automation-factory', 'automation-logs', 'client-feedback'];
       if (ownerOnlyTabs.includes(activeTab)) setActiveTab('dashboard');
     }
   };
@@ -1344,6 +1346,16 @@ export default function App() {
               <PackageCheck size={18} /> Client Handoff
             </button>
 
+            {(user?.role === 'owner' || user?.role === 'manager') && (
+              <button
+                className={`btn btn-secondary ${activeTab === 'client-feedback' ? 'active' : ''}`}
+                style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'client-feedback' ? '1px solid rgba(96,165,250,0.5)' : '', background: activeTab === 'client-feedback' ? 'rgba(96,165,250,0.1)' : '' }}
+                onClick={() => setActiveTab('client-feedback')}
+              >
+                <MessageSquare size={18} /> Feedback & Revision
+              </button>
+            )}
+
             <button
               className={`btn btn-secondary ${activeTab === 'connector-registry' ? 'active' : ''}`}
               style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'connector-registry' ? '1px solid rgba(251, 146, 60,0.5)' : '', background: activeTab === 'connector-registry' ? 'rgba(244, 122, 31,0.1)' : '' }}
@@ -1728,6 +1740,20 @@ export default function App() {
               {/* ── Phase F: Client Handoff Pack Tab ── */}
               {activeTab === 'client-handoff' && (
                 <ClientHandoffTab
+                  clients={coreData.clients}
+                  brands={coreData.brands}
+                  campaigns={coreData.campaigns}
+                  contentItems={genData.contentItems}
+                  approvalData={approvalData}
+                  userRole={user?.role ?? null}
+                  actorLabel={actorLabel}
+                  isSupabaseConfigured={isSupabaseConfigured}
+                />
+              )}
+
+              {/* ── Phase G: Client Feedback / Revision Loop Tab ── */}
+              {activeTab === 'client-feedback' && (
+                <FeedbackRevisionTab
                   clients={coreData.clients}
                   brands={coreData.brands}
                   campaigns={coreData.campaigns}
