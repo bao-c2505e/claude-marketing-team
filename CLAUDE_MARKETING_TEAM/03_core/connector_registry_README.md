@@ -33,6 +33,13 @@ Core Workspace
 
 All connectors seed as `status: not_configured, mode: mock`.
 
+> **Canva note (current phase):** `conn-canva` is **sandbox/mock only**. CORE has
+> a Canva **Sandbox Preview** (`src/lib/core/connectors/canvaSandboxConnector.ts`)
+> that produces draft previews for the approval queue — **no real Canva API/key,
+> no design created, nothing published, real connector action = none.** A real
+> Canva Connect integration is **future-only** (connector activation runbook +
+> Owner sign-off).
+
 ## Modules (10)
 
 | Module Name | Type | Default Status |

@@ -7,7 +7,7 @@ This directory contains the specialized services (Specialist Modules) servicing 
 | Module Name | Folder | Phase Status | Description |
 | :--- | :--- | :--- | :--- |
 | **ComfyUI Pipeline** | [comfyui-pipeline](./comfyui-pipeline/) | **Local Stub (N3)** | Background pipeline to generate image/video assets. |
-| **Canva Connector** | [canva-connector](./canva-connector/) | **Contract Only** | Integrates Canva API to generate and modify branding templates. |
+| **Canva Connector** | [canva-connector](./canva-connector/) | **Contract Only (not implemented)** | *Future:* integrate Canva API to generate/modify branding templates. **Current phase: Sandbox Preview only** (`canvaSandboxConnector.ts`) — no real Canva API/key, no design created, nothing published. |
 | **Meta Ads Connector** | [meta-ads-connector](./meta-ads-connector/) | **Contract Only** | Automates Meta Graph API campaigns, budget, and targeting. |
 | **Facebook Publisher** | [facebook-publisher](./facebook-publisher/) | **Contract Only** | Publishes posts, stories, and media to target fan pages. |
 | **Analytics Engine** | [analytics-engine](./analytics-engine/) | **Contract Only** | Reads metrics and compiles analytical KPI reports. |

@@ -210,11 +210,14 @@ export const SEED_CONNECTORS: LocalConnectorRegistryItem[] = [
     connector_type: 'canva',
     status: 'not_configured',
     mode: 'mock',
-    description: 'Canva Connect API for design asset creation, brand kit sync, and creative brief automation.',
-    required_env_keys: ['CANVA_CLIENT_ID', 'CANVA_CLIENT_SECRET'],
+    description: 'Canva design previews — SANDBOX/MOCK only (canvaSandboxConnector). A real Canva Connect API integration (design assets, brand kit, briefs) is future-only.',
+    // Sandbox phase needs NO env/API key. Future-only placeholders
+    // (CANVA_CLIENT_ID / CANVA_CLIENT_SECRET) are documented in .env.example +
+    // the connector activation runbook, clearly marked "not used in sandbox".
+    required_env_keys: [],
     last_checked_at: null,
     health_note: null,
-    safety_note: 'OAuth 2.0 flow required. Phase 13 — registry only. No real Canva API calls.',
+    safety_note: 'Sandbox/mock only — no real Canva API call, no API key required, no design created, nothing published. Real connector (OAuth 2.0) is future-only, behind the connector activation runbook + Owner sign-off.',
     created_at: NOW,
     updated_at: NOW,
   },

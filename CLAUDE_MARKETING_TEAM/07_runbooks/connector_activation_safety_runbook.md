@@ -93,8 +93,15 @@ any of these gates.
 
 ## 4. Canva-specific Safety
 
-- **Allowed:** create a **draft/design** from a brand template via Canva Connect
-  (Stage 5), and read template metadata.
+> **Current phase = Stage 1–2 only (sandbox/mock).** CORE today has just the
+> offline **Canva Sandbox Preview** (`src/lib/core/connectors/canvaSandboxConnector.ts`):
+> no real Canva API/SDK/OAuth/token/env, no Canva design created, nothing
+> published, real connector action = none. Everything below (Stage 5+ live draft
+> creation/export) is **future-only** and requires the staged, Owner-signed-off
+> activation in this runbook.
+
+- **Allowed (future, Stage 5):** create a **draft/design** from a brand template
+  via Canva Connect, and read template metadata.
 - **Export:** only **after** the related Core item is `approved` **and**
   `ALLOW_CANVA_EXPORT_AFTER_APPROVAL=true` (Stage 6). Default flag is `false`.
 - **Forbidden:** auto-publishing a design to any channel; treating a Canva
