@@ -199,7 +199,7 @@ function buildVisualBrief(angle: ContentAngle, brief: CampaignBrief, channel: st
 function buildCTA(angle: ContentAngle, brief: CampaignBrief): string {
   const ind    = (brief.industry || '').toLowerCase();
   const isFood = ind.includes('f&b') || ind.includes('food') || ind.includes('ẩm thực') || ind.includes('cơm') || ind.includes('cuốn');
-  const isPrem = ind.includes('cao cấp') || ind.includes('premium') || ind.includes('nội thất') || ind.includes('furniture');
+  const isPrem = ind.includes('cao cấp') || ind.includes('premium') || ind.includes('specialty') || ind.includes('đặc sản');
 
   const food: Record<ContentAngle, string> = {
     product_showcase:  '👉 Ghé thăm ngay! Địa chỉ trong bio.',
@@ -212,12 +212,12 @@ function buildCTA(angle: ContentAngle, brief: CampaignBrief): string {
   };
 
   const prem: Record<ContentAngle, string> = {
-    product_showcase:  '📞 Đặt lịch tham quan showroom. Link bio.',
+    product_showcase:  '📞 Ghé quán trải nghiệm trực tiếp. Link bio.',
     promo_offer:       '✅ Đặt trước để giữ ưu đãi! Hotline bio.',
-    behind_the_scenes: '👀 Tham quan showroom. Đặt lịch qua bio.',
+    behind_the_scenes: '👀 Ghé quán xem tận nơi. Đặt chỗ qua bio.',
     customer_review:   '💼 Tư vấn miễn phí — Liên hệ chuyên gia!',
-    lifestyle:         '🏠 Biến không gian sống thành nghệ thuật. Bio.',
-    education:         '📖 Tải catalogue miễn phí — Link bio!',
+    lifestyle:         '🏠 Nâng tầm trải nghiệm mỗi ngày. Bio.',
+    education:         '📖 Xem menu/bộ sưu tập đầy đủ — Link bio!',
     event_launch:      '🎊 Đăng ký tham dự sự kiện! Link bio.',
   };
 
@@ -240,8 +240,8 @@ function buildHashtags(brief: CampaignBrief, channel: string, angle: ContentAngl
 
   const indTags = ind.includes('f&b') || ind.includes('food') || ind.includes('ẩm thực')
     ? '#ẨmThực #FoodVietnam #FoodLovers'
-    : ind.includes('nội thất') || ind.includes('furniture')
-    ? '#NộiThất #InteriorDesign #HomeDecor'
+    : ind.includes('cà phê') || ind.includes('coffee') || ind.includes('specialty')
+    ? '#CàPhê #SpecialtyCoffee #ColdBrew'
     : ind.includes('cơm')
     ? '#CơmTấm #StreetFood #FoodVietnam'
     : '#VietnamBusiness #Marketing';

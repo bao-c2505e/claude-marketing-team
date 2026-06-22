@@ -740,41 +740,41 @@ Trạng thái: [SIMULATED DATA ONLY — Sandbox Safe Mode]
     }
   },
   {
-    id: "CAMP-FORME-001",
-    name: "Chiến dịch Ra mắt Sofa Series F-1 — Forme",
+    id: "CAMP-MOCAN-001",
+    name: "Chiến dịch Ra mắt Cold Brew Series S1 — Mộc An Coffee",
     phase: "Phase H.5 — Multi-brand Workspace Readiness",
     status: "Needs Review",
     brief: {
-      brandName: "Forme",
-      industry: "Nội thất cao cấp / sofa và bàn ghế / premium furniture",
-      heroProduct: "Sofa da Series F-1",
+      brandName: "Mộc An Coffee",
+      industry: "Cà phê đặc sản / cold brew / specialty coffee",
+      heroProduct: "Cold Brew đặc sản Series S1",
       pricing: "[Liên hệ để nhận báo giá — OWNER CUNG CẤP]",
-      targetCustomer: "Chủ nhà trẻ 28-45 tuổi, yêu thiết kế nội thất hiện đại tại TP.HCM và Hà Nội",
-      location: "TP.HCM và Hà Nội (showroom + online)",
-      goal: "Tăng traffic đến showroom và generate qualified leads cho bộ sưu tập Sofa F-1",
+      targetCustomer: "Dân văn phòng & người yêu cà phê specialty 25-45 tuổi tại TP.HCM và Hà Nội",
+      location: "TP.HCM và Hà Nội (quán + online/mang đi)",
+      goal: "Tăng lượt ghé quán và generate qualified leads cho dòng Cold Brew Series S1",
       duration: "14 ngày (Chiến dịch ra mắt BST)",
       offer: "[Chính sách ưu đãi ra mắt — OWNER CUNG CẤP]",
       channels: ["Facebook", "Instagram"],
-      toneOfVoice: "Tối giản, sang trọng, tinh tế — English-forward với tiếng Việt tự nhiên",
-      exclusions: "Không bịa giá bán; không claim chất liệu sai; không hứa hẹn giao hàng cụ thể",
-      assets: "Ảnh studio sofa, video lookbook, ảnh full-room setup, logo SVG"
+      toneOfVoice: "Tinh tế, ấm áp, tối giản — English-forward với tiếng Việt tự nhiên",
+      exclusions: "Không bịa giá bán; không claim nguồn gốc hạt sai; không hứa hẹn giao hàng cụ thể",
+      assets: "Ảnh studio ly cold brew, video pha/ủ, ảnh không gian quán, logo SVG"
     },
     calendar: [
-      { day: "Day 1", theme: "Ra mắt Series F-1", channel: "Facebook", content: "Introducing Series F-1 — where design meets living", visual: "Studio shot sofa trắng kem, nền minimalist", cta: "[Đặt lịch xem showroom]", approval: "Duyệt thông tin BST chính xác" },
-      { day: "Day 2", theme: "Sit differently.", channel: "Instagram", content: "'Sit differently.' — lifestyle statement post", visual: "Lifestyle photo phòng khách hiện đại với sofa F-1", cta: "[Xem lookbook]", approval: "Duyệt visual direction" },
-      { day: "Day 3", theme: "Câu chuyện thương hiệu", channel: "Facebook", content: "Forme được tạo ra vì sao — brand story short video", visual: "Behind-the-scenes ngắn tại xưởng thiết kế", cta: "[Ghé showroom]", approval: "Duyệt brand story" },
-      { day: "Day 4", theme: "Color palette F-1", channel: "Instagram", content: "3 màu sắc của Series F-1 — chọn màu của bạn", visual: "3 sofa 3 màu chụp studio cạnh nhau", cta: "[Inbox tư vấn màu]", approval: "Duyệt màu sắc chính xác" },
-      { day: "Day 5", theme: "Chất liệu & Độ bền", channel: "Facebook", content: "Chất liệu thật hay tổng hợp? — giáo dục khách hàng", visual: "Close-up texture bề mặt sofa F-1, ánh sáng chiếu nghiêng", cta: "[Inbox tư vấn chất liệu]", approval: "Duyệt thông tin chất liệu chính xác" },
-      { day: "Day 6", theme: "Full room setup", channel: "Facebook", content: "Phòng khách với Forme — không gian sống hoàn chỉnh", visual: "Full room shot showroom với sofa F-1 là điểm nhấn", cta: "[Đặt lịch tham quan]", approval: "Duyệt nội dung phòng mẫu" },
-      { day: "Day 7", theme: "CTA Tuần 1", channel: "Facebook", content: "7 ngày, một quyết định — Series F-1 đang chờ bạn", visual: "Tổng hợp visual đẹp nhất của tuần", cta: "[Đặt lịch ngay]", approval: "Duyệt toàn bộ lịch tuần 1" }
+      { day: "Day 1", theme: "Ra mắt Series S1", channel: "Facebook", content: "Introducing Series S1 — cold brew ủ chậm cho vị thật", visual: "Studio shot ly cold brew trên nền gỗ tối giản", cta: "[Ghé quán thử ngay]", approval: "Duyệt thông tin BST chính xác" },
+      { day: "Day 2", theme: "Sip differently.", channel: "Instagram", content: "'Sip differently.' — lifestyle statement post", visual: "Lifestyle photo không gian quán hiện đại với ly cold brew S1", cta: "[Xem menu]", approval: "Duyệt visual direction" },
+      { day: "Day 3", theme: "Câu chuyện thương hiệu", channel: "Facebook", content: "Mộc An được tạo ra vì sao — brand story short video", visual: "Behind-the-scenes ngắn tại khu pha chế/ủ lạnh", cta: "[Ghé quán]", approval: "Duyệt brand story" },
+      { day: "Day 4", theme: "3 hương vị S1", channel: "Instagram", content: "3 hương vị của Series S1 — chọn vị của bạn", visual: "3 ly 3 vị chụp studio cạnh nhau", cta: "[Inbox tư vấn vị]", approval: "Duyệt thông tin hương vị chính xác" },
+      { day: "Day 5", theme: "Nguồn gốc & Cách ủ", channel: "Facebook", content: "Hạt specialty & ủ lạnh 18 giờ — giáo dục khách hàng", visual: "Close-up hạt cà phê & quá trình ủ lạnh, ánh sáng chiếu nghiêng", cta: "[Inbox tư vấn hương vị]", approval: "Duyệt thông tin sản phẩm chính xác" },
+      { day: "Day 6", theme: "Không gian quán", channel: "Facebook", content: "Một buổi chiều ở Mộc An — không gian thưởng cà phê hoàn chỉnh", visual: "Full shot không gian quán với ly cold brew S1 là điểm nhấn", cta: "[Ghé quán trải nghiệm]", approval: "Duyệt nội dung không gian quán" },
+      { day: "Day 7", theme: "CTA Tuần 1", channel: "Facebook", content: "7 ngày, một ly để bắt đầu — Series S1 đang chờ bạn", visual: "Tổng hợp visual đẹp nhất của tuần", cta: "[Ghé quán ngay]", approval: "Duyệt toàn bộ lịch tuần 1" }
     ],
     checklist: [
-      { id: "fr_brand_voice", label: "Brand voice checked: Đúng tone tối giản, sang trọng, English-forward của Forme.", checked: false },
-      { id: "fr_product_info", label: "Product info checked: Thông tin Sofa Series F-1 chính xác (chất liệu, kích thước, màu sắc).", checked: false },
+      { id: "fr_brand_voice", label: "Brand voice checked: Đúng tone tinh tế, ấm áp, English-forward của Mộc An Coffee.", checked: false },
+      { id: "fr_product_info", label: "Product info checked: Thông tin Cold Brew Series S1 chính xác (nguồn gốc hạt, cách ủ, hương vị).", checked: false },
       { id: "fr_price_not_fabricated", label: "Price/promotion not fabricated: Không bịa giá bán hay ưu đãi không có thật.", checked: false },
-      { id: "fr_visual_approved", label: "Visual concept approved: Ý tưởng hình ảnh sang trọng, minimalist đúng brand Forme.", checked: false },
-      { id: "fr_caption_approved", label: "Caption approved: Nội dung bài đăng Facebook/Instagram đúng tone thương hiệu Forme.", checked: false },
-      { id: "fr_ads_copy_approved", label: "Ads copy approved: Ad copy nhắm đúng tệp homeowner 28-45 tại HCM và Hà Nội.", checked: false },
+      { id: "fr_visual_approved", label: "Visual concept approved: Ý tưởng hình ảnh tinh tế, minimalist đúng brand Mộc An Coffee.", checked: false },
+      { id: "fr_caption_approved", label: "Caption approved: Nội dung bài đăng Facebook/Instagram đúng tone thương hiệu Mộc An Coffee.", checked: false },
+      { id: "fr_ads_copy_approved", label: "Ads copy approved: Ad copy nhắm đúng tệp dân văn phòng & người yêu cà phê 25-45 tại HCM và Hà Nội.", checked: false },
       { id: "fr_no_autopost", label: "No auto-post: Xác nhận hệ thống không tự động đăng bài lên các kênh.", checked: false },
       { id: "fr_no_real_ads", label: "No real ads launched: Xác nhận không tự động kích hoạt tài khoản quảng cáo.", checked: false },
       { id: "fr_no_real_messaging", label: "No real messaging: Xác nhận không tự động gửi tin nhắn hay DM cho khách hàng.", checked: false },
@@ -783,100 +783,100 @@ Trạng thái: [SIMULATED DATA ONLY — Sandbox Safe Mode]
     outputs: {
       copywriter: {
         slogans: [
-          "Forme — Where design lives.",
-          "Series F-1: Sit differently.",
-          "Không gian sống của bạn, định nghĩa lại bởi Forme."
+          "Mộc An — Where good coffee lives.",
+          "Series S1: Sip differently.",
+          "Vị cà phê thật, định nghĩa lại bởi Mộc An."
         ],
         hooks: [
-          "The sofa you choose says everything about how you live.",
-          "Series F-1 — crafted for those who design every corner with intention.",
-          "Không gian phòng khách của bạn xứng đáng hơn những lựa chọn thông thường.",
-          "Premium leather, clean lines, lasting form. Forme F-1.",
-          "Từng đường may, từng đường cong — Series F-1 được thiết kế để ở lại lâu dài."
+          "Ly cà phê bạn chọn nói lên cách bạn bắt đầu một ngày.",
+          "Series S1 — ủ chậm cho những người trân trọng vị thật.",
+          "Buổi sáng của bạn xứng đáng hơn những lựa chọn vội vàng.",
+          "Hạt specialty, ủ lạnh 18 giờ, vị êm. Mộc An S1.",
+          "Từng mẻ ủ, từng hương vị — Series S1 được tạo ra để thưởng thức chậm."
         ],
         ctas: [
-          "📅 [Đặt lịch tham quan showroom]",
-          "💬 Inbox để tư vấn chất liệu và màu sắc",
-          "🔗 [Xem lookbook đầy đủ — OWNER CUNG CẤP]"
+          "📍 [Ghé quán Mộc An trải nghiệm]",
+          "💬 Inbox để tư vấn hương vị và cách thưởng thức",
+          "🔗 [Xem menu đầy đủ — OWNER CUNG CẤP]"
         ],
         shortCaptions: [
-          "Series F-1. Premium leather. Clean form. Built to last. — Ghé showroom Forme để trải nghiệm trực tiếp.",
-          "Không gian sống phản ánh cách bạn sống. Sofa Forme F-1 — thiết kế có chủ ý cho những người có chủ ý."
+          "Series S1. Hạt specialty. Ủ lạnh 18 giờ. Vị êm, hậu ngọt. — Ghé quán Mộc An để thử trực tiếp.",
+          "Cách bạn bắt đầu ngày mới phản ánh con người bạn. Cold Brew Mộc An S1 — pha có chủ ý cho những người sống có chủ ý."
         ],
-        hashtags: ["#Forme", "#FormeFurniture", "#SeriesF1", "#noithatcaocap", "#sofahcm"],
+        hashtags: ["#MocAn", "#MocAnCoffee", "#SeriesS1", "#caphedacsan", "#coldbrewhcm"],
         captions: [
           {
-            title: "Bài 1 (Ngày 1): Ra mắt Series F-1",
-            body: "INTRODUCING SERIES F-1 — FORME\n\nDesigned for the ones who live with intention.\n\nSeries F-1 là bộ sưu tập sofa đầu tiên của Forme — được tạo ra để làm chủ không gian phòng khách của bạn. Đường nét tối giản, chất liệu [OWNER CUNG CẤP], khung gỗ tự nhiên — bền theo thời gian, đẹp trong mọi góc nhìn.\n\n📅 [Đặt lịch tham quan showroom]\n💬 Inbox để được tư vấn màu sắc và chất liệu\n📍 Showroom: [OWNER CUNG CẤP]",
-            visual: "Studio shot sofa F-1 màu trắng kem, ánh sáng tự nhiên mềm, phông nền minimalist trắng"
+            title: "Bài 1 (Ngày 1): Ra mắt Series S1",
+            body: "INTRODUCING SERIES S1 — MỘC AN\n\nỦ chậm cho những người trân trọng vị thật.\n\nSeries S1 là dòng cold brew đặc sản đầu tiên của Mộc An — hạt specialty chọn lọc, ủ lạnh 18 giờ cho vị êm, hậu ngọt. Nguồn gốc hạt [OWNER CUNG CẤP], 3 hương vị signature.\n\n📍 [Ghé quán trải nghiệm]\n💬 Inbox để được tư vấn hương vị\n📍 Quán: [OWNER CUNG CẤP]",
+            visual: "Studio shot ly cold brew S1, ánh sáng tự nhiên mềm, phông nền gỗ tối giản"
           },
           {
-            title: "Bài 2 (Ngày 2): Sit differently.",
-            body: "SIT DIFFERENTLY.\n\nNhững lựa chọn về nội thất bạn làm hôm nay sẽ định hình cách bạn sống trong nhiều năm tới.\n\nSofa Forme F-1 không chỉ là chỗ ngồi — đó là trung tâm của không gian sống bạn tạo ra. Premium leather, clean lines, solid wood frame.\n\nCome see it in person.\n📅 [Đặt lịch tham quan]\n📍 Showroom: [OWNER CUNG CẤP]",
-            visual: "Lifestyle photo — phòng khách hiện đại, sofa F-1 là điểm nhấn, ánh sáng tự nhiên vàng ấm"
+            title: "Bài 2 (Ngày 2): Sip differently.",
+            body: "SIP DIFFERENTLY.\n\nCách bạn bắt đầu ngày mới hôm nay sẽ định hình nhịp sống của bạn.\n\nCold Brew Mộc An S1 không chỉ là một ly cà phê — đó là khoảng lặng bạn dành cho chính mình. Hạt specialty, ủ lạnh chậm, vị êm.\n\nĐến thử tại quán.\n📍 [Ghé quán]\n📍 Quán: [OWNER CUNG CẤP]",
+            visual: "Lifestyle photo — không gian quán hiện đại, ly cold brew S1 là điểm nhấn, ánh sáng tự nhiên vàng ấm"
           },
           {
-            title: "Bài 3 (Ngày 5): Chất liệu — Sự khác biệt cốt lõi",
-            body: "CHẤT LIỆU THẬT HAY TỔNG HỢP? ĐÂY LÀ SỰ KHÁC BIỆT BẠN CẦN BIẾT.\n\nSeries F-1 của Forme sử dụng [chất liệu — OWNER CUNG CẤP] với độ bền và cảm giác khác biệt hoàn toàn so với vật liệu tổng hợp thông thường. Bề mặt thở tốt hơn, mềm dần theo thời gian, dễ vệ sinh.\n\nChi tiết kỹ thuật đầy đủ có tại showroom. Inbox để nhận tư vấn riêng.\n💬 [Inbox tư vấn ngay]\n📍 Showroom: [OWNER CUNG CẤP]",
-            visual: "Close-up texture bề mặt sofa F-1, ánh sáng chiếu nghiêng để thấy rõ grain chất liệu"
+            title: "Bài 3 (Ngày 5): Nguồn gốc & cách ủ — Sự khác biệt cốt lõi",
+            body: "HẠT THƯỜNG HAY HẠT SPECIALTY? ĐÂY LÀ SỰ KHÁC BIỆT BẠN CẦN BIẾT.\n\nSeries S1 của Mộc An dùng [hạt specialty — OWNER CUNG CẤP], ủ lạnh 18 giờ cho vị khác biệt hoàn toàn so với cà phê pha vội thông thường. Ít chua gắt, hậu ngọt sạch, êm hơn khi uống.\n\nChi tiết về nguồn gốc hạt có tại quán. Inbox để nhận tư vấn riêng.\n💬 [Inbox tư vấn ngay]\n📍 Quán: [OWNER CUNG CẤP]",
+            visual: "Close-up hạt cà phê specialty & quá trình ủ lạnh, ánh sáng chiếu nghiêng để thấy rõ chi tiết"
           }
         ]
       },
       videoEditor: {
         scripts: [
           {
-            title: "Kịch bản video 1: Series F-1 — First Look (30s)",
-            hook: "The sofa you choose says everything about how you live.",
+            title: "Kịch bản video 1: Series S1 — First Sip (30s)",
+            hook: "Ly cà phê bạn chọn nói lên cách bạn bắt đầu một ngày.",
             sceneCount: 3,
             scenes: [
               {
                 scene: "Cảnh 1 (0-8s)",
-                visual: "Slow reveal: camera pan từ góc showroom tối dần sáng, tiêu điểm là sofa F-1 màu trắng kem đặt giữa không gian minimal sáng.",
-                audio: "Nhạc nền ambient minimalist, không lời. Tiếng bước chân nhẹ trên sàn gỗ.",
-                note: "Slow pan shot — wide to close-up focus on sofa silhouette.",
-                textOverlay: "FORME — SERIES F-1"
+                visual: "Slow reveal: camera pan từ góc quán tối dần sáng, tiêu điểm là ly cold brew S1 đặt giữa không gian gỗ tối giản.",
+                audio: "Nhạc nền ambient minimalist, không lời. Tiếng đá lanh canh nhẹ trong ly.",
+                note: "Slow pan shot — wide to close-up focus on ly cold brew.",
+                textOverlay: "MỘC AN — SERIES S1"
               },
               {
                 scene: "Cảnh 2 (8-22s)",
-                visual: "Tay nhẹ nhàng chạm vào bề mặt sofa, detail shot texture chất liệu, toàn cảnh phòng khách với sofa là điểm nhấn, góc lifestyle tự nhiên.",
-                audio: "VO (Eng): 'Crafted for those who design every corner with intention.' Nhạc nền tiếp tục.",
-                note: "Macro shot texture → medium shot full room → lifestyle shot.",
-                textOverlay: "DESIGNED TO LAST"
+                visual: "Rót cold brew từ bình ủ xuống ly đá, detail shot dòng cà phê, toàn cảnh không gian quán với ly là điểm nhấn, góc lifestyle tự nhiên.",
+                audio: "VO (Eng): 'Cold-brewed slow, for those who taste with intention.' Nhạc nền tiếp tục.",
+                note: "Macro pour shot → medium shot không gian quán → lifestyle shot.",
+                textOverlay: "BREWED TO SAVOR"
               },
               {
                 scene: "Cảnh 3 (22-30s)",
-                visual: "Logo Forme hiện ra trên nền trắng tối giản, kèm thông tin showroom và CTA.",
-                audio: "VO: 'Visit our showroom. Find your space.'",
-                note: "Fade to white — clean brand slide.",
-                textOverlay: "FORME | [SHOWROOM — OWNER CUNG CẤP]"
+                visual: "Logo Mộc An hiện ra trên nền gỗ tối giản, kèm thông tin quán và CTA.",
+                audio: "VO: 'Visit our space. Find your moment.'",
+                note: "Fade to clean brand slide.",
+                textOverlay: "MỘC AN | [QUÁN — OWNER CUNG CẤP]"
               }
             ]
           },
           {
-            title: "Kịch bản video 2: The Forme Difference (15s)",
-            hook: "Premium leather, clean lines, lasting form.",
+            title: "Kịch bản video 2: The Mộc An Difference (15s)",
+            hook: "Hạt specialty, ủ lạnh 18 giờ, vị êm.",
             sceneCount: 3,
             scenes: [
               {
                 scene: "Cảnh 1 (0-4s)",
-                visual: "Cận cảnh texture bề mặt sofa F-1 — ánh sáng chiếu nghiêng làm nổi bật grain của chất liệu.",
+                visual: "Cận cảnh hạt cà phê specialty rơi nhẹ — ánh sáng chiếu nghiêng làm nổi bật chi tiết hạt.",
                 audio: "Nhạc nền minimal, tiếng ambient nhẹ.",
-                note: "Extreme close-up macro shot.",
-                textOverlay: "PREMIUM MATERIAL"
+                note: "Extreme close-up macro shot hạt cà phê.",
+                textOverlay: "SPECIALTY BEANS"
               },
               {
                 scene: "Cảnh 2 (4-11s)",
-                visual: "Pull back từ close-up ra toàn cảnh sofa trong phòng khách hiện đại, ánh sáng tự nhiên đẹp.",
-                audio: "VO: 'Series F-1 — sit differently.'",
+                visual: "Pull back từ close-up ra toàn cảnh ly cold brew trong không gian quán hiện đại, ánh sáng tự nhiên đẹp.",
+                audio: "VO: 'Series S1 — sip differently.'",
                 note: "Pull-back shot từ close-up ra wide.",
-                textOverlay: "SERIES F-1 — SIT DIFFERENTLY"
+                textOverlay: "SERIES S1 — SIP DIFFERENTLY"
               },
               {
                 scene: "Cảnh 3 (11-15s)",
-                visual: "Logo Forme + CTA đặt lịch tham quan showroom.",
-                audio: "VO: 'Book a showroom visit today.'",
+                visual: "Logo Mộc An + CTA ghé quán trải nghiệm.",
+                audio: "VO: 'Visit Mộc An today.'",
                 note: "Clean CTA slide.",
-                textOverlay: "📅 ĐẶT LỊCH THAM QUAN | FORME SHOWROOM"
+                textOverlay: "📍 GHÉ QUÁN | MỘC AN COFFEE"
               }
             ]
           }
@@ -885,66 +885,66 @@ Trạng thái: [SIMULATED DATA ONLY — Sandbox Safe Mode]
       designer: {
         briefs: [
           {
-            title: "Thiết kế 1: Hero banner ra mắt Series F-1",
-            layout: "Sofa F-1 màu trắng kem đặt giữa nền trắng tối giản, ánh sáng tự nhiên từ bên trái, bố cục cân đối, tỉ lệ 16:9.",
-            textOverlay: "FORME — SERIES F-1 | WHERE DESIGN LIVES",
-            prompt: "A minimalist luxury sofa in cream white leather on a pure white background, soft natural side lighting, modern premium furniture photography, clean lines, editorial style --ar 16:9",
-            visualDirection: "Studio shot tuyệt đối tối giản — sofa là nhân vật chính. Ánh sáng tự nhiên mềm từ bên trái, bóng đổ tinh tế.",
-            colorStyleNote: "Trắng kem chủ đạo trên nền trắng — contrast tạo ra từ bóng đổ và texture chất liệu, không phải màu sắc. Cảm giác premium, editorial."
+            title: "Thiết kế 1: Hero banner ra mắt Series S1",
+            layout: "Ly cold brew S1 đặt giữa nền gỗ tối giản, ánh sáng tự nhiên từ bên trái, bố cục cân đối, tỉ lệ 16:9.",
+            textOverlay: "MỘC AN — SERIES S1 | WHERE GOOD COFFEE LIVES",
+            prompt: "A glass of iced cold brew coffee on a minimalist dark wood background, soft natural side lighting, modern specialty coffee photography, clean composition, editorial style --ar 16:9",
+            visualDirection: "Studio shot tuyệt đối tối giản — ly cold brew là nhân vật chính. Ánh sáng tự nhiên mềm từ bên trái, bóng đổ tinh tế.",
+            colorStyleNote: "Nâu cà phê & gỗ trầm chủ đạo — contrast tạo ra từ bóng đổ và chi tiết đá/giọt nước. Cảm giác premium, editorial."
           },
           {
-            title: "Thiết kế 2: Instagram square — Lifestyle room shot",
-            layout: "Full room setup với sofa F-1 là điểm nhấn trung tâm — phòng khách hiện đại với cây xanh, bàn cà phê, ánh sáng tự nhiên từ cửa sổ lớn.",
-            textOverlay: "SIT DIFFERENTLY.",
-            prompt: "A modern living room interior with a premium cream leather sofa as the focal point, natural light from large windows, indoor plants, minimalist coffee table, clean Scandinavian-inspired decor, lifestyle photography --ar 1:1",
-            visualDirection: "Lifestyle shot góc 3/4 — sofa trong context phòng khách thật. Ánh sáng tự nhiên vàng ấm từ cửa sổ.",
-            colorStyleNote: "Bảng màu trung tính ấm: trắng kem, be, nâu nhạt, xanh lá nhạt từ cây — tông màu không gian sống hiện đại."
+            title: "Thiết kế 2: Instagram square — Lifestyle quán",
+            layout: "Không gian quán với ly cold brew S1 là điểm nhấn trung tâm — quán cà phê hiện đại với cây xanh, bàn gỗ, ánh sáng tự nhiên từ cửa sổ lớn.",
+            textOverlay: "SIP DIFFERENTLY.",
+            prompt: "A modern specialty coffee shop interior with a glass of cold brew as the focal point, natural light from large windows, indoor plants, wooden table, clean minimalist decor, lifestyle photography --ar 1:1",
+            visualDirection: "Lifestyle shot góc 3/4 — ly cold brew trong context quán thật. Ánh sáng tự nhiên vàng ấm từ cửa sổ.",
+            colorStyleNote: "Bảng màu trung tính ấm: nâu cà phê, be, gỗ trầm, xanh lá nhạt từ cây — tông màu không gian quán hiện đại."
           }
         ]
       },
       adsManager: {
         angles: [
-          "Angle 1: Investment framing — sofa là khoản đầu tư cho không gian sống, không chỉ là đồ nội thất.",
-          "Angle 2: Lifestyle statement — người chọn Forme là người sống có chủ ý, thiết kế từng chi tiết.",
-          "Angle 3: New collection launch — Series F-1 ra mắt lần đầu, trải nghiệm trực tiếp tại showroom."
+          "Angle 1: Daily ritual framing — cold brew S1 là khoảng lặng chất lượng cho ngày mới, không chỉ là một ly cà phê.",
+          "Angle 2: Taste statement — người chọn Mộc An là người thưởng cà phê có chủ ý, trân trọng vị thật.",
+          "Angle 3: New collection launch — Series S1 ra mắt lần đầu, thử trực tiếp tại quán."
         ],
         objectives: [
-          "Facebook/Instagram Lead Generation (Thu thập lead form đăng ký tham quan showroom)",
-          "Facebook/Instagram Reach & Brand Awareness (Tăng nhận diện Forme với tệp homeowner HCM/HN)"
+          "Facebook/Instagram Lead Generation (Thu thập lead form đăng ký nhận ưu đãi dùng thử tại quán)",
+          "Facebook/Instagram Reach & Brand Awareness (Tăng nhận diện Mộc An với tệp người yêu cà phê HCM/HN)"
         ],
         adSets: [
           {
-            name: "Homeowners HCM (Facebook Lead Ad)",
+            name: "Coffee lovers HCM (Facebook Lead Ad)",
             budget: "[Ví dụ mô phỏng: 200.000 VND/ngày]",
-            targeting: "Tuổi 28-45, TP.HCM, sở thích nội thất, thiết kế nhà, luxury goods, homeowners",
-            format: "Lead form ad — ảnh studio sofa F-1"
+            targeting: "Tuổi 25-45, TP.HCM, sở thích cà phê specialty, quán cà phê, làm việc tại quán, dân văn phòng",
+            format: "Lead form ad — ảnh studio ly cold brew S1"
           },
           {
-            name: "Design enthusiasts HN & HCM (Instagram)",
+            name: "Specialty enthusiasts HN & HCM (Instagram)",
             budget: "[Ví dụ mô phỏng: 150.000 VND/ngày]",
-            targeting: "Tuổi 25-40, HCM và HN, theo dõi interior design pages, sở thích minimalist design",
+            targeting: "Tuổi 22-40, HCM và HN, theo dõi các page cà phê/specialty coffee, sở thích minimalist lifestyle",
             format: "Instagram carousel — lifestyle + product shots"
           }
         ],
         testIdeas: [
-          "Thử nghiệm Studio white background vs Lifestyle room setup — cái nào generate lead nhiều hơn",
+          "Thử nghiệm Studio product shot vs Lifestyle quán setup — cái nào generate lead nhiều hơn",
           "Thử nghiệm English-only copy vs Bilingual copy (Eng + Việt)"
         ],
         mockAds: [
           {
-            name: "Facebook Lead Ad — Homeowners HCM",
-            angle: "Đặt lịch tham quan showroom — trải nghiệm trực tiếp Series F-1 của Forme",
-            primaryText: "INTRODUCING SERIES F-1 — FORME\n\nDesigned for the ones who live with intention. Premium leather, clean lines, lasting form.\n\nGhé showroom Forme để trải nghiệm trực tiếp bộ sưu tập Series F-1. Đặt lịch trong hôm nay — chuyên viên tư vấn sẽ liên hệ để sắp xếp.\n\n📅 [Đặt lịch tham quan showroom]\n📍 Showroom: [OWNER CUNG CẤP]",
-            headline: "Forme Series F-1 — Premium Furniture Showroom HCM",
-            description: "Đặt lịch tham quan miễn phí. Tư vấn chất liệu và màu sắc theo không gian của bạn.",
+            name: "Facebook Lead Ad — Coffee lovers HCM",
+            angle: "Đăng ký nhận ưu đãi dùng thử — trải nghiệm trực tiếp Series S1 của Mộc An",
+            primaryText: "INTRODUCING SERIES S1 — MỘC AN\n\nỦ chậm cho những người trân trọng vị thật. Hạt specialty, ủ lạnh 18 giờ, vị êm hậu ngọt.\n\nGhé quán Mộc An để thử trực tiếp dòng Cold Brew Series S1. Đăng ký hôm nay — nhận ưu đãi dùng thử tại quán.\n\n📍 [Ghé quán trải nghiệm]\n📍 Quán: [OWNER CUNG CẤP]",
+            headline: "Mộc An Series S1 — Specialty Cold Brew tại HCM",
+            description: "Đăng ký nhận ưu đãi dùng thử. Tư vấn hương vị theo gu của bạn.",
             cta: "Đăng ký ngay (Sign Up)"
           },
           {
-            name: "Instagram Post Ad — Design Lifestyle",
-            angle: "Lifestyle statement — sofa là trung tâm của không gian sống bạn tạo ra",
-            primaryText: "Sit differently. ✦\n\nSeries F-1 was designed for those who approach their home the same way they approach their life — with intention, clarity, and an eye for what lasts.\n\nBook a showroom visit → Link in bio.\n📍 [Showroom: OWNER CUNG CẤP]\n#Forme #SeriesF1 #noithatcaocap",
-            headline: "Forme — Where Design Lives",
-            description: "Series F-1. Premium leather sofa collection. Now at Forme showroom.",
+            name: "Instagram Post Ad — Coffee Lifestyle",
+            angle: "Taste statement — ly cold brew là khoảng lặng chất lượng cho ngày của bạn",
+            primaryText: "Sip differently. ✦\n\nSeries S1 dành cho những người bắt đầu ngày mới theo cách họ sống — chậm rãi, rõ ràng, và trân trọng vị thật.\n\nGhé quán Mộc An → Link in bio.\n📍 [Quán: OWNER CUNG CẤP]\n#MocAn #SeriesS1 #caphedacsan",
+            headline: "Mộc An — Where Good Coffee Lives",
+            description: "Series S1. Cold brew specialty. Có mặt tại quán Mộc An.",
             cta: "Tìm hiểu thêm (Learn More)"
           }
         ]
@@ -953,39 +953,39 @@ Trạng thái: [SIMULATED DATA ONLY — Sandbox Safe Mode]
         metrics: [
           { name: "Tổng ngân sách chi quảng cáo", target: "[Owner phê duyệt]", actual: "[Ví dụ mô phỏng: 2.450.000 VND]", completion: "Mô phỏng", status: "Mô phỏng" },
           { name: "Lượt tiếp cận (Reach)", target: "[Mục tiêu giả định]", actual: "[Ví dụ mô phỏng: 45.000–60.000 người]", completion: "Mô phỏng", status: "Mô phỏng" },
-          { name: "Leads đặt lịch showroom", target: "[Mục tiêu giả định]", actual: "[Ví dụ mô phỏng: 25–40 leads]", completion: "Mô phỏng", status: "Mô phỏng" }
+          { name: "Leads đăng ký dùng thử", target: "[Mục tiêu giả định]", actual: "[Ví dụ mô phỏng: 25–40 leads]", completion: "Mô phỏng", status: "Mô phỏng" }
         ],
         audienceBreakdown: [
-          { name: "Homeowners HCM (Lead Ad)", budget: "[Mô phỏng: 55% ngân sách]", ctr: "[Ví dụ mô phỏng: 1.2%]", conversions: "[Chờ dữ liệu thật]", cpa: "[Mô phỏng: 50.000–80.000 VND/lead]" },
-          { name: "Design enthusiasts HN & HCM", budget: "[Mô phỏng: 45% ngân sách]", ctr: "[Ví dụ mô phỏng: 2.1%]", conversions: "[Chờ dữ liệu thật]", cpa: "[Mô phỏng: 45.000–70.000 VND/engagement]" }
+          { name: "Coffee lovers HCM (Lead Ad)", budget: "[Mô phỏng: 55% ngân sách]", ctr: "[Ví dụ mô phỏng: 1.2%]", conversions: "[Chờ dữ liệu thật]", cpa: "[Mô phỏng: 50.000–80.000 VND/lead]" },
+          { name: "Specialty enthusiasts HN & HCM", budget: "[Mô phỏng: 45% ngân sách]", ctr: "[Ví dụ mô phỏng: 2.1%]", conversions: "[Chờ dữ liệu thật]", cpa: "[Mô phỏng: 45.000–70.000 VND/engagement]" }
         ],
         recommendations: [
           "Báo cáo này chứa SIMULATED DATA — NOT REAL ADS PERFORMANCE.",
           "Đề xuất Owner cập nhật với dữ liệu thật sau khi chạy ads thủ công.",
-          "Lead Gen objective thường hiệu quả hơn Traffic objective cho ngành nội thất cao cấp — nên test trực tiếp."
+          "Lead Gen objective thường hiệu quả hơn Traffic objective cho ngành cà phê specialty — nên test trực tiếp."
         ],
         kpiAssumptions: [
-          { metric: "Chi phí mỗi lead showroom (CPL)", assumption: "Mô phỏng 50.000–80.000 VND/lead cho tệp homeowner HCM" },
-          { metric: "Tỷ lệ nhấp (CTR)", assumption: "Mô phỏng 1.2%–2.1% cho creative lifestyle cao cấp" },
-          { metric: "Tỷ lệ chuyển đổi showroom", assumption: "Kỳ vọng 20%–35% leads đặt lịch thực sự đến showroom" }
+          { metric: "Chi phí mỗi lead dùng thử (CPL)", assumption: "Mô phỏng 50.000–80.000 VND/lead cho tệp coffee lover HCM" },
+          { metric: "Tỷ lệ nhấp (CTR)", assumption: "Mô phỏng 1.2%–2.1% cho creative lifestyle cà phê" },
+          { metric: "Tỷ lệ chuyển đổi ghé quán", assumption: "Kỳ vọng 20%–35% leads đăng ký thực sự ghé quán" }
         ],
         reportTemplate: `--- BÁO CÁO HIỆU QUẢ CHIẾN DỊCH RA MẮT (MÔ PHỎNG) ---
-Thương hiệu: Forme
-Sản phẩm: Sofa da Series F-1
+Thương hiệu: Mộc An Coffee
+Sản phẩm: Cold Brew đặc sản Series S1
 Trạng thái: [SIMULATED DATA ONLY — Sandbox Safe Mode]
 
 1. Chỉ số chính:
 - Ngân sách tiêu thụ: 2.450.000 VND
 - Lượt tiếp cận (Reach): ~52.000 người
 - Lượt nhấp (Clicks): ~800 lượt (CTR ~1.5%)
-- Leads đặt lịch showroom: ~32 leads (CPL ~76.000 VND)
+- Leads đăng ký dùng thử: ~32 leads (CPL ~76.000 VND)
 
 2. Đánh giá tệp đối tượng:
-- Homeowners HCM: Lead Ad với studio photo → CPL thấp nhất.
-- Design enthusiasts: Instagram carousel → engagement cao, ít lead form hơn.
+- Coffee lovers HCM: Lead Ad với product photo → CPL thấp nhất.
+- Specialty enthusiasts: Instagram carousel → engagement cao, ít lead form hơn.
 
 3. Đề xuất tối ưu (Manual Actions):
-- Test lifestyle room photo vs studio white → cái nào cho CPL thấp hơn.
+- Test lifestyle quán photo vs studio product → cái nào cho CPL thấp hơn.
 - Ưu tiên remarketing tệp đã xem video >50% — họ đã có intent rõ ràng hơn.`
       }
     }
