@@ -49,7 +49,7 @@ import { loadCoreData, saveCoreData, loadGenerationData, saveGenerationData, loa
 import { assetScopeIsSupabaseSafe, approvalScopeIsSupabaseSafe } from './lib/core/repoRouting';
 import type { AssetRouteIds, ApprovalRouteIds } from './lib/core/repoRouting';
 import type { CoreDataStore, GenerationDataStore, ApprovalDataStore, AssetDataStore, ClientFormData, BrandFormData, CampaignFormData, BriefFormData } from './lib/core/coreData';
-import { loadAutomationLogData, saveAutomationLogData } from './lib/core/automationLogs';
+import { loadAutomationLogData, saveAutomationLogData, createAutomationLog } from './lib/core/automationLogs';
 import type { AutomationLogStore } from './lib/core/automationLogs';
 import { runContentFactory, getContentFactoryWebhookUrl } from './lib/core/contentFactory';
 import { runDesignFactory } from './lib/core/designFactory';
@@ -60,6 +60,8 @@ import { runAdsFactory } from './lib/core/adsFactory';
 import type { AdsFactoryResult } from './lib/core/adsFactory';
 import { runReportFactory } from './lib/core/reportFactory';
 import type { ReportFactoryResult } from './lib/core/reportFactory';
+import { runCanvaSandboxConnector, buildCanvaSandboxAuditLog } from './lib/core/connectors/canvaSandboxConnector';
+import type { CanvaSandboxResult } from './lib/core/connectors/canvaSandboxConnector';
 import type { ContentFactoryResult, ContentFactoryRunInput } from './lib/core/contentFactory';
 
 // ── Phase A4: lazy-loaded tab sections ──
@@ -746,6 +748,40 @@ export default function App() {
     saveGenerationData(nextGen);
     setApprovalData(nextApproval);
     saveApprovalData(nextApproval);
+    return result;
+  };
+
+  // Canva Connector — SANDBOX MODE ONLY. Reuses the same job/item/approval path
+  // as the AI Factory modules, but the connector is pure & offline: it builds
+  // MOCK preview specs (sandbox_preview_only) and NEVER calls the real Canva
+  // API, requires no token, creates no real design, and publishes nothing. Each
+  // preview auto-submits for approval (needs_review) so it lands in the Approval
+  // Board as a pending item; an approved sandbox item authorises INTERNAL use
+  // only. Every run is recorded to the Automation Logs audit trail.
+  const handleCanvaSandboxGenerate = async (input: ContentFactoryRunInput): Promise<CanvaSandboxResult> => {
+    const result = runCanvaSandboxConnector(input);
+    const baseGen: GenerationDataStore = {
+      generationJobs: [result.job, ...genData.generationJobs],
+      contentItems: [...result.items, ...genData.contentItems],
+    };
+
+    let nextGen = baseGen;
+    let nextApproval = approvalData;
+    for (const item of result.items) {
+      const submitted = submitForApproval(nextApproval, nextGen, item, actorLabel, { priority: 'normal' });
+      nextApproval = submitted.approval;
+      nextGen = submitted.gen;
+    }
+
+    setGenData(nextGen);
+    saveGenerationData(nextGen);
+    setApprovalData(nextApproval);
+    saveApprovalData(nextApproval);
+
+    // Audit trail: every connector action is logged (CLAUDE.md §4.7).
+    const nextLogs = createAutomationLog(logData, buildCanvaSandboxAuditLog(input, result));
+    setLogData(nextLogs);
+    saveAutomationLogData(nextLogs);
     return result;
   };
 
@@ -1796,6 +1832,7 @@ export default function App() {
                   onGenerateVideoScripts={handleVideoFactoryGenerate}
                   onGenerateAdsPack={handleAdsFactoryGenerate}
                   onGenerateReportDraft={handleReportFactoryGenerate}
+                  onGenerateCanvaSandbox={handleCanvaSandboxGenerate}
                   actorLabel={actorLabel}
                 />
               )}

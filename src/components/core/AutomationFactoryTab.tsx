@@ -5,6 +5,7 @@ import {
   Factory,
   FileText,
   Megaphone,
+  Palette,
   PenTool,
   Shield,
   Video,
@@ -30,6 +31,8 @@ import type { AdsFactoryResult } from '../../lib/core/adsFactory';
 import { getAdsFactoryWebhookUrl } from '../../lib/core/adsFactory';
 import type { ReportFactoryResult } from '../../lib/core/reportFactory';
 import { getReportFactoryWebhookUrl } from '../../lib/core/reportFactory';
+import type { CanvaSandboxResult } from '../../lib/core/connectors/canvaSandboxConnector';
+import { CANVA_SANDBOX_COPY } from '../../lib/core/connectors/canvaSandboxConnector';
 
 interface Props {
   clients: Client[];
@@ -48,10 +51,11 @@ interface Props {
   onGenerateVideoScripts: (input: ContentFactoryRunInput) => Promise<VideoFactoryResult>;
   onGenerateAdsPack: (input: ContentFactoryRunInput) => Promise<AdsFactoryResult>;
   onGenerateReportDraft: (input: ContentFactoryRunInput) => Promise<ReportFactoryResult>;
+  onGenerateCanvaSandbox: (input: ContentFactoryRunInput) => Promise<CanvaSandboxResult>;
   actorLabel: string;
 }
 
-type WorkflowId = 'content-pack' | 'design-briefs' | 'video-scripts' | 'ads-pack' | 'report-draft';
+type WorkflowId = 'content-pack' | 'design-briefs' | 'video-scripts' | 'ads-pack' | 'report-draft' | 'canva-sandbox';
 
 type DraftWorkflow = {
   id: string;
@@ -103,6 +107,13 @@ const WORKFLOWS: Array<{
     output: 'Draft report',
     icon: <FileText size={18} />,
   },
+  {
+    id: 'canva-sandbox',
+    title: 'Canva Sandbox Preview',
+    description: 'Prepare mock Canva design previews/specs (sandbox only). No real Canva API, no design created, nothing published.',
+    output: 'Canva sandbox previews',
+    icon: <Palette size={18} />,
+  },
 ];
 
 export default function AutomationFactoryTab({
@@ -122,6 +133,7 @@ export default function AutomationFactoryTab({
   onGenerateVideoScripts,
   onGenerateAdsPack,
   onGenerateReportDraft,
+  onGenerateCanvaSandbox,
   actorLabel,
 }: Props) {
   const [drafts, setDrafts] = useState<DraftWorkflow[]>([]);
@@ -150,6 +162,9 @@ export default function AutomationFactoryTab({
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
   const [reportMessage, setReportMessage] = useState<string | null>(null);
   const [reportError, setReportError] = useState<string | null>(null);
+  const [isGeneratingCanva, setIsGeneratingCanva] = useState(false);
+  const [canvaMessage, setCanvaMessage] = useState<string | null>(null);
+  const [canvaError, setCanvaError] = useState<string | null>(null);
   const canUseFactory = userRole === 'owner' || userRole === 'manager';
   // n8n AI provider is active when its webhook env is configured; otherwise the
   // workflow runs the local fallback generator. Drives the labels. Content Pack
@@ -364,6 +379,34 @@ export default function AutomationFactoryTab({
     }
   };
 
+  const handleGenerateCanvaSandbox = async () => {
+    setCanvaError(null);
+    setCanvaMessage(null);
+    if (!selectedClient || !selectedBrand || !selectedCampaign || !selectedBrief) {
+      setCanvaError('Select a client, brand, campaign, and brief first.');
+      return;
+    }
+    setIsGeneratingCanva(true);
+    try {
+      const result = await onGenerateCanvaSandbox({
+        client: selectedClient,
+        brand: selectedBrand,
+        campaign: selectedCampaign,
+        brief: selectedBrief,
+        options: contentOptions,
+        requestedBy: actorLabel,
+      });
+      setCanvaMessage(
+        `${result.previews.length} Canva sandbox previews were created (sandbox mode). ` +
+        `${CANVA_SANDBOX_COPY.noDesign}. ${CANVA_SANDBOX_COPY.noPublish}. ${CANVA_SANDBOX_COPY.approvalRequired}.`,
+      );
+    } catch (err) {
+      setCanvaError(err instanceof Error ? err.message : 'Canva sandbox preview failed. No Canva design was created and nothing was published.');
+    } finally {
+      setIsGeneratingCanva(false);
+    }
+  };
+
   if (!canUseFactory) {
     return (
       <div className="glass-panel" style={{ padding: '40px', textAlign: 'center' }}>
@@ -476,6 +519,8 @@ export default function AutomationFactoryTab({
                     <span style={{ fontSize: '0.68rem', color: reportConfigured ? '#34d399' : '#f59e0b' }}>
                       {reportConfigured ? 'n8n AI Provider · External module job' : 'Local fallback mode · External module job'}
                     </span>
+                  ) : workflow.id === 'canva-sandbox' ? (
+                    <span style={{ fontSize: '0.68rem', color: '#22d3ee' }}>Sandbox mode · No live Canva API</span>
                   ) : (
                     <span style={{ fontSize: '0.68rem', color: '#f59e0b' }}>Coming next / draft workflow</span>
                   )}
@@ -545,6 +590,15 @@ export default function AutomationFactoryTab({
                   selectedBriefTitle={selectedBrief?.brief_title || selectedBrief?.brand_name || null}
                   channel={contentOptions.channel}
                   onGenerate={handleGenerateReportDraft}
+                />
+              ) : workflow.id === 'canva-sandbox' ? (
+                <CanvaSandboxControls
+                  isGenerating={isGeneratingCanva}
+                  message={canvaMessage}
+                  error={canvaError}
+                  selectedBriefTitle={selectedBrief?.brief_title || selectedBrief?.brand_name || null}
+                  channel={contentOptions.channel}
+                  onGenerate={handleGenerateCanvaSandbox}
                 />
               ) : (
                 <button
@@ -926,6 +980,62 @@ function ReportDraftControls({
       </button>
       <p style={{ fontSize: '0.68rem', color: 'var(--text-muted)', lineHeight: 1.4, margin: 0 }}>
         Approval-first: report drafts only. No live analytics pull, no unverified metrics. Nothing is posted or launched. Approved ≠ Published.
+      </p>
+    </div>
+  );
+}
+
+function CanvaSandboxControls({
+  isGenerating,
+  message,
+  error,
+  selectedBriefTitle,
+  channel,
+  onGenerate,
+}: {
+  isGenerating: boolean;
+  message: string | null;
+  error: string | null;
+  selectedBriefTitle: string | null;
+  channel: string;
+  onGenerate: () => void;
+}) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: 'auto' }}>
+      <p style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', lineHeight: 1.45, margin: 0 }}>
+        Generates 5 mock Canva design previews (Facebook post, Story, Menu A5, TikTok cover, Zalo post). Sandbox spec
+        only — no real Canva API, no token, no design created, no image generation.
+      </p>
+      <p style={{ fontSize: '0.68rem', color: 'var(--text-muted)', margin: 0 }}>
+        Target: {selectedBriefTitle ?? '— select a brief in Content Pack above —'} · {channel}
+      </p>
+
+      <div style={{ padding: '8px 10px', background: 'rgba(34,211,238,0.07)', border: '1px solid rgba(34,211,238,0.3)', borderRadius: '7px' }}>
+        <p style={{ fontSize: '0.66rem', color: '#22d3ee', fontWeight: 700, margin: 0 }}>{CANVA_SANDBOX_COPY.title}</p>
+        <p style={{ fontSize: '0.66rem', color: 'var(--text-secondary)', lineHeight: 1.5, margin: '4px 0 0' }}>
+          {CANVA_SANDBOX_COPY.noDesign}. {CANVA_SANDBOX_COPY.noPublish}. {CANVA_SANDBOX_COPY.approvalRequired}.
+        </p>
+      </div>
+
+      <div>
+        <span style={{ fontSize: '0.66rem', fontWeight: 700, color: '#22d3ee', background: 'rgba(34,211,238,0.12)', border: '1px solid rgba(34,211,238,0.35)', borderRadius: '5px', padding: '2px 7px' }}>
+          Sandbox mode
+        </span>
+      </div>
+
+      {message && <p style={{ fontSize: '0.72rem', color: '#34d399', lineHeight: 1.45, margin: 0 }}>{message}</p>}
+      {error && <p style={{ fontSize: '0.72rem', color: '#f87171', lineHeight: 1.45, margin: 0 }}>{error}</p>}
+
+      <button
+        className="btn btn-primary"
+        onClick={onGenerate}
+        disabled={isGenerating}
+        style={{ justifyContent: 'center', fontSize: '0.82rem' }}
+      >
+        <Palette size={14} /> {isGenerating ? 'Generating sandbox previews...' : 'Generate Canva Sandbox Previews'}
+      </button>
+      <p style={{ fontSize: '0.68rem', color: 'var(--text-muted)', lineHeight: 1.4, margin: 0 }}>
+        Approval-first: sandbox previews only. No live Canva connector, no publish, no auto-post, no auto-ads. Approved ≠ Published.
       </p>
     </div>
   );
