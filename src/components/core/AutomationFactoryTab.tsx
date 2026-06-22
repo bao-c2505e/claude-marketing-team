@@ -33,6 +33,7 @@ import type { ReportFactoryResult } from '../../lib/core/reportFactory';
 import { getReportFactoryWebhookUrl } from '../../lib/core/reportFactory';
 import type { CanvaSandboxResult } from '../../lib/core/connectors/canvaSandboxConnector';
 import { CANVA_SANDBOX_COPY } from '../../lib/core/connectors/canvaSandboxConnector';
+import { CANVA_CONTRACT_COPY } from '../../lib/core/connectors/canvaApprovalContract';
 
 interface Props {
   clients: Client[];
@@ -1011,7 +1012,7 @@ function CanvaSandboxControls({
       </p>
 
       <div style={{ padding: '8px 10px', background: 'rgba(34,211,238,0.07)', border: '1px solid rgba(34,211,238,0.3)', borderRadius: '7px' }}>
-        <p style={{ fontSize: '0.66rem', color: '#22d3ee', fontWeight: 700, margin: 0 }}>{CANVA_SANDBOX_COPY.title}</p>
+        <p style={{ fontSize: '0.66rem', color: '#22d3ee', fontWeight: 700, margin: 0 }}>{CANVA_CONTRACT_COPY.title} · {CANVA_CONTRACT_COPY.internalApprovalOnly}</p>
         <p style={{ fontSize: '0.66rem', color: 'var(--text-secondary)', lineHeight: 1.5, margin: '4px 0 0' }}>
           {CANVA_SANDBOX_COPY.noDesign}. {CANVA_SANDBOX_COPY.noPublish}. {CANVA_SANDBOX_COPY.approvalRequired}.
         </p>

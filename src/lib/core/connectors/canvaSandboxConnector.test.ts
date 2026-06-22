@@ -5,6 +5,7 @@ import {
   CANVA_SANDBOX_COPY,
   CANVA_SANDBOX_SAFETY_FLAGS,
 } from './canvaSandboxConnector';
+import { CANVA_CONTRACT_COPY } from './canvaApprovalContract';
 import type { Brand, Campaign, CampaignBrief, Client } from '../../../types/core';
 
 const client: Client = {
@@ -184,6 +185,38 @@ describe('canvaSandboxConnector', () => {
       expect(item.caption).toContain('preview_status: sandbox_preview_only');
       // No false claim of a real Canva design / publish / launch.
       expect(unsafeExecutionCopy.test(item.caption)).toBe(false);
+    }
+  });
+
+  it('keeps the mirrored contract copy in sync with the sandbox copy', () => {
+    expect(CANVA_CONTRACT_COPY.title).toBe(CANVA_SANDBOX_COPY.title);
+    expect(CANVA_CONTRACT_COPY.noDesign).toBe(CANVA_SANDBOX_COPY.noDesign);
+    expect(CANVA_CONTRACT_COPY.noPublish).toBe(CANVA_SANDBOX_COPY.noPublish);
+    expect(CANVA_CONTRACT_COPY.approvalRequired).toBe(CANVA_SANDBOX_COPY.approvalRequired);
+  });
+
+  it('carries a sandbox approval contract on every preview (never published, no real action)', () => {
+    const result = runCanvaSandboxConnector(input);
+    for (const preview of result.previews) {
+      const c = preview.approval_contract;
+      expect(c.connector).toBe('canva');
+      expect(c.mode).toBe('sandbox');
+      expect(c.preview_status).toBe('sandbox_preview_only');
+      expect(c.approval_status).toBe('needs_review');
+      expect(c.publish_status).toBe('not_published');
+      expect(c.real_connector_action).toBe('none');
+      expect(c.safety_flags).toMatchObject({
+        no_live_canva_api: true,
+        no_publish: true,
+        approval_required: true,
+      });
+    }
+    // The contract fields are embedded in the queue item caption.
+    for (const item of result.items) {
+      expect(item.caption).toContain('publish_status: not_published');
+      expect(item.caption).toContain('real_connector_action: none');
+      expect(item.caption).toContain('approval_status: needs_review');
+      expect(item.caption).toContain('Internal approval only');
     }
   });
 

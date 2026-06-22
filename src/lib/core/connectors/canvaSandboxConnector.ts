@@ -25,6 +25,11 @@ import type { ContentPlanItem, ContentPlanJob } from '../../../types/core';
 import type { ContentFactoryRunInput } from '../contentFactory';
 import type { LocalAutomationLog } from '../../../types/core';
 import { generateId } from '../coreData';
+import {
+  buildCanvaApprovalContract,
+  canvaStatusToItemStatus,
+  type CanvaApprovalContract,
+} from './canvaApprovalContract';
 
 // connector_id identifies the (registry) connector this sandbox stands in for;
 // content_type identifies the kind of approval item it produces.
@@ -102,6 +107,9 @@ export interface CanvaSandboxPreview {
   preview_status: 'sandbox_preview_only';
   design_notes: string;
   safety_flags: CanvaSandboxSafetyFlags;
+  // Phase I-S2 — normalized approval/status contract carried into the queue.
+  // publish_status is always 'not_published' and real_connector_action 'none'.
+  approval_contract: CanvaApprovalContract;
 }
 
 export interface CanvaSandboxResult {
@@ -138,6 +146,10 @@ function buildPreview(input: ContentFactoryRunInput, spec: CanvaFormatSpec): Can
     preview_status: 'sandbox_preview_only',
     design_notes: `${spec.objective}. Tông: ${tone}. Lấy ${product} làm nhân vật chính; chỉ dùng ảnh/clip món thật của quán — KHÔNG tạo ảnh AI. Đây là bản mô tả template (spec) trong sandbox, chưa có design Canva thật.`,
     safety_flags: { ...CANVA_SANDBOX_SAFETY_FLAGS },
+    // Approval-first: enters the queue review-gated. publish_status and
+    // real_connector_action are fixed by the contract (never published, no
+    // real connector action) regardless of any later approval decision.
+    approval_contract: buildCanvaApprovalContract('needs_review'),
   };
 }
 
@@ -165,6 +177,16 @@ function buildCaption(preview: CanvaSandboxPreview): string {
     'status: pending_approval',
     'owner_approval_required: true',
     'safety: no_live_canva_api=true; no_publish=true; approval_required=true; no_real_design_created=true; no_image_generation=true; no_secrets=true',
+    '',
+    '---',
+    'Canva Approval Contract (Phase I-S2):',
+    `connector: ${preview.approval_contract.connector}`,
+    `mode: ${preview.approval_contract.mode}`,
+    `preview_status: ${preview.approval_contract.preview_status}`,
+    `approval_status: ${preview.approval_contract.approval_status}`,
+    `publish_status: ${preview.approval_contract.publish_status}`,
+    `real_connector_action: ${preview.approval_contract.real_connector_action}`,
+    `${CANVA_SANDBOX_COPY.title} · Internal approval only.`,
   ].join('\n');
 }
 
@@ -195,7 +217,8 @@ function mapPreviewToItem(
     hashtags: `#${input.brand.name.replace(/\s+/g, '')} #CanvaSandbox`,
     // Approval-first: review-gated, never auto-approved. The ceiling for any
     // sandbox/AI action is the approval queue — never published/launched.
-    status: 'needs_review',
+    // Status is derived from the approval contract so the two never drift.
+    status: canvaStatusToItemStatus(preview.approval_contract.approval_status),
     created_at: now,
     updated_at: now,
   };
