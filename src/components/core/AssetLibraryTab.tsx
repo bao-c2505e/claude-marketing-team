@@ -90,13 +90,16 @@ function AssetSafetyBanner() {
     <div style={{
       padding: '10px 16px', borderRadius: '8px',
       background: 'rgba(16,185,129,0.07)', border: '1px solid rgba(16,185,129,0.28)',
-      display: 'flex', alignItems: 'center', gap: '10px',
+      display: 'flex', alignItems: 'flex-start', gap: '10px',
     }}>
-      <Shield size={14} style={{ color: '#34d399', flexShrink: 0 }} />
+      <Shield size={14} style={{ color: '#34d399', flexShrink: 0, marginTop: '2px' }} />
       <span style={{ fontSize: '0.8rem', color: '#34d399', lineHeight: 1.5 }}>
-        <strong>Asset Library — metadata only (no file storage yet).</strong>{' '}
-        No real file upload. No auto-publish. Usage rights must be verified before publishing.
-        Approved asset ≠ published content.
+        <strong>Asset Library — internal records, metadata only (no file storage yet).</strong>{' '}
+        <span>Sample records are internal / simulated / demo / draft-only.</span>{' '}
+        <span>No real file upload. No auto-publish. Live connectors blocked.</span>{' '}
+        <span>Usage rights must be verified before publishing.</span>{' '}
+        <strong>Approved ≠ Published</strong>{' '}
+        <span>— approval authorizes internal use only; manual confirmation outside CORE is still required.</span>
       </span>
     </div>
   );

@@ -35,6 +35,7 @@ import {
   Activity,
   Factory,
   Building2,
+  Brain,
 } from 'lucide-react';
 import { sampleCampaigns, Campaign, CampaignBrief, CalendarItem, ChecklistItem } from './mockData';
 import { useAuth } from './lib/auth/AuthContext';
@@ -92,6 +93,9 @@ const OwnerOperationsPanel  = lazy(() => import('./components/core/OwnerOperatio
 // Phase K: campaign/client production drill-down workspace. Display + navigation
 // only — no publish/launch/post/activate; connector safety stays read-only.
 const CampaignWorkspace     = lazy(() => import('./components/core/CampaignWorkspace'));
+// Phase L: client brand brain (internal brand context, read-only). Display +
+// navigation only — no upload/publish/post/activate/sync; connectors stay blocked.
+const BrandBrainTab         = lazy(() => import('./components/core/BrandBrainTab'));
 
 const manualExportBlocks = [
   {
@@ -291,6 +295,7 @@ export default function App() {
   const [coreNavFilter, setCoreNavFilter] = useState<{ clientId?: string; brandId?: string }>({});
   // Phase K — which core campaign the production drill-down workspace inspects.
   const [workspaceCampaignId, setWorkspaceCampaignId] = useState<string | null>(null);
+  const [brandBrainBrandId, setBrandBrainBrandId] = useState<string | null>(null);
 
   // Phase 16A — Repository layer (Supabase when configured, localStorage otherwise)
   const repos = useMemo(
@@ -916,7 +921,7 @@ export default function App() {
   const handleViewModeSwitch = (mode: 'owner' | 'client') => {
     setViewMode(mode);
     if (mode === 'client') {
-      const ownerOnlyTabs = ['new-campaign', 'team-board', 'manual-export', 'client-demo', 'automation-factory', 'automation-logs', 'client-feedback', 'campaign-workspace'];
+      const ownerOnlyTabs = ['new-campaign', 'team-board', 'manual-export', 'client-demo', 'automation-factory', 'automation-logs', 'client-feedback', 'campaign-workspace', 'brand-brain'];
       if (ownerOnlyTabs.includes(activeTab)) setActiveTab('dashboard');
     }
   };
@@ -1328,6 +1333,16 @@ export default function App() {
                 onClick={() => setActiveTab('campaign-workspace')}
               >
                 <Building2 size={18} /> Campaign Workspace
+              </button>
+            )}
+
+            {viewMode === 'owner' && (
+              <button
+                className={`btn btn-secondary ${activeTab === 'brand-brain' ? 'active' : ''}`}
+                style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'brand-brain' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'brand-brain' ? 'rgba(244, 122, 31, 0.1)' : '' }}
+                onClick={() => setActiveTab('brand-brain')}
+              >
+                <Brain size={18} /> Brand Brain
               </button>
             )}
 
@@ -2467,6 +2482,39 @@ export default function App() {
                     approvals={wsApprovals}
                     assets={wsAssets}
                     activity={wsActivity}
+                    onNavigate={setActiveTab}
+                  />
+                );
+              })()}
+
+              {/* ── Phase L: Client Brand Brain (internal brand context) ── */}
+              {activeTab === 'brand-brain' && viewMode === 'owner' && (() => {
+                // Resolve the inspected brand + its client and the campaigns /
+                // briefs / assets scoped to it — all from existing local state.
+                const bbBrand = coreData.brands.find(b => b.id === brandBrainBrandId)
+                  ?? coreData.brands[0] ?? null;
+                const bbClient = bbBrand ? coreData.clients.find(cl => cl.id === bbBrand.client_id) ?? null : null;
+                const bbCampaigns = bbBrand ? coreData.campaigns.filter(c => c.brand_id === bbBrand.id) : [];
+                const bbBriefs = bbBrand ? coreData.briefs.filter(br => br.brand_id === bbBrand.id) : [];
+                const bbAssets = bbBrand ? assetData.assets.filter(a => a.brand_id === bbBrand.id) : [];
+                const bbOptions = coreData.brands.map(b => ({
+                  id: b.id,
+                  name: b.name,
+                  clientName: coreData.clients.find(cl => cl.id === b.client_id)?.name ?? '—',
+                  industry: b.industry,
+                  // Status chip reflects the brand's first campaign, else the brand record.
+                  status: coreData.campaigns.find(c => c.brand_id === b.id)?.status ?? b.status,
+                }));
+                return (
+                  <BrandBrainTab
+                    options={bbOptions}
+                    selectedId={bbBrand?.id ?? null}
+                    onSelect={setBrandBrainBrandId}
+                    client={bbClient}
+                    brand={bbBrand}
+                    campaigns={bbCampaigns}
+                    briefs={bbBriefs}
+                    assets={bbAssets}
                     onNavigate={setActiveTab}
                   />
                 );
