@@ -46,6 +46,11 @@ import {
   MODULE_EVENT_TYPES,
 } from '../../lib/core/connectorRegistry';
 import type { ConnectorRegistryStore } from '../../lib/core/connectorRegistry';
+import {
+  connectorActivationBadge,
+  CONNECTOR_ACTIVATION_STATUS_LABEL,
+  CONNECTOR_ACTIVATION_STATUS_COLOR,
+} from '../../lib/core/connectors/connectorGovernance';
 import { can } from '../../lib/auth/permissions';
 
 // ---------------------------------------------------------------------------
@@ -236,7 +241,9 @@ export default function ConnectorRegistryTab({
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: '14px' }}>
-        {store.connectors.map(conn => (
+        {store.connectors.map(conn => {
+          const gov = connectorActivationBadge(conn.connector_type);
+          return (
           <div key={conn.id} style={CARD}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px', gap: '8px', flexWrap: 'wrap' }}>
               <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{conn.name}</div>
@@ -245,6 +252,15 @@ export default function ConnectorRegistryTab({
                 <StatusBadge label={CONNECTOR_STATUS_LABEL[conn.status]} color={CONNECTOR_STATUS_COLOR[conn.status]} />
                 <StatusBadge label={CONNECTOR_MODE_LABEL[conn.mode]} color={CONNECTOR_MODE_COLOR[conn.mode]} />
               </div>
+            </div>
+
+            {/* Phase I-S6 — connector activation governance: live is blocked,
+                Owner sign-off is required, Approved ≠ Published. */}
+            <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap', marginBottom: '10px' }}>
+              <StatusBadge label={CONNECTOR_ACTIVATION_STATUS_LABEL[gov.activationStatus]} color={CONNECTOR_ACTIVATION_STATUS_COLOR[gov.activationStatus]} />
+              <StatusBadge label="Live blocked" color="#f87171" />
+              <StatusBadge label="Owner sign-off required" color="#fbbf24" />
+              <StatusBadge label="Approved ≠ Published" color="#34d399" />
             </div>
 
             {conn.description && (
@@ -317,7 +333,8 @@ export default function ConnectorRegistryTab({
               </div>
             )}
           </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
@@ -743,6 +760,8 @@ export default function ConnectorRegistryTab({
           Governance reminders
         </div>
         <div>• All connectors are in registry-only state. No real API connection is made.</div>
+        <div>• Connector activation governance: live connectors are blocked by default. Canva is sandbox/mock; Meta / TikTok / Zalo / Google Ads / Drive / Sheets are future-only.</div>
+        <div>• Owner sign-off is required before any future activation. Approved ≠ Published.</div>
         <div>• Production connector activation requires owner approval and .env setup on the backend.</div>
         <div>• API keys and tokens must NEVER appear in frontend code — use backend proxy.</div>
         <div>• No real ads will be created, no real messages sent, no real webhooks dispatched.</div>
