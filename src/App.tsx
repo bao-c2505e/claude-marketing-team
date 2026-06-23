@@ -48,6 +48,7 @@ import type { Client, Brand, Campaign as CoreCampaign, CampaignBrief as CoreCamp
 import LoginScreen from './components/auth/LoginScreen';
 // Phase A4: the core tab sections are lazy-loaded — see the React.lazy block after imports.
 import { loadCoreData, saveCoreData, loadGenerationData, saveGenerationData, loadApprovalData, saveApprovalData, loadAssetData, saveAssetData, canSubmitItem, submitForApproval, APPROVAL_STATUS_LABEL, APPROVAL_STATUS_COLOR } from './lib/core/coreData';
+import { buildBrandBrain, assessBrandBrainCompleteness, buildBrandBrainOption } from './lib/core/brandBrain';
 import { assetScopeIsSupabaseSafe, approvalScopeIsSupabaseSafe } from './lib/core/repoRouting';
 import type { AssetRouteIds, ApprovalRouteIds } from './lib/core/repoRouting';
 import type { CoreDataStore, GenerationDataStore, ApprovalDataStore, AssetDataStore, ClientFormData, BrandFormData, CampaignFormData, BriefFormData } from './lib/core/coreData';
@@ -2487,34 +2488,34 @@ export default function App() {
                 );
               })()}
 
-              {/* ── Phase L: Client Brand Brain (internal brand context) ── */}
+              {/* ── Phase L/M: Client Brand Brain (single internal source of truth) ── */}
               {activeTab === 'brand-brain' && viewMode === 'owner' && (() => {
                 // Resolve the inspected brand + its client and the campaigns /
-                // briefs / assets scoped to it — all from existing local state.
+                // briefs / assets scoped to it — all from existing local state —
+                // then assemble the normalized Brand Brain via the shared builder
+                // (lib/core/brandBrain.ts), the single source of truth.
                 const bbBrand = coreData.brands.find(b => b.id === brandBrainBrandId)
                   ?? coreData.brands[0] ?? null;
                 const bbClient = bbBrand ? coreData.clients.find(cl => cl.id === bbBrand.client_id) ?? null : null;
                 const bbCampaigns = bbBrand ? coreData.campaigns.filter(c => c.brand_id === bbBrand.id) : [];
                 const bbBriefs = bbBrand ? coreData.briefs.filter(br => br.brand_id === bbBrand.id) : [];
                 const bbAssets = bbBrand ? assetData.assets.filter(a => a.brand_id === bbBrand.id) : [];
-                const bbOptions = coreData.brands.map(b => ({
-                  id: b.id,
-                  name: b.name,
-                  clientName: coreData.clients.find(cl => cl.id === b.client_id)?.name ?? '—',
-                  industry: b.industry,
-                  // Status chip reflects the brand's first campaign, else the brand record.
-                  status: coreData.campaigns.find(c => c.brand_id === b.id)?.status ?? b.status,
+                const bbOptions = coreData.brands.map(b => buildBrandBrainOption({
+                  brand: b,
+                  client: coreData.clients.find(cl => cl.id === b.client_id) ?? null,
+                  firstCampaignStatus: coreData.campaigns.find(c => c.brand_id === b.id)?.status ?? null,
                 }));
+                const brandBrain = bbBrand
+                  ? buildBrandBrain({ brand: bbBrand, client: bbClient, campaigns: bbCampaigns, briefs: bbBriefs, assets: bbAssets })
+                  : null;
+                const completeness = brandBrain ? assessBrandBrainCompleteness(brandBrain) : null;
                 return (
                   <BrandBrainTab
                     options={bbOptions}
                     selectedId={bbBrand?.id ?? null}
                     onSelect={setBrandBrainBrandId}
-                    client={bbClient}
-                    brand={bbBrand}
-                    campaigns={bbCampaigns}
-                    briefs={bbBriefs}
-                    assets={bbAssets}
+                    brandBrain={brandBrain}
+                    completeness={completeness}
                     onNavigate={setActiveTab}
                   />
                 );

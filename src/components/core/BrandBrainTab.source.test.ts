@@ -1,12 +1,19 @@
 import { describe, expect, it } from 'vitest';
 // Load the component source as a raw string via Vite's `?raw` import. There is no
 // DOM test runner in this project (no jsdom / testing-library, and adding deps is
-// out of scope), so Phase L safety is enforced with a static source scan — the
+// out of scope), so Phase L/M safety is enforced with a static source scan — the
 // same approach as CampaignWorkspace / OwnerOperationsPanel source tests.
 import SOURCE from './BrandBrainTab.tsx?raw';
 
-describe('BrandBrainTab (Phase L brand-brain sections + safety guard)', () => {
-  it('renders every required Brand Brain section', () => {
+describe('BrandBrainTab (Phase L/M sections, shared-source wiring + safety guard)', () => {
+  it('reads from the shared Brand Brain source of truth (lib/core/brandBrain)', () => {
+    expect(SOURCE).toMatch(/from '\.\.\/\.\.\/lib\/core\/brandBrain'/);
+    expect(SOURCE).toMatch(/BrandBrain\b/);
+    expect(SOURCE).toMatch(/brandBrain/);
+    expect(SOURCE).toMatch(/completeness/);
+  });
+
+  it('renders every required Brand Brain section from the contract', () => {
     expect(SOURCE).toMatch(/Client \/ Brand Identity/);
     expect(SOURCE).toMatch(/Target Customers/);
     expect(SOURCE).toMatch(/Products \/ Services \/ Menu \/ Offers/);
@@ -20,17 +27,33 @@ describe('BrandBrainTab (Phase L brand-brain sections + safety guard)', () => {
     expect(SOURCE).toMatch(/Last Updated \/ Internal Draft State/);
   });
 
-  it('surfaces brand identity, audience, products, voice, pillars and do/dont fields', () => {
-    // Each section is fed from existing brand / brief data already in local state.
-    expect(SOURCE).toMatch(/brand\.target_audience/);
-    expect(SOURCE).toMatch(/hero_product/);
-    expect(SOURCE).toMatch(/product_focus/);
-    expect(SOURCE).toMatch(/tone_of_voice/);
-    expect(SOURCE).toMatch(/content_pillars/);
-    expect(SOURCE).toMatch(/must_include/);
-    expect(SOURCE).toMatch(/must_avoid/);
-    expect(SOURCE).toMatch(/approval_requirements/);
-    expect(SOURCE).toMatch(/brand_colors/);
+  it('surfaces normalized contract fields (not re-derived from raw records)', () => {
+    expect(SOURCE).toMatch(/bb\.targetCustomers/);
+    expect(SOURCE).toMatch(/bb\.products/);
+    expect(SOURCE).toMatch(/bb\.brandVoice/);
+    expect(SOURCE).toMatch(/bb\.contentPillars/);
+    expect(SOURCE).toMatch(/bb\.creativeDos/);
+    expect(SOURCE).toMatch(/bb\.creativeDonts/);
+    expect(SOURCE).toMatch(/bb\.claimComplianceNotes/);
+    expect(SOURCE).toMatch(/bb\.campaignContext/);
+    expect(SOURCE).toMatch(/bb\.ownerNotes/);
+    expect(SOURCE).toMatch(/bb\.assetReferences/);
+    expect(SOURCE).toMatch(/bb\.positioning/);
+    // The component must NOT re-derive context from raw brief fields any more.
+    expect(SOURCE).not.toMatch(/\.must_include|\.must_avoid|\.content_pillars|\.target_audience/);
+  });
+
+  it('renders the intake / review (completeness + missing fields + review status) surface', () => {
+    expect(SOURCE).toMatch(/Brand Context Source/);
+    expect(SOURCE).toMatch(/completeness/i);
+    expect(SOURCE).toMatch(/Missing context fields/);
+    expect(SOURCE).toMatch(/Owner review status/);
+    expect(SOURCE).toMatch(/Last updated/);
+    expect(SOURCE).toMatch(/Last reviewed/);
+    // Allowed action labels only (display + navigation).
+    expect(SOURCE).toMatch(/Review missing fields/);
+    expect(SOURCE).toMatch(/Mark for owner review/);
+    expect(SOURCE).toMatch(/Use as draft context/);
   });
 
   it('keeps approval-first messaging and "Approved ≠ Published" visible', () => {
@@ -46,8 +69,6 @@ describe('BrandBrainTab (Phase L brand-brain sections + safety guard)', () => {
     expect(SOURCE).toMatch(/simulated/i);
     expect(SOURCE).toMatch(/demo/i);
     expect(SOURCE).toMatch(/draft-only/i);
-    // No fabricated quantitative metrics are invented in this surface.
-    expect(SOURCE).toMatch(/No fabricated metrics/i);
   });
 
   it('shows connector safety as blocked and read-only (live count hard 0)', () => {
@@ -67,7 +88,7 @@ describe('BrandBrainTab (Phase L brand-brain sections + safety guard)', () => {
     expect(SOURCE).not.toMatch(/go live/i);
     expect(SOURCE).not.toMatch(/activate connector/i);
     expect(SOURCE).not.toMatch(/sync live/i);
-    expect(SOURCE).not.toMatch(/fetch assets/i);
+    expect(SOURCE).not.toMatch(/fetch from external/i);
   });
 
   it('treats auto-post as forbidden — only ever shown negated as a safety guarantee', () => {
@@ -82,7 +103,6 @@ describe('BrandBrainTab (Phase L brand-brain sections + safety guard)', () => {
     expect(SOURCE).not.toMatch(/fetch\s*\(|axios|XMLHttpRequest/);
     expect(SOURCE).not.toMatch(/CANVA_CLIENT_ID|CANVA_CLIENT_SECRET|CANVA_API|CANVA_TOKEN/);
     expect(SOURCE).not.toMatch(/META_ACCESS_TOKEN|TIKTOK_ACCESS_TOKEN|ZALO_ACCESS_TOKEN|GOOGLE_ADS/);
-    // No persistence / mutation from this presentational surface.
     expect(SOURCE).not.toMatch(/saveAssetData|saveCoreData|updateConnectorStatus|localStorage/);
   });
 
