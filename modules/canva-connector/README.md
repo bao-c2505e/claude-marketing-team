@@ -58,6 +58,23 @@ Implementation: `src/lib/core/connectors/canvaSandboxConnector.ts`
 `src/lib/core/connectors/canvaApprovalContract.ts`
 (`buildCanvaSandboxHandoffRecord`, `buildCanvaApprovalHistory`).
 
+### Owner QA & Release Lock (Phase I-S5)
+
+The Canva sandbox is cleared for **demo / internal release in sandbox mode only**
+and structurally **locked off** from anything live. `CANVA_SANDBOX_RELEASE_LOCK`
+(in `src/lib/core/connectors/canvaReleaseLock.ts`) pins
+`releaseMode: 'sandbox_locked'` with hard-`false` capability literals
+(`liveConnectorEnabled`, `publishEnabled`, `requiresEnv`, `oauthEnabled`,
+`externalUrlEnabled`, `webhookEnabled`) plus `approvalRequired: true` and
+`approvedDoesNotPublish: true`. `buildCanvaOwnerQaReport()` produces the Owner
+sign-off checklist (sandbox/mock only · approval preview exists · Owner can
+review · Approved ≠ Published · no publish/post/ads/launch action · no live
+env/API/OAuth · no external URL/webhook · release locked sandbox), each derived
+from the single-sourced sandbox safety flags / handoff record. The
+AutomationFactory UI shows the **🔒 Sandbox Release Locked** badge, the checklist,
+and the lock flags. A real Canva connector stays future-only behind the
+connector activation runbook + Owner sign-off.
+
 ## 1. Mục tiêu (Objective)
 Nhận asset links, template IDs và text/brand guidelines từ n8n/Core. Gọi Canva API để update template, generate designs và callback asset URLs trả về Core.
 

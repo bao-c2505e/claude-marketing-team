@@ -38,10 +38,17 @@ import {
   buildCanvaApprovalContract,
   buildCanvaSandboxHandoffRecord,
 } from '../../lib/core/connectors/canvaApprovalContract';
+import {
+  CANVA_RELEASE_LOCK_COPY,
+  buildCanvaOwnerQaReport,
+} from '../../lib/core/connectors/canvaReleaseLock';
 
 // Deterministic for the sandbox phase: provider/mode + hard-`false` capability
 // flags. Surfaced verbatim in the UI so the sandbox boundary is always visible.
 const CANVA_SANDBOX_HANDOFF = buildCanvaSandboxHandoffRecord(buildCanvaApprovalContract('needs_review'));
+// Phase I-S5 — Owner QA & Release Lock. Computed once (pure/offline) and rendered
+// as a visible release-lock badge + QA checklist in the sandbox control panel.
+const CANVA_QA_REPORT = buildCanvaOwnerQaReport();
 
 interface Props {
   clients: Client[];
@@ -1040,9 +1047,48 @@ function CanvaSandboxControls({
         </div>
       </div>
 
+      {/* Phase I-S5 — Owner QA & Release Lock. Visible release-lock badge +
+          Owner sign-off checklist. Sandbox/internal release only — locked off
+          live connector, publishing, OAuth, env, external URL/webhook. */}
+      <div style={{ padding: '8px 10px', background: 'rgba(52,211,153,0.07)', border: '1px solid rgba(52,211,153,0.3)', borderRadius: '7px' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'center' }}>
+          <span style={{ fontSize: '0.64rem', fontWeight: 700, color: '#34d399', background: 'rgba(52,211,153,0.14)', border: '1px solid rgba(52,211,153,0.4)', borderRadius: '5px', padding: '2px 7px' }}>
+            🔒 {CANVA_RELEASE_LOCK_COPY.badge}
+          </span>
+          <span style={{ fontSize: '0.62rem', color: 'var(--text-muted)' }}>{CANVA_RELEASE_LOCK_COPY.status}</span>
+        </div>
+        <p style={{ fontSize: '0.62rem', color: 'var(--text-secondary)', lineHeight: 1.45, margin: '6px 0 0' }}>
+          Owner QA: {CANVA_QA_REPORT.allPassed ? 'all checks pass' : 'review required'} · releaseMode: {CANVA_QA_REPORT.releaseMode}
+        </p>
+        <ul style={{ listStyle: 'none', padding: 0, margin: '6px 0 0', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+          {CANVA_QA_REPORT.checks.map(check => (
+            <li key={check.id} style={{ fontSize: '0.6rem', color: check.passed ? '#34d399' : '#f59e0b', lineHeight: 1.4 }}>
+              {check.passed ? '✓' : '⚠'} {check.label}
+            </li>
+          ))}
+        </ul>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '6px' }}>
+          {[
+            `releaseMode: ${CANVA_QA_REPORT.lock.releaseMode}`,
+            `liveConnectorEnabled: ${CANVA_QA_REPORT.lock.liveConnectorEnabled}`,
+            `publishEnabled: ${CANVA_QA_REPORT.lock.publishEnabled}`,
+            `requiresEnv: ${CANVA_QA_REPORT.lock.requiresEnv}`,
+            `approvalRequired: ${CANVA_QA_REPORT.lock.approvalRequired}`,
+            `approvedDoesNotPublish: ${CANVA_QA_REPORT.lock.approvedDoesNotPublish}`,
+          ].map(flag => (
+            <span key={flag} style={{ fontSize: '0.6rem', fontFamily: 'monospace', color: 'var(--text-muted)', background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border-color)', borderRadius: '4px', padding: '1px 5px' }}>
+              {flag}
+            </span>
+          ))}
+        </div>
+      </div>
+
       <div>
         <span style={{ fontSize: '0.66rem', fontWeight: 700, color: '#22d3ee', background: 'rgba(34,211,238,0.12)', border: '1px solid rgba(34,211,238,0.35)', borderRadius: '5px', padding: '2px 7px' }}>
           Sandbox mode
+        </span>
+        <span style={{ fontSize: '0.66rem', fontWeight: 700, color: '#34d399', background: 'rgba(52,211,153,0.12)', border: '1px solid rgba(52,211,153,0.35)', borderRadius: '5px', padding: '2px 7px', marginLeft: '6px' }}>
+          {CANVA_RELEASE_LOCK_COPY.approvedNotPublished}
         </span>
       </div>
 
