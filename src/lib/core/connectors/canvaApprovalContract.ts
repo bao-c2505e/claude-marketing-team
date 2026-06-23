@@ -200,3 +200,86 @@ export function applyCanvaApprovalDecision(
 export function isCanvaInternallyApproved(contract: CanvaApprovalContract): boolean {
   return contract.approval_status === 'approved';
 }
+
+// ---------------------------------------------------------------------------
+// Normalized sandbox handoff record (E2E approval preview layer).
+// ---------------------------------------------------------------------------
+// A single, flat, UI- and audit-facing view of what a Canva sandbox preview is
+// allowed to do. Every outward-facing capability is a fixed `false` literal, so
+// TypeScript itself forbids ever marking the sandbox as able to call Canva, read
+// an env key, or publish. Only `approval_status` / `publish_status` echo the
+// live contract (and `publish_status` is itself pinned to 'not_published').
+export interface CanvaSandboxHandoffRecord {
+  provider: 'canva';
+  mode: 'sandbox';
+  external_call: false;       // no fetch, no real Canva API, no external URL
+  requires_env: false;        // no CANVA_API_KEY / OAuth / token needed
+  publish_capability: false;  // cannot publish / post / launch / schedule
+  approval_required: true;    // must clear an Owner approval gate
+  approval_status: CanvaApprovalStatus;
+  publish_status: CanvaPublishStatus; // always 'not_published'
+}
+
+/**
+ * Project a contract into the flat handoff record the rest of the Core (UI,
+ * audit log) reads. The capability flags are hard-coded `false`/`true` literals
+ * — they never derive from runtime state, so no decision can ever flip them.
+ */
+export function buildCanvaSandboxHandoffRecord(
+  contract: CanvaApprovalContract,
+): CanvaSandboxHandoffRecord {
+  return {
+    provider: 'canva',
+    mode: 'sandbox',
+    external_call: false,
+    requires_env: false,
+    publish_capability: false,
+    approval_required: true,
+    approval_status: contract.approval_status,
+    publish_status: contract.publish_status,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Approval history / timeline.
+// ---------------------------------------------------------------------------
+// Preserves the end-to-end lifecycle of a sandbox preview so the Approval detail
+// view always shows how an item reached its current state:
+//   Generated draft → Canva sandbox preview created → Submitted for approval →
+//   Approved (internal only) / Rejected.
+// There is deliberately NO "Published" / "Launched" step — the terminal step is
+// always an INTERNAL Approved/Rejected decision.
+export type CanvaApprovalHistoryStep =
+  | 'generated_draft'
+  | 'sandbox_preview_created'
+  | 'submitted_for_approval'
+  | 'approved'
+  | 'rejected';
+
+export interface CanvaApprovalHistoryEntry {
+  step: CanvaApprovalHistoryStep;
+  label: string;
+  reached: boolean;
+}
+
+export function buildCanvaApprovalHistory(
+  status: CanvaApprovalStatus,
+): CanvaApprovalHistoryEntry[] {
+  const submitted = status === 'submitted' || status === 'approved' || status === 'rejected';
+  const entries: CanvaApprovalHistoryEntry[] = [
+    { step: 'generated_draft',         label: 'Generated draft',                reached: true },
+    { step: 'sandbox_preview_created', label: 'Canva sandbox preview created',  reached: true },
+    { step: 'submitted_for_approval',  label: 'Submitted for approval',         reached: submitted },
+  ];
+  // Terminal step is always an INTERNAL decision — never published/launched.
+  if (status === 'rejected') {
+    entries.push({ step: 'rejected', label: 'Rejected (internal)', reached: true });
+  } else {
+    entries.push({
+      step: 'approved',
+      label: 'Approved (internal use only — not published)',
+      reached: status === 'approved',
+    });
+  }
+  return entries;
+}

@@ -33,7 +33,15 @@ import type { ReportFactoryResult } from '../../lib/core/reportFactory';
 import { getReportFactoryWebhookUrl } from '../../lib/core/reportFactory';
 import type { CanvaSandboxResult } from '../../lib/core/connectors/canvaSandboxConnector';
 import { CANVA_SANDBOX_COPY } from '../../lib/core/connectors/canvaSandboxConnector';
-import { CANVA_CONTRACT_COPY } from '../../lib/core/connectors/canvaApprovalContract';
+import {
+  CANVA_CONTRACT_COPY,
+  buildCanvaApprovalContract,
+  buildCanvaSandboxHandoffRecord,
+} from '../../lib/core/connectors/canvaApprovalContract';
+
+// Deterministic for the sandbox phase: provider/mode + hard-`false` capability
+// flags. Surfaced verbatim in the UI so the sandbox boundary is always visible.
+const CANVA_SANDBOX_HANDOFF = buildCanvaSandboxHandoffRecord(buildCanvaApprovalContract('needs_review'));
 
 interface Props {
   clients: Client[];
@@ -398,8 +406,8 @@ export default function AutomationFactoryTab({
         requestedBy: actorLabel,
       });
       setCanvaMessage(
-        `${result.previews.length} Canva sandbox previews were created (sandbox mode). ` +
-        `${CANVA_SANDBOX_COPY.noDesign}. ${CANVA_SANDBOX_COPY.noPublish}. ${CANVA_SANDBOX_COPY.approvalRequired}.`,
+        `${result.previews.length} Canva sandbox previews were created (${CANVA_SANDBOX_COPY.mockPreviewOnly}). ` +
+        `${CANVA_SANDBOX_COPY.noExternalCall}. ${CANVA_SANDBOX_COPY.noDesign}. ${CANVA_SANDBOX_COPY.noPublish}. ${CANVA_SANDBOX_COPY.approvalRequired}.`,
       );
     } catch (err) {
       setCanvaError(err instanceof Error ? err.message : 'Canva sandbox preview failed. No Canva design was created and nothing was published.');
@@ -1012,10 +1020,24 @@ function CanvaSandboxControls({
       </p>
 
       <div style={{ padding: '8px 10px', background: 'rgba(34,211,238,0.07)', border: '1px solid rgba(34,211,238,0.3)', borderRadius: '7px' }}>
-        <p style={{ fontSize: '0.66rem', color: '#22d3ee', fontWeight: 700, margin: 0 }}>{CANVA_CONTRACT_COPY.title} · {CANVA_CONTRACT_COPY.internalApprovalOnly}</p>
+        <p style={{ fontSize: '0.66rem', color: '#22d3ee', fontWeight: 700, margin: 0 }}>{CANVA_CONTRACT_COPY.title} · {CANVA_SANDBOX_COPY.mockPreviewOnly} · {CANVA_CONTRACT_COPY.internalApprovalOnly}</p>
         <p style={{ fontSize: '0.66rem', color: 'var(--text-secondary)', lineHeight: 1.5, margin: '4px 0 0' }}>
-          {CANVA_SANDBOX_COPY.noDesign}. {CANVA_SANDBOX_COPY.noPublish}. {CANVA_SANDBOX_COPY.approvalRequired}.
+          {CANVA_SANDBOX_COPY.noExternalCall}. {CANVA_SANDBOX_COPY.noDesign}. {CANVA_SANDBOX_COPY.noPublish}. {CANVA_SANDBOX_COPY.approvalRequired}.
         </p>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '6px' }}>
+          {[
+            `provider: ${CANVA_SANDBOX_HANDOFF.provider}`,
+            `mode: ${CANVA_SANDBOX_HANDOFF.mode}`,
+            `external_call: ${CANVA_SANDBOX_HANDOFF.external_call}`,
+            `requires_env: ${CANVA_SANDBOX_HANDOFF.requires_env}`,
+            `publish_capability: ${CANVA_SANDBOX_HANDOFF.publish_capability}`,
+            `approval_required: ${CANVA_SANDBOX_HANDOFF.approval_required}`,
+          ].map(flag => (
+            <span key={flag} style={{ fontSize: '0.6rem', fontFamily: 'monospace', color: 'var(--text-muted)', background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border-color)', borderRadius: '4px', padding: '1px 5px' }}>
+              {flag}
+            </span>
+          ))}
+        </div>
       </div>
 
       <div>

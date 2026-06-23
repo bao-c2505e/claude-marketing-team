@@ -20,6 +20,44 @@
 This module is *intended, in a future phase,* to connect with the Canva API to
 generate and modify design templates based on assets and guidelines.
 
+## 0. Current sandbox preview flow (E2E approval preview layer)
+
+The only Canva capability live today is the offline **Canva Sandbox Preview**.
+From the Automation Factory tab (Owner/Manager), running *Canva Sandbox Preview*
+on a selected brief produces mock design preview specs that flow through the
+normal approval queue. Each preview carries a flat **handoff record** that the UI
+and the audit log read to prove the sandbox boundary:
+
+| Field | Value (sandbox) | Meaning |
+|---|---|---|
+| `provider` | `canva` | Which connector this stands in for. |
+| `mode` | `sandbox` | Sandbox/mock — never production. |
+| `external_call` | `false` | No `fetch`, no real Canva API, no external URL. |
+| `requires_env` | `false` | No `CANVA_API_KEY` / OAuth / token needed. |
+| `publish_capability` | `false` | Cannot publish / post / launch / schedule. |
+| `approval_required` | `true` | Must clear an Owner approval gate. |
+
+These flags are fixed `false`/`true` literals — **no approval decision can flip
+them.** Approving a preview means it is `approved` for **internal use only**
+(ready for manual handoff / export / mock preview) — it never becomes
+`published` and never triggers a real connector action.
+
+**Approval history** is preserved end-to-end on every preview so the Approval
+detail view always shows how an item reached its state. There is deliberately no
+"Published"/"Launched" step:
+
+```
+Generated draft
+  → Canva sandbox preview created
+  → Submitted for approval
+  → Approved (internal use only — not published) / Rejected (internal)
+```
+
+Implementation: `src/lib/core/connectors/canvaSandboxConnector.ts`
+(`runCanvaSandboxConnector`, `buildCanvaSandboxAuditLog`) and
+`src/lib/core/connectors/canvaApprovalContract.ts`
+(`buildCanvaSandboxHandoffRecord`, `buildCanvaApprovalHistory`).
+
 ## 1. Mục tiêu (Objective)
 Nhận asset links, template IDs và text/brand guidelines từ n8n/Core. Gọi Canva API để update template, generate designs và callback asset URLs trả về Core.
 

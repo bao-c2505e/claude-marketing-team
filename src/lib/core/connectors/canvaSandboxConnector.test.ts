@@ -235,6 +235,53 @@ describe('canvaSandboxConnector', () => {
     expect(result.previews.every(p => p.safety_flags.approval_required === true)).toBe(true);
   });
 
+  it('carries a flat handoff record (provider/mode + hard-false capability flags) on every preview', () => {
+    const result = runCanvaSandboxConnector(input);
+    for (const preview of result.previews) {
+      const r = preview.handoff_record;
+      expect(r.provider).toBe('canva');
+      expect(r.mode).toBe('sandbox');
+      expect(r.external_call).toBe(false);
+      expect(r.requires_env).toBe(false);
+      expect(r.publish_capability).toBe(false);
+      expect(r.approval_required).toBe(true);
+      expect(r.publish_status).toBe('not_published');
+    }
+    // The handoff record + Approved ≠ Published note are embedded in the queue item.
+    for (const item of result.items) {
+      expect(item.caption).toContain('Canva Sandbox Handoff Record:');
+      expect(item.caption).toContain('provider: canva');
+      expect(item.caption).toContain('external_call: false');
+      expect(item.caption).toContain('requires_env: false');
+      expect(item.caption).toContain('publish_capability: false');
+      expect(item.caption).toContain('approval_required: true');
+      expect(item.caption).toContain('manual handoff / export / mock preview only — never published');
+    }
+  });
+
+  it('embeds the approval history (draft → preview → submit → decision) and the new UI labels', () => {
+    const result = runCanvaSandboxConnector(input);
+    for (const item of result.items) {
+      expect(item.caption).toContain('Approval history:');
+      expect(item.caption).toContain('Generated draft');
+      expect(item.caption).toContain('Canva sandbox preview created');
+      expect(item.caption).toContain('Submitted for approval');
+      // New explicit UI labels surfaced in-caption too.
+      expect(item.caption).toContain(CANVA_SANDBOX_COPY.mockPreviewOnly);
+      expect(item.caption).toContain(CANVA_SANDBOX_COPY.noExternalCall);
+      // No history line ever claims a published/launched state.
+      expect(unsafeExecutionCopy.test(item.caption)).toBe(false);
+    }
+  });
+
+  it('audit log records the no-external-call / no-env / no-publish capability flags', () => {
+    const result = runCanvaSandboxConnector(input);
+    const log = buildCanvaSandboxAuditLog(input, result);
+    expect(log.payload_preview).toContain('"external_call":false');
+    expect(log.payload_preview).toContain('"requires_env":false');
+    expect(log.payload_preview).toContain('"publish_capability":false');
+  });
+
   it('builds an audit-trail log entry describing the sandbox action', () => {
     const result = runCanvaSandboxConnector(input);
     const log = buildCanvaSandboxAuditLog(input, result);

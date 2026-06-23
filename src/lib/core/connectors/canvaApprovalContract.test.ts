@@ -5,6 +5,8 @@ import {
   isCanvaInternallyApproved,
   canvaStatusToItemStatus,
   itemStatusToCanvaStatus,
+  buildCanvaSandboxHandoffRecord,
+  buildCanvaApprovalHistory,
   CANVA_APPROVAL_STATUSES,
   CANVA_APPROVAL_STATUS_LABEL,
   CANVA_CONTRACT_COPY,
@@ -117,5 +119,75 @@ describe('canvaApprovalContract', () => {
     const c = applyCanvaApprovalDecision(buildCanvaApprovalContract(), 'approve');
     expect(c.approval_status).toBe('approved');
     expect(c.publish_status).toBe('not_published');
+  });
+
+  describe('handoff record', () => {
+    it('exposes the fixed sandbox capability flags (no external call, no env, no publish)', () => {
+      const r = buildCanvaSandboxHandoffRecord(buildCanvaApprovalContract('needs_review'));
+      expect(r.provider).toBe('canva');
+      expect(r.mode).toBe('sandbox');
+      expect(r.external_call).toBe(false);
+      expect(r.requires_env).toBe(false);
+      expect(r.publish_capability).toBe(false);
+      expect(r.approval_required).toBe(true);
+      expect(r.approval_status).toBe('needs_review');
+      expect(r.publish_status).toBe('not_published');
+    });
+
+    it('keeps the capability flags fixed across EVERY approval decision (incl. approve)', () => {
+      for (const decision of ['submit', 'approve', 'reject'] as const) {
+        const c = applyCanvaApprovalDecision(buildCanvaApprovalContract(), decision);
+        const r = buildCanvaSandboxHandoffRecord(c);
+        // Approved ≠ Published: approval never grants a publish capability.
+        expect(r.external_call).toBe(false);
+        expect(r.requires_env).toBe(false);
+        expect(r.publish_capability).toBe(false);
+        expect(r.approval_required).toBe(true);
+        expect(r.publish_status).toBe('not_published');
+      }
+    });
+  });
+
+  describe('approval history', () => {
+    it('always preserves the draft → preview → submit → decision lifecycle (no published step)', () => {
+      const steps = buildCanvaApprovalHistory('submitted').map(e => e.step);
+      expect(steps).toEqual([
+        'generated_draft', 'sandbox_preview_created', 'submitted_for_approval', 'approved',
+      ]);
+      // No history step ever AFFIRMS a published/launched/live state (the
+      // approved label legitimately negates it with "not published").
+      const affirmsLive = /(was published|is published|published live|is now live|went live|launched|posted live)/i;
+      for (const status of CANVA_APPROVAL_STATUSES) {
+        for (const entry of buildCanvaApprovalHistory(status)) {
+          expect(affirmsLive.test(entry.label)).toBe(false);
+        }
+      }
+    });
+
+    it('marks submit/approve/reject as reached and reflects an internal Approved (not published)', () => {
+      const approved = buildCanvaApprovalHistory('approved');
+      const submit = approved.find(e => e.step === 'submitted_for_approval');
+      const decision = approved.find(e => e.step === 'approved');
+      expect(submit?.reached).toBe(true);
+      expect(decision?.reached).toBe(true);
+      expect(decision?.label).toMatch(/internal/i);
+      expect(decision?.label).toMatch(/not published/i);
+    });
+
+    it('shows a Rejected (internal) terminal step when rejected', () => {
+      const rejected = buildCanvaApprovalHistory('rejected');
+      const terminal = rejected[rejected.length - 1];
+      expect(terminal.step).toBe('rejected');
+      expect(terminal.reached).toBe(true);
+      expect(terminal.label).toMatch(/internal/i);
+    });
+
+    it('keeps later steps un-reached for a freshly created sandbox preview', () => {
+      const created = buildCanvaApprovalHistory('sandbox_created');
+      expect(created.find(e => e.step === 'generated_draft')?.reached).toBe(true);
+      expect(created.find(e => e.step === 'sandbox_preview_created')?.reached).toBe(true);
+      expect(created.find(e => e.step === 'submitted_for_approval')?.reached).toBe(false);
+      expect(created.find(e => e.step === 'approved')?.reached).toBe(false);
+    });
   });
 });

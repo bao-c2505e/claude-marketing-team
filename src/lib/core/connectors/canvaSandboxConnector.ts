@@ -27,8 +27,11 @@ import type { LocalAutomationLog } from '../../../types/core';
 import { generateId } from '../coreData';
 import {
   buildCanvaApprovalContract,
+  buildCanvaApprovalHistory,
+  buildCanvaSandboxHandoffRecord,
   canvaStatusToItemStatus,
   type CanvaApprovalContract,
+  type CanvaSandboxHandoffRecord,
 } from './canvaApprovalContract';
 
 // connector_id identifies the (registry) connector this sandbox stands in for;
@@ -42,6 +45,8 @@ const WORKFLOW_TYPE = 'canva_sandbox_connector';
 // preview/caption so the sandbox boundary is always explicit and testable.
 export const CANVA_SANDBOX_COPY = {
   title: 'Canva Sandbox Preview',
+  mockPreviewOnly: 'Mock preview only',
+  noExternalCall: 'No external Canva call',
   noDesign: 'No Canva design was created',
   noPublish: 'Nothing was published',
   approvalRequired: 'Approval required before any real connector action',
@@ -110,6 +115,10 @@ export interface CanvaSandboxPreview {
   // Phase I-S2 — normalized approval/status contract carried into the queue.
   // publish_status is always 'not_published' and real_connector_action 'none'.
   approval_contract: CanvaApprovalContract;
+  // Flat handoff record (E2E preview layer): provider/mode + hard-`false`
+  // capability flags (external_call / requires_env / publish_capability) that the
+  // UI and audit log read to prove the sandbox boundary.
+  handoff_record: CanvaSandboxHandoffRecord;
 }
 
 export interface CanvaSandboxResult {
@@ -131,6 +140,11 @@ function buildPreview(input: ContentFactoryRunInput, spec: CanvaFormatSpec): Can
   const product = input.brief.product_focus || input.brand.hero_product || `món chủ lực của ${brand}`;
   const tone = input.brand.tone_of_voice || 'ấm áp, đáng tin, ngon mắt';
 
+  // Approval-first: enters the queue review-gated. publish_status and
+  // real_connector_action are fixed by the contract (never published, no real
+  // connector action) regardless of any later approval decision.
+  const approval_contract = buildCanvaApprovalContract('needs_review');
+
   return {
     key: spec.format,
     design_title: spec.title,
@@ -146,10 +160,8 @@ function buildPreview(input: ContentFactoryRunInput, spec: CanvaFormatSpec): Can
     preview_status: 'sandbox_preview_only',
     design_notes: `${spec.objective}. Tông: ${tone}. Lấy ${product} làm nhân vật chính; chỉ dùng ảnh/clip món thật của quán — KHÔNG tạo ảnh AI. Đây là bản mô tả template (spec) trong sandbox, chưa có design Canva thật.`,
     safety_flags: { ...CANVA_SANDBOX_SAFETY_FLAGS },
-    // Approval-first: enters the queue review-gated. publish_status and
-    // real_connector_action are fixed by the contract (never published, no
-    // real connector action) regardless of any later approval decision.
-    approval_contract: buildCanvaApprovalContract('needs_review'),
+    approval_contract,
+    handoff_record: buildCanvaSandboxHandoffRecord(approval_contract),
   };
 }
 
@@ -165,6 +177,7 @@ function buildCaption(preview: CanvaSandboxPreview): string {
     `mock_canva_design_id: ${preview.mock_canva_design_id}`,
     `preview_status: ${preview.preview_status}`,
     '',
+    `Trạng thái: ${CANVA_SANDBOX_COPY.title} · ${CANVA_SANDBOX_COPY.mockPreviewOnly} · ${CANVA_SANDBOX_COPY.noExternalCall}.`,
     `An toàn: ${CANVA_SANDBOX_COPY.noDesign}. ${CANVA_SANDBOX_COPY.noPublish}. ${CANVA_SANDBOX_COPY.approvalRequired}.`,
     '',
     '---',
@@ -187,6 +200,22 @@ function buildCaption(preview: CanvaSandboxPreview): string {
     `publish_status: ${preview.approval_contract.publish_status}`,
     `real_connector_action: ${preview.approval_contract.real_connector_action}`,
     `${CANVA_SANDBOX_COPY.title} · Internal approval only.`,
+    '',
+    '---',
+    'Canva Sandbox Handoff Record:',
+    `provider: ${preview.handoff_record.provider}`,
+    `mode: ${preview.handoff_record.mode}`,
+    `external_call: ${preview.handoff_record.external_call}`,
+    `requires_env: ${preview.handoff_record.requires_env}`,
+    `publish_capability: ${preview.handoff_record.publish_capability}`,
+    `approval_required: ${preview.handoff_record.approval_required}`,
+    'Approved state authorises manual handoff / export / mock preview only — never published.',
+    '',
+    '---',
+    'Approval history:',
+    ...buildCanvaApprovalHistory(preview.approval_contract.approval_status).map(
+      entry => `${entry.reached ? '[x]' : '[ ]'} ${entry.label}`,
+    ),
   ].join('\n');
 }
 
@@ -288,6 +317,9 @@ export function buildCanvaSandboxAuditLog(
       connector_type: result.connector_type,
       mode: result.mode,
       previews: result.items.length,
+      external_call: false,
+      requires_env: false,
+      publish_capability: false,
       no_live_canva_api: true,
       no_publish: true,
       no_real_design_created: true,
