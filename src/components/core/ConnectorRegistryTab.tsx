@@ -12,6 +12,7 @@ import {
   Layers,
   Plug,
   Settings,
+  ShieldCheck,
 } from 'lucide-react';
 import type {
   RoleName,
@@ -52,6 +53,7 @@ import {
   CONNECTOR_ACTIVATION_STATUS_COLOR,
 } from '../../lib/core/connectors/connectorGovernance';
 import { can } from '../../lib/auth/permissions';
+import ConnectorActivationLedger from './ConnectorActivationLedger';
 
 // ---------------------------------------------------------------------------
 // Props
@@ -70,7 +72,7 @@ interface Props {
 // Sub-tab type
 // ---------------------------------------------------------------------------
 
-type SubTab = 'connectors' | 'modules' | 'event_inbox';
+type SubTab = 'connectors' | 'modules' | 'event_inbox' | 'activation_ledger';
 
 // ---------------------------------------------------------------------------
 // Shared badge helpers
@@ -721,6 +723,7 @@ export default function ConnectorRegistryTab({
           { id: 'connectors',  icon: <Plug size={13} />,   label: 'Connectors',  count: store.connectors.length, badge: false },
           { id: 'modules',     icon: <Layers size={13} />, label: 'Modules',     count: store.modules.length,    badge: false },
           { id: 'event_inbox', icon: <Inbox size={13} />,  label: 'Event Inbox', count: pendingEventsCount,      badge: pendingEventsCount > 0 },
+          { id: 'activation_ledger', icon: <ShieldCheck size={13} />, label: 'Activation Ledger', count: store.connectors.length, badge: false },
         ]).map(tab => (
           <button
             key={tab.id}
@@ -749,9 +752,10 @@ export default function ConnectorRegistryTab({
       </div>
 
       {/* Sub-tab content */}
-      {activeSubTab === 'connectors'   && renderConnectors()}
-      {activeSubTab === 'modules'      && renderModules()}
-      {activeSubTab === 'event_inbox'  && renderEventInbox()}
+      {activeSubTab === 'connectors'       && renderConnectors()}
+      {activeSubTab === 'modules'          && renderModules()}
+      {activeSubTab === 'event_inbox'      && renderEventInbox()}
+      {activeSubTab === 'activation_ledger' && <ConnectorActivationLedger />}
 
       {/* Governance footer */}
       <div style={{ padding: '10px 14px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-color)', borderRadius: '8px', fontSize: '0.75rem', color: 'var(--text-muted)', display: 'flex', flexDirection: 'column', gap: '3px' }}>
