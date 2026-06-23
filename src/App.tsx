@@ -34,6 +34,7 @@ import {
   Network,
   Activity,
   Factory,
+  Building2,
 } from 'lucide-react';
 import { sampleCampaigns, Campaign, CampaignBrief, CalendarItem, ChecklistItem } from './mockData';
 import { useAuth } from './lib/auth/AuthContext';
@@ -88,6 +89,9 @@ const AutomationFactoryTab  = lazy(() => import('./components/core/AutomationFac
 // Phase J: owner operations panel (Today's Production Status / Next Owner Actions
 // / Connector Safety Status). Display + navigation only — no publish/launch.
 const OwnerOperationsPanel  = lazy(() => import('./components/core/OwnerOperationsPanel'));
+// Phase K: campaign/client production drill-down workspace. Display + navigation
+// only — no publish/launch/post/activate; connector safety stays read-only.
+const CampaignWorkspace     = lazy(() => import('./components/core/CampaignWorkspace'));
 
 const manualExportBlocks = [
   {
@@ -285,6 +289,8 @@ export default function App() {
   // Phase 4 — Core data (clients, brands, campaigns)
   const [coreData, setCoreData] = useState<CoreDataStore>(() => loadCoreData());
   const [coreNavFilter, setCoreNavFilter] = useState<{ clientId?: string; brandId?: string }>({});
+  // Phase K — which core campaign the production drill-down workspace inspects.
+  const [workspaceCampaignId, setWorkspaceCampaignId] = useState<string | null>(null);
 
   // Phase 16A — Repository layer (Supabase when configured, localStorage otherwise)
   const repos = useMemo(
@@ -910,7 +916,7 @@ export default function App() {
   const handleViewModeSwitch = (mode: 'owner' | 'client') => {
     setViewMode(mode);
     if (mode === 'client') {
-      const ownerOnlyTabs = ['new-campaign', 'team-board', 'manual-export', 'client-demo', 'automation-factory', 'automation-logs', 'client-feedback'];
+      const ownerOnlyTabs = ['new-campaign', 'team-board', 'manual-export', 'client-demo', 'automation-factory', 'automation-logs', 'client-feedback', 'campaign-workspace'];
       if (ownerOnlyTabs.includes(activeTab)) setActiveTab('dashboard');
     }
   };
@@ -1314,6 +1320,16 @@ export default function App() {
             >
               <Zap size={18} /> Campaigns
             </button>
+
+            {viewMode === 'owner' && (
+              <button
+                className={`btn btn-secondary ${activeTab === 'campaign-workspace' ? 'active' : ''}`}
+                style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'campaign-workspace' ? '1px solid var(--accent-indigo)' : '', background: activeTab === 'campaign-workspace' ? 'rgba(244, 122, 31, 0.1)' : '' }}
+                onClick={() => setActiveTab('campaign-workspace')}
+              >
+                <Building2 size={18} /> Campaign Workspace
+              </button>
+            )}
 
             <button
               className={`btn btn-secondary ${activeTab === 'brief-intake' ? 'active' : ''}`}
@@ -2410,6 +2426,51 @@ export default function App() {
 
                 </div>
               )}
+
+              {/* ── Phase K: Campaign Production Workspace (owner drill-down) ── */}
+              {activeTab === 'campaign-workspace' && viewMode === 'owner' && (() => {
+                // Resolve the inspected campaign + its client/brand/brief and the
+                // pipeline data scoped to it — all from existing local state only.
+                const wsCampaign = coreData.campaigns.find(c => c.id === workspaceCampaignId)
+                  ?? coreData.campaigns[0] ?? null;
+                const wsBrand = wsCampaign ? coreData.brands.find(b => b.id === wsCampaign.brand_id) ?? null : null;
+                const wsClient = wsCampaign ? coreData.clients.find(cl => cl.id === wsCampaign.client_id) ?? null : null;
+                const wsBrief = wsCampaign ? coreData.briefs.find(br => br.campaign_id === wsCampaign.id) ?? null : null;
+                const wsContent = wsCampaign ? genData.contentItems.filter(ci => ci.campaign_id === wsCampaign.id) : [];
+                const wsApprovals = wsCampaign ? approvalData.approvalRequests.filter(r => r.campaign_id === wsCampaign.id) : [];
+                const wsAssets = wsCampaign
+                  ? assetData.assets.filter(a => a.campaign_id === wsCampaign.id || (a.campaign_id === null && wsBrand !== null && a.brand_id === wsBrand.id))
+                  : [];
+                const wsActivity = wsCampaign
+                  ? [...logData.logs]
+                      .filter(l => l.related_campaign_id === wsCampaign.id)
+                      .sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''))
+                      .slice(0, 6)
+                  : [];
+                const wsOptions = coreData.campaigns.map(c => ({
+                  id: c.id,
+                  name: c.name,
+                  brandName: coreData.brands.find(b => b.id === c.brand_id)?.name ?? '—',
+                  clientName: coreData.clients.find(cl => cl.id === c.client_id)?.name ?? '—',
+                  status: c.status,
+                }));
+                return (
+                  <CampaignWorkspace
+                    options={wsOptions}
+                    selectedId={wsCampaign?.id ?? null}
+                    onSelect={setWorkspaceCampaignId}
+                    client={wsClient}
+                    brand={wsBrand}
+                    campaign={wsCampaign}
+                    brief={wsBrief}
+                    contentItems={wsContent}
+                    approvals={wsApprovals}
+                    assets={wsAssets}
+                    activity={wsActivity}
+                    onNavigate={setActiveTab}
+                  />
+                );
+              })()}
 
               {/* 2. CAMPAIGN BRIEF FORM TAB */}
               {activeTab === 'new-campaign' && (
