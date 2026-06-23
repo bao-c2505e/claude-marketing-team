@@ -12,6 +12,7 @@ import type {
 } from '../../types/core';
 import type { ApprovalDataStore } from '../../lib/core/coreData';
 import { buildAiFactoryBrandContext, type BrandContextSnapshot } from '../../lib/core/brandBrain';
+import { deriveLatestDecision, isAwaitingRevision, REVISION_LOOP_COPY } from '../../lib/core/approvalDecision';
 import {
   APPROVAL_STATUS_LABEL, APPROVAL_STATUS_COLOR,
   APPROVAL_PRIORITY_LABEL, APPROVAL_PRIORITY_COLOR,
@@ -809,6 +810,12 @@ function DetailView({
 
   const isActive = request.status === 'submitted';
 
+  // Phase P — read the existing audit log to surface the latest reviewer decision
+  // (with its feedback note) and detect the revision loop. Pure/derived; the
+  // decision and its feedback already live in the event log — nothing is mutated.
+  const latestDecision = deriveLatestDecision(events);
+  const awaitingRevision = isAwaitingRevision(request.status);
+
   const statusColor = APPROVAL_STATUS_COLOR[request.status];
   const statusLabel = APPROVAL_STATUS_LABEL[request.status];
   const moduleMeta = MODULE_META[cls.module];
@@ -945,6 +952,67 @@ function DetailView({
           </div>
         )}
       </div>
+
+      {/* PHASE_P_REVISION_START — revision loop & latest-decision surfaces. Both
+          are read-only views of the existing approval event log: the original AI
+          draft is preserved, nothing is regenerated, published, or mutated here. */}
+      {awaitingRevision && (
+        <div className="glass-panel" style={{ padding: '18px 20px', borderLeft: '3px solid #fb923c' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '7px', marginBottom: '8px' }}>
+            <RotateCcw size={15} style={{ color: '#fb923c' }} />
+            <h3 style={{ fontSize: '0.92rem', fontWeight: 700, margin: 0, color: '#fb923c' }}>{REVISION_LOOP_COPY.heading}</h3>
+          </div>
+          <div style={{ padding: '10px 12px', background: 'rgba(251,146,60,0.07)', border: '1px solid rgba(251,146,60,0.22)', borderRadius: '7px', marginBottom: '10px' }}>
+            <div style={{ ...labelStyle, marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+              <MessageSquare size={11} /> Latest feedback
+            </div>
+            <div style={{ fontSize: '0.82rem', color: 'var(--text-primary)', lineHeight: 1.55, fontStyle: latestDecision?.comment ? 'normal' : 'italic' }}>
+              {latestDecision?.comment || 'No feedback note left — see Approval History below.'}
+            </div>
+            {latestDecision && (
+              <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', marginTop: '5px' }}>
+                by {latestDecision.actorLabel} · {formatDateTime(latestDecision.at)}
+              </div>
+            )}
+          </div>
+          <ul style={{ margin: 0, paddingLeft: '18px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <li style={{ fontSize: '0.76rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{REVISION_LOOP_COPY.preservedDraft}</li>
+            <li style={{ fontSize: '0.76rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{REVISION_LOOP_COPY.preservedSnapshot}</li>
+            <li style={{ fontSize: '0.76rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{REVISION_LOOP_COPY.awaiting}</li>
+          </ul>
+          <div style={{ marginTop: '10px', display: 'flex', gap: '7px', alignItems: 'flex-start' }}>
+            <ShieldCheck size={13} style={{ color: '#34d399', flexShrink: 0, marginTop: '2px' }} />
+            <span style={{ fontSize: '0.74rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{REVISION_LOOP_COPY.noPublish}</span>
+          </div>
+        </div>
+      )}
+
+      {latestDecision && !awaitingRevision && (
+        <div className="glass-panel" style={{ padding: '16px 20px', borderLeft: `3px solid ${statusColor}` }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', marginBottom: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
+              <Clock size={14} style={{ color: statusColor }} />
+              <h3 style={{ fontSize: '0.88rem', fontWeight: 700, margin: 0 }}>Latest Decision &amp; Feedback</h3>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
+              <span style={{ fontSize: '0.74rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
+                {APPROVAL_ACTION_LABEL[latestDecision.action] ?? latestDecision.action}
+              </span>
+              {latestDecision.status && <StatusChip label={APPROVAL_STATUS_LABEL[latestDecision.status]} color={statusColor} />}
+            </div>
+          </div>
+          <div style={{ ...labelStyle, marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+            <MessageSquare size={11} /> Feedback note
+          </div>
+          <div style={{ fontSize: '0.82rem', color: 'var(--text-primary)', lineHeight: 1.55, fontStyle: latestDecision.comment ? 'normal' : 'italic' }}>
+            {latestDecision.comment || 'No feedback note left for this decision.'}
+          </div>
+          <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', marginTop: '6px' }}>
+            by {latestDecision.actorLabel} · {formatDateTime(latestDecision.at)}
+          </div>
+        </div>
+      )}
+      {/* PHASE_P_REVISION_END */}
 
       {/* Module-aware output preview (D1 header + D3 per-type layout). All rich
           module content is rendered from existing item fields; the metadata block

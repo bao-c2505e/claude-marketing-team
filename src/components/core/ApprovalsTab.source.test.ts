@@ -18,6 +18,9 @@ const PANEL_START = 'function BrandContextSnapshotPanel';
 const PANEL_END = 'function DetailView(';
 const panel = SOURCE.split(PANEL_START)[1]?.split(PANEL_END)[0] ?? '';
 
+// Phase P — revision loop & latest-decision surfaces slice.
+const revision = SOURCE.split('PHASE_P_REVISION_START')[1]?.split('PHASE_P_REVISION_END')[0] ?? '';
+
 describe('ApprovalsTab — Phase O Brand Context Snapshot (review-only)', () => {
   it('wires the read-only snapshot panel into the approval detail', () => {
     expect(between).toMatch(/BrandContextSnapshotPanel/);
@@ -81,5 +84,69 @@ describe('ApprovalsTab — Phase O Brand Context Snapshot (review-only)', () => 
 
   it('carries no off-domain / off-project contamination in the snapshot region', () => {
     expect(panel).not.toMatch(/Forme|sofa|furniture|nội thất|Fal\.ai|ImgBB/i);
+  });
+});
+
+describe('ApprovalsTab — Phase P revision loop & decision audit (review-only)', () => {
+  it('wires the latest-decision + revision-loop surfaces from the audit log', () => {
+    expect(SOURCE).toMatch(/deriveLatestDecision/);
+    expect(SOURCE).toMatch(/isAwaitingRevision/);
+    expect(SOURCE).toMatch(/REVISION_LOOP_COPY/);
+    // Reads the existing event log — never mutates it.
+    expect(SOURCE).toMatch(/const latestDecision = deriveLatestDecision\(events\)/);
+  });
+
+  it('renders Approve / Reject / Request Revision actions with a feedback note input', () => {
+    expect(SOURCE).toMatch(/Confirm Approve/);
+    expect(SOURCE).toMatch(/Confirm Reject/);
+    expect(SOURCE).toMatch(/Request Revision/);
+    // The action form carries an Owner feedback/comment textarea.
+    expect(SOURCE).toMatch(/value=\{actionComment\}/);
+  });
+
+  it('shows an explicit "changes requested — awaiting revised output" placeholder', () => {
+    // Copy is pinned in approvalDecision.REVISION_LOOP_COPY (asserted there); the
+    // UI references it + the literal "Latest feedback" label.
+    expect(revision).toMatch(/awaitingRevision &&/);
+    expect(revision).toMatch(/REVISION_LOOP_COPY\.heading/);
+    expect(revision).toMatch(/Latest feedback/);
+    expect(revision).toMatch(/REVISION_LOOP_COPY\.preservedDraft/);   // original output preserved
+    expect(revision).toMatch(/REVISION_LOOP_COPY\.preservedSnapshot/); // reviewed-version snapshot preserved
+    expect(revision).toMatch(/REVISION_LOOP_COPY\.awaiting/);          // no auto-regenerate
+  });
+
+  it('surfaces the latest decision + feedback note for resolved requests', () => {
+    expect(revision).toMatch(/Latest Decision/);
+    expect(revision).toMatch(/Feedback note/);
+    expect(revision).toMatch(/latestDecision\.comment/);
+  });
+
+  it('keeps Approved ≠ Published and approval-first visible', () => {
+    // Revision region references the noPublish copy (Approved ≠ Published lives there).
+    expect(revision).toMatch(/REVISION_LOOP_COPY\.noPublish/);
+    // Whole-file: the standing Approved ≠ Published copy + audit trail are present.
+    expect(SOURCE).toMatch(/Approved ≠ Published/);
+    expect(SOURCE).toMatch(/Approval History/);
+  });
+
+  it('renders no publish / post / ads-launch / activate / sync action in the revision region', () => {
+    expect(revision).not.toMatch(/publish now/i);
+    expect(revision).not.toMatch(/launch ad/i);
+    expect(revision).not.toMatch(/launch campaign/i);
+    expect(revision).not.toMatch(/post to/i);
+    expect(revision).not.toMatch(/go live/i);
+    expect(revision).not.toMatch(/activate connector/i);
+    expect(revision).not.toMatch(/send to canva/i);
+    expect(revision).not.toMatch(/sync live/i);
+    expect(revision).not.toMatch(/(?<!no )auto-post/i);
+  });
+
+  it('introduces no live connector call or secret in the revision region', () => {
+    expect(revision).not.toMatch(/https?:\/\//i);
+    expect(revision).not.toMatch(/fetch\s*\(|axios|XMLHttpRequest/);
+    expect(revision).not.toMatch(/OAuth|webhook/i);
+    expect(revision).not.toMatch(/CANVA_CLIENT_ID|CANVA_CLIENT_SECRET|CANVA_API|CANVA_TOKEN/);
+    expect(revision).not.toMatch(/META_ACCESS_TOKEN|TIKTOK_ACCESS_TOKEN|ZALO_ACCESS_TOKEN|GOOGLE_ADS|OPENAI_API_KEY/);
+    expect(revision).not.toMatch(/Forme|sofa|furniture|nội thất|Fal\.ai|ImgBB/i);
   });
 });
