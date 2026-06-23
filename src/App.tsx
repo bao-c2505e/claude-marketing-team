@@ -85,6 +85,9 @@ const FeedbackRevisionTab   = lazy(() => import('./components/core/FeedbackRevis
 const ConnectorRegistryTab  = lazy(() => import('./components/core/ConnectorRegistryTab'));
 const AutomationLogsTab     = lazy(() => import('./components/core/AutomationLogsTab'));
 const AutomationFactoryTab  = lazy(() => import('./components/core/AutomationFactoryTab'));
+// Phase J: owner operations panel (Today's Production Status / Next Owner Actions
+// / Connector Safety Status). Display + navigation only — no publish/launch.
+const OwnerOperationsPanel  = lazy(() => import('./components/core/OwnerOperationsPanel'));
 
 const manualExportBlocks = [
   {
@@ -1886,6 +1889,29 @@ export default function App() {
                     // metrics are invented, fetched, or implied to be live.
                     const reqs = approvalData.approvalRequests;
                     const pendingApprovals = reqs.filter(r => r.status === 'submitted');
+                    // Phase J — production metrics: counts of items already inside
+                    // the local pipeline (not live data). `eventsToday` counts logs
+                    // whose timestamp is today; it is display-only, not a live pull.
+                    const countByStatus = (s: string) => reqs.filter(r => r.status === s).length;
+                    const isToday = (iso: string) => {
+                      const d = new Date(iso);
+                      const n = new Date();
+                      return !isNaN(d.getTime())
+                        && d.getFullYear() === n.getFullYear()
+                        && d.getMonth() === n.getMonth()
+                        && d.getDate() === n.getDate();
+                    };
+                    const ownerMetrics = {
+                      drafts: countByStatus('draft'),
+                      submitted: pendingApprovals.length,
+                      approved: countByStatus('approved'),
+                      revisionRequested: countByStatus('revision_requested'),
+                      rejected: countByStatus('rejected'),
+                      activeCampaigns: coreData.campaigns.length,
+                      clients: coreData.clients.length,
+                      brands: coreData.brands.length,
+                      eventsToday: logData.logs.filter(l => isToday(l.created_at)).length,
+                    };
                     const recentApprovals = [...reqs]
                       .sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''))
                       .slice(0, 5);
@@ -1969,6 +1995,9 @@ export default function App() {
                             ))}
                           </div>
                         </div>
+
+                        {/* Phase J — Today's Production Status / Next Owner Actions / Connector Safety Status */}
+                        <OwnerOperationsPanel metrics={ownerMetrics} onNavigate={setActiveTab} />
 
                         {/* AI Factory module status */}
                         <div className="glass-panel" style={{ padding: '22px' }}>
