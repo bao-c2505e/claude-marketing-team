@@ -1282,3 +1282,37 @@ Nhật ký theo dõi các mốc hoàn thành kỹ thuật qua các Phase.
 - **An toàn:** approval-first giữ nguyên (feedback không đổi approval status); Approved ≠ Published + Handoff ≠ Sent rõ; no email/messaging/n8n/OpenAI/AI-regen; no auto-post/auto-ads/publish/schedule/launch/spend; no live connector (0 HTTP); no image/video gen; no live analytics; no fake metric; localStorage chỉ store feedback riêng; no secret/webhook/env committed; n8n workflow JSON không đổi. Tab internal-only (owner/manager).
 - **Build/Test:** `npm run build` PASS (no >500 kB warning, 0 TS error; FeedbackRevisionTab chunk 20.94 kB). `npm run test` PASS **135/135** (11 files; +17). `node contracts/tools/validate_contracts.js` ALL PASS. `git diff --check` clean. Secrets/network/AI/n8n scan clean.
 - **Trạng thái:** ✅ DONE / PASS. Approval semantics: unchanged. Cross-device feedback sync + AI-assisted revision = NOT STARTED / Owner-gated (out of scope).
+
+---
+
+> **Catch-up note (2026-06-24):** From **Phase H onward** each phase ships its own
+> per-phase log file in `08_logs/phase_*.md` (the one-log-file-per-phase
+> convention), so this rolling log was not updated for H–M. **Phases H, I-S2…I-S8,
+> J, K, L, M** are recorded in their individual `08_logs/phase_*.md` logs and
+> summarized in the project-status memory — see those files; this rolling log was
+> not back-filled for them. The entries below bring `phase_log.md` current for the
+> latest **N / O / P** phases (all DONE / PASS, pushed to `origin/main`).
+
+### 🗓️ Ngày 24/06/2026 (Local Time) — Phase N: AI Factory Brand Context Injection
+- **Commit:** `bdc4adf` (pushed `origin/main`).
+- **Sự kiện:** Wire the shared **Brand Brain** snapshot (Phase M `buildBrandBrain`) into all 5 AI Factory request payloads (Content / Design / Video / Ads / Report) so every draft is grounded in ONE normalized brand context.
+- **Thiết kế:** new `buildAiFactoryBrandContext` / `buildBrandContextSnapshot` / `BrandContextSnapshot` in `src/lib/core/brandBrain.ts` (pure, list-capped, `source:'internal'`, draft-only, `APPROVED_NOT_PUBLISHED_REMINDER` pinned, no circular import); additive `brand_brain_context` on each `create*Payload`; new read-only `BrandGroundingPanel` in `AutomationFactoryTab.tsx`.
+- **An toàn:** internal/draft-only snapshot; Approved ≠ Published explicit; no fetch/axios/OAuth/webhook/external URL; no OpenAI key/env in Core; no upload/publish/post/ads/launch/activate/sync; outputs stay draft/pending approval; connector ledger read-only; Canva sandbox/mock only; no Forme/sofa/furniture/nội thất/Fal.ai/ImgBB contamination.
+- **Build/Test:** `npm run build` PASS (no >500 kB warning, 0 TS errors). `npm run test` PASS **26 files / 262** (+13). Log: `08_logs/phase_n_ai_factory_brand_context_injection_20260624.md`.
+- **Trạng thái:** ✅ DONE / PASS. Approval semantics: unchanged.
+
+### 🗓️ Ngày 24/06/2026 (Local Time) — Phase O: Approval Queue Brand Context Snapshot Preview
+- **Commit:** `2692a73` (pushed `origin/main`).
+- **Sự kiện:** Surface each approval item's originating Brand Brain context snapshot (Phase N) in the Approval Queue detail so reviewers see what grounded each AI draft.
+- **Thiết kế:** `brandContextFor()` in `ApprovalsTab.tsx` rebuilds the same `buildAiFactoryBrandContext` snapshot from the draft's brand/client/campaign/brief; new read-only `BrandContextSnapshotPanel` (brand identity, positioning, campaign context, target customers, voice, pillars, creative do/don't, compliance, source/status + Approved ≠ Published footer); `briefs` prop added to `ApprovalsTab` (App.tsx passes `coreData.briefs`).
+- **An toàn:** read-only / review-only; approval state machine + handlers untouched; outputs stay draft/pending approval; no live connectors/fetch/axios/secrets/webhook/URL; Canva sandbox/mock only; no contamination.
+- **Build/Test:** `npm run build` PASS. `npm run test` PASS **27 files / 269** (+7). Log: `08_logs/phase_o_approval_queue_brand_context_snapshot_preview_20260624.md`.
+- **Trạng thái:** ✅ DONE / PASS. Approval semantics: unchanged.
+
+### 🗓️ Ngày 24/06/2026 (Local Time) — Phase P: Approval Revision Loop & Decision Audit Trail
+- **Commit:** `b26618b` (pushed `origin/main`).
+- **Sự kiện:** Surface the existing approval **revision loop** + **decision audit trail** in the Approval Queue detail — built on the existing state machine + event log (no model change).
+- **Thiết kế:** new pure `src/lib/core/approvalDecision.ts` (`deriveLatestDecision` / `isAwaitingRevision` / `summarizeDecisions` + pinned `REVISION_LOOP_COPY`); `ApprovalsTab.tsx` adds **"Changes Requested — Awaiting Revised Output"** placeholder (original AI draft preserved, Brand Context Snapshot preserved, Core does not auto-regenerate, nothing published) + **"Latest Decision & Feedback"** panel. No new approval states (existing `submitted/approved/rejected/revision_requested/cancelled` kept compatible); Request Changes never deletes the AI output (`executeApprovalAction` preserves the content item + records an audit event).
+- **An toàn:** no auto-post / no auto-ads / no live connector / no webhook URL / no fetch/axios / no secrets/env; **Approved ≠ Published** explicit; outputs stay draft / pending approval / revision_requested; no published/posted/launched state; no contamination.
+- **Build/Test:** `npm run build` PASS (no >500 kB warning, 0 TS errors). `npm run test` PASS **28 files / 284** (+15). Log: `08_logs/phase_p_approval_revision_loop_decision_audit_trail_20260624.md`.
+- **Trạng thái:** ✅ DONE / PASS. Approval semantics: unchanged.
