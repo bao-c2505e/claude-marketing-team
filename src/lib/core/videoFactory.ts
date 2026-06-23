@@ -16,6 +16,7 @@
 import type { ContentPlanItem, ContentPlanJob } from '../../types/core';
 import type { ContentFactoryOptions, ContentFactoryRunInput } from './contentFactory';
 import { generateId } from './coreData';
+import { buildAiFactoryBrandContext, type BrandContextSnapshot } from './brandBrain';
 
 // workflow_type identifies the n8n workflow / external module; content_type
 // identifies the kind of item it produces. Keeping them distinct mirrors the
@@ -70,6 +71,9 @@ export interface VideoScriptRequestPayload {
     must_avoid: string | null;
   };
   options: { channel: ContentFactoryOptions['channel']; goal: ContentFactoryOptions['goal'] };
+  // Phase N: shared normalized Brand Brain context (same source as the Content
+  // Factory) so video scripts stay grounded in one brand identity / voice.
+  brand_brain_context: BrandContextSnapshot;
   video_script_types: string[];
   // Image AND video generation are explicitly out of scope for this V1 flow.
   generate_images: false;
@@ -169,6 +173,12 @@ export function createVideoScriptPayload(input: ContentFactoryRunInput): VideoSc
       must_avoid: input.brief.must_avoid,
     },
     options: { channel: input.options.channel, goal: input.options.goal },
+    brand_brain_context: buildAiFactoryBrandContext({
+      brand: input.brand,
+      client: input.client,
+      campaign: input.campaign,
+      brief: input.brief,
+    }),
     video_script_types: VIDEO_SCRIPT_SPECS.map(spec => spec.key),
     generate_images: false,
     generate_videos: false,

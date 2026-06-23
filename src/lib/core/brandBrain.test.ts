@@ -2,7 +2,10 @@ import { describe, expect, it } from 'vitest';
 import {
   buildBrandBrain,
   buildBrandBrainOption,
+  buildBrandContextSnapshot,
+  buildAiFactoryBrandContext,
   assessBrandBrainCompleteness,
+  APPROVED_NOT_PUBLISHED_REMINDER,
   BRAND_BRAIN_SAFETY_NOTES,
   BRAND_BRAIN_CONTEXT_FIELDS,
   BRAND_BRAIN_STATUS_LABEL,
@@ -111,6 +114,67 @@ describe('brandBrain — shared single source of truth (Phase M)', () => {
     buildBrandBrain(input);
     expect(input.briefs.length).toBe(briefsBefore);
     expect(input.assets.length).toBe(assetsBefore);
+  });
+
+  it('projects a compact, draft-only AI Factory context snapshot (Phase N)', () => {
+    const snap = buildBrandContextSnapshot(buildBrandBrain(scoped('brand-vi-cuon')));
+
+    // Brand identity + normalized context carry through from the Brand Brain.
+    expect(snap.brand_identity.brand_name).toBe('Vị Cuốn');
+    expect(snap.brand_identity.client_name).toBe('Vị Cuốn');
+    expect(snap.positioning).toMatch(/Street Food/);
+    expect(snap.target_customers.length).toBeGreaterThan(0);
+    expect(snap.products_offers.length).toBeGreaterThan(0);
+    expect(snap.brand_voice.length).toBeGreaterThan(0);
+    expect(snap.content_pillars.length).toBeGreaterThan(0);
+    expect(snap.creative_donts.length).toBeGreaterThan(0);
+    expect(snap.claim_compliance_notes.length).toBeGreaterThan(0);
+    expect(snap.campaign_context.length).toBeGreaterThan(0);
+
+    // Internal / draft-only / approval-first labels are pinned by construction.
+    expect(snap.source).toBe('internal');
+    expect(snap.draft_only).toBe(true);
+    expect(snap.internal_only).toBe(true);
+    expect(snap.owner_approval_required).toBe(true);
+    expect(snap.approved_not_published).toBe(APPROVED_NOT_PUBLISHED_REMINDER);
+    expect(snap.approved_not_published).toMatch(/Approved ≠ Published/);
+    expect(snap.safety_notes).toEqual(BRAND_BRAIN_SAFETY_NOTES);
+
+    // Status is always one of the internal lifecycle values — never published/launched.
+    expect(Object.keys(BRAND_BRAIN_STATUS_LABEL)).toContain(snap.status);
+  });
+
+  it('caps each snapshot list so request framing stays compact', () => {
+    const brain = buildBrandBrain(scoped('brand-vi-cuon'));
+    // Flood every list field with > cap entries; the snapshot must clamp to <= 8.
+    const flooded = {
+      ...brain,
+      targetCustomers: Array.from({ length: 30 }, (_, i) => `aud-${i}`),
+      products: Array.from({ length: 30 }, (_, i) => `prod-${i}`),
+      offers: Array.from({ length: 30 }, (_, i) => `offer-${i}`),
+    };
+    const snap = buildBrandContextSnapshot(flooded);
+    expect(snap.target_customers.length).toBeLessThanOrEqual(8);
+    expect(snap.products_offers.length).toBeLessThanOrEqual(8);
+  });
+
+  it('builds the snapshot from the single-record AI Factory input shape', () => {
+    const brand = brandFor('brand-vi-cuon');
+    const client = clientFor('brand-vi-cuon');
+    const campaign = SEED_CAMPAIGNS.find(c => c.brand_id === brand.id) ?? null;
+    const brief = SEED_BRIEFS.find(b => b.brand_id === brand.id) ?? null;
+
+    const snap = buildAiFactoryBrandContext({ brand, client, campaign, brief });
+    expect(snap.brand_identity.brand_name).toBe('Vị Cuốn');
+    expect(snap.campaign_context.length).toBe(1);
+    expect(snap.draft_only).toBe(true);
+    expect(snap.source).toBe('internal');
+
+    // Tolerates a brand with no campaign/brief (still internal + draft-only).
+    const sparse = buildAiFactoryBrandContext({ brand, client: null, campaign: null, brief: null });
+    expect(sparse.campaign_context).toEqual([]);
+    expect(sparse.owner_approval_required).toBe(true);
+    expect(sparse.approved_not_published).toMatch(/Approved ≠ Published/);
   });
 
   it('builds a lightweight picker option for a brand', () => {

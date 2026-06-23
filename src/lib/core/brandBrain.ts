@@ -297,3 +297,122 @@ export function buildBrandBrainOption({ brand, client, firstCampaignStatus }: Br
     status: firstCampaignStatus ?? brand.status,
   };
 }
+
+// ── AI Factory brand context snapshot (Phase N) ─────────────────────────────
+// A compact, SAFE projection of a BrandBrain for AI Factory request framing and
+// preview surfaces. It is purely additive: every factory payload (Content /
+// Design / Video / Ads / Report) may carry one so each draft is grounded in the
+// SAME normalized brand context instead of re-deriving it per module. It is
+// draft-only and approval-gated by construction — it can never represent a
+// `published`/`launched` state and never carries a URL, token, or live call.
+
+/** Standing reminder pinned into every snapshot (and asserted by tests). */
+export const APPROVED_NOT_PUBLISHED_REMINDER =
+  'Approved ≠ Published — Owner approval authorizes internal use only; publishing or launching is a separate, human-confirmed step.';
+
+/** Max items kept per list so the snapshot stays compact in request framing. */
+const SNAPSHOT_LIST_CAP = 8;
+
+export interface BrandContextSnapshotCampaign {
+  id: string;
+  name: string;
+  status: string;
+  goal: string | null;
+}
+
+/** Compact, draft-only brand context shared across every AI Factory module. */
+export interface BrandContextSnapshot {
+  brand_identity: {
+    brand_name: string;
+    client_name: string | null;
+    contact_name: string | null;
+    category: string | null;
+  };
+  positioning: string | null;
+  target_customers: string[];
+  products_offers: string[];
+  brand_voice: string[];
+  content_pillars: string[];
+  key_messages: string[];
+  creative_dos: string[];
+  creative_donts: string[];
+  claim_compliance_notes: string[];
+  campaign_context: BrandContextSnapshotCampaign[];
+  owner_notes: string[];
+  channels: string[];
+  safety_notes: string[];
+  // Provenance + lifecycle — internal/draft-only by construction.
+  source: BrandBrainSource;      // 'internal' | 'mock' | 'demo' | 'draft-only'
+  status: BrandBrainStatus;      // internal review status (never an external state)
+  draft_only: true;
+  internal_only: true;
+  owner_approval_required: true;
+  approved_not_published: string;
+}
+
+function capList(values: string[]): string[] {
+  return values.slice(0, SNAPSHOT_LIST_CAP);
+}
+
+/** Project a full Brand Brain into the compact, draft-only AI Factory snapshot. */
+export function buildBrandContextSnapshot(brain: BrandBrain): BrandContextSnapshot {
+  return {
+    brand_identity: {
+      brand_name: brain.brandName,
+      client_name: brain.clientName,
+      contact_name: brain.contactName,
+      category: brain.category,
+    },
+    positioning: brain.positioning,
+    target_customers: capList(brain.targetCustomers),
+    products_offers: capList([...brain.products, ...brain.offers]),
+    brand_voice: capList(brain.brandVoice),
+    content_pillars: capList(brain.contentPillars),
+    key_messages: capList(brain.keyMessages),
+    creative_dos: capList(brain.creativeDos),
+    creative_donts: capList(brain.creativeDonts),
+    claim_compliance_notes: capList(brain.claimComplianceNotes),
+    campaign_context: brain.campaignContext.slice(0, SNAPSHOT_LIST_CAP).map(c => ({
+      id: c.id,
+      name: c.name,
+      status: c.status,
+      goal: c.goal,
+    })),
+    owner_notes: capList(brain.ownerNotes),
+    channels: capList(brain.channels),
+    safety_notes: [...brain.approvalSafetyNotes],
+    // Brand context is internal/local — never claimed as live/published.
+    source: brain.source,
+    status: brain.status,
+    draft_only: true,
+    internal_only: true,
+    owner_approval_required: true,
+    approved_not_published: APPROVED_NOT_PUBLISHED_REMINDER,
+  };
+}
+
+export interface AiFactoryBrandContextInput {
+  brand: Brand;
+  client: Client | null;
+  campaign: Campaign | null;
+  brief: CampaignBrief | null;
+  assets?: AssetItem[];
+}
+
+/**
+ * Convenience builder for the single-record shape AI Factory modules hold (one
+ * brand / campaign / brief). It wraps the records into the array-based
+ * `buildBrandBrain` and snapshots the result, so every factory shares ONE source
+ * of brand context. Takes raw records (not a factory type) to keep this module
+ * free of any factory import — no circular dependency, still pure & read-only.
+ */
+export function buildAiFactoryBrandContext(input: AiFactoryBrandContextInput): BrandContextSnapshot {
+  const brain = buildBrandBrain({
+    brand: input.brand,
+    client: input.client,
+    campaigns: input.campaign ? [input.campaign] : [],
+    briefs: input.brief ? [input.brief] : [],
+    assets: input.assets ?? [],
+  });
+  return buildBrandContextSnapshot(brain);
+}

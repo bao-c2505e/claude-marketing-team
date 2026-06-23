@@ -17,6 +17,7 @@
 import type { ContentPlanItem, ContentPlanJob } from '../../types/core';
 import type { ContentFactoryGoal, ContentFactoryOptions, ContentFactoryRunInput } from './contentFactory';
 import { generateId } from './coreData';
+import { buildAiFactoryBrandContext, type BrandContextSnapshot } from './brandBrain';
 
 // workflow_type identifies the n8n workflow / external module; content_type
 // identifies the kind of item it produces. Keeping them distinct mirrors the
@@ -68,6 +69,9 @@ export interface AdsPackRequestPayload {
     must_avoid: string | null;
   };
   options: { channel: ContentFactoryOptions['channel']; goal: ContentFactoryOptions['goal'] };
+  // Phase N: shared normalized Brand Brain context (same source as the Content
+  // Factory) so ads drafts stay grounded in one brand identity / voice / offer.
+  brand_brain_context: BrandContextSnapshot;
   ads_pack_types: string[];
   // Image AND video generation are explicitly out of scope for this V1 flow.
   generate_images: false;
@@ -175,6 +179,12 @@ export function createAdsPackPayload(input: ContentFactoryRunInput): AdsPackRequ
       must_avoid: input.brief.must_avoid,
     },
     options: { channel: input.options.channel, goal: input.options.goal },
+    brand_brain_context: buildAiFactoryBrandContext({
+      brand: input.brand,
+      client: input.client,
+      campaign: input.campaign,
+      brief: input.brief,
+    }),
     ads_pack_types: ADS_PACK_SPECS.map(spec => spec.key),
     generate_images: false,
     generate_videos: false,

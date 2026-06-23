@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
   AlertTriangle,
+  Brain,
   CheckCircle,
   Factory,
   FileText,
@@ -23,6 +24,7 @@ import type {
 } from '../../types/core';
 import type { ContentFactoryOptions, ContentFactoryResult, ContentFactoryRunInput } from '../../lib/core/contentFactory';
 import { getContentFactoryWebhookUrl } from '../../lib/core/contentFactory';
+import { buildAiFactoryBrandContext, type BrandContextSnapshot } from '../../lib/core/brandBrain';
 import type { DesignFactoryResult } from '../../lib/core/designFactory';
 import { getDesignFactoryWebhookUrl } from '../../lib/core/designFactory';
 import type { VideoFactoryResult } from '../../lib/core/videoFactory';
@@ -227,6 +229,20 @@ export default function AutomationFactoryTab({
   const selectedBrand = brands.find(brand => brand.id === selectedBrandId) ?? null;
   const selectedCampaign = campaigns.find(campaign => campaign.id === selectedCampaignId) ?? null;
   const selectedBrief = briefs.find(brief => brief.id === selectedBriefId) ?? null;
+
+  // Phase N: the SAME normalized Brand Brain snapshot every factory payload
+  // carries — surfaced read-only so the Owner can see what each draft is grounded
+  // in (brand identity / voice / pillars / compliance) before generating. Pure +
+  // offline; no network, no mutation, draft-only by construction.
+  const brandContext = useMemo<BrandContextSnapshot | null>(() => {
+    if (!selectedBrand) return null;
+    return buildAiFactoryBrandContext({
+      brand: selectedBrand,
+      client: selectedClient,
+      campaign: selectedCampaign,
+      brief: selectedBrief,
+    });
+  }, [selectedBrand, selectedClient, selectedCampaign, selectedBrief]);
 
   useEffect(() => {
     if (!selectedClientId && clients[0]) setSelectedClientId(clients[0].id);
@@ -506,6 +522,12 @@ export default function AutomationFactoryTab({
           </span>
         </div>
 
+        <BrandGroundingPanel
+          context={brandContext}
+          campaignName={selectedCampaign?.name ?? null}
+          briefTitle={selectedBrief?.brief_title || selectedBrief?.brand_name || null}
+        />
+
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: '14px' }}>
           {WORKFLOWS.map(workflow => (
             <div key={workflow.id} style={{ border: '1px solid var(--border-color)', borderRadius: '8px', padding: '16px', background: 'rgba(255,255,255,0.02)', display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -667,6 +689,98 @@ export default function AutomationFactoryTab({
             })}
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+// Phase N — read-only preview of the shared Brand Brain context that every
+// factory payload now carries. It shows the Owner what each generated draft is
+// grounded in (brand identity / voice / pillars / compliance) and keeps the
+// approval-first + "Approved ≠ Published" + internal/draft-only posture visible.
+// Presentational only: it renders the snapshot, never posts/launches/syncs.
+function BrandGroundingPanel({
+  context,
+  campaignName,
+  briefTitle,
+}: {
+  context: BrandContextSnapshot | null;
+  campaignName: string | null;
+  briefTitle: string | null;
+}) {
+  if (!context) {
+    return (
+      <div style={{ marginBottom: '16px', padding: '14px 16px', border: '1px dashed var(--border-color)', borderRadius: '10px', background: 'rgba(168,85,247,0.05)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Brain size={16} style={{ color: '#a855f7' }} />
+          <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: 0 }}>
+            Select a brand to preview the shared Brand Brain context every draft will be grounded in.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  const id = context.brand_identity;
+  const rows: { label: string; values: string[] }[] = [
+    { label: 'Target customers', values: context.target_customers },
+    { label: 'Products / offers', values: context.products_offers },
+    { label: 'Brand voice / tone', values: context.brand_voice },
+    { label: 'Content pillars', values: context.content_pillars },
+    { label: "Creative don't", values: context.creative_donts },
+    { label: 'Claim / compliance', values: context.claim_compliance_notes },
+  ].filter(row => row.values.length > 0);
+
+  return (
+    <div style={{ marginBottom: '16px', padding: '16px 18px', border: '1px solid rgba(168,85,247,0.3)', borderRadius: '10px', background: 'rgba(168,85,247,0.06)' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px', flexWrap: 'wrap', marginBottom: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '9px' }}>
+          <Brain size={18} style={{ color: '#a855f7' }} />
+          <div>
+            <h4 style={{ fontSize: '0.92rem', fontWeight: 700, margin: 0 }}>Brand Brain grounding</h4>
+            <p style={{ fontSize: '0.74rem', color: 'var(--text-muted)', margin: '2px 0 0' }}>
+              Every Content / Design / Video / Ads / Report draft below is framed with this one shared, normalized context.
+            </p>
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+          <span className="badge" style={{ fontSize: '0.64rem', background: 'rgba(168,85,247,0.14)', color: '#c084fc', border: '1px solid rgba(168,85,247,0.3)' }}>
+            Internal · Draft-only
+          </span>
+          <span className="badge" style={{ fontSize: '0.64rem', background: 'rgba(96,165,250,0.12)', color: '#60a5fa', border: '1px solid rgba(96,165,250,0.3)' }}>
+            Source: {context.source}
+          </span>
+          <span className="badge badge-amber" style={{ fontSize: '0.64rem' }}>
+            Approval-first
+          </span>
+        </div>
+      </div>
+
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: rows.length ? '12px' : 0, fontSize: '0.72rem', color: 'var(--text-secondary)' }}>
+        <span><strong style={{ color: 'var(--text-primary)' }}>{id.brand_name}</strong>{id.client_name ? ` · ${id.client_name}` : ''}{id.category ? ` · ${id.category}` : ''}</span>
+        {campaignName && <span>· Campaign: {campaignName}</span>}
+        {briefTitle && <span>· Brief: {briefTitle}</span>}
+        {context.positioning && <span>· {context.positioning}</span>}
+      </div>
+
+      {rows.length > 0 && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '8px 16px', marginBottom: '12px' }}>
+          {rows.map(row => (
+            <div key={row.label}>
+              <p style={{ fontSize: '0.66rem', textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--text-muted)', margin: '0 0 3px' }}>{row.label}</p>
+              <p style={{ fontSize: '0.76rem', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.5 }}>
+                {row.values.slice(0, 4).join(' · ')}
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', padding: '10px 12px', borderRadius: '8px', background: 'rgba(245,158,11,0.07)', border: '1px solid rgba(245,158,11,0.22)' }}>
+        <Shield size={14} style={{ color: '#f59e0b', flexShrink: 0, marginTop: '2px' }} />
+        <p style={{ fontSize: '0.73rem', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.5 }}>
+          <strong style={{ color: '#f59e0b' }}>Approved ≠ Published.</strong> {context.approved_not_published} No auto-post, no auto-ads, no live connectors — drafts stay pending Owner approval.
+        </p>
       </div>
     </div>
   );

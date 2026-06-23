@@ -1,5 +1,6 @@
 import type { Brand, Campaign, CampaignBrief, Client, ContentPlanItem, ContentPlanJob, PlanLengthDays } from '../../types/core';
 import { generateId } from './coreData';
+import { buildAiFactoryBrandContext, type BrandContextSnapshot } from './brandBrain';
 
 export type ContentFactoryChannel = 'Facebook' | 'TikTok' | 'Zalo';
 export type ContentFactoryGoal = 'branding' | 'sales' | 'khai_truong' | 'lead' | 'tuyen_sinh';
@@ -57,6 +58,9 @@ export interface ContentFactoryRequestPayload {
     channel: ContentFactoryChannel;
     goal: ContentFactoryGoal;
   };
+  // Phase N: shared normalized Brand Brain context so every module grounds its
+  // drafts in the SAME brand identity / voice / pillars / compliance notes.
+  brand_brain_context: BrandContextSnapshot;
   safety: {
     no_auto_post: true;
     no_auto_ads: true;
@@ -167,6 +171,12 @@ export function createContentFactoryPayload(input: ContentFactoryRunInput): Cont
       channel: input.options.channel,
       goal: input.options.goal,
     },
+    brand_brain_context: buildAiFactoryBrandContext({
+      brand: input.brand,
+      client: input.client,
+      campaign: input.campaign,
+      brief: input.brief,
+    }),
     safety: {
       no_auto_post: true,
       no_auto_ads: true,
