@@ -6,11 +6,12 @@ import {
   Truck, Link2, ExternalLink, Trash2, PackageCheck,
 } from 'lucide-react';
 import type {
-  Client, Brand, Campaign, ContentPlanItem, RoleName,
+  Client, Brand, Campaign, CampaignBrief, ContentPlanItem, RoleName,
   ContentApprovalRequest, ContentApprovalEvent, ContentApprovalComment,
   ContentApprovalStatus, ApprovalPriority,
 } from '../../types/core';
 import type { ApprovalDataStore } from '../../lib/core/coreData';
+import { buildAiFactoryBrandContext, type BrandContextSnapshot } from '../../lib/core/brandBrain';
 import {
   APPROVAL_STATUS_LABEL, APPROVAL_STATUS_COLOR,
   APPROVAL_PRIORITY_LABEL, APPROVAL_PRIORITY_COLOR,
@@ -43,6 +44,7 @@ interface Props {
   clients: Client[];
   brands: Brand[];
   campaigns: Campaign[];
+  briefs: CampaignBrief[];
   contentItems: ContentPlanItem[];
   approvalData: ApprovalDataStore;
   onSubmit: (item: ContentPlanItem) => Promise<void>;
@@ -676,6 +678,9 @@ interface DetailViewProps {
   request: ContentApprovalRequest;
   item: ContentPlanItem | undefined;
   cls: RequestClass;
+  // Phase O — read-only Brand Brain snapshot that grounded this draft (or null
+  // when the originating brand/brief can't be resolved). Review context only.
+  brandContext: BrandContextSnapshot | null;
   events: ContentApprovalEvent[];
   comments: ContentApprovalComment[];
   canApprove: boolean;
@@ -695,8 +700,99 @@ interface DetailViewProps {
   onClearDelivery: () => void;
 }
 
+// Phase O — read-only Brand Context Snapshot for the approval detail. Renders the
+// normalized Brand Brain grounding (Phase N) the AI draft was framed with so the
+// reviewer can judge it in context. Pure presentation: no inputs, no handlers, no
+// network, no mutation — it can never publish, post, launch, sync, or approve.
+function BrandContextSnapshotPanel({
+  context,
+  labelStyle,
+}: {
+  context: BrandContextSnapshot | null;
+  labelStyle: React.CSSProperties;
+}) {
+  if (!context) {
+    return (
+      <div className="glass-panel" style={{ padding: '16px 20px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+          <Layers size={13} /> Brand Context Snapshot — unavailable for this draft (originating brand/brief not resolved).
+        </div>
+      </div>
+    );
+  }
+
+  const id = context.brand_identity;
+  const identityLine = [id.brand_name, id.client_name, id.category].filter(Boolean).join(' · ');
+  const campaignLine = context.campaign_context
+    .map(c => `${c.name} (${c.status})${c.goal ? ` — ${c.goal}` : ''}`)
+    .join(' · ');
+
+  const rows: { label: string; value: string }[] = [
+    { label: 'Campaign context', value: campaignLine },
+    { label: 'Target customers', value: context.target_customers.join(' · ') },
+    { label: 'Brand voice / tone', value: context.brand_voice.join(' · ') },
+    { label: 'Content pillars', value: context.content_pillars.join(' · ') },
+    { label: "Creative do", value: context.creative_dos.join(' · ') },
+    { label: "Creative don't", value: context.creative_donts.join(' · ') },
+    { label: 'Compliance / claim notes', value: context.claim_compliance_notes.join(' · ') },
+  ].filter(r => r.value.trim().length > 0);
+
+  const valueStyle: React.CSSProperties = {
+    fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.55, whiteSpace: 'pre-wrap', wordBreak: 'break-word',
+  };
+
+  return (
+    <div className="glass-panel" style={{ padding: '20px', borderLeft: '3px solid #a855f7' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '8px', marginBottom: '12px' }}>
+        <div>
+          <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#c084fc', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <Layers size={14} /> Brand Context Snapshot
+          </div>
+          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '3px' }}>
+            Grounding used for this draft · Review-only · not live publishing data.
+          </div>
+        </div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+          <MetaChip label="Source" value={context.source} />
+          <MetaChip label="Status" value={context.status} />
+          <span style={{ fontSize: '0.66rem', fontWeight: 600, color: '#c084fc', background: 'rgba(168,85,247,0.12)', border: '1px solid rgba(168,85,247,0.3)', borderRadius: '4px', padding: '2px 7px' }}>
+            Internal draft context
+          </span>
+        </div>
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <div>
+          <div style={labelStyle}>Brand</div>
+          <div style={{ ...valueStyle, fontWeight: 600, color: 'var(--text-primary)' }}>{identityLine || '—'}</div>
+        </div>
+        {context.positioning && (
+          <div>
+            <div style={labelStyle}>Positioning</div>
+            <div style={valueStyle}>{context.positioning}</div>
+          </div>
+        )}
+        {rows.map(r => (
+          <div key={r.label}>
+            <div style={labelStyle}>{r.label}</div>
+            <div style={valueStyle}>{r.value}</div>
+          </div>
+        ))}
+      </div>
+
+      <div style={{ marginTop: '14px', paddingTop: '12px', borderTop: '1px solid var(--border-color)', display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+        <ShieldCheck size={13} style={{ color: '#34d399', flexShrink: 0, marginTop: '2px' }} />
+        <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
+          <strong style={{ color: '#34d399' }}>Approved ≠ Published.</strong> {context.approved_not_published}{' '}
+          This snapshot is internal/draft-only review context — no auto-post, no auto-ads, no live connectors.
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function DetailView({
-  request, item, cls, events, comments,
+  request, item, cls, brandContext, events, comments,
   canApprove, canSubmitAction,
   onAction, onComment, onBack,
   clientName, brandName, campaignName,
@@ -932,6 +1028,13 @@ function DetailView({
         );
       })()}
 
+      {/* PHASE_O_SNAPSHOT_START — read-only Brand Context Snapshot. Shows the
+          normalized Brand Brain grounding this draft was framed with (Phase N),
+          so a reviewer sees exactly what brand context the AI used. Display only:
+          no edit/save/upload/publish/sync controls, no network, no mutation. */}
+      <BrandContextSnapshotPanel context={brandContext} labelStyle={labelStyle} />
+      {/* PHASE_O_SNAPSHOT_END */}
+
       {/* Manual Delivery Tracker (Phase E) — keyed by request id so the link/note
           drafts reset when switching between requests. */}
       <ManualDeliveryTracker
@@ -1110,7 +1213,7 @@ function DetailView({
 // ---------------------------------------------------------------------------
 
 export default function ApprovalsTab({
-  clients, brands, campaigns,
+  clients, brands, campaigns, briefs,
   contentItems,
   approvalData,
   onSubmit, onAction, onComment, userRole, isSupabaseConfigured,
@@ -1137,6 +1240,18 @@ export default function ApprovalsTab({
   const brandName    = (id: string | null) => id ? (brands.find(b => b.id === id)?.name ?? '—') : '—';
   const campaignName = (id: string) => campaigns.find(c => c.id === id)?.name ?? '—';
   const itemFor      = (id: string) => contentItems.find(i => i.id === id);
+
+  // Phase O — rebuild the SAME normalized Brand Brain snapshot the AI Factory used
+  // (Phase N) from the draft's originating brand/client/campaign/brief, so the
+  // approval detail can show the reviewer what grounded the draft. Pure + local.
+  const brandContextFor = (req: ContentApprovalRequest, contentItem: ContentPlanItem | undefined): BrandContextSnapshot | null => {
+    const brand = brands.find(b => b.id === req.brand_id);
+    if (!brand) return null;
+    const client = clients.find(c => c.id === req.client_id) ?? null;
+    const campaign = campaigns.find(c => c.id === req.campaign_id) ?? null;
+    const brief = contentItem?.brief_id ? (briefs.find(b => b.id === contentItem.brief_id) ?? null) : null;
+    return buildAiFactoryBrandContext({ brand, client, campaign, brief });
+  };
 
   // Classify every request once (module + source) — display only, no mutation.
   const classOf = useMemo(() => {
@@ -1222,6 +1337,7 @@ export default function ApprovalsTab({
         request={request}
         item={item}
         cls={classOf.get(request.id) ?? classifyRequest(item)}
+        brandContext={brandContextFor(request, item)}
         events={events}
         comments={comments}
         canApprove={canApprove}

@@ -1735,6 +1735,7 @@ export default function App() {
                   clients={coreData.clients}
                   brands={coreData.brands}
                   campaigns={coreData.campaigns}
+                  briefs={coreData.briefs}
                   contentItems={genData.contentItems}
                   approvalData={approvalData}
                   onSubmit={handleApprovalSubmit}
