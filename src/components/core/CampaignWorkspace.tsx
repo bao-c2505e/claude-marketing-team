@@ -19,6 +19,12 @@
 // state so this parent stays display-only. Its export is copy/download a local
 // .md/.txt file of this campaign's APPROVED deliverables — Core still never
 // emails, posts, schedules, launches, spends, or pulls live analytics.
+//
+// Phase R (Manual Publishing Checklist & Delivery Readiness) adds the read-only
+// <ManualPublishingChecklistPanel> child — it derives whether this campaign's
+// APPROVED deliverables are ready to be MANUALLY published (sections + readiness
+// summary), again without performing any publishing action. "Approved ≠ Published"
+// stays explicit and Core still never posts, schedules, launches, or spends.
 // See CLAUDE.md §3 (Workflow), §4 (Safety), §6 (Output Status), §7 (Connectors).
 // ---------------------------------------------------------------------------
 import React from 'react';
@@ -61,6 +67,7 @@ import {
 } from '../../lib/core/coreData';
 import { buildConnectorLedgerSummary } from '../../lib/core/connectors/connectorLedger';
 import CampaignPackPanel from './CampaignPackPanel';
+import ManualPublishingChecklistPanel from './ManualPublishingChecklistPanel';
 
 export interface CampaignWorkspaceOption {
   id: string;
@@ -486,6 +493,19 @@ export default function CampaignWorkspace({
 
       {/* ── Phase Q: Client-ready Campaign Pack export (local copy/download only) ── */}
       <CampaignPackPanel
+        campaign={campaign}
+        client={client}
+        brand={brand}
+        briefs={brief ? [brief] : []}
+        contentItems={contentItems}
+        approvalRequests={approvals}
+        approvalEvents={approvalEvents}
+        userRole={userRole}
+        actorLabel={actorLabel}
+      />
+
+      {/* ── Phase R: Manual publishing checklist & delivery readiness (read-only) ── */}
+      <ManualPublishingChecklistPanel
         campaign={campaign}
         client={client}
         brand={brand}
