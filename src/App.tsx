@@ -2455,6 +2455,9 @@ export default function App() {
                 const wsBrief = wsCampaign ? coreData.briefs.find(br => br.campaign_id === wsCampaign.id) ?? null : null;
                 const wsContent = wsCampaign ? genData.contentItems.filter(ci => ci.campaign_id === wsCampaign.id) : [];
                 const wsApprovals = wsCampaign ? approvalData.approvalRequests.filter(r => r.campaign_id === wsCampaign.id) : [];
+                const wsApprovalEvents = wsCampaign
+                  ? approvalData.approvalEvents.filter(e => wsApprovals.some(r => r.id === e.approval_request_id))
+                  : [];
                 const wsAssets = wsCampaign
                   ? assetData.assets.filter(a => a.campaign_id === wsCampaign.id || (a.campaign_id === null && wsBrand !== null && a.brand_id === wsBrand.id))
                   : [];
@@ -2482,8 +2485,11 @@ export default function App() {
                     brief={wsBrief}
                     contentItems={wsContent}
                     approvals={wsApprovals}
+                    approvalEvents={wsApprovalEvents}
                     assets={wsAssets}
                     activity={wsActivity}
+                    userRole={user?.role ?? null}
+                    actorLabel={actorLabel}
                     onNavigate={setActiveTab}
                   />
                 );

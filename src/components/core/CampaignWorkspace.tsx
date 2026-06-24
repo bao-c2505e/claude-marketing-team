@@ -11,7 +11,14 @@
 //   • approval-first stays visible ("Approved ≠ Published", Owner approval
 //     required, live connectors blocked, manual confirmation outside CORE).
 // A source-scan test (`CampaignWorkspace.source.test.ts`) enforces that no
-// publish / post / ads-launch / activate / fetch / live-connector wording leaks.
+// publish / post / ads-launch / activate / fetch / live-connector wording leaks,
+// and that this component itself stays stateless (it holds no local UI state).
+//
+// Phase Q (Client-ready Campaign Pack Export) adds ONE local export feature via
+// the self-contained <CampaignPackPanel> child — that panel owns its own UI
+// state so this parent stays display-only. Its export is copy/download a local
+// .md/.txt file of this campaign's APPROVED deliverables — Core still never
+// emails, posts, schedules, launches, spends, or pulls live analytics.
 // See CLAUDE.md §3 (Workflow), §4 (Safety), §6 (Output Status), §7 (Connectors).
 // ---------------------------------------------------------------------------
 import React from 'react';
@@ -29,12 +36,14 @@ import {
   Check,
 } from 'lucide-react';
 import type {
+  RoleName,
   Client,
   Brand,
   Campaign,
   CampaignBrief,
   ContentPlanItem,
   ContentApprovalRequest,
+  ContentApprovalEvent,
   AssetItem,
   LocalAutomationLog,
 } from '../../types/core';
@@ -51,6 +60,7 @@ import {
   CAMPAIGN_STATUS_COLOR,
 } from '../../lib/core/coreData';
 import { buildConnectorLedgerSummary } from '../../lib/core/connectors/connectorLedger';
+import CampaignPackPanel from './CampaignPackPanel';
 
 export interface CampaignWorkspaceOption {
   id: string;
@@ -72,10 +82,16 @@ export interface CampaignWorkspaceProps {
   contentItems: ContentPlanItem[];
   /** Approval requests already scoped to this campaign. */
   approvals: ContentApprovalRequest[];
+  /** Approval events already scoped to this campaign (Phase P audit trail). */
+  approvalEvents: ContentApprovalEvent[];
   /** Assets already scoped to this campaign / its brand. */
   assets: AssetItem[];
   /** Recent activity log entries already scoped to this campaign. */
   activity: LocalAutomationLog[];
+  /** Viewer role — gates the Phase Q campaign-pack build. */
+  userRole: RoleName | null;
+  /** Label of the acting user — stamped on a built campaign pack. */
+  actorLabel: string;
   onNavigate: (tab: string) => void;
 }
 
@@ -142,7 +158,8 @@ function NavButton({ label, onClick }: { label: string; onClick: () => void }) {
 export default function CampaignWorkspace({
   options, selectedId, onSelect,
   client, brand, campaign, brief,
-  contentItems, approvals, assets, activity,
+  contentItems, approvals, approvalEvents, assets, activity,
+  userRole, actorLabel,
   onNavigate,
 }: CampaignWorkspaceProps) {
 
@@ -466,6 +483,19 @@ export default function CampaignWorkspace({
           )}
         </SectionCard>
       </div>
+
+      {/* ── Phase Q: Client-ready Campaign Pack export (local copy/download only) ── */}
+      <CampaignPackPanel
+        campaign={campaign}
+        client={client}
+        brand={brand}
+        briefs={brief ? [brief] : []}
+        contentItems={contentItems}
+        approvalRequests={approvals}
+        approvalEvents={approvalEvents}
+        userRole={userRole}
+        actorLabel={actorLabel}
+      />
 
       {/* ── Next Owner Actions ── */}
       <div className="glass-panel" style={{ padding: '20px', borderLeft: '4px solid var(--warning)' }}>
