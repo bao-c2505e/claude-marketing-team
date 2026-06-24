@@ -25,6 +25,12 @@
 // APPROVED deliverables are ready to be MANUALLY published (sections + readiness
 // summary), again without performing any publishing action. "Approved ≠ Published"
 // stays explicit and Core still never posts, schedules, launches, or spends.
+//
+// Phase S (Client Delivery Room / Shareable Handoff View) adds the read-only
+// <ClientDeliveryRoomPanel> child — it COMPOSES the Phase Q pack + Phase R checklist
+// into a clean client-facing handoff preview the Owner can COPY or manually share.
+// It creates NO public/share URL, publishes nothing, and always renders "Not
+// Published" with the explicit "Approved does not mean Published" message.
 // See CLAUDE.md §3 (Workflow), §4 (Safety), §6 (Output Status), §7 (Connectors).
 // ---------------------------------------------------------------------------
 import React from 'react';
@@ -68,6 +74,7 @@ import {
 import { buildConnectorLedgerSummary } from '../../lib/core/connectors/connectorLedger';
 import CampaignPackPanel from './CampaignPackPanel';
 import ManualPublishingChecklistPanel from './ManualPublishingChecklistPanel';
+import ClientDeliveryRoomPanel from './ClientDeliveryRoomPanel';
 
 export interface CampaignWorkspaceOption {
   id: string;
@@ -506,6 +513,19 @@ export default function CampaignWorkspace({
 
       {/* ── Phase R: Manual publishing checklist & delivery readiness (read-only) ── */}
       <ManualPublishingChecklistPanel
+        campaign={campaign}
+        client={client}
+        brand={brand}
+        briefs={brief ? [brief] : []}
+        contentItems={contentItems}
+        approvalRequests={approvals}
+        approvalEvents={approvalEvents}
+        userRole={userRole}
+        actorLabel={actorLabel}
+      />
+
+      {/* ── Phase S: Client Delivery Room / handoff preview (read-only, manual share) ── */}
+      <ClientDeliveryRoomPanel
         campaign={campaign}
         client={client}
         brand={brand}
