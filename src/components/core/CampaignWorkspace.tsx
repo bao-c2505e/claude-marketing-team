@@ -31,6 +31,13 @@
 // into a clean client-facing handoff preview the Owner can COPY or manually share.
 // It creates NO public/share URL, publishes nothing, and always renders "Not
 // Published" with the explicit "Approved does not mean Published" message.
+//
+// Phase T (Client Feedback Intake & Delivery Acceptance) adds the self-contained
+// <DeliveryAcceptancePanel> child — a LOCAL/MOCK preview of how client feedback and
+// delivery acceptance would be captured. It sends nothing, creates no public/share
+// URL, fires no notification, uses no connector, and never publishes: "client_accepted
+// ≠ Published" and "owner_ready_for_manual_publish" stays gated behind the Phase R
+// checklist as a manual, Owner-controlled step.
 // See CLAUDE.md §3 (Workflow), §4 (Safety), §6 (Output Status), §7 (Connectors).
 // ---------------------------------------------------------------------------
 import React from 'react';
@@ -75,6 +82,7 @@ import { buildConnectorLedgerSummary } from '../../lib/core/connectors/connector
 import CampaignPackPanel from './CampaignPackPanel';
 import ManualPublishingChecklistPanel from './ManualPublishingChecklistPanel';
 import ClientDeliveryRoomPanel from './ClientDeliveryRoomPanel';
+import DeliveryAcceptancePanel from './DeliveryAcceptancePanel';
 
 export interface CampaignWorkspaceOption {
   id: string;
@@ -526,6 +534,19 @@ export default function CampaignWorkspace({
 
       {/* ── Phase S: Client Delivery Room / handoff preview (read-only, manual share) ── */}
       <ClientDeliveryRoomPanel
+        campaign={campaign}
+        client={client}
+        brand={brand}
+        briefs={brief ? [brief] : []}
+        contentItems={contentItems}
+        approvalRequests={approvals}
+        approvalEvents={approvalEvents}
+        userRole={userRole}
+        actorLabel={actorLabel}
+      />
+
+      {/* ── Phase T: Client Feedback Intake & Delivery Acceptance (local/mock only) ── */}
+      <DeliveryAcceptancePanel
         campaign={campaign}
         client={client}
         brand={brand}
