@@ -46,6 +46,16 @@
 // and a local audit trail. "Client accepted ≠ Published" stays visible, publishing is
 // completed MANUALLY outside CORE, and "manually marked as published" is an explicit
 // operator annotation only — Core never publishes, posts, schedules, launches, or spends.
+//
+// Phase V (Manual Publishing Evidence & Result Intake Room) adds the self-contained
+// <ManualPublishingEvidencePanel> child — a LOCAL/DEMO post-delivery evidence layer that
+// lets the Owner MANUALLY RECORD whether delivered assets were actually published outside
+// CORE. It captures a publish status (not_published / manually_published /
+// scheduled_outside_core / blocked_or_cancelled), Owner-provided evidence (channel,
+// publishedBy, publicUrl, screenshot note), a result data source, and optional manual
+// metrics — then drafts a post-publish report that labels provided vs simulated/unverified
+// data and flags missing data. "CORE does not publish", "No live analytics connected", and
+// "Manual evidence only" stay visible; Core publishes nothing and pulls no analytics.
 // See CLAUDE.md §3 (Workflow), §4 (Safety), §6 (Output Status), §7 (Connectors).
 // ---------------------------------------------------------------------------
 import React from 'react';
@@ -92,6 +102,7 @@ import ManualPublishingChecklistPanel from './ManualPublishingChecklistPanel';
 import ClientDeliveryRoomPanel from './ClientDeliveryRoomPanel';
 import DeliveryAcceptancePanel from './DeliveryAcceptancePanel';
 import DeliveryClosurePanel from './DeliveryClosurePanel';
+import ManualPublishingEvidencePanel from './ManualPublishingEvidencePanel';
 
 export interface CampaignWorkspaceOption {
   id: string;
@@ -576,6 +587,13 @@ export default function CampaignWorkspace({
         contentItems={contentItems}
         approvalRequests={approvals}
         approvalEvents={approvalEvents}
+        userRole={userRole}
+        actorLabel={actorLabel}
+      />
+
+      {/* ── Phase V: Manual Publishing Evidence & Result Intake Room (local/demo only) ── */}
+      <ManualPublishingEvidencePanel
+        campaign={campaign}
         userRole={userRole}
         actorLabel={actorLabel}
       />
