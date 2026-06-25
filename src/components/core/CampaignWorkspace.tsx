@@ -38,6 +38,14 @@
 // URL, fires no notification, uses no connector, and never publishes: "client_accepted
 // ≠ Published" and "owner_ready_for_manual_publish" stays gated behind the Phase R
 // checklist as a manual, Owner-controlled step.
+//
+// Phase U (Delivery Closure & Manual Publishing Handoff Control) adds the self-contained
+// <DeliveryClosurePanel> child — a LOCAL/DEMO closeout layer that makes the after-
+// acceptance situation explicit. It derives a closure status, surfaces unresolved
+// feedback, a manual publishing checklist, an external publishing owner, closure notes,
+// and a local audit trail. "Client accepted ≠ Published" stays visible, publishing is
+// completed MANUALLY outside CORE, and "manually marked as published" is an explicit
+// operator annotation only — Core never publishes, posts, schedules, launches, or spends.
 // See CLAUDE.md §3 (Workflow), §4 (Safety), §6 (Output Status), §7 (Connectors).
 // ---------------------------------------------------------------------------
 import React from 'react';
@@ -83,6 +91,7 @@ import CampaignPackPanel from './CampaignPackPanel';
 import ManualPublishingChecklistPanel from './ManualPublishingChecklistPanel';
 import ClientDeliveryRoomPanel from './ClientDeliveryRoomPanel';
 import DeliveryAcceptancePanel from './DeliveryAcceptancePanel';
+import DeliveryClosurePanel from './DeliveryClosurePanel';
 
 export interface CampaignWorkspaceOption {
   id: string;
@@ -547,6 +556,19 @@ export default function CampaignWorkspace({
 
       {/* ── Phase T: Client Feedback Intake & Delivery Acceptance (local/mock only) ── */}
       <DeliveryAcceptancePanel
+        campaign={campaign}
+        client={client}
+        brand={brand}
+        briefs={brief ? [brief] : []}
+        contentItems={contentItems}
+        approvalRequests={approvals}
+        approvalEvents={approvalEvents}
+        userRole={userRole}
+        actorLabel={actorLabel}
+      />
+
+      {/* ── Phase U: Delivery Closure & Manual Publishing Handoff Control (local/demo only) ── */}
+      <DeliveryClosurePanel
         campaign={campaign}
         client={client}
         brand={brand}
