@@ -86,6 +86,7 @@ const ExportPackTab         = lazy(() => import('./components/core/ExportPackTab
 const ClientHandoffTab      = lazy(() => import('./components/core/ClientHandoffTab'));
 const FeedbackRevisionTab   = lazy(() => import('./components/core/FeedbackRevisionTab'));
 const ConnectorRegistryTab  = lazy(() => import('./components/core/ConnectorRegistryTab'));
+const ConnectorDashboardTab = lazy(() => import('./connectors/dashboard').then(m => ({ default: m.ConnectorDashboard })));
 const AutomationLogsTab     = lazy(() => import('./components/core/AutomationLogsTab'));
 const AutomationFactoryTab  = lazy(() => import('./components/core/AutomationFactoryTab'));
 // Phase J: owner operations panel (Today's Production Status / Next Owner Actions
@@ -1435,6 +1436,14 @@ export default function App() {
               <Network size={18} /> Connector Registry
             </button>
 
+            <button
+              className={`btn btn-secondary ${activeTab === 'connector-dashboard' ? 'active' : ''}`}
+              style={{ width: '100%', justifyContent: 'flex-start', border: activeTab === 'connector-dashboard' ? '1px solid rgba(251, 146, 60,0.5)' : '', background: activeTab === 'connector-dashboard' ? 'rgba(244, 122, 31,0.1)' : '' }}
+              onClick={() => setActiveTab('connector-dashboard')}
+            >
+              <Network size={18} /> Connector Dashboard
+            </button>
+
             {viewMode === 'owner' && (user?.role === 'owner' || user?.role === 'manager') && (
               <button
                 className={`btn btn-secondary ${activeTab === 'automation-logs' ? 'active' : ''}`}
@@ -1847,6 +1856,11 @@ export default function App() {
                   actorLabel={actorLabel}
                   isSupabaseConfigured={isSupabaseConfigured}
                 />
+              )}
+
+              {/* ── T4-8: Connector Dashboard Tab ── */}
+              {activeTab === 'connector-dashboard' && (
+                <ConnectorDashboardTab />
               )}
 
               {/* ── Internal Automation Factory Tab ── */}
