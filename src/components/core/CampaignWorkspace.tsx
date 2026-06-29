@@ -56,6 +56,22 @@
 // metrics — then drafts a post-publish report that labels provided vs simulated/unverified
 // data and flags missing data. "CORE does not publish", "No live analytics connected", and
 // "Manual evidence only" stay visible; Core publishes nothing and pulls no analytics.
+//
+// Phase W (Manual Publishing Result Review & Campaign Learning Loop) adds the
+// <ManualResultReviewPanel> child — a LOCAL/DEMO REVIEW layer that REVIEWS (never gathers)
+// the Owner-provided manual result data and derives a deterministic review status
+// (no_manual_evidence / evidence_logged_result_pending / provided_manual_result_reviewed),
+// a result summary, evidence/attribution/confidence quality, risk flags (incomplete
+// conversion, weak attribution, complaint, stockout, content-accuracy, timing), repeat/avoid
+// recommendations, next actions, and a Brand Brain LEARNING CANDIDATE PREVIEW. "Manual review
+// only", "No live analytics", "Does not change Published status", and "Learning candidate
+// only — Not persisted to Brand Brain yet" stay visible; it pulls no analytics, calls no
+// connector, and never writes/auto-updates Brand Brain.
+//
+// To keep this workspace STATELESS (Phase K guard) while letting Phase W review the SAME
+// evidence the Owner records in Phase V, both panels are rendered by the small stateful
+// <ManualPublishingEvidenceSection> wrapper, which owns the single shared evidence state
+// (default EMPTY — nothing is "published/reviewed" until the Owner records manual evidence).
 // See CLAUDE.md §3 (Workflow), §4 (Safety), §6 (Output Status), §7 (Connectors).
 // ---------------------------------------------------------------------------
 import React from 'react';
@@ -102,7 +118,7 @@ import ManualPublishingChecklistPanel from './ManualPublishingChecklistPanel';
 import ClientDeliveryRoomPanel from './ClientDeliveryRoomPanel';
 import DeliveryAcceptancePanel from './DeliveryAcceptancePanel';
 import DeliveryClosurePanel from './DeliveryClosurePanel';
-import ManualPublishingEvidencePanel from './ManualPublishingEvidencePanel';
+import ManualPublishingEvidenceSection from './ManualPublishingEvidenceSection';
 
 export interface CampaignWorkspaceOption {
   id: string;
@@ -591,8 +607,11 @@ export default function CampaignWorkspace({
         actorLabel={actorLabel}
       />
 
-      {/* ── Phase V: Manual Publishing Evidence & Result Intake Room (local/demo only) ── */}
-      <ManualPublishingEvidencePanel
+      {/* ── Phase V + W: Manual Publishing Evidence (record) + Result Review (review the
+             SAME shared evidence). State is owned by the section wrapper so this workspace
+             stays stateless; default is empty, so nothing is "published/reviewed" until the
+             Owner records manual evidence. (local/demo only) ── */}
+      <ManualPublishingEvidenceSection
         campaign={campaign}
         userRole={userRole}
         actorLabel={actorLabel}

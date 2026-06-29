@@ -33,6 +33,15 @@ describe('ManualPublishingEvidencePanel (Phase V manual publishing evidence & re
     expect(SOURCE).toMatch(/sampleManualPublishingEvidence/);
   });
 
+  it('is controlled — evidence/result state is lifted via props, never auto-seeded on mount', () => {
+    // Controlled by the section wrapper so Phase W reviews the SAME evidence.
+    expect(SOURCE).toMatch(/evidence:\s*ManualPublishingEvidence\[\]/);
+    expect(SOURCE).toMatch(/onChange:\s*\(next: ManualPublishingEvidence\[\]\) => void/);
+    // The sample is now an OPT-IN, clearly-labeled example loader — never an auto-seed on mount.
+    expect(SOURCE).not.toMatch(/useState<ManualPublishingEvidence\[\]>\(\s*\(\) => sampleManualPublishingEvidence/);
+    expect(SOURCE).toMatch(/Load example data \(sample\)/);
+  });
+
   it('surfaces the four required UI sections', () => {
     expect(SOURCE).toMatch(/Publishing [Ss]tatus/);
     expect(SOURCE).toMatch(/Evidence \/ URL \/ Screenshot note/);

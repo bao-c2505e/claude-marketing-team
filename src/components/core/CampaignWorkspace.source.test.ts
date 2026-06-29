@@ -76,4 +76,12 @@ describe('CampaignWorkspace (Phase K drill-down safety + content guard)', () => 
     expect(SOURCE).toMatch(/onNavigate/);
     expect(SOURCE).not.toMatch(/useState|useReducer/);
   });
+
+  it('wires the Manual Publishing Evidence + Result Review via the shared stateful section', () => {
+    // The workspace stays stateless; the shared manual evidence/result state lives in the
+    // section wrapper, which renders the Phase V evidence panel and the Phase W result-review
+    // panel against ONE source of truth (review reflects the SAME Owner-provided evidence).
+    expect(SOURCE).toMatch(/import\s+ManualPublishingEvidenceSection\s+from\s+'\.\/ManualPublishingEvidenceSection'/);
+    expect(SOURCE).toMatch(/<ManualPublishingEvidenceSection/);
+  });
 });

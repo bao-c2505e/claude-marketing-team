@@ -7,9 +7,10 @@
 //
 //   • Local/demo only: NO publishing, NO ads, NO live Meta/TikTok/Zalo/Google/Canva
 //     connector, NO real endpoint call, NO live credentials/API, NO live analytics pull,
-//     NO network call. Evidence rows, statuses, manual result metrics, and the report
-//     draft all live in this component's local React state, seeded by the deterministic
-//     `sampleManualPublishingEvidence` mock.
+//     NO network call. The evidence rows / statuses / manual result metrics are CONTROLLED
+//     via props — the shared state is lifted to <ManualPublishingEvidenceSection> and defaults
+//     EMPTY; the deterministic `sampleManualPublishingEvidence` mock is loaded ONLY via the
+//     explicit, clearly-labeled "Load example data (sample)" opt-in, never auto-seeded as real data.
 //   • CORE does not publish. Every value is Owner/Client-provided (or simulated demo)
 //     EVIDENCE. A recorded `publicUrl` is the Owner pasting where THEY published — it is
 //     data, not an action Core took. "Manually published" only RECORDS a manual outside-
@@ -19,8 +20,9 @@
 //     unless owner/client-provided, and there is no live analytics anywhere.
 //   • Nothing here mutates approval state. Approval decisions stay in the Approval Queue.
 //
-// Self-contained on purpose so the parent CampaignWorkspace stays stateless and its
-// Phase K source-scan safety test keeps holding. A source-scan test
+// The shared evidence/result state is OWNED by <ManualPublishingEvidenceSection> (so the parent
+// CampaignWorkspace stays stateless and its Phase K source-scan safety test keeps holding), and
+// the Phase W <ManualResultReviewPanel> reviews the SAME state. A source-scan test
 // (`ManualPublishingEvidencePanel.source.test.ts`) enforces the safety posture.
 // See CLAUDE.md §4 (Safety), §6 (Output Status Model).
 // ---------------------------------------------------------------------------
@@ -70,6 +72,14 @@ interface Props {
   campaign: Campaign;
   userRole: RoleName | null;
   actorLabel: string;
+  /**
+   * Controlled: the shared manual publishing evidence/result state, lifted to the section
+   * wrapper so the Phase W result-review panel reviews the SAME Owner-provided evidence.
+   * Defaults to empty there — nothing is presented as published until the Owner records it.
+   */
+  evidence: ManualPublishingEvidence[];
+  /** Controlled: report a NEW evidence array up to the owning section (pure transforms). */
+  onChange: (next: ManualPublishingEvidence[]) => void;
 }
 
 const ACCENT = '#2dd4bf';
@@ -103,11 +113,8 @@ const fieldLabel: React.CSSProperties = {
   fontSize: '0.68rem', color: 'var(--text-muted)', display: 'block', marginBottom: '3px',
 };
 
-export default function ManualPublishingEvidencePanel({ campaign, userRole, actorLabel }: Props) {
-  // ── Local/demo state only — no persistence, no network. ──
-  const [evidence, setEvidence] = useState<ManualPublishingEvidence[]>(
-    () => sampleManualPublishingEvidence(campaign.id),
-  );
+export default function ManualPublishingEvidencePanel({ campaign, userRole, actorLabel, evidence, onChange }: Props) {
+  // ── UI-only local state (no persistence, no network). Evidence is lifted/controlled. ──
   const [copied, setCopied] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
 
@@ -117,26 +124,32 @@ export default function ManualPublishingEvidencePanel({ campaign, userRole, acto
   const report = useMemo(() => buildPublishingEvidenceReport(evidence), [evidence]);
   const previewText = useMemo(() => renderPublishingEvidenceReportText(report, campaign.name), [report, campaign.name]);
 
-  // ── Local mutators (no external effect) ──
+  // ── Local mutators — pure transforms reported up via onChange (no external effect). ──
   const handleAdd = useCallback(() => {
     if (!canAct) return;
-    setEvidence(prev => addEvidence(prev, {
+    onChange(addEvidence(evidence, {
       campaignId: campaign.id,
       channel: '',
       publishStatus: 'not_published',
       resultDataSource: 'not_provided',
     }));
-  }, [canAct, campaign.id]);
+  }, [canAct, campaign.id, evidence, onChange]);
+
+  // Opt-in EXAMPLE seed — clearly labeled sample data, NOT real Owner results. Never auto-loaded.
+  const handleLoadExample = useCallback(() => {
+    if (!canAct) return;
+    onChange(sampleManualPublishingEvidence(campaign.id));
+  }, [canAct, campaign.id, onChange]);
 
   const handleRemove = useCallback((id: string) => {
     if (!canAct) return;
-    setEvidence(prev => removeEvidence(prev, id));
-  }, [canAct]);
+    onChange(removeEvidence(evidence, id));
+  }, [canAct, evidence, onChange]);
 
   const patch = useCallback((id: string, p: Partial<Parameters<typeof updateEvidence>[2]>) => {
     if (!canAct) return;
-    setEvidence(prev => updateEvidence(prev, id, p));
-  }, [canAct]);
+    onChange(updateEvidence(evidence, id, p));
+  }, [canAct, evidence, onChange]);
 
   const patchMetric = useCallback((row: ManualPublishingEvidence, key: ResultMetricKey, raw: string) => {
     if (!canAct) return;
@@ -147,8 +160,8 @@ export default function ManualPublishingEvidencePanel({ campaign, userRole, acto
       const n = Number(raw);
       if (Number.isFinite(n)) next[key] = n;
     }
-    setEvidence(prev => updateEvidence(prev, row.id, { metrics: next }));
-  }, [canAct]);
+    onChange(updateEvidence(evidence, row.id, { metrics: next }));
+  }, [canAct, evidence, onChange]);
 
   const handleCopy = useCallback(async () => {
     if (!canAct) return;
@@ -190,9 +203,16 @@ export default function ManualPublishingEvidencePanel({ campaign, userRole, acto
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '4px' }}>
           <div style={{ ...labelStyle, marginBottom: 0 }}><CheckCircle2 size={11} style={{ marginRight: '4px' }} />Publishing Status (manually recorded only)</div>
           {canAct && (
-            <button onClick={handleAdd} style={miniBtn(ACCENT, false)}>
-              <PlusCircle size={12} /> Add evidence row
-            </button>
+            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+              <button onClick={handleAdd} style={miniBtn(ACCENT, false)}>
+                <PlusCircle size={12} /> Add evidence row
+              </button>
+              {evidence.length === 0 && (
+                <button onClick={handleLoadExample} style={miniBtn('#94a3b8', false)} title="Load example (sample) evidence — NOT real Owner data">
+                  Load example data (sample)
+                </button>
+              )}
+            </div>
           )}
         </div>
         <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap', marginTop: '8px' }}>
@@ -208,7 +228,7 @@ export default function ManualPublishingEvidencePanel({ campaign, userRole, acto
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '14px' }}>
         {rows.length === 0 && (
           <div style={{ ...cardStyle, fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-            No manual publishing evidence recorded yet. {canAct ? 'Use “Add evidence row” to record what was published manually outside CORE.' : ''}
+            No manual publishing evidence recorded yet. {canAct ? 'Use “Add evidence row” to record what was published manually outside CORE, or “Load example data (sample)” to preview with clearly-labeled sample data.' : ''}
           </div>
         )}
         {rows.map(row => {
