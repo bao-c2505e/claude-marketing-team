@@ -47,6 +47,8 @@ import {
   MODULE_EVENT_TYPES,
 } from '../../lib/core/connectorRegistry';
 import type { ConnectorRegistryStore } from '../../lib/core/connectorRegistry';
+import { checkN8nHealth } from '../../lib/core/connectors/adapters/n8n/n8nLiveService';
+import { checkGdriveHealth } from '../../lib/core/connectors/adapters/drive/gdriveLiveService';
 import {
   connectorActivationBadge,
   CONNECTOR_ACTIVATION_STATUS_LABEL,
@@ -172,6 +174,44 @@ export default function ConnectorRegistryTab({
     saveStore(simulateHealthCheck(store, id));
   };
 
+  // ── n8n live health check (T4-6-A) ───────────────────────────────────────
+  const [isCheckingN8n, setIsCheckingN8n] = useState(false);
+  const [n8nHealthResult, setN8nHealthResult] = useState<{ healthy: boolean; note: string } | null>(null);
+  const [n8nHealthError, setN8nHealthError] = useState<string | null>(null);
+
+  const handleN8nHealthCheck = async () => {
+    setIsCheckingN8n(true);
+    setN8nHealthError(null);
+    setN8nHealthResult(null);
+    try {
+      const result = await checkN8nHealth();
+      setN8nHealthResult(result);
+    } catch (err) {
+      setN8nHealthError(err instanceof Error ? err.message : 'Health check failed');
+    } finally {
+      setIsCheckingN8n(false);
+    }
+  };
+
+  // ── Google Drive live health check (T4-7) ────────────────────────────────
+  const [isCheckingGdrive, setIsCheckingGdrive] = useState(false);
+  const [gdriveHealthResult, setGdriveHealthResult] = useState<{ healthy: boolean; note: string } | null>(null);
+  const [gdriveHealthError, setGdriveHealthError] = useState<string | null>(null);
+
+  const handleGdriveHealthCheck = async () => {
+    setIsCheckingGdrive(true);
+    setGdriveHealthError(null);
+    setGdriveHealthResult(null);
+    try {
+      const result = await checkGdriveHealth();
+      setGdriveHealthResult(result);
+    } catch (err) {
+      setGdriveHealthError(err instanceof Error ? err.message : 'Health check failed');
+    } finally {
+      setIsCheckingGdrive(false);
+    }
+  };
+
   // ── Module actions ────────────────────────────────────────────────────────
 
   const handleModuleStatus = (id: string, status: LocalModuleStatus) => {
@@ -294,13 +334,36 @@ export default function ConnectorRegistryTab({
             )}
 
             {canManage && (
-              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', borderTop: '1px solid var(--border-color)', paddingTop: '10px' }}>
-                <button
-                  onClick={() => handleHealthCheck(conn.id)}
-                  style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 10px', borderRadius: '6px', fontSize: '0.73rem', cursor: 'pointer', background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border-color)', color: 'var(--text-secondary)' }}
-                >
-                  <RefreshCw size={11} /> Simulate Health Check
-                </button>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', borderTop: '1px solid var(--border-color)', paddingTop: '10px' }}>
+                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                {conn.connector_type === 'n8n' ? (
+                  <button
+                    onClick={handleN8nHealthCheck}
+                    disabled={isCheckingN8n}
+                    aria-label="Check n8n health"
+                    aria-busy={isCheckingN8n}
+                    style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 10px', borderRadius: '6px', fontSize: '0.73rem', cursor: isCheckingN8n ? 'not-allowed' : 'pointer', background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border-color)', color: 'var(--text-secondary)', opacity: isCheckingN8n ? 0.6 : 1 }}
+                  >
+                    <RefreshCw size={11} /> {isCheckingN8n ? 'Checking…' : 'Check n8n Health'}
+                  </button>
+                ) : conn.connector_type === 'google_drive' ? (
+                  <button
+                    onClick={handleGdriveHealthCheck}
+                    disabled={isCheckingGdrive}
+                    aria-label="Check Drive health"
+                    aria-busy={isCheckingGdrive}
+                    style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 10px', borderRadius: '6px', fontSize: '0.73rem', cursor: isCheckingGdrive ? 'not-allowed' : 'pointer', background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border-color)', color: 'var(--text-secondary)', opacity: isCheckingGdrive ? 0.6 : 1 }}
+                  >
+                    <RefreshCw size={11} /> {isCheckingGdrive ? 'Checking…' : 'Check Drive Health'}
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => handleHealthCheck(conn.id)}
+                    style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 10px', borderRadius: '6px', fontSize: '0.73rem', cursor: 'pointer', background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border-color)', color: 'var(--text-secondary)' }}
+                  >
+                    <RefreshCw size={11} /> Simulate Health Check
+                  </button>
+                )}
                 {conn.status !== 'configured' && conn.status !== 'connected' && conn.status !== 'disabled' && (
                   <button
                     onClick={() => handleConnectorStatus(conn.id, 'configured')}
@@ -331,6 +394,25 @@ export default function ConnectorRegistryTab({
                   >
                     Re-enable
                   </button>
+                )}
+                </div>
+                {/* n8n live health check result (T4-6-A) */}
+                {conn.connector_type === 'n8n' && n8nHealthResult && (
+                  <span style={{ fontSize: '0.73rem', color: n8nHealthResult.healthy ? '#34d399' : '#f87171' }}>
+                    {n8nHealthResult.healthy ? '✓ n8n reachable' : '✗ n8n unreachable'} — {n8nHealthResult.note}
+                  </span>
+                )}
+                {conn.connector_type === 'n8n' && n8nHealthError && (
+                  <span style={{ fontSize: '0.73rem', color: '#f87171' }}>✗ {n8nHealthError}</span>
+                )}
+                {/* Google Drive live health check result (T4-7) */}
+                {conn.connector_type === 'google_drive' && gdriveHealthResult && (
+                  <span style={{ fontSize: '0.73rem', color: gdriveHealthResult.healthy ? '#34d399' : '#f87171' }}>
+                    {gdriveHealthResult.healthy ? '✓ Drive reachable' : '✗ Drive unreachable'} — {gdriveHealthResult.note}
+                  </span>
+                )}
+                {conn.connector_type === 'google_drive' && gdriveHealthError && (
+                  <span style={{ fontSize: '0.73rem', color: '#f87171' }}>✗ {gdriveHealthError}</span>
                 )}
               </div>
             )}
