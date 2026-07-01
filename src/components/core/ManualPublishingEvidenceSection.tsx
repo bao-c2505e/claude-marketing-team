@@ -1,4 +1,4 @@
-// Manual Publishing Evidence + Result Review Section — Phase V/W/X/Y glue
+// Manual Publishing Evidence + Result Review Section — Phase V/W/X/Y/Z glue
 // ---------------------------------------------------------------------------
 // A tiny stateful container that owns ONE shared, local/demo source of truth for the
 // Owner-provided manual publishing evidence/result, and renders the sibling panels
@@ -15,7 +15,13 @@
 //   • <BrandBrainUpdateProposalPanel> (Phase Y) — turns the Owner-ACCEPTED Phase X
 //     candidates into an explicit Brand Brain UPDATE PROPOSAL with a before/after diff and
 //     a SEPARATE Owner merge-approval gate. Accepted learning does NOT auto-update Brand
-//     Brain; approval only marks the proposal ready for a separate, manual apply step.
+//     Brain; approval only marks the proposal ready for a separate, manual apply step. It
+//     mirrors the current proposal up (`onProposalChange`) so Phase Z can act on it.
+//   • <BrandBrainManualApplyPanel> (Phase Z) — the SEPARATE, explicit Owner MANUAL APPLY
+//     room. Only an Owner-APPROVED proposal can be applied; applying APPENDS a new
+//     versioned Brand Brain snapshot (preserving every previous version) with a full audit
+//     trail. Approval alone never auto-applies — Brand Brain changes are not active until
+//     the Owner explicitly applies them.
 //
 // Why this wrapper exists: the parent CampaignWorkspace is intentionally STATELESS
 // (enforced by its Phase K source-scan test — no useState/useReducer), so the lifted
@@ -30,10 +36,12 @@ import { useState } from 'react';
 import type { Campaign, Client, Brand, CampaignBrief, AssetItem, RoleName } from '../../types/core';
 import type { ManualPublishingEvidence } from '../../lib/core/manualPublishingEvidence';
 import type { LearningCandidateReview } from '../../lib/core/brandBrainLearning';
+import type { BrandBrainUpdateProposal } from '../../lib/core/brandBrainUpdateProposal';
 import ManualPublishingEvidencePanel from './ManualPublishingEvidencePanel';
 import ManualResultReviewPanel from './ManualResultReviewPanel';
 import BrandBrainLearningReviewPanel from './BrandBrainLearningReviewPanel';
 import BrandBrainUpdateProposalPanel from './BrandBrainUpdateProposalPanel';
+import BrandBrainManualApplyPanel from './BrandBrainManualApplyPanel';
 
 interface Props {
   campaign: Campaign;
@@ -55,6 +63,10 @@ export default function ManualPublishingEvidenceSection({
   // Mirror of the Phase X learning-review decisions (owned by the Phase X panel).
   // Phase Y reads the ACCEPTED candidates from here — nothing is auto-updated.
   const [learningReviews, setLearningReviews] = useState<LearningCandidateReview[]>([]);
+
+  // Mirror of the Phase Y proposal (owned by the Phase Y panel). Phase Z reads an
+  // Owner-APPROVED proposal from here — approving never auto-applies it.
+  const [proposal, setProposal] = useState<BrandBrainUpdateProposal | null>(null);
 
   return (
     <>
@@ -87,6 +99,17 @@ export default function ManualPublishingEvidenceSection({
         userRole={userRole}
         actorLabel={actorLabel}
         reviews={learningReviews}
+        onProposalChange={setProposal}
+      />
+      <BrandBrainManualApplyPanel
+        campaign={campaign}
+        brand={brand}
+        client={client}
+        brief={brief}
+        assets={assets}
+        userRole={userRole}
+        actorLabel={actorLabel}
+        proposal={proposal}
       />
     </>
   );

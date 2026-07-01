@@ -63,6 +63,11 @@ interface Props {
   actorLabel: string;
   /** Phase X Owner review list — only ACCEPTED entries feed the proposal. */
   reviews: LearningCandidateReview[];
+  /**
+   * Mirror the current proposal up so the Phase Z manual-apply room can read an
+   * Owner-APPROVED proposal. Purely a read-up — it never applies or persists.
+   */
+  onProposalChange?: (proposal: BrandBrainUpdateProposal | null) => void;
 }
 
 const ACCENT = '#2dd4bf';
@@ -96,7 +101,7 @@ function kindColor(kind: string): string {
 }
 
 export default function BrandBrainUpdateProposalPanel({
-  campaign, brand, client, brief, assets, userRole, actorLabel, reviews,
+  campaign, brand, client, brief, assets, userRole, actorLabel, reviews, onProposalChange,
 }: Props) {
   const canDecide = can.publishContent(userRole);
 
@@ -139,6 +144,12 @@ export default function BrandBrainUpdateProposalPanel({
   useEffect(() => {
     if (proposalStale) setProposal(null);
   }, [proposalStale]);
+
+  // Mirror the current proposal up (read-only) so the Phase Z manual-apply room
+  // can act on an Owner-APPROVED proposal. This never applies or persists anything.
+  useEffect(() => {
+    onProposalChange?.(proposal);
+  }, [proposal, onProposalChange]);
 
   const prepare = useCallback(() => {
     if (!canDecide || !brain || acceptedReviews.length === 0) return;
