@@ -62,6 +62,12 @@ interface Props {
   actorLabel: string;
   /** The ACTUAL Owner-provided manual publishing evidence (shared, lifted from the section). */
   evidence: ManualPublishingEvidence[];
+  /**
+   * Optional — mirror the current review list up to the parent so a sibling panel
+   * (Phase Y Brand Brain Update Proposal) can consume the ACCEPTED candidates.
+   * This panel stays authoritative over its own decision state; the callback only reports.
+   */
+  onReviewsChange?: (reviews: LearningCandidateReview[]) => void;
 }
 
 const ACCENT = '#a78bfa';
@@ -94,7 +100,7 @@ function kindColor(kind: string): string {
   return kind === 'repeat' ? '#34d399' : kind === 'avoid' ? '#f87171' : '#fbbf24';
 }
 
-export default function BrandBrainLearningReviewPanel({ campaign, userRole, actorLabel, evidence }: Props) {
+export default function BrandBrainLearningReviewPanel({ campaign, userRole, actorLabel, evidence, onReviewsChange }: Props) {
   // ── Candidates come from Phase W, derived from the SAME shared evidence. ──
   const review = useMemo(
     () => buildManualResultReview(evidence.map(e => ({ evidence: e }))),
@@ -117,6 +123,13 @@ export default function BrandBrainLearningReviewPanel({ campaign, userRole, acto
     // candSig is the stable signature of `candidates`.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [candSig]);
+
+  // Mirror the current reviews up (read-only) so a sibling panel can read the
+  // ACCEPTED candidates. This panel remains authoritative over its own state.
+  useEffect(() => {
+    onReviewsChange?.(reviews);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reviews]);
 
   // Owner-only authority for learning decisions (not manager).
   const canDecide = can.publishContent(userRole);

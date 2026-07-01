@@ -613,6 +613,10 @@ export default function CampaignWorkspace({
              Owner records manual evidence. (local/demo only) ── */}
       <ManualPublishingEvidenceSection
         campaign={campaign}
+        client={client}
+        brand={brand}
+        brief={brief}
+        assets={assets}
         userRole={userRole}
         actorLabel={actorLabel}
       />
