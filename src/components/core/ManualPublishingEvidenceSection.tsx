@@ -8,6 +8,9 @@
 //     (controlled via `evidence` + `onChange`).
 //   • <ManualResultReviewPanel> (Phase W) — REVIEWS that SAME evidence (read-only),
 //     so the review always reflects the actual Owner-provided state, never a private copy.
+//   • <BrandBrainLearningReviewPanel> (Phase X) — Owner-only ACCEPT/REJECT of the Phase W
+//     learning candidates (derived from the SAME evidence) into a PREPARED Brand Brain
+//     update proposal. Never writes to / auto-updates the Brand Brain source of truth.
 //
 // Why this wrapper exists: the parent CampaignWorkspace is intentionally STATELESS
 // (enforced by its Phase K source-scan test — no useState/useReducer), so the lifted
@@ -23,6 +26,7 @@ import type { Campaign, RoleName } from '../../types/core';
 import type { ManualPublishingEvidence } from '../../lib/core/manualPublishingEvidence';
 import ManualPublishingEvidencePanel from './ManualPublishingEvidencePanel';
 import ManualResultReviewPanel from './ManualResultReviewPanel';
+import BrandBrainLearningReviewPanel from './BrandBrainLearningReviewPanel';
 
 interface Props {
   campaign: Campaign;
@@ -45,6 +49,12 @@ export default function ManualPublishingEvidenceSection({ campaign, userRole, ac
         onChange={setEvidence}
       />
       <ManualResultReviewPanel
+        campaign={campaign}
+        userRole={userRole}
+        actorLabel={actorLabel}
+        evidence={evidence}
+      />
+      <BrandBrainLearningReviewPanel
         campaign={campaign}
         userRole={userRole}
         actorLabel={actorLabel}
