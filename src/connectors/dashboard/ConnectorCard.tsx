@@ -6,9 +6,10 @@ import { StatusBadge, ModeBadge } from './connectorBadges';
 interface Props {
   item: ConnectorDashboardItem;
   onCheck: (item: ConnectorDashboardItem) => void;
+  onOpenDetail: (item: ConnectorDashboardItem) => void;
 }
 
-export function ConnectorCard({ item, onCheck }: Props) {
+export function ConnectorCard({ item, onCheck, onOpenDetail }: Props) {
   const { connector, isChecking, healthLog } = item;
   const isLive = isLiveCheckSupported(connector.connector_type);
 
@@ -16,7 +17,10 @@ export function ConnectorCard({ item, onCheck }: Props) {
     <div
       data-testid={`connector-card-${connector.id}`}
       className="glass-panel"
-      style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}
+      role="button"
+      tabIndex={0}
+      onClick={() => onOpenDetail(item)}
+      style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', cursor: 'pointer' }}
     >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div>
@@ -55,7 +59,7 @@ export function ConnectorCard({ item, onCheck }: Props) {
 
       <button
         data-testid={`check-btn-${connector.id}`}
-        onClick={() => onCheck(item)}
+        onClick={(e) => { e.stopPropagation(); onCheck(item); }}
         disabled={isChecking}
         className={isLive ? 'btn btn-primary' : 'btn btn-secondary'}
         style={{ marginTop: 4, fontSize: '0.75rem' }}
