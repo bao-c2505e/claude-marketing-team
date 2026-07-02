@@ -118,6 +118,7 @@ import ManualPublishingChecklistPanel from './ManualPublishingChecklistPanel';
 import ClientDeliveryRoomPanel from './ClientDeliveryRoomPanel';
 import DeliveryAcceptancePanel from './DeliveryAcceptancePanel';
 import DeliveryClosurePanel from './DeliveryClosurePanel';
+import CoreV1FlowPanel from './CoreV1FlowPanel';
 import ManualPublishingEvidenceSection from './ManualPublishingEvidenceSection';
 
 export interface CampaignWorkspaceOption {
@@ -596,6 +597,23 @@ export default function CampaignWorkspace({
 
       {/* ── Phase U: Delivery Closure & Manual Publishing Handoff Control (local/demo only) ── */}
       <DeliveryClosurePanel
+        campaign={campaign}
+        client={client}
+        brand={brand}
+        briefs={brief ? [brief] : []}
+        contentItems={contentItems}
+        approvalRequests={approvals}
+        approvalEvents={approvalEvents}
+        userRole={userRole}
+        actorLabel={actorLabel}
+      />
+
+      {/* ── CORE V1 Integration Closure: the whole approval-first flow in one panel —
+             official Brand Brain version, approval-gated connector command handoff,
+             connector readiness, and the end-to-end status chain. It marks nothing
+             Published and runs no connector; the publishing-evidence bridge points to
+             the Manual Publishing Evidence section below. ── */}
+      <CoreV1FlowPanel
         campaign={campaign}
         client={client}
         brand={brand}
