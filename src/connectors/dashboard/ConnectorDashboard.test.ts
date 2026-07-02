@@ -13,6 +13,7 @@ import CARD from './ConnectorCard.tsx?raw';
 import SUMMARY_BAR from './ConnectorSummaryBar.tsx?raw';
 import HEALTH_LOG from './ConnectorHealthLog.tsx?raw';
 import READONLY_HEALTH from './ReadOnlyHealthSection.tsx?raw';
+import READONLY_PREVIEW from './ReadOnlyPreviewSection.tsx?raw';
 
 // ── Pure logic imports ─────────────────────────────────────────────────────────
 import { isLiveCheckSupported } from './connectorDashboard.types';
@@ -415,5 +416,63 @@ describe('ReadOnlyHealthSection — read-only connector health (T4-15)', () => {
 
   it('has no execution or publishing-action wording', () => {
     expect(READONLY_HEALTH).not.toMatch(/execute|publish now|auto-post|auto-ads|run ads|go live|upload|send to n8n|write to drive/i);
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SOURCE SCAN: ReadOnlyPreviewSection.tsx — read-only previews (T4-16)
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('ReadOnlyPreviewSection — read-only connector previews (T4-16)', () => {
+  it('dashboard renders the section alongside the intact T4-15 health section', () => {
+    expect(DASHBOARD).toContain('ReadOnlyPreviewSection');
+    expect(DASHBOARD).toMatch(/<ReadOnlyPreviewSection \/>/);
+    // T4-15 health section is still rendered.
+    expect(DASHBOARD).toMatch(/<ReadOnlyHealthSection \/>/);
+    // T4-13/T4-14 snapshot preview/freshness/clear surface is still intact.
+    expect(DASHBOARD).toMatch(/getValidatedConnectorCommandSnapshot/);
+    expect(DASHBOARD).toMatch(/clearConnectorCommandSnapshot\(\)/);
+    expect(DASHBOARD).toMatch(/command-snapshot-stale-warning/);
+  });
+
+  it('offers the explicit Owner button "Check read-only connector previews"', () => {
+    expect(READONLY_PREVIEW).toContain('Check read-only connector previews');
+    expect(READONLY_PREVIEW).toContain('data-testid="check-readonly-previews-btn"');
+    expect(READONLY_PREVIEW).toMatch(/onClick=\{handleCheck\}/);
+    expect(READONLY_PREVIEW).toContain('disabled={isChecking}');
+  });
+
+  it('never auto-runs — no effects, no timers, no polling, no subscription', () => {
+    expect(READONLY_PREVIEW).not.toMatch(/useEffect|setInterval|setTimeout|subscribe/);
+  });
+
+  it('calls only the read-only preview registry — no direct network, storage, or command store access', () => {
+    expect(READONLY_PREVIEW).toContain('checkAllReadOnlyConnectorPreviews');
+    expect(READONLY_PREVIEW).not.toMatch(/fetch\s*\(|axios|XMLHttpRequest|https?:\/\/|webhook/i);
+    expect(READONLY_PREVIEW).not.toMatch(/localStorage|sessionStorage|indexedDB|BroadcastChannel/i);
+    expect(READONLY_PREVIEW).not.toMatch(/connectorCommandStore|ConnectorCommand\b/);
+  });
+
+  it('renders the normalized result fields and sanitized item summaries only', () => {
+    expect(READONLY_PREVIEW).toContain('result.previewType');
+    expect(READONLY_PREVIEW).toContain('result.mode');
+    expect(READONLY_PREVIEW).toContain('result.items.length');
+    expect(READONLY_PREVIEW).toContain('result.message');
+    expect(READONLY_PREVIEW).toContain('result.safetyNote');
+    expect(READONLY_PREVIEW).toContain('item.name');
+    expect(READONLY_PREVIEW).toContain('item.summary');
+    // Explicit read-only wording required by T4-16.
+    expect(READONLY_PREVIEW).toContain('read-only');
+    expect(READONLY_PREVIEW).toContain('no write');
+    expect(READONLY_PREVIEW).toContain('no publishing');
+    expect(READONLY_PREVIEW).toContain('no ads spend');
+    expect(READONLY_PREVIEW).toContain('no execution');
+  });
+
+  it('has no action wording that implies running, publishing, or uploading', () => {
+    expect(READONLY_PREVIEW).not.toMatch(/publish now|auto-post|auto-ads|run ads|go live|upload|send to n8n|write to drive|run workflow|trigger workflow/i);
+    // "execution" only ever appears inside negation copy ("no execution").
+    expect(READONLY_PREVIEW).not.toMatch(/(?<!no )execution/);
+    expect(READONLY_PREVIEW).not.toMatch(/\bexecute\b/i);
   });
 });

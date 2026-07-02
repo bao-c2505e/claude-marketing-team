@@ -4,6 +4,7 @@ import { ConnectorSummaryBar } from './ConnectorSummaryBar';
 import { ConnectorCard } from './ConnectorCard';
 import { ConnectorDetailPanel } from './ConnectorDetailPanel';
 import { ReadOnlyHealthSection } from './ReadOnlyHealthSection';
+import { ReadOnlyPreviewSection } from './ReadOnlyPreviewSection';
 import {
   getValidatedConnectorCommandSnapshot,
   getConnectorCommandSnapshotStatus,
@@ -93,6 +94,8 @@ export function ConnectorDashboard() {
       )}
       {/* T4-15: Owner-triggered read-only health checks — never auto-run. */}
       <ReadOnlyHealthSection />
+      {/* T4-16: Owner-triggered read-only previews (read receipts) — never auto-run. */}
+      <ReadOnlyPreviewSection />
       <ConnectorSummaryBar summary={summary} />
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1rem' }}>
         {items.map(item => (
