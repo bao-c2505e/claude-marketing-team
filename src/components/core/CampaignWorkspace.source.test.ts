@@ -84,4 +84,17 @@ describe('CampaignWorkspace (Phase K drill-down safety + content guard)', () => 
     expect(SOURCE).toMatch(/import\s+ManualPublishingEvidenceSection\s+from\s+'\.\/ManualPublishingEvidenceSection'/);
     expect(SOURCE).toMatch(/<ManualPublishingEvidenceSection/);
   });
+
+  // ── T4-11-B: the CORE V1 flow panel moved inside the evidence section ──
+
+  it('no longer renders CoreV1FlowPanel directly — it lives inside the evidence section', () => {
+    expect(SOURCE).not.toMatch(/<CoreV1FlowPanel/);
+    expect(SOURCE).not.toMatch(/import\s+CoreV1FlowPanel/);
+  });
+
+  it('forwards the flow-panel data to the section as pass-through props (still stateless)', () => {
+    expect(SOURCE).toMatch(/contentItems=\{contentItems\}/);
+    expect(SOURCE).toMatch(/approvalRequests=\{approvals\}/);
+    expect(SOURCE).toMatch(/approvalEvents=\{approvalEvents\}/);
+  });
 });

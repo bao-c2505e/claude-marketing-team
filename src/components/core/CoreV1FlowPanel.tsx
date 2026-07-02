@@ -94,11 +94,10 @@ interface Props {
   userRole: RoleName | null;
   actorLabel: string;
   /**
-   * Receipt signals for the 9-stage flow projection. The truthy source is OWNED
-   * by the sibling stateful section (ManualPublishingEvidenceSection) — until a
-   * receipts wire-in lifts that state to the parent, callers omit these and the
-   * stages honestly show as manual-required / pending.
-   * TODO: wire in when receipts wire-in lands
+   * Receipt signals for the 9-stage flow projection, derived from the ONE shared
+   * evidence state owned by ManualPublishingEvidenceSection (which renders this
+   * panel — T4-11-B). Optional with a false default so a standalone render still
+   * honestly shows those stages as manual-required / pending.
    */
   hasManualPublishingEvidence?: boolean;
   hasReviewedResult?: boolean;
@@ -198,9 +197,8 @@ export default function CoreV1FlowPanel({
     approvedCount: approvedItems.length,
     connectorCommandCount: commands.length,
     blockedConnectorCommandCount: cmdSummary.blocked,
-    // Evidence / review receipts come from optional props (default false) — the
-    // truthy source is owned by the sibling stateful section and is not lifted yet.
-    // TODO: wire in when receipts wire-in lands
+    // Evidence / review receipts come from props, derived by the owning section
+    // from the ONE shared evidence state (default false when rendered standalone).
     hasManualPublishingEvidence,
     hasReviewedResult,
     // Learning / proposal / apply are owned by the sibling stateful section —

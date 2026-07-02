@@ -89,7 +89,16 @@ describe('CoreV1FlowPanel (CORE V1 integration closure safety guard)', () => {
     expect(SOURCE).toMatch(/hasManualPublishingEvidence\s*=\s*false/);
     expect(SOURCE).toMatch(/hasReviewedResult\s*=\s*false/);
     expect(SOURCE).not.toMatch(/hasManualPublishingEvidence:\s*true|hasReviewedResult:\s*true/);
-    // The receipts wire-in is still pending — the TODO must stay visible.
-    expect(SOURCE).toMatch(/TODO: wire in when receipts wire-in lands/);
+  });
+
+  // ── T4-11-B: receipts wire-in landed — panel is rendered by the evidence section ──
+
+  it('receipts wire-in TODO is gone — the wire-in landed in T4-11-B', () => {
+    expect(SOURCE).not.toMatch(/TODO.*wire in when receipts wire-in lands/);
+  });
+
+  it('keeps both receipt props in the signature (optional, backward compatible)', () => {
+    expect(SOURCE).toMatch(/hasManualPublishingEvidence\?:\s*boolean/);
+    expect(SOURCE).toMatch(/hasReviewedResult\?:\s*boolean/);
   });
 });

@@ -32,11 +32,16 @@
 // Pure presentational + local React state only — no persistence, no network, no
 // connector. See CLAUDE.md §3 (Workflow), §4 (Safety), §6 (Output Status), §7 (Connectors).
 // ---------------------------------------------------------------------------
-import { useState } from 'react';
-import type { Campaign, Client, Brand, CampaignBrief, AssetItem, RoleName } from '../../types/core';
+import { useMemo, useState } from 'react';
+import type {
+  Campaign, Client, Brand, CampaignBrief, AssetItem, RoleName,
+  ContentPlanItem, ContentApprovalRequest, ContentApprovalEvent,
+} from '../../types/core';
 import type { ManualPublishingEvidence } from '../../lib/core/manualPublishingEvidence';
+import { buildManualResultReview } from '../../lib/core/manualResultReview';
 import type { LearningCandidateReview } from '../../lib/core/brandBrainLearning';
 import type { BrandBrainUpdateProposal } from '../../lib/core/brandBrainUpdateProposal';
+import CoreV1FlowPanel from './CoreV1FlowPanel';
 import ManualPublishingEvidencePanel from './ManualPublishingEvidencePanel';
 import ManualResultReviewPanel from './ManualResultReviewPanel';
 import BrandBrainLearningReviewPanel from './BrandBrainLearningReviewPanel';
@@ -51,10 +56,30 @@ interface Props {
   assets: AssetItem[];
   userRole: RoleName | null;
   actorLabel: string;
+  /** Forwarded to the CORE V1 flow panel (T4-11-B: the panel now renders here,
+   *  co-located with the shared evidence state it projects). */
+  contentItems: ContentPlanItem[];
+  approvalRequests: ContentApprovalRequest[];
+  approvalEvents: ContentApprovalEvent[];
+}
+
+/** True once the Owner has recorded at least one manual publishing evidence entry. */
+export function deriveHasManualPublishingEvidence(evidence: ManualPublishingEvidence[]): boolean {
+  return evidence.length > 0;
+}
+
+/**
+ * True once at least one recorded evidence entry is actually reviewable — same
+ * derivation the Phase W panel uses (buildManualResultReview over the SAME shared
+ * evidence): published entries with real Owner/Client-provided metrics.
+ */
+export function deriveHasReviewedResult(evidence: ManualPublishingEvidence[]): boolean {
+  return buildManualResultReview(evidence.map(e => ({ evidence: e }))).reviewedEntryCount > 0;
 }
 
 export default function ManualPublishingEvidenceSection({
   campaign, client, brand, brief, assets, userRole, actorLabel,
+  contentItems, approvalRequests, approvalEvents,
 }: Props) {
   // Single source of truth for Owner-provided manual publishing evidence/result.
   // Default EMPTY — no sample is auto-loaded, so nothing implies a published/reviewed post.
@@ -68,8 +93,29 @@ export default function ManualPublishingEvidenceSection({
   // Owner-APPROVED proposal from here — approving never auto-applies it.
   const [proposal, setProposal] = useState<BrandBrainUpdateProposal | null>(null);
 
+  // ── T4-11-B: receipts derived from the ONE shared evidence source of truth —
+  //    nothing is presented as evidenced/reviewed until the Owner records it. ──
+  const hasManualPublishingEvidence = deriveHasManualPublishingEvidence(evidence);
+  const hasReviewedResult = useMemo(() => deriveHasReviewedResult(evidence), [evidence]);
+
   return (
     <>
+      {/* CORE V1 integration flow — rendered here (T4-11-B) so its 9-stage projection
+          reads the REAL shared evidence/review state instead of hardcoded defaults.
+          Visually it stays in the same spot: directly above the evidence panels. */}
+      <CoreV1FlowPanel
+        campaign={campaign}
+        client={client}
+        brand={brand}
+        briefs={brief ? [brief] : []}
+        contentItems={contentItems}
+        approvalRequests={approvalRequests}
+        approvalEvents={approvalEvents}
+        userRole={userRole}
+        actorLabel={actorLabel}
+        hasManualPublishingEvidence={hasManualPublishingEvidence}
+        hasReviewedResult={hasReviewedResult}
+      />
       <ManualPublishingEvidencePanel
         campaign={campaign}
         userRole={userRole}

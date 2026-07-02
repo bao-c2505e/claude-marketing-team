@@ -118,7 +118,6 @@ import ManualPublishingChecklistPanel from './ManualPublishingChecklistPanel';
 import ClientDeliveryRoomPanel from './ClientDeliveryRoomPanel';
 import DeliveryAcceptancePanel from './DeliveryAcceptancePanel';
 import DeliveryClosurePanel from './DeliveryClosurePanel';
-import CoreV1FlowPanel from './CoreV1FlowPanel';
 import ManualPublishingEvidenceSection from './ManualPublishingEvidenceSection';
 
 export interface CampaignWorkspaceOption {
@@ -608,27 +607,11 @@ export default function CampaignWorkspace({
         actorLabel={actorLabel}
       />
 
-      {/* ── CORE V1 Integration Closure: the whole approval-first flow in one panel —
-             official Brand Brain version, approval-gated connector command handoff,
-             connector readiness, and the end-to-end status chain. It marks nothing
-             Published and runs no connector; the publishing-evidence bridge points to
-             the Manual Publishing Evidence section below. ── */}
-      <CoreV1FlowPanel
-        campaign={campaign}
-        client={client}
-        brand={brand}
-        briefs={brief ? [brief] : []}
-        contentItems={contentItems}
-        approvalRequests={approvals}
-        approvalEvents={approvalEvents}
-        userRole={userRole}
-        actorLabel={actorLabel}
-      />
-
-      {/* ── Phase V + W: Manual Publishing Evidence (record) + Result Review (review the
-             SAME shared evidence). State is owned by the section wrapper so this workspace
-             stays stateless; default is empty, so nothing is "published/reviewed" until the
-             Owner records manual evidence. (local/demo only) ── */}
+      {/* ── CORE V1 Integration Closure + Phase V/W: the CORE V1 flow panel now renders
+             INSIDE the evidence section (T4-11-B) so its 9-stage projection reads the REAL
+             shared evidence/review state. State stays owned by the section wrapper so this
+             workspace remains stateless; default is empty, so nothing is "published/reviewed"
+             until the Owner records manual evidence. (local/demo only) ── */}
       <ManualPublishingEvidenceSection
         campaign={campaign}
         client={client}
@@ -637,6 +620,9 @@ export default function CampaignWorkspace({
         assets={assets}
         userRole={userRole}
         actorLabel={actorLabel}
+        contentItems={contentItems}
+        approvalRequests={approvals}
+        approvalEvents={approvalEvents}
       />
 
       {/* ── Next Owner Actions ── */}
