@@ -12,6 +12,7 @@ import DASHBOARD from './ConnectorDashboard.tsx?raw';
 import CARD from './ConnectorCard.tsx?raw';
 import SUMMARY_BAR from './ConnectorSummaryBar.tsx?raw';
 import HEALTH_LOG from './ConnectorHealthLog.tsx?raw';
+import READONLY_HEALTH from './ReadOnlyHealthSection.tsx?raw';
 
 // ── Pure logic imports ─────────────────────────────────────────────────────────
 import { isLiveCheckSupported } from './connectorDashboard.types';
@@ -373,5 +374,46 @@ describe('ConnectorDashboard — snapshot freshness + clear preview (T4-14)', ()
   it('still brings in no storage or network capability', () => {
     expect(DASHBOARD).not.toMatch(/localStorage|sessionStorage|indexedDB|BroadcastChannel/i);
     expect(DASHBOARD).not.toMatch(/fetch\s*\(|axios|XMLHttpRequest|https?:\/\/|webhook/i);
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SOURCE SCAN: ReadOnlyHealthSection.tsx — read-only health checks (T4-15)
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('ReadOnlyHealthSection — read-only connector health (T4-15)', () => {
+  it('dashboard renders the section', () => {
+    expect(DASHBOARD).toContain('ReadOnlyHealthSection');
+    expect(DASHBOARD).toMatch(/<ReadOnlyHealthSection \/>/);
+  });
+
+  it('offers the explicit Owner button "Check read-only connector health"', () => {
+    expect(READONLY_HEALTH).toContain('Check read-only connector health');
+    expect(READONLY_HEALTH).toContain('data-testid="check-readonly-health-btn"');
+    expect(READONLY_HEALTH).toMatch(/onClick=\{handleCheck\}/);
+    expect(READONLY_HEALTH).toContain('disabled={isChecking}');
+  });
+
+  it('never auto-runs — no effects, no timers, no polling, no subscription', () => {
+    expect(READONLY_HEALTH).not.toMatch(/useEffect|setInterval|setTimeout|subscribe/);
+  });
+
+  it('calls only the read-only registry — no direct network, storage, or command store access', () => {
+    expect(READONLY_HEALTH).toContain('checkAllReadOnlyConnectorHealth');
+    expect(READONLY_HEALTH).not.toMatch(/fetch\s*\(|axios|XMLHttpRequest|https?:\/\/|webhook/i);
+    expect(READONLY_HEALTH).not.toMatch(/localStorage|sessionStorage|indexedDB|BroadcastChannel/i);
+    expect(READONLY_HEALTH).not.toMatch(/connectorCommandStore|ConnectorCommand\b/);
+  });
+
+  it('renders the normalized result fields including hard-false capabilities', () => {
+    expect(READONLY_HEALTH).toContain('result.status');
+    expect(READONLY_HEALTH).toContain('result.mode');
+    expect(READONLY_HEALTH).toContain('result.checkedAt');
+    expect(READONLY_HEALTH).toContain('result.safetyNote');
+    expect(READONLY_HEALTH).toContain("write: no · publishing: no · ad spend: no");
+  });
+
+  it('has no execution or publishing-action wording', () => {
+    expect(READONLY_HEALTH).not.toMatch(/execute|publish now|auto-post|auto-ads|run ads|go live|upload|send to n8n|write to drive/i);
   });
 });

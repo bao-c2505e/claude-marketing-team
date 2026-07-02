@@ -128,3 +128,33 @@ T4-14 hardens the T4-13 handoff **before** any real connector work. Still no per
 **Re-validation against CURRENT approval state — deferred to T4-15/T4-16.** The dashboard tab has no access to live approval/campaign data without App.tsx prop threading or a global provider (both stop conditions). T4-14 therefore validates contract + provenance + freshness on read; comparing a snapshot against the approvals as they exist *now* needs a read-only approval-state access design first. This is also why **persistence still waits**: a persisted snapshot would outlive its approvals, so expiry (now available via freshness) must be paired with that approval re-validation design before Option D's storage half is safe.
 
 **T4-15 recommended next step:** real connector **read/health layer only** (no write/publish paths), building on the hardened handoff.
+
+## 10. T4-15 implementation note (landed) — read-only connector health layer
+
+T4-15 adds the first real connector-facing layer, strictly limited to READ-ONLY health checks. Still no execution, no write/publish/ads, no persistence, no App.tsx change, Phase K untouched, T4-14 snapshot validation/freshness unweakened. Full detail: `docs/core_connector_read_health_layer.md`.
+
+**Contract** — `src/lib/core/connectors/readOnlyConnectorHealth.ts` (pure TS; no network/storage/React/clock — `checkedAt` is always injected):
+- `ReadOnlyConnectorHealthResult` carries hard-false `canWrite/canPublish/canRunAds` as **literal `false` types**, plus `canRead`, `status` (`unknown|available|degraded|blocked|unavailable`), `mode` (`mock|sandbox|edge_read_proxy|manual_only`), provenance (`source`, `checkedAt`) and a standing `safetyNote`.
+- Creators (`createAvailable…`, `createBlocked…`, `createDegraded…`), `normalizeConnectorHealthError` (a thrown check becomes a degraded result — never rethrown), and `assertReadOnlyConnectorHealthResult` (runtime rejection of any cast-forced truthy write flag) — every result passes the assertion before leaving the layer.
+
+**Registry** — `src/lib/core/connectors/readOnlyConnectorHealthRegistry.ts`:
+- Frozen descriptors, all `readOnly: true / writesExternalSystems: false / publishesExternalSystems: false / requiresOwnerClick: true`; defensive copies on read.
+- `checkReadOnlyConnectorHealth(id, deps?)` / `checkAllReadOnlyConnectorHealth(deps?)` — **nothing runs on import** (source-guarded); dependencies are injectable so tests never touch the network.
+- Wraps ONLY the pre-existing safe read wrappers: `checkN8nHealth` (T4-6, `n8n-read` Edge Function, health action only) and `checkGdriveHealth` (T4-7, `gdrive-read` Edge Function, health-only Phase 1). No new live API client was created.
+
+**Connector matrix (as landed):**
+
+| Connector | Mode | Expected status | Why |
+|---|---|---|---|
+| n8n | `edge_read_proxy` | available / degraded | wraps existing `checkN8nHealth` read wrapper |
+| google_drive | `edge_read_proxy` | available / degraded | wraps existing `checkGdriveHealth` read wrapper |
+| canva | `manual_only` | blocked (`no_read_surface`) | `canvaSandboxConnector` is a pure local preview builder — no live read surface exists; nothing is contacted |
+| meta | — | **excluded** | no safe read/sandbox read surface in repo (registry metadata only) — deliberately not registered |
+
+**Dashboard** — `src/connectors/dashboard/ReadOnlyHealthSection.tsx`, rendered by `ConnectorDashboard.tsx`:
+- Button **"Check read-only connector health"** — explicit Owner click only; no `useEffect`, no polling, no subscription, no auto-run on mount (source-guarded). Results are local component state (no persistence) showing label/status/mode/checkedAt/canRead plus the hard-false line "write: no · publishing: no · ad spend: no" and the safety note. Blocked/manual_only connectors show their explanatory message instead of failing.
+- The health section reads NO ConnectorCommand snapshot data — command previews from T4-13/T4-14 remain preview-only handoff artifacts and are untouched.
+
+**Known limitations:** health = reachability of the read proxy, not data-level read previews; per-card "⚡ Check Health" (T4-8) and this normalized aggregate coexist (unification deferred); no re-validation against current approval state yet (unchanged from T4-14).
+
+**T4-16 recommended next step:** deeper connector-specific read previews or read receipts on the hardened handoff (e.g. n8n workflow list preview, gdrive file-list read once vault creds exist) — still read-only, still Owner-click-gated; any future write/draft capability requires an explicit Owner-approval gate design first.
