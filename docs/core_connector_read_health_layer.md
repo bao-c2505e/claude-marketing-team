@@ -78,7 +78,7 @@ Every path in this layer terminates in a *description of reachability*. There is
 
 ## 8. Known limitations / follow-up
 
-- Health = reachability of the read proxy, not data-level read previews (no workflow lists / file lists yet).
-- The per-card "⚡ Check Health" (T4-8) and this normalized aggregate coexist; unifying them onto the normalized contract is a candidate for a later sprint.
+- Health = reachability of the read proxy, not data-level read previews (no workflow lists / file lists yet). *(Data-level read previews landed in T4-16/T4-17 as a separate preview contract.)*
+- The per-card "⚡ Check Health" (T4-8) and this normalized aggregate coexist; unifying them onto the normalized contract is a candidate for a later sprint. *(Landed in T4-18: per-card live checks now route through `checkReadOnlyConnectorHealth` — this registry is the single wrapper-facing read-health path on the dashboard; see architecture doc §13.)*
 - No re-validation of command snapshots against current approval state (unchanged from T4-14; needs a read-only approval-state access design).
 - **T4-16 proposal:** connector-specific read previews or read receipts (n8n workflow list, gdrive file list once vault creds exist) — still read-only, still Owner-click-gated, normalized through this contract.

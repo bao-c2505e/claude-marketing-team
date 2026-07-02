@@ -7,8 +7,14 @@ import type {
 import type { LocalConnectorStatus, LocalConnectorRegistryItem, LocalConnectorType } from '../../types/core';
 import type { ConnectorCommand } from '../../lib/core/connectors/connectorCommand';
 import type { GovernedConnectorKey } from '../../lib/core/connectors/connectorGovernance';
-import { checkN8nHealth } from '../../lib/core/connectors/adapters/n8n/n8nLiveService';
-import { checkGdriveHealth } from '../../lib/core/connectors/adapters/drive/gdriveLiveService';
+// T4-18: per-card live health checks route through the standardized T4-15
+// read-only health registry — the dashboard never calls the n8n/gdrive
+// wrappers directly anymore, so status mapping and safety wording have ONE
+// authoritative source (the registry + contract, hard-false capabilities,
+// errors normalized to degraded — never rethrown).
+import { checkReadOnlyConnectorHealth } from '../../lib/core/connectors/readOnlyConnectorHealthRegistry';
+import type { ReadOnlyConnectorId } from '../../lib/core/connectors/readOnlyConnectorHealth';
+import { isLiveCheckSupported } from './connectorDashboard.types';
 
 const MOCK_REGISTRY: LocalConnectorRegistryItem[] = [
   {
@@ -225,53 +231,36 @@ export function useConnectorDashboard(
     [],
   );
 
-  const checkN8n = useCallback(async () => {
-    setChecking('conn-n8n', true);
-    const start = Date.now();
-    try {
-      const raw = await checkN8nHealth();
-      const latency = Date.now() - start;
-      const entry: HealthCheckEntry = {
-        checked_at: new Date().toISOString(),
-        status: raw.healthy ? 'ok' : 'error',
-        latency_ms: latency,
-        note: raw.note,
-      };
-      applyResult('conn-n8n', entry, raw.healthy ? 'connected' : 'error', raw.note);
-    } catch (err) {
-      const entry: HealthCheckEntry = {
-        checked_at: new Date().toISOString(),
-        status: 'error',
-        latency_ms: null,
-        note: err instanceof Error ? err.message : 'Unknown error',
-      };
-      applyResult('conn-n8n', entry, 'error', entry.note);
-    }
-  }, [setChecking, applyResult]);
-
-  const checkGDrive = useCallback(async () => {
-    setChecking('conn-gdrive', true);
-    const start = Date.now();
-    try {
-      const raw = await checkGdriveHealth();
-      const latency = Date.now() - start;
-      const entry: HealthCheckEntry = {
-        checked_at: new Date().toISOString(),
-        status: raw.healthy ? 'ok' : 'error',
-        latency_ms: latency,
-        note: raw.note,
-      };
-      applyResult('conn-gdrive', entry, raw.healthy ? 'connected' : 'error', raw.note);
-    } catch (err) {
-      const entry: HealthCheckEntry = {
-        checked_at: new Date().toISOString(),
-        status: 'error',
-        latency_ms: null,
-        note: err instanceof Error ? err.message : 'Unknown error',
-      };
-      applyResult('conn-gdrive', entry, 'error', entry.note);
-    }
-  }, [setChecking, applyResult]);
+  // T4-18: ONE generic per-card live check — the registry normalizes wrapper
+  // failures into degraded results, so the only try/catch here is a last-resort
+  // guard against unexpected faults. Status and note come verbatim from the
+  // normalized ReadOnlyConnectorHealthResult (no duplicate mapping).
+  const runRegistryHealthCheck = useCallback(
+    async (id: string, connectorId: ReadOnlyConnectorId) => {
+      setChecking(id, true);
+      const start = Date.now();
+      try {
+        const result = await checkReadOnlyConnectorHealth(connectorId);
+        const healthy = result.status === 'available';
+        const entry: HealthCheckEntry = {
+          checked_at: result.checkedAt,
+          status: healthy ? 'ok' : 'error',
+          latency_ms: Date.now() - start,
+          note: result.message,
+        };
+        applyResult(id, entry, healthy ? 'connected' : 'error', result.message);
+      } catch (err) {
+        const entry: HealthCheckEntry = {
+          checked_at: new Date().toISOString(),
+          status: 'error',
+          latency_ms: null,
+          note: err instanceof Error ? err.message : 'Unknown error',
+        };
+        applyResult(id, entry, 'error', entry.note);
+      }
+    },
+    [setChecking, applyResult],
+  );
 
   const simulate = useCallback(
     (id: string) => {
@@ -292,15 +281,15 @@ export function useConnectorDashboard(
   const handleCheck = useCallback(
     (item: ConnectorDashboardItem) => {
       const { connector_type, id } = item.connector;
-      if (connector_type === 'n8n') {
-        checkN8n();
-      } else if (connector_type === 'google_drive') {
-        checkGDrive();
+      // isLiveCheckSupported stays the single boundary between live read-only
+      // checks (routed through the T4-15 registry) and mock simulation.
+      if (isLiveCheckSupported(connector_type)) {
+        runRegistryHealthCheck(id, connector_type);
       } else {
         simulate(id);
       }
     },
-    [checkN8n, checkGDrive, simulate],
+    [runRegistryHealthCheck, simulate],
   );
 
   return {

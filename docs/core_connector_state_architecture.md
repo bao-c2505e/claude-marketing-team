@@ -188,3 +188,19 @@ T4-17 lifts the T4-16 `gdrive_files` blocked state by adding a READ-ONLY file-li
 **Known limitations:** file list = 20 most recently modified metadata rows, no folder navigation/query; the preview is a receipt, not a file browser; Edge Function must be redeployed for Phase 2 to take effect.
 
 **T4-18 candidates:** unify per-card T4-8 health checks onto the normalized T4-15/T4-16 contracts (one read path on the dashboard), or read-receipt provenance (append checked-at receipts to the connector detail panel).
+
+## 13. T4-18 implementation note (landed) — dashboard read-path consolidation
+
+T4-18 is architecture cleanup only: the old T4-8 per-card "⚡ Check Health" no longer calls the n8n/gdrive wrappers directly — it routes through the standardized T4-15 read-only health registry. No new connector surface, no new Edge Function action, no contract change, no persistence, no App.tsx change, Phase K untouched.
+
+**Before → after:**
+- Before: `useConnectorDashboard` imported `checkN8nHealth`/`checkGdriveHealth`, duplicated the healthy→status mapping per connector (`raw.healthy`, hand-rolled dispatch `connector_type === 'n8n' | 'google_drive'`), and owned its own wording.
+- After: one generic `runRegistryHealthCheck(id, connectorId)` calls `checkReadOnlyConnectorHealth(connectorId)`; card status derives from the normalized result (`status === 'available'` → connected, anything else → error), and `checked_at`/note come verbatim from the `ReadOnlyConnectorHealthResult` (`checkedAt`, `message`). `isLiveCheckSupported` stays the single boundary between live checks and mock "Simulate" (non-live types unchanged). The registry + contract are now the ONLY place that touches the wrappers and the only source of health mapping/wording — per-card and the T4-15 health section can no longer drift.
+
+**Unchanged by design:** ConnectorCard UI and button labels; simulate path for non-live connectors; T4-15 health section; T4-16/T4-17 preview section; T4-13/T4-14 snapshot preview/freshness/clear; all hard-false capability flags and runtime assertions; Canva blocked/manual_only; Meta excluded.
+
+**Tests:** hook source guards flipped to enforce the new routing (registry import present; `n8nLiveService|gdriveLiveService|checkN8nHealth|checkGdriveHealth` forbidden in the hook; duplicate dispatch/mapping regexes now asserted absent).
+
+**Known accepted nuance:** per-card entries map both `degraded` and `blocked` to the card-level `error` status (the card model predates the richer status set); the full normalized status remains visible in the T4-15 health section.
+
+**T4-19 candidates:** read-receipt provenance (append normalized checked-at receipts to `ConnectorDetailPanel`), or retiring the mock "Simulate" path for connectors that will never get a live read surface.

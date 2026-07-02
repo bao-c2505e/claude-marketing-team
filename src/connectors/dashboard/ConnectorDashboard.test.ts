@@ -143,11 +143,12 @@ describe('computeSummary', () => {
 // ─────────────────────────────────────────────────────────────────────────────
 
 describe('useConnectorDashboard — source guard', () => {
-  it('imports checkN8nHealth from n8nLiveService', () => {
-    expect(HOOK).toMatch(/import.*checkN8nHealth.*from.*n8nLiveService/);
+  it('T4-18: routes per-card live checks through the T4-15 read-only health registry', () => {
+    expect(HOOK).toMatch(/import \{ checkReadOnlyConnectorHealth \} from '\.\.\/\.\.\/lib\/core\/connectors\/readOnlyConnectorHealthRegistry'/);
+    expect(HOOK).toMatch(/checkReadOnlyConnectorHealth\(connectorId\)/);
   });
-  it('imports checkGdriveHealth from gdriveLiveService', () => {
-    expect(HOOK).toMatch(/import.*checkGdriveHealth.*from.*gdriveLiveService/);
+  it('T4-18: no direct n8n/gdrive wrapper calls remain in the dashboard hook', () => {
+    expect(HOOK).not.toMatch(/n8nLiveService|gdriveLiveService|checkN8nHealth|checkGdriveHealth/);
   });
   it('MOCK_REGISTRY has exactly 9 entries (9 id strings)', () => {
     const matches = HOOK.match(/id:\s*['"]conn-/g);
@@ -162,8 +163,12 @@ describe('useConnectorDashboard — source guard', () => {
   it('exports appendLog', () => {
     expect(HOOK).toContain('export function appendLog');
   });
-  it('adapts raw.healthy to entry status for n8n', () => {
-    expect(HOOK).toMatch(/raw\.healthy/);
+  it('derives per-card health from the normalized result status — one mapping only', () => {
+    expect(HOOK).toMatch(/result\.status === 'available'/);
+    expect(HOOK).toMatch(/note: result\.message/);
+    expect(HOOK).toMatch(/checked_at: result\.checkedAt/);
+    // The old duplicate wrapper mapping is gone.
+    expect(HOOK).not.toMatch(/raw\.healthy/);
   });
   it('simulate sets status to simulated', () => {
     expect(HOOK).toContain("status: 'simulated'");
@@ -174,11 +179,12 @@ describe('useConnectorDashboard — source guard', () => {
   it('simulate latency_ms is null', () => {
     expect(HOOK).toContain('latency_ms: null');
   });
-  it('handleCheck dispatches n8n to checkN8n', () => {
-    expect(HOOK).toMatch(/connector_type.*===.*['"]n8n['"]/);
-  });
-  it('handleCheck dispatches google_drive to checkGDrive', () => {
-    expect(HOOK).toMatch(/connector_type.*===.*['"]google_drive['"]/);
+  it('handleCheck uses isLiveCheckSupported as the single live/simulate boundary', () => {
+    expect(HOOK).toMatch(/isLiveCheckSupported\(connector_type\)/);
+    expect(HOOK).toMatch(/runRegistryHealthCheck\(id, connector_type\)/);
+    // No per-connector dispatch duplication remains.
+    expect(HOOK).not.toMatch(/connector_type\s*===\s*['"]n8n['"]/);
+    expect(HOOK).not.toMatch(/connector_type\s*===\s*['"]google_drive['"]/);
   });
   it('does not set allow_write to true', () => {
     expect(HOOK).not.toMatch(/allow_write\s*:\s*true/);
