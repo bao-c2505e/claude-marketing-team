@@ -84,7 +84,18 @@ Explicit answers:
 
 Approval-first is mandatory · Approved ≠ Published · Client Accepted ≠ Published · Published = Owner manual evidence only · no auto-post / auto-ads / live analytics / fake metrics / secrets / real webhook URLs · connector commands never execute, and no `published` status exists for them · Phase K: `CampaignWorkspace` stays stateless · `CoreV1FlowPanel` stays inside `ManualPublishingEvidenceSection`.
 
-## 7. Out of scope until T4-14/T4-15
+## 7. T4-13 implementation note (landed)
+
+T4-13 implemented the recommendation exactly as specified in §5:
+
+- `src/lib/core/connectors/connectorCommandStore.ts` — in-memory repository singleton; validates on write (rejects invalid snapshots, store unchanged), defensive copies on write AND read, `clearConnectorCommandSnapshot` + `resetConnectorCommandStoreForTests`. **No persistence** of any kind — refresh clears shared previews by design.
+- Writer: `CoreV1FlowPanel` "Share read-only previews with Connector Dashboard" — **explicit Owner click only** (no effect hook exists in the panel, enforced by source guard), confirmation copy "Read-only connector previews shared for dashboard review."
+- Reader: `ConnectorDashboard` reads the snapshot **once on mount** (no polling/subscription), groups via `groupCommandsByConnector`, feeds the existing `useConnectorDashboard(commandsByConnector)` surface, forwards `commands` into `ConnectorDetailPanel`, and shows provenance ("Read-only previews shared by {builtBy} at {builtAt} … Nothing here publishes or runs anything.").
+- Empty store keeps the previous dashboard behavior exactly. Nothing executes; snapshot validation is unweakened; Phase K untouched.
+
+**T4-14+ future:** expiry / re-validation-against-current-approvals design before any storage persistence; optional store subscription if surfaces ever mount simultaneously; append-only receipt/acknowledgement log; real read/health connector layer design; `activationStatus='live'` governance semantics (separate recon).
+
+## 8. Out of scope until T4-14/T4-15
 
 - Any persistence of snapshots (Option D's storage half): requires an expiry + re-validation-against-current-approvals design first.
 - Store subscriptions / live updates between simultaneously mounted surfaces (tabs currently never coexist).

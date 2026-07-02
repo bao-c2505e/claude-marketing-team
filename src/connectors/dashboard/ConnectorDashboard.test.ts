@@ -310,3 +310,30 @@ describe('ConnectorHealthLog — source guard', () => {
     expect(HEALTH_LOG).toContain('StatusDot');
   });
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SOURCE SCAN: ConnectorDashboard.tsx — read-only command previews (T4-13)
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('ConnectorDashboard — read-only command previews (T4-13)', () => {
+  it('reads the shared snapshot from the in-memory store once on mount', () => {
+    expect(DASHBOARD).toMatch(/getConnectorCommandSnapshot/);
+    expect(DASHBOARD).toMatch(/useState\(\(\) => getConnectorCommandSnapshot\(\)\)/);
+    // No polling / subscription / effects — a single read on mount.
+    expect(DASHBOARD).not.toMatch(/useEffect|setInterval|setTimeout|subscribe/);
+  });
+
+  it('feeds grouped commands into the existing dashboard read surface', () => {
+    expect(DASHBOARD).toMatch(/groupCommandsByConnector/);
+    expect(DASHBOARD).toMatch(/useConnectorDashboard\(commandsByConnector\)/);
+    expect(DASHBOARD).toMatch(/commands=\{selected\?\.commands \?\? \[\]\}/);
+  });
+
+  it('shows read-only provenance and keeps the empty-store path unchanged', () => {
+    expect(DASHBOARD).toMatch(/Read-only previews shared by/);
+    expect(DASHBOARD).toMatch(/command-snapshot-provenance/);
+    expect(DASHBOARD).toMatch(/snapshot \? groupCommandsByConnector\(snapshot\.commands\) : undefined/);
+    // No execution wording anywhere in the dashboard shell.
+    expect(DASHBOARD).not.toMatch(/execute|publish now|auto-post|auto-ads|run ads|go live/i);
+  });
+});

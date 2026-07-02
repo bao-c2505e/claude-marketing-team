@@ -76,6 +76,8 @@ import {
   CONNECTOR_COMMAND_APPROVED_NOT_PUBLISHED,
   CONNECTOR_COMMAND_REQUIRES_EVIDENCE,
 } from '../../lib/core/connectors/connectorCommand';
+import { createConnectorCommandSnapshot } from '../../lib/core/connectors/connectorCommandSnapshot';
+import { writeConnectorCommandSnapshot } from '../../lib/core/connectors/connectorCommandStore';
 import { buildConnectorLedgerSummary } from '../../lib/core/connectors/connectorLedger';
 import {
   getConnectorGovernance,
@@ -135,7 +137,7 @@ const TARGET_CONNECTORS: GovernedConnectorKey[] = CONNECTOR_COMMAND_TARGETS;
 export default function CoreV1FlowPanel({
   campaign, client, brand, briefs,
   contentItems, approvalRequests, approvalEvents,
-  userRole,
+  userRole, actorLabel,
   hasManualPublishingEvidence = false,
   hasReviewedResult = false,
 }: Props) {
@@ -148,6 +150,8 @@ export default function CoreV1FlowPanel({
   const [statusOverrides, setStatusOverrides] = useState<Record<string, ConnectorCommandStatus>>({});
   const [copiedFlow, setCopiedFlow] = useState(false);
   const [copiedCmds, setCopiedCmds] = useState(false);
+  // T4-13: whether the CURRENT previews were shared (read-only) with the dashboard.
+  const [sharedToDashboard, setSharedToDashboard] = useState(false);
 
   // ── Official active context: only an APPLIED Brand Brain version (local/demo
   //    adapter — capture the current Brand Brain as a baseline version and read
@@ -216,7 +220,23 @@ export default function CoreV1FlowPanel({
     if (!canBuild) return;
     setBuilt(true);
     setStatusOverrides({});
+    setSharedToDashboard(false);
   }, [canBuild]);
+
+  // T4-13: explicit Owner click only — writes a VALIDATED read-only snapshot of
+  // the current previews into the in-memory store for the Connector Dashboard to
+  // read. Sharing a preview runs nothing, changes no status, and implies no
+  // publishing; the store rejects any tampered snapshot.
+  const handleShareReadOnlyPreviews = useCallback(() => {
+    if (!canBuild || commands.length === 0) return;
+    const snapshot = createConnectorCommandSnapshot({
+      campaignId: campaign.id,
+      builtBy: actorLabel,
+      commands,
+    });
+    const result = writeConnectorCommandSnapshot(snapshot);
+    setSharedToDashboard(result.ok);
+  }, [canBuild, commands, campaign.id, actorLabel]);
 
   // Owner's per-command lifecycle choice — local state only. Marking a preview
   // simulated / approved-for-manual-run never runs, publishes, or sends anything.
@@ -300,7 +320,7 @@ export default function CoreV1FlowPanel({
               <label style={{ fontSize: '0.74rem', color: 'var(--text-secondary)' }}>Target connector:</label>
               <select
                 value={target}
-                onChange={e => { setTarget(e.target.value as GovernedConnectorKey); setBuilt(false); setStatusOverrides({}); }}
+                onChange={e => { setTarget(e.target.value as GovernedConnectorKey); setBuilt(false); setStatusOverrides({}); setSharedToDashboard(false); }}
                 className="form-control"
                 style={{ fontSize: '0.78rem', padding: '5px 8px', width: 'auto' }}
               >
@@ -375,16 +395,33 @@ export default function CoreV1FlowPanel({
                     );
                   })}
                 </div>
-                <button
-                  onClick={() => copyText(renderConnectorCommandsText(commands, campaign.name), setCopiedCmds)}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', borderRadius: '7px',
-                    fontSize: '0.76rem', fontWeight: 600, background: 'rgba(255,255,255,0.04)',
-                    border: '1px solid var(--border-color)', color: 'var(--text-secondary)', cursor: 'pointer',
-                  }}
-                >
-                  {copiedCmds ? <Check size={13} /> : <ClipboardCopy size={13} />} {copiedCmds ? 'Copied!' : 'Copy command handoff'}
-                </button>
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                  <button
+                    onClick={() => copyText(renderConnectorCommandsText(commands, campaign.name), setCopiedCmds)}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', borderRadius: '7px',
+                      fontSize: '0.76rem', fontWeight: 600, background: 'rgba(255,255,255,0.04)',
+                      border: '1px solid var(--border-color)', color: 'var(--text-secondary)', cursor: 'pointer',
+                    }}
+                  >
+                    {copiedCmds ? <Check size={13} /> : <ClipboardCopy size={13} />} {copiedCmds ? 'Copied!' : 'Copy command handoff'}
+                  </button>
+                  <button
+                    onClick={handleShareReadOnlyPreviews}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', borderRadius: '7px',
+                      fontSize: '0.76rem', fontWeight: 600, background: 'rgba(255,255,255,0.04)',
+                      border: '1px solid var(--border-color)', color: 'var(--text-secondary)', cursor: 'pointer',
+                    }}
+                  >
+                    {sharedToDashboard ? <Check size={13} /> : <ArrowRight size={13} />} Share read-only previews with Connector Dashboard
+                  </button>
+                  {sharedToDashboard && (
+                    <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                      Read-only connector previews shared for dashboard review.
+                    </span>
+                  )}
+                </div>
               </>
             )}
           </>

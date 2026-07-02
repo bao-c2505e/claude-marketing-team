@@ -101,4 +101,19 @@ describe('CoreV1FlowPanel (CORE V1 integration closure safety guard)', () => {
     expect(SOURCE).toMatch(/hasManualPublishingEvidence\?:\s*boolean/);
     expect(SOURCE).toMatch(/hasReviewedResult\?:\s*boolean/);
   });
+
+  // ── T4-13: explicit Owner share of read-only previews into the in-memory store ──
+
+  it('offers the explicit share action with read-only framing', () => {
+    expect(SOURCE).toMatch(/Share read-only previews with Connector Dashboard/);
+    expect(SOURCE).toMatch(/Read-only connector previews shared for dashboard review\./);
+  });
+
+  it('writes the snapshot only through the validated store API, from a click handler', () => {
+    expect(SOURCE).toMatch(/createConnectorCommandSnapshot/);
+    expect(SOURCE).toMatch(/writeConnectorCommandSnapshot/);
+    expect(SOURCE).toMatch(/handleShareReadOnlyPreviews/);
+    // Never auto-shares on render — the panel has no effect hook at all.
+    expect(SOURCE).not.toMatch(/useEffect/);
+  });
 });
