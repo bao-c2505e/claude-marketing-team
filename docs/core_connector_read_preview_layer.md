@@ -43,7 +43,7 @@ ReadOnlyConnectorPreviewResult {
 | Connector | Mode | previewType | Behavior |
 |---|---|---|---|
 | n8n | `edge_read_proxy` | `n8n_workflows` | wraps the **pre-existing** `fetchN8nData('workflows')` (T4-6). The `n8n-read` Edge Function only allows GET on an allowlist (`health`, `workflows`, `executions`) — no trigger/run/POST-to-workflow path exists. Each workflow is reduced to whitelisted `id / name / active / updatedAt` before contract sanitization; node graphs, connections, static data, credentials references are never copied. `ok:false` → degraded; thrown → degraded. |
-| google_drive | `edge_read_proxy` | `gdrive_files` | **blocked locally** (`no_list_surface_yet`): the `gdrive-read` Edge Function is Phase 1 health-only (any non-health action returns 403). No live list call is invented, no fake data is shown. Becomes wrappable when a safe list action + vault service account land. |
+| google_drive | `edge_read_proxy` | `gdrive_files` | **(updated by T4-17)** wraps `listGdriveFilesReadOnly` — the `gdrive-read` Edge Function Phase 2 `list_files` action (GET-only, `drive.readonly` scope, whitelisted metadata `id/name/mimeType/modifiedTime/size`, capped at 20, sanitized again client-side). Missing vault credentials or a failing proxy → degraded with the proxy message; nothing is faked. See `docs/core_connector_read_health_layer.md` §8 and architecture doc §12. |
 | canva | `manual_only` | `no_safe_read_surface` | blocked — no safe read surface exists yet; sandbox previews are built locally and reviewed manually. No OAuth, no token, no export/create. |
 | meta | `excluded` | `no_safe_read_surface` | blocked — no safe read surface exists in this repo; deliberately excluded. No ads read/write work. |
 

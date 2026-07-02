@@ -166,5 +166,25 @@ T4-16 adds connector-specific READ-ONLY previews on top of the T4-15 health laye
 - **Contract** — `src/lib/core/connectors/readOnlyConnectorPreview.ts` (pure TS; no network/storage/React/clock): `ReadOnlyConnectorPreviewResult` with hard-false `canWrite/canPublish/canRunAds/canExecute` (literal `false` + runtime `assertReadOnlyConnectorPreviewResult`), `previewType` (`n8n_workflows | gdrive_files | no_safe_read_surface`), and **sanitized items only**: `{ id, name, summary }` scrubbed text (links redacted, length-capped, max 20 items) — raw payloads, workflow definitions, credentials, and links cannot pass through the shape.
 - **Registry** — `readOnlyConnectorPreviewRegistry.ts`: frozen descriptors, DI-injectable checks, nothing runs on import. n8n wraps the **pre-existing** `fetchN8nData('workflows')` (T4-6 read wrapper; the `n8n-read` Edge Function GET-only allowlist already supported `workflows`) and whitelists only id/name/active/updatedAt per workflow. google_drive is **blocked locally** (`no_list_surface_yet`) because the `gdrive-read` Edge Function is Phase 1 health-only — no live list call is invented and no data is faked. Canva stays blocked/manual_only; Meta stays excluded.
 - **Dashboard** — `src/connectors/dashboard/ReadOnlyPreviewSection.tsx`, rendered by `ConnectorDashboard.tsx` under the T4-15 health section: button **"Check read-only connector previews"**, Owner click only, no `useEffect`/polling/persistence (source-guarded); shows previewType/status/mode/item count/message/safety note and sanitized item summaries; blocked/excluded connectors show their message instead of failing. T4-13/T4-14 snapshot preview/freshness/clear and the T4-15 health section are intact (guarded).
-- **Known limitations:** gdrive preview stays blocked until the Edge Function grows a safe list action (vault service account); n8n preview shows at most 20 active workflows as receipts, not a management surface.
+- **Known limitations:** gdrive preview stays blocked until the Edge Function grows a safe list action (vault service account); n8n preview shows at most 20 active workflows as receipts, not a management surface. *(The gdrive limitation was lifted by T4-17 — see §12.)*
 - **T4-17 candidates:** gdrive-read Phase 2 design (Edge Function list action + vault creds, still read-only), or unifying the per-card T4-8 health checks onto the normalized T4-15/T4-16 contracts.
+
+## 12. T4-17 implementation note (landed) — gdrive-read Phase 2 safe read list surface
+
+T4-17 lifts the T4-16 `gdrive_files` blocked state by adding a READ-ONLY file-list surface. Still no execution, no write/publish/ads, no uploads, no content reads, no sharing changes, no persistence, no App.tsx change, Phase K untouched; T4-14/T4-15/T4-16 contracts unweakened.
+
+**Edge Function** — `supabase/functions/gdrive-read/index.ts` (Phase 2):
+- Action allowlist grows to exactly `['health', 'list_files']`; anything else stays 403 (same pattern as `n8n-read`).
+- `list_files`: service-account JWT minted with the **`drive.readonly` scope only** (the single POST in the file is the standard OAuth2 token handshake — authentication, not data); Drive v3 `files.list` via **GET** with server-side field whitelist `files(id,name,mimeType,modifiedTime,size)`, hard cap 20, re-sanitized before responding. No content/download/export/sharing/mutation endpoint is ever called.
+- Credentials come from `GDRIVE_SERVICE_ACCOUNT_JSON` in the Supabase vault (the mechanism reserved since T4-7) — never in repo, never echoed; upstream errors are reduced to fixed messages/status codes.
+- Proven by a source-scan test (`gdriveReadEdgeFunction.source.test.ts`) since no Deno test framework exists in the repo.
+
+**Client wrapper** — `gdriveLiveService.ts` additions: `listGdriveFilesReadOnly()` (errors → `ok:false`, never throws) + `sanitizeGdriveFileSummaries` (defense in depth: every `GdriveFileSummary` is rebuilt field-by-field from the whitelist — `webViewLink`, owners, permissions, or any unexpected upstream field are unrepresentable), `GDRIVE_FILE_LIST_MAX_ITEMS = 20`. Health note updated to "read-only proxy" (Phase 1 wording retired).
+
+**T4-16 registry** — `google_drive` now runs `runGdriveFileListPreview` through injectable `listGdriveFiles` deps: wrapper ok → `available` with sanitized `{id, name, summary}` items (contract sanitizer still redacts links); wrapper `ok:false` (e.g. vault credentials missing) → `degraded` with the proxy message; thrown → `degraded`. Canva/Meta/n8n unchanged. Dashboard needed **no changes** — the T4-16 `ReadOnlyPreviewSection` renders the file summaries generically (Owner-click only, no effects, guards unchanged).
+
+**Connector matrix after T4-17:** n8n available/degraded (`n8n_workflows`) · google_drive available/degraded (`gdrive_files`; degraded until vault creds are set) · canva blocked/manual_only · meta excluded.
+
+**Known limitations:** file list = 20 most recently modified metadata rows, no folder navigation/query; the preview is a receipt, not a file browser; Edge Function must be redeployed for Phase 2 to take effect.
+
+**T4-18 candidates:** unify per-card T4-8 health checks onto the normalized T4-15/T4-16 contracts (one read path on the dashboard), or read-receipt provenance (append checked-at receipts to the connector detail panel).

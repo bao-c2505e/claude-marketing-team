@@ -14,6 +14,7 @@ import {
   type ReadOnlyPreviewConnectorId,
 } from './readOnlyConnectorPreview';
 import type { N8nLiveResult } from './adapters/n8n/n8nLiveService';
+import type { GdriveFileListResult, GdriveFileSummary } from './adapters/drive/gdriveLiveService';
 
 const NOW_ISO = '2026-07-03T00:00:00.000Z';
 
@@ -27,10 +28,23 @@ function n8nOk(workflows: unknown[]): N8nLiveResult {
   };
 }
 
+function gdriveOk(files: GdriveFileSummary[]): GdriveFileListResult {
+  return { ok: true, files, note: `${files.length} file(s) visible` };
+}
+
+const GDRIVE_FILE: GdriveFileSummary = {
+  id: 'f1',
+  name: 'campaign-brief.pdf',
+  mimeType: 'application/pdf',
+  modifiedTime: '2026-07-01T00:00:00Z',
+  size: '1024',
+};
+
 function deps(overrides?: Partial<ReadOnlyConnectorPreviewCheckDeps>): ReadOnlyConnectorPreviewCheckDeps {
   return {
     fetchN8nWorkflows: async () =>
       n8nOk([{ id: 'wf-1', name: 'FBV Video Factory', active: true, updatedAt: '2026-07-01' }]),
+    listGdriveFiles: async () => gdriveOk([GDRIVE_FILE]),
     nowIso: () => NOW_ISO,
     ...overrides,
   };
@@ -173,22 +187,84 @@ describe('checkReadOnlyConnectorPreview — n8n (injected fakes)', () => {
 // google_drive / canva / meta
 // ─────────────────────────────────────────────────────────────────────────────
 
-describe('checkReadOnlyConnectorPreview — connectors without a safe list surface', () => {
-  it('google_drive is blocked (Phase 1 health-only) and calls NO injected function', async () => {
-    let called = 0;
-    const r = await checkReadOnlyConnectorPreview(
-      'google_drive',
-      deps({ fetchN8nWorkflows: async () => { called++; return n8nOk([]); } }),
-    );
-    expect(r.status).toBe('blocked');
-    expect(r.mode).toBe('edge_read_proxy');
+describe('checkReadOnlyConnectorPreview — google_drive (T4-17, injected fakes)', () => {
+  it('healthy list maps to available with sanitized items — no longer permanently blocked', async () => {
+    const r = await checkReadOnlyConnectorPreview('google_drive', deps());
+    expect(r.status).toBe('available');
     expect(r.previewType).toBe('gdrive_files');
-    expect(r.errorCode).toBe('no_list_surface_yet');
-    expect(r.message).toContain('Phase 1');
-    expect(r.items).toHaveLength(0);
-    expect(called).toBe(0);
+    expect(r.mode).toBe('edge_read_proxy');
+    expect(r.checkedAt).toBe(NOW_ISO);
+    expect(r.items).toHaveLength(1);
+    expect(r.items[0]).toEqual({
+      id: 'f1',
+      name: 'campaign-brief.pdf',
+      summary: 'application/pdf · modified 2026-07-01T00:00:00Z',
+    });
+    expect(r.message).toContain('read receipt');
+    expect(r.source).toContain('listGdriveFilesReadOnly');
   });
 
+  it('wrapper ok:false (e.g. missing vault credentials) maps to degraded, never faked', async () => {
+    const r = await checkReadOnlyConnectorPreview(
+      'google_drive',
+      deps({
+        listGdriveFiles: async () => ({
+          ok: false,
+          files: [],
+          note: 'gdrive-read list_files unavailable',
+          error: 'GDRIVE_SERVICE_ACCOUNT_JSON not configured in Supabase vault',
+        }),
+      }),
+    );
+    expect(r.status).toBe('degraded');
+    expect(r.items).toHaveLength(0);
+    expect(r.message).toContain('not configured');
+    expect(r.errorCode).toBe('read_proxy_unhealthy');
+  });
+
+  it('a throwing wrapper is normalized to degraded — never rethrown', async () => {
+    const r = await checkReadOnlyConnectorPreview(
+      'google_drive',
+      deps({ listGdriveFiles: async () => { throw new Error('network down'); } }),
+    );
+    expect(r.status).toBe('degraded');
+    expect(r.message).toBe('network down');
+    expect(r.errorCode).toBe('preview_check_threw');
+  });
+
+  it('unsafe fields and links cannot reach the items', async () => {
+    const r = await checkReadOnlyConnectorPreview(
+      'google_drive',
+      deps({
+        listGdriveFiles: async () =>
+          gdriveOk([
+            {
+              ...GDRIVE_FILE,
+              name: 'shared at https://drive.google.com/private/f1',
+              webViewLink: 'https://drive.google.com/private/f1',
+              owners: [{ emailAddress: 'owner@example.com' }],
+            } as unknown as GdriveFileSummary,
+          ]),
+      }),
+    );
+    expect(r.items).toHaveLength(1);
+    expect(Object.keys(r.items[0])).toEqual(['id', 'name', 'summary']);
+    expect(r.items[0].name).toBe('shared at [link removed]');
+    expect(JSON.stringify(r)).not.toContain('drive.google.com');
+    expect(JSON.stringify(r)).not.toContain('emailAddress');
+  });
+
+  it('an empty file list is an available empty receipt, not an error', async () => {
+    const r = await checkReadOnlyConnectorPreview(
+      'google_drive',
+      deps({ listGdriveFiles: async () => gdriveOk([]) }),
+    );
+    expect(r.status).toBe('available');
+    expect(r.items).toHaveLength(0);
+  });
+});
+
+describe('checkReadOnlyConnectorPreview — connectors without a safe list surface', () => {
   it('canva stays blocked/manual_only with a no-safe-read-surface message', async () => {
     const r = await checkReadOnlyConnectorPreview('canva', deps());
     expect(r.status).toBe('blocked');
@@ -236,7 +312,7 @@ describe('checkAllReadOnlyConnectorPreviews', () => {
     );
     const byId = new Map(results.map(r => [r.connectorId, r]));
     expect(byId.get('n8n')?.status).toBe('degraded');
-    expect(byId.get('google_drive')?.status).toBe('blocked');
+    expect(byId.get('google_drive')?.status).toBe('available');
     expect(byId.get('canva')?.status).toBe('blocked');
     expect(byId.get('meta')?.status).toBe('blocked');
   });
@@ -263,11 +339,14 @@ describe('readOnlyConnectorPreviewRegistry.ts — source guard', () => {
     expect(REGISTRY).not.toMatch(/localStorage|sessionStorage|indexedDB/i);
   });
 
-  it("wraps ONLY the existing safe n8n read wrapper's list action", () => {
+  it("wraps ONLY the existing safe read wrappers' list actions", () => {
     expect(REGISTRY).toMatch(/import \{ fetchN8nData, type N8nLiveResult \} from '\.\/adapters\/n8n\/n8nLiveService'/);
     expect(REGISTRY).toMatch(/fetchN8nData\('workflows'\)/);
     // The read-only action allowlist is never widened here.
     expect(REGISTRY).not.toMatch(/fetchN8nData\('(?!workflows')/);
+    // T4-17: gdrive goes through the sanitizing wrapper — never fetchGdriveData directly.
+    expect(REGISTRY).toMatch(/listGdriveFilesReadOnly/);
+    expect(REGISTRY).not.toMatch(/fetchGdriveData/);
   });
 
   it('never touches the ConnectorCommand layer', () => {

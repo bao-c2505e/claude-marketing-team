@@ -9,9 +9,10 @@
 //   responses are reduced to a whitelisted { id, name, summary } shape —
 //   workflow definitions, node graphs, credentials, and links never pass
 //   through (the contract sanitizer also redacts any link text).
-// - google_drive: the gdrive-read Edge Function is Phase 1 (health-only) —
-//   there is NO safe file-list surface yet, so the preview is blocked
-//   locally with a clear message. No live call is invented, no data is faked.
+// - google_drive (T4-17) wraps the safe read wrapper listGdriveFilesReadOnly
+//   (gdrive-read Edge Function Phase 2, 'list_files' — GET-only,
+//   drive.readonly scope, whitelisted metadata, capped at 20). Missing vault
+//   credentials or a failing proxy come back as degraded, never faked.
 // - canva: manual_only sandbox, blocked — no safe read surface exists yet.
 // - meta: excluded — no safe read surface exists in repo.
 // - No secrets, no env values, no URLs live in this file.
@@ -30,6 +31,11 @@ import {
   sanitizeReadOnlyPreviewItems,
 } from './readOnlyConnectorPreview';
 import { fetchN8nData, type N8nLiveResult } from './adapters/n8n/n8nLiveService';
+import {
+  listGdriveFilesReadOnly,
+  type GdriveFileListResult,
+  type GdriveFileSummary,
+} from './adapters/drive/gdriveLiveService';
 
 export interface ReadOnlyConnectorPreviewDescriptor {
   connectorId: ReadOnlyPreviewConnectorId;
@@ -93,12 +99,16 @@ export function getReadOnlyConnectorPreviewDescriptors(): ReadOnlyConnectorPrevi
 /** Shape of the existing safe n8n read wrapper (list action). */
 export type SafeN8nWorkflowListFn = () => Promise<N8nLiveResult>;
 
+/** Shape of the safe Google Drive file-list wrapper (T4-17). */
+export type SafeGdriveFileListFn = () => Promise<GdriveFileListResult>;
+
 /**
  * Injectable dependencies — tests provide fakes so no network is ever
- * touched; the dashboard uses the defaults (the existing read-only wrapper).
+ * touched; the dashboard uses the defaults (the existing read-only wrappers).
  */
 export interface ReadOnlyConnectorPreviewCheckDeps {
   fetchN8nWorkflows?: SafeN8nWorkflowListFn;
+  listGdriveFiles?: SafeGdriveFileListFn;
   nowIso?: () => string;
 }
 
@@ -168,6 +178,44 @@ async function runN8nWorkflowPreview(
   }
 }
 
+/** Reduce one sanitized Drive file summary to a preview candidate. */
+function gdriveFileToCandidate(file: GdriveFileSummary): { id: string; name: string; summary: string } {
+  const modified = file.modifiedTime ? ` · modified ${file.modifiedTime}` : '';
+  return { id: file.id, name: file.name, summary: `${file.mimeType}${modified}` };
+}
+
+async function runGdriveFileListPreview(
+  descriptor: ReadOnlyConnectorPreviewDescriptor,
+  listFiles: SafeGdriveFileListFn,
+  checkedAt: string,
+): Promise<ReadOnlyConnectorPreviewResult> {
+  const base = baseFor(
+    descriptor,
+    checkedAt,
+    "gdriveLiveService.listGdriveFilesReadOnly (gdrive-read Edge Function, 'list_files' GET-only, metadata whitelist)",
+  );
+  try {
+    const raw = await listFiles();
+    if (!raw.ok) {
+      return createDegradedReadOnlyConnectorPreviewResult(
+        base,
+        raw.error ?? 'gdrive read proxy reported an unhealthy response.',
+        'read_proxy_unhealthy',
+      );
+    }
+    const items: ReadOnlyConnectorPreviewItem[] = sanitizeReadOnlyPreviewItems(
+      raw.files.map(gdriveFileToCandidate),
+    );
+    return createAvailableReadOnlyConnectorPreviewResult(
+      base,
+      items,
+      `${items.length} file(s) visible via the read-only proxy — a read receipt, nothing was created or changed.`,
+    );
+  } catch (err) {
+    return normalizeConnectorPreviewError(base, err);
+  }
+}
+
 /**
  * Check ONE connector's read-only preview. Only called from explicit Owner
  * actions — this module never schedules or auto-runs anything.
@@ -189,12 +237,10 @@ export async function checkReadOnlyConnectorPreview(
         checkedAt,
       );
     case 'google_drive':
-      // Phase 1 gdrive-read is health-only — a file-list preview would be
-      // rejected by the Edge Function itself. Blocked locally, never faked.
-      return createBlockedConnectorPreviewResult(
-        baseFor(descriptor, checkedAt, 'gdrive-read Edge Function (Phase 1, health-only)'),
-        'Google Drive file-list preview is not available yet — the gdrive-read Edge Function is Phase 1 (health-only). No live data is shown and none is faked.',
-        'no_list_surface_yet',
+      return runGdriveFileListPreview(
+        descriptor,
+        deps?.listGdriveFiles ?? listGdriveFilesReadOnly,
+        checkedAt,
       );
     case 'canva':
       return createBlockedConnectorPreviewResult(
