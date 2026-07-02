@@ -206,6 +206,12 @@ export interface BuildConnectorCommandParams {
   now?: Date;
   /** Injectable id prefix generator for deterministic tests. */
   idFor?: (index: number) => string;
+  /**
+   * Optional governance lookup — when provided, every built command is passed
+   * through `markBlockedByGovernance`, so a non-live target connector yields
+   * `blocked` command previews. Omitted → behavior unchanged (backward-compatible).
+   */
+  getConnectorGovernance?: (target: GovernedConnectorKey) => { activationStatus: string };
 }
 
 function commandNote(assetTitle: string): string {
@@ -256,13 +262,16 @@ export function buildConnectorCommandForItem(
  */
 export function buildConnectorCommands(params: BuildConnectorCommandParams): ConnectorCommand[] {
   const { campaignId, items, targetConnector, defaultStatus = 'ready_for_owner', now, idFor } = params;
-  return items.map((item, index) =>
+  const governanceFor = params.getConnectorGovernance;
+  const commands = items.map((item, index) =>
     buildConnectorCommandForItem(campaignId, item, targetConnector, {
       status: defaultStatus,
       now,
       id: idFor ? idFor(index) : undefined,
     }),
   );
+  if (!governanceFor) return commands;
+  return commands.map(cmd => markBlockedByGovernance(cmd, governanceFor(cmd.targetConnector).activationStatus));
 }
 
 // ---------------------------------------------------------------------------
@@ -283,6 +292,28 @@ export function setConnectorCommandStatus(
     ...command,
     status,
     safetyFlags: { ...CONNECTOR_COMMAND_SAFETY_FLAGS },
+  };
+}
+
+/**
+ * Governance gate — a command stays actionable only when its target connector's
+ * activation status is exactly `'live'`. Anything else (sandbox / mock / disabled /
+ * future_only / live_blocked / requires_owner_signoff / error / …) returns a NEW
+ * command with `status: 'blocked'` and the reason APPENDED to the existing note
+ * (never overwriting it). Safety flags are re-asserted from the immutable constant
+ * — a governance block can never flip a publish/live flag. Pure; never mutates
+ * the input command.
+ */
+export function markBlockedByGovernance(
+  cmd: ConnectorCommand,
+  activationStatus: string,
+): ConnectorCommand {
+  if (activationStatus === 'live') return cmd;
+  return {
+    ...cmd,
+    status: 'blocked',
+    safetyFlags: { ...CONNECTOR_COMMAND_SAFETY_FLAGS },
+    note: `${cmd.note} Blocked by governance: connector activation status is '${activationStatus}' (not live).`,
   };
 }
 
@@ -330,7 +361,7 @@ export function summarizeConnectorCommands(commands: ConnectorCommand[]): Connec
   };
 }
 
-/** Copyable plain-text render. Emits no URL/link; touches nothing. */
+/** Copyable plain-text render. Contains no URL/link; touches nothing. */
 export function renderConnectorCommandsText(
   commands: ConnectorCommand[],
   title = 'Connector Command Handoff',
