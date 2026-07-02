@@ -315,10 +315,13 @@ describe('ConnectorHealthLog — source guard', () => {
 // SOURCE SCAN: ConnectorDashboard.tsx — read-only command previews (T4-13)
 // ─────────────────────────────────────────────────────────────────────────────
 
-describe('ConnectorDashboard — read-only command previews (T4-13)', () => {
-  it('reads the shared snapshot from the in-memory store once on mount', () => {
-    expect(DASHBOARD).toMatch(/getConnectorCommandSnapshot/);
-    expect(DASHBOARD).toMatch(/useState\(\(\) => getConnectorCommandSnapshot\(\)\)/);
+describe('ConnectorDashboard — read-only command previews (T4-13/T4-14)', () => {
+  it('reads the shared snapshot from the in-memory store once on mount, via the VALIDATED read path', () => {
+    expect(DASHBOARD).toMatch(/getValidatedConnectorCommandSnapshot/);
+    expect(DASHBOARD).toMatch(/useState\(\(\) => getValidatedConnectorCommandSnapshot\(\)\)/);
+    expect(DASHBOARD).toMatch(/useState\(\(\) => getConnectorCommandSnapshotStatus\(\)\)/);
+    // Never the raw, unvalidated snapshot read.
+    expect(DASHBOARD).not.toMatch(/getConnectorCommandSnapshot\(\)/);
     // No polling / subscription / effects — a single read on mount.
     expect(DASHBOARD).not.toMatch(/useEffect|setInterval|setTimeout|subscribe/);
   });
@@ -335,5 +338,40 @@ describe('ConnectorDashboard — read-only command previews (T4-13)', () => {
     expect(DASHBOARD).toMatch(/snapshot \? groupCommandsByConnector\(snapshot\.commands\) : undefined/);
     // No execution wording anywhere in the dashboard shell.
     expect(DASHBOARD).not.toMatch(/execute|publish now|auto-post|auto-ads|run ads|go live/i);
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SOURCE SCAN: ConnectorDashboard.tsx — snapshot freshness + clear preview (T4-14)
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('ConnectorDashboard — snapshot freshness + clear preview (T4-14)', () => {
+  it('renders the freshness/age metadata next to the provenance line', () => {
+    expect(DASHBOARD).toMatch(/snapshotStatus\.ageLabel/);
+    expect(DASHBOARD).toMatch(/snapshotStatus\.freshness/);
+    expect(DASHBOARD).toMatch(/stale preview/);
+  });
+
+  it('surfaces the stale warning wording from the store status', () => {
+    expect(DASHBOARD).toMatch(/command-snapshot-stale-warning/);
+    expect(DASHBOARD).toMatch(/snapshotStatus\.reason/);
+  });
+
+  it('offers "Clear read-only preview" and clears only the command preview store', () => {
+    expect(DASHBOARD).toMatch(/Clear read-only preview/);
+    expect(DASHBOARD).toMatch(/clear-command-preview-btn/);
+    expect(DASHBOARD).toMatch(/clearConnectorCommandSnapshot\(\)/);
+    // Clear never reaches approvals / evidence / Brand Brain / campaign data.
+    expect(DASHBOARD).not.toMatch(/approvalRequests|publishingEvidence|brandBrain|setCampaign|coreData/i);
+  });
+
+  it('withholds a snapshot that failed re-validation instead of rendering it', () => {
+    expect(DASHBOARD).toMatch(/command-snapshot-withheld/);
+    expect(DASHBOARD).toMatch(/rebuild from the current approval state/i);
+  });
+
+  it('still brings in no storage or network capability', () => {
+    expect(DASHBOARD).not.toMatch(/localStorage|sessionStorage|indexedDB|BroadcastChannel/i);
+    expect(DASHBOARD).not.toMatch(/fetch\s*\(|axios|XMLHttpRequest|https?:\/\/|webhook/i);
   });
 });

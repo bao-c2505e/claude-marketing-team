@@ -95,10 +95,36 @@ T4-13 implemented the recommendation exactly as specified in §5:
 
 **T4-14+ future:** expiry / re-validation-against-current-approvals design before any storage persistence; optional store subscription if surfaces ever mount simultaneously; append-only receipt/acknowledgement log; real read/health connector layer design; `activationStatus='live'` governance semantics (separate recon).
 
-## 8. Out of scope until T4-14/T4-15
+## 8. Out of scope until T4-14/T4-15 (status as written at T4-13; see §9 for what T4-14 landed)
 
 - Any persistence of snapshots (Option D's storage half): requires an expiry + re-validation-against-current-approvals design first.
 - Store subscriptions / live updates between simultaneously mounted surfaces (tabs currently never coexist).
 - Receipt/acknowledgement log on the store.
 - `activationStatus='live'` governance semantics (separate recon — high semantic risk).
 - Any live connector read/health/write beyond what already exists.
+
+## 9. T4-14 implementation note (landed) — snapshot freshness & integrity hardening
+
+T4-14 hardens the T4-13 handoff **before** any real connector work. Still no persistence, no network, no execution, no App.tsx change, Phase K untouched.
+
+**Freshness helper** — `src/lib/core/connectors/connectorCommandSnapshotFreshness.ts` (pure TS, clock ALWAYS injected as `nowMs`, no `Date.now()` inside — enforced by source guard):
+- `CONNECTOR_COMMAND_SNAPSHOT_MAX_AGE_MS` = 24h default threshold (overridable per call).
+- `parseSnapshotBuiltAt` / `getConnectorSnapshotAgeMs` (future `builtAt` clamps to age 0 — clock skew never crashes or falsely stales), `getConnectorSnapshotFreshness` → `'fresh' | 'stale' | 'invalid_timestamp'` (boundary: exactly `maxAgeMs` is already stale), `isConnectorSnapshotStale` (conservative: `invalid_timestamp` also counts — an unknowable age is never trusted), `formatConnectorSnapshotAgeLabel` ("just now" / "N minutes|hours|days ago" / "unknown age").
+
+**Validation-on-read** — `connectorCommandStore.ts` additions (write validation unchanged):
+- `getValidatedConnectorCommandSnapshot()` / `getValidatedConnectorCommandsByConnector()` — re-run the T4-12 integrity guard before surfacing; a failing snapshot is **withheld (null / empty Map), never repaired**. Defensive copies kept.
+- `getConnectorCommandSnapshotStatus(nowMs?)` → `{ hasSnapshot, isValid, freshness, ageLabel, reason }`. Write validation makes a contract-invalid stored snapshot unreachable via the public API, so read validation is defense in depth; the genuinely reachable read-time case is a bad `builtAt` (provenance is not part of the contract guard) → `freshness: 'invalid_timestamp'`.
+
+**Stale preview behavior** — a stale (or unreadable-timestamp) snapshot stays visible as a read-only preview; the status flags it and the dashboard shows: *"This preview may be stale. Rebuild from the current approval state before connector work."* Staleness never hides, runs, or edits anything.
+
+**Dashboard** (`src/connectors/dashboard/ConnectorDashboard.tsx` — note: the dashboard lives here, not under `src/components/core/`):
+- Reads ONLY the validated store path + status, once on mount (still no polling/subscription/effects — source-guarded).
+- Provenance line now includes age label + freshness next to `builtBy`/`builtAt`.
+- New Owner action **"Clear read-only preview"** — calls `clearConnectorCommandSnapshot()` and resets the dashboard's local snapshot state to the empty default. It touches nothing else (approvals, publishing evidence, Brand Brain, campaign data are unaffected — the store holds only preview data).
+- A snapshot that fails re-validation on read is withheld with an explanatory line instead of being rendered.
+
+**Campaign-keyed store — intentionally deferred.** The store still holds ONE latest snapshot. A `Map<campaignId, snapshot>` with merged dashboard rendering would make the single provenance/freshness line ambiguous (whose `builtBy`/`builtAt`/age?) — exactly the T4-14 stop condition. Revisit only with a per-campaign dashboard surface design (T4-15+). Known accepted limitation: sharing previews for a second campaign replaces the first.
+
+**Re-validation against CURRENT approval state — deferred to T4-15/T4-16.** The dashboard tab has no access to live approval/campaign data without App.tsx prop threading or a global provider (both stop conditions). T4-14 therefore validates contract + provenance + freshness on read; comparing a snapshot against the approvals as they exist *now* needs a read-only approval-state access design first. This is also why **persistence still waits**: a persisted snapshot would outlive its approvals, so expiry (now available via freshness) must be paired with that approval re-validation design before Option D's storage half is safe.
+
+**T4-15 recommended next step:** real connector **read/health layer only** (no write/publish paths), building on the hardened handoff.
