@@ -1,0 +1,93 @@
+# T4-12 — Cross-tab Connector Command State Architecture Proposal
+
+- **Sprint:** T4-12 — Cross-tab Connector Command State Architecture Proposal (design + recon + contract)
+- **Baseline commit:** `df64542` (T4-11-B — receipts wire-in via section co-location)
+- **Status at baseline:** 845 passed / 0 failed / 0 skipped, 57 test files, tsc 0 error, build OK
+- **Deliverables of this sprint:** this document + pure contract (`connectorCommandSnapshot.ts`) + contract tests. **No runtime wire-in.**
+
+---
+
+## 1. Current problem
+
+T4-10-C built a read surface on the Connector Dashboard ("Approved assets targeting this connector" in `ConnectorDetailPanel`, `useConnectorDashboard(commandsByConnector?)`, `routeCommandsToItems`) — but nothing feeds it. Connector command previews are born inside `CoreV1FlowPanel` (Campaign Workspace tab) and die there. The original T4-11-A plan ("CampaignWorkspace passes a map to ConnectorDashboard") was found architecturally impossible in recon:
+
+1. `ConnectorDashboard` is **not** rendered by `CampaignWorkspace` — it is a separate top-level tab (`App.tsx:1863`, lazy, no props).
+2. `CampaignWorkspace` is **stateless by invariant** (Phase K guard: `CampaignWorkspace.source.test.ts:77` forbids `useState|useReducer`).
+3. App tabs render **conditionally** (`{activeTab === '...' && <Tab/>}`) — switching tabs **unmounts** the entire subtree, so any React state inside the workspace (including built command previews and evidence) is destroyed before the dashboard tab even mounts.
+
+So commands need a home that survives tab unmount, without making the workspace stateful and without giving anything execution capability.
+
+## 2. Recon findings (verified at `df64542`)
+
+| Question | Finding |
+|---|---|
+| Where is CoreV1 status built? | `buildCoreV1IntegrationStatus` (pure, `src/lib/core/coreV1Integration.ts`), called inside `CoreV1FlowPanel` from local campaign data + receipt props. |
+| Where are ConnectorCommands generated? | Only inside `CoreV1FlowPanel` (`buildConnectorCommands` in a `useMemo`, on explicit Owner "Build command previews" click, for ONE Owner-chosen target connector; ids regenerate per build; lifecycle overrides are local panel state). Ephemeral. |
+| Where does CoreV1FlowPanel render after T4-11-B? | Inside `ManualPublishingEvidenceSection` (first child), which `CampaignWorkspace` renders; workspace stays stateless. |
+| Who owns campaign/client/brief/content/approval/evidence data? | `App.tsx` (stateful root) owns core data via localStorage-backed `coreData.ts` hooks and passes scoped slices into the workspace tab. Manual publishing evidence lives in `ManualPublishingEvidenceSection` local state. |
+| What does the Connector Dashboard know? | Registry/health only (`MOCK_REGISTRY`, health checks). It knows nothing about campaigns or commands. |
+| Can it receive commands today? | Yes — the T4-10-C surface is ready: `useConnectorDashboard(commandsByConnector?: Map<GovernedConnectorKey, ConnectorCommand[]>)` + `routeCommandsToItems` + `ConnectorDetailPanel` `commands` prop. `ConnectorDashboard()` just never passes the param. |
+| Existing shared state/provider/store patterns? | (a) `AuthContext` — the only React context; (b) `coreData.ts` — localStorage-backed data layer; (c) `coreRepository.ts` — future repository **interface plan** (Phase 15, no implementation). No cross-tab UI state pattern exists yet; **no conflict** with the options below. |
+| Tab lifecycle | Conditional render per `activeTab` → tabs unmount on switch. Workspace and dashboard are never mounted at the same time. |
+
+## 3. Architecture options
+
+| | A. React Context | B. In-memory repository singleton | C. session/localStorage | D. Hybrid repo + storage snapshot | E. Event-driven dispatch |
+|---|---|---|---|---|---|
+| Fits current tree | Needs a new provider in `App.tsx` above tabs (App-level surgery) | Perfect — plain TS module, no tree change | No tree change | No tree change | Needs listener plumbing in both tabs |
+| Testability (no-DOM convention) | **Poor** — providers/hooks need a renderer; repo has no jsdom/testing-library by design | **Excellent** — pure unit tests | OK, but needs storage mocks | OK (repo part pure) | Poor — async ordering, listener lifecycles |
+| Phase K risk | Low (provider above workspace), but tempts future state creep | **None** — workspace untouched | None | None | None |
+| Survives tab switch | Yes (provider persists) | **Yes** (module lifetime) | Yes | Yes | Only if paired with a store anyway |
+| Survives refresh | No | **No — by design** (see §4) | Yes — but creates **stale-command risk**: storage can outlive the approvals that justified the commands; replaying an old `approved_for_manual_run` preview after approvals changed violates approval-first integrity. Needs expiry + re-validation to be safe | Optional, gated by re-validation | No |
+| Hidden-state risk | Low | Medium — mitigated by tiny explicit API, `reset()`, validation on write, contract tests | Medium (silent stale data) | Medium | **High** — invisible side effects, hardest to audit |
+| Future receipts/audit | Awkward (UI-coupled) | **Good** — snapshot carries `builtBy`/`builtAt`; store can append read/ack receipts later | Possible but conflates audit with cache | **Best long-term** (repo = truth, storage = explicit snapshot with re-validation) | Poor |
+| Complexity | Medium | **Low** | Medium (serialization/invalidation contract) | High now | High |
+| Future live read/health/write safety | Neutral | Neutral — store holds plain data, no capability | Risky (persisted "intent" objects) | Neutral | Risky |
+
+## 4. Recommended architecture — **Option B: in-memory repository singleton, speaking the snapshot contract (with D as the future evolution path)**
+
+A tiny module-level store, `connectorCommandStore` (T4-13), that holds **at most one validated `ConnectorCommandSnapshot`** (plain data). It matches the repo's strengths (pure-TS, source-scan + pure-unit test convention), touches neither `App.tsx` providers nor the Phase K invariant, and its deliberate non-persistence is a safety feature.
+
+Explicit answers:
+
+- **Where does `commandsByConnector` live?** Derived on read: the dashboard reads the stored snapshot and calls `groupCommandsByConnector(snapshot.commands)` (pure, added this sprint). The store itself holds only the snapshot.
+- **Who writes?** Only `CoreV1FlowPanel`, on an **explicit Owner action** (a "Share previews with Connector Dashboard (read-only)" action in T4-13 — sharing a preview, not sending a command; label must keep the read-only framing). The write path is: build (approval-gated) → `createConnectorCommandSnapshot` → `validateConnectorCommandSnapshot` → store accepts only `ok === true`.
+- **Who reads?** `ConnectorDashboard` (via `useConnectorDashboard`), read-on-mount — tabs never coexist, so no subscription is required in T4-13 (a `subscribe()` can be added later without breaking the API).
+- **Minimal API (T4-13):** `publishSnapshot(snapshot): ConnectorCommandSnapshotValidation` (rejects invalid), `readSnapshot(): ConnectorCommandSnapshot | null`, `clearSnapshot(): void`, `resetForTests(): void`. Nothing else.
+- **Persist across refresh?** **No.** Commands are previews *derived* from Owner approvals; after a refresh they must be rebuilt from the current approval state, never replayed from a cache that may have outlived its approvals. Losing them on refresh is correct, not a defect.
+- **How do we avoid auto-execution?** The store holds plain data with no callbacks and no side effects; every command keeps hard-false `publishesContent/launchesAds/spends/autoRuns/usesLiveConnector` and the validator rejects any tampering; readers render read-only projections (the T4-10-C surface already carries "This does not publish or emit anything.").
+- **How do we preserve approval-first?** `validateConnectorCommandSnapshot` rejects any command without `createdFromApprovedAsset === true`, any campaign mismatch, any tampered gate flag, and any unknown status (there is no `published` status). Validation runs on write; readers may re-run it.
+- **Phase K?** Untouched. Writer is the already-stateful `CoreV1FlowPanel`; reader is the dashboard hook. `CampaignWorkspace` gains no state, no imports, no changes.
+- **Future receipts?** The snapshot already carries `builtBy`/`builtAt` provenance. T4-14+ can extend the store with an append-only receipt log (e.g., `readAt`, owner acknowledgements) without changing the snapshot shape (`schemaVersion` guards migrations).
+
+## 5. T4-13 implementation plan
+
+**Files to create**
+- `src/lib/core/connectors/connectorCommandStore.ts` — module singleton implementing the minimal API above; validates on write; no persistence, no network, no React.
+- `src/lib/core/connectors/connectorCommandStore.test.ts` — pure unit: publish valid → readable; publish invalid → rejected + store unchanged; clear/reset; defensive copies; source-scan guard (no storage/network/React).
+
+**Files to edit**
+- `src/components/core/CoreV1FlowPanel.tsx` — add the explicit Owner share action (read-only framing, e.g. "Share previews with Connector Dashboard (read-only)"; never "send/emit/publish"); calls `createConnectorCommandSnapshot` + `publishSnapshot` inside the existing handler layer. No new network, no auto-share on build.
+- `src/components/core/CoreV1FlowPanel.source.test.ts` — assert share-action label present, forbidden wording still absent, `publishSnapshot` only called from an onClick handler path.
+- `src/connectors/dashboard/ConnectorDashboard.tsx` — read snapshot on mount, `groupCommandsByConnector`, pass into `useConnectorDashboard(...)`; optionally show snapshot provenance line ("previews shared by {builtBy} at {builtAt} — read-only").
+- `src/connectors/dashboard/ConnectorDashboard.test.ts` — source-scan: dashboard reads via store API only, no direct build, no network; provenance copy present.
+
+**Expected types** — already defined this sprint in `connectorCommandSnapshot.ts` (`ConnectorCommandSnapshot`, `ConnectorCommandSnapshotValidation`, `createConnectorCommandSnapshot`, `validateConnectorCommandSnapshot`, `groupCommandsByConnector`).
+
+**Safety checks (gate):** tsc 0 error; full vitest 0 failed; build OK; greps — no `fetch(|axios|XMLHttpRequest|https?://` in touched files; hard-false flag literals ≥ 10 and hard-true ≥ 6 in `connectorCommand.ts`; `CampaignWorkspace.tsx` still has 0 `useState|useReducer` and 0 `<CoreV1FlowPanel`; no `gửi lệnh|send command|emit` labels beyond negation copy.
+
+**Stop conditions:** any need to touch `App.tsx`; any subscription/effect that auto-publishes without an Owner click; validator weakened; Phase K guard touched; any persistence added.
+
+**Validation commands:** `npx tsc --noEmit` · `npx vitest run` · `npm run build` + the greps above.
+
+## 6. Safety invariants (unchanged, restated)
+
+Approval-first is mandatory · Approved ≠ Published · Client Accepted ≠ Published · Published = Owner manual evidence only · no auto-post / auto-ads / live analytics / fake metrics / secrets / real webhook URLs · connector commands never execute, and no `published` status exists for them · Phase K: `CampaignWorkspace` stays stateless · `CoreV1FlowPanel` stays inside `ManualPublishingEvidenceSection`.
+
+## 7. Out of scope until T4-14/T4-15
+
+- Any persistence of snapshots (Option D's storage half): requires an expiry + re-validation-against-current-approvals design first.
+- Store subscriptions / live updates between simultaneously mounted surfaces (tabs currently never coexist).
+- Receipt/acknowledgement log on the store.
+- `activationStatus='live'` governance semantics (separate recon — high semantic risk).
+- Any live connector read/health/write beyond what already exists.
