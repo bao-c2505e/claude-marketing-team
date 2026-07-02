@@ -3,6 +3,7 @@ import type {
   LocalConnectorStatus,
   LocalConnectorRegistryItem,
 } from '../../types/core';
+import type { ConnectorCommand } from '../../lib/core/connectors/connectorCommand';
 
 export type { LocalConnectorStatus };
 
@@ -17,6 +18,12 @@ export interface ConnectorDashboardItem {
   connector: LocalConnectorRegistryItem;
   isChecking: boolean;
   healthLog: HealthCheckEntry[];
+  /**
+   * T4-10-C: approved connector-command previews targeting this connector —
+   * a read-only projection (approval-gated handoff artifacts; nothing here
+   * publishes or runs). Undefined when no commands were routed in.
+   */
+  commands?: ConnectorCommand[];
 }
 
 export interface ConnectorSummary {

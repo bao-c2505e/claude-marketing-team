@@ -4,7 +4,9 @@ import type {
   ConnectorSummary,
   HealthCheckEntry,
 } from './connectorDashboard.types';
-import type { LocalConnectorStatus, LocalConnectorRegistryItem } from '../../types/core';
+import type { LocalConnectorStatus, LocalConnectorRegistryItem, LocalConnectorType } from '../../types/core';
+import type { ConnectorCommand } from '../../lib/core/connectors/connectorCommand';
+import type { GovernedConnectorKey } from '../../lib/core/connectors/connectorGovernance';
 import { checkN8nHealth } from '../../lib/core/connectors/adapters/n8n/n8nLiveService';
 import { checkGdriveHealth } from '../../lib/core/connectors/adapters/drive/gdriveLiveService';
 
@@ -155,7 +157,37 @@ export function appendLog(
   return [entry, ...existing].slice(0, MAX_LOG);
 }
 
-export function useConnectorDashboard() {
+// T4-10-C: which governed connector key a registry connector_type projects.
+// Registry types without a governed counterpart (anthropic / openai / gemini /
+// comfyui) never receive commands.
+const GOVERNED_KEY_BY_CONNECTOR_TYPE: Partial<Record<LocalConnectorType, GovernedConnectorKey>> = {
+  canva: 'canva',
+  meta_ads: 'meta',
+  n8n: 'n8n',
+  google_drive: 'google_drive',
+  google_sheets: 'google_sheets',
+};
+
+/**
+ * T4-10-C: route approved connector-command previews into the dashboard items —
+ * pure local data projection (no API call, nothing runs). Without a map, items
+ * are returned untouched and `commands` stays undefined.
+ */
+export function routeCommandsToItems(
+  items: ConnectorDashboardItem[],
+  commandsByConnector?: Map<GovernedConnectorKey, ConnectorCommand[]>,
+): ConnectorDashboardItem[] {
+  if (!commandsByConnector) return items;
+  return items.map(item => {
+    const key = GOVERNED_KEY_BY_CONNECTOR_TYPE[item.connector.connector_type];
+    const commands = key ? commandsByConnector.get(key) : undefined;
+    return commands ? { ...item, commands } : item;
+  });
+}
+
+export function useConnectorDashboard(
+  commandsByConnector?: Map<GovernedConnectorKey, ConnectorCommand[]>,
+) {
   const [items, setItems] = useState<ConnectorDashboardItem[]>(() =>
     MOCK_REGISTRY.map(c => ({ connector: c, isChecking: false, healthLog: [] })),
   );
@@ -272,7 +304,7 @@ export function useConnectorDashboard() {
   );
 
   return {
-    items,
+    items: routeCommandsToItems(items, commandsByConnector),
     summary: computeSummary(items),
     handleCheck,
   };

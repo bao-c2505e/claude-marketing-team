@@ -63,4 +63,33 @@ describe('CoreV1FlowPanel (CORE V1 integration closure safety guard)', () => {
   it('carries no off-domain / off-project contamination', () => {
     expect(SOURCE).not.toMatch(/Forme|sofa|furniture|nội thất|Fal\.ai|ImgBB/i);
   });
+
+  // ── T4-10-B: per-command lifecycle buttons (local state only) ──
+
+  it('offers the two lifecycle buttons — dry-run mark + manual-run approval', () => {
+    expect(SOURCE).toMatch(/Mark simulated \(dry-run\)/);
+    expect(SOURCE).toMatch(/Approve for manual run/);
+  });
+
+  it('transitions status only via the pure setConnectorCommandStatus helper', () => {
+    expect(SOURCE).toMatch(/setConnectorCommandStatus/);
+  });
+
+  it('lifecycle buttons are gated — disabled when blocked, hidden outside draft/ready_for_owner', () => {
+    expect(SOURCE).toMatch(/showLifecycle/);
+    expect(SOURCE).toMatch(/lifecycleDisabled/);
+    expect(SOURCE).toMatch(/c\.status === 'blocked'/);
+  });
+
+  it('has no emit / send-command wording in any language', () => {
+    expect(SOURCE).not.toMatch(/gửi lệnh|send command|\bemit\b/i);
+  });
+
+  it('reads evidence/review receipts from optional props, never hardcoded true', () => {
+    expect(SOURCE).toMatch(/hasManualPublishingEvidence\s*=\s*false/);
+    expect(SOURCE).toMatch(/hasReviewedResult\s*=\s*false/);
+    expect(SOURCE).not.toMatch(/hasManualPublishingEvidence:\s*true|hasReviewedResult:\s*true/);
+    // The receipts wire-in is still pending — the TODO must stay visible.
+    expect(SOURCE).toMatch(/TODO: wire in when receipts wire-in lands/);
+  });
 });

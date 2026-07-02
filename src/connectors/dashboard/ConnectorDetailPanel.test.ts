@@ -6,6 +6,11 @@ import { describe, it, expect } from 'vitest';
 
 import PANEL from './ConnectorDetailPanel.tsx?raw';
 import { getPanelActionKind, META_SANDBOX_INFO } from './ConnectorDetailPanel';
+import { routeCommandsToItems } from './useConnectorDashboard';
+import { buildConnectorCommandForItem, type ConnectorCommand } from '../../lib/core/connectors/connectorCommand';
+import type { GovernedConnectorKey } from '../../lib/core/connectors/connectorGovernance';
+import type { LocalConnectorRegistryItem, LocalConnectorType } from '../../types/core';
+import type { ConnectorDashboardItem } from './connectorDashboard.types';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PURE UNIT: getPanelActionKind (action branch per connector type)
@@ -139,5 +144,82 @@ describe('ConnectorDetailPanel — source guard', () => {
     expect(PANEL).toContain('data-testid="sandbox-config-block"');
     expect(PANEL).toContain('META_SANDBOX_INFO.appId');
     expect(PANEL).not.toContain('META_ACCESS_TOKEN');
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// T4-10-C: approved-assets projection (source guard + pure routing unit tests)
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('ConnectorDetailPanel — approved assets projection (T4-10-C)', () => {
+  it('renders the "Approved assets targeting this connector" section with empty state', () => {
+    expect(PANEL).toContain('Approved assets targeting this connector');
+    expect(PANEL).toContain('No approved assets targeting this connector yet.');
+    expect(PANEL).toContain('data-testid="approved-assets-section"');
+  });
+
+  it('carries the "does not publish or emit anything" copy', () => {
+    expect(PANEL).toContain('This does not publish or emit anything.');
+  });
+
+  it('accepts the optional read-only commands prop', () => {
+    expect(PANEL).toMatch(/commands\?:\s*ConnectorCommand\[\]/);
+    expect(PANEL).toMatch(/commands\s*=\s*\[\]/);
+  });
+
+  it('has no network / emit / publish capability beyond the negation copy', () => {
+    // Strip the one allowed negation sentence, then nothing publish/emit/network
+    // shaped may remain anywhere in the panel source.
+    const scrubbed = PANEL.replace('This does not publish or emit anything.', '');
+    expect(scrubbed).not.toMatch(/fetch\s*\(|axios|XMLHttpRequest|https?:\/\/|OAuth|webhook|\bemit\b|send command|publish/i);
+  });
+});
+
+describe('routeCommandsToItems (useConnectorDashboard, T4-10-C)', () => {
+  function dashItem(connector_type: LocalConnectorType, id: string): ConnectorDashboardItem {
+    return {
+      connector: {
+        id, name: id, connector_type, status: 'configured', mode: 'mock', description: '',
+        required_env_keys: [], last_checked_at: null, health_note: null, safety_note: null,
+        created_at: '2026-07-01T00:00:00.000Z', updated_at: '2026-07-01T00:00:00.000Z',
+      } as LocalConnectorRegistryItem,
+      isChecking: false,
+      healthLog: [],
+    };
+  }
+
+  function cmdFor(target: GovernedConnectorKey): ConnectorCommand {
+    return buildConnectorCommandForItem('camp-1', {
+      approvalId: 'appr-1', contentItemId: 'item-1', title: 'Ngày 1 — Món signature',
+      module: 'content', moduleLabel: 'Content Factory', deliveryStatus: 'not_delivered',
+      provenance: { actorLabel: 'Owner', at: '2026-07-01T09:00:00.000Z' },
+    }, target, { now: new Date('2026-07-02T10:00:00.000Z') });
+  }
+
+  it('routes commands to the matching item, including the meta → meta_ads type mapping', () => {
+    const items = [dashItem('meta_ads', 'conn-meta'), dashItem('canva', 'conn-canva'), dashItem('n8n', 'conn-n8n')];
+    const map = new Map<GovernedConnectorKey, ConnectorCommand[]>([
+      ['meta', [cmdFor('meta')]],
+      ['canva', [cmdFor('canva'), cmdFor('canva')]],
+    ]);
+    const routed = routeCommandsToItems(items, map);
+    expect(routed[0].commands).toHaveLength(1);
+    expect(routed[0].commands?.[0].targetConnector).toBe('meta');
+    expect(routed[1].commands).toHaveLength(2);
+    expect(routed[2].commands).toBeUndefined();
+  });
+
+  it('leaves items untouched when no map is passed — commands stays undefined', () => {
+    const items = [dashItem('canva', 'conn-canva')];
+    const routed = routeCommandsToItems(items);
+    expect(routed).toBe(items);
+    expect(routed[0].commands).toBeUndefined();
+  });
+
+  it('never routes commands to a non-governed connector type', () => {
+    const items = [dashItem('anthropic', 'conn-anthropic')];
+    const map = new Map<GovernedConnectorKey, ConnectorCommand[]>([['meta', [cmdFor('meta')]]]);
+    const routed = routeCommandsToItems(items, map);
+    expect(routed[0].commands).toBeUndefined();
   });
 });

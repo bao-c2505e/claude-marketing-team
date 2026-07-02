@@ -63,10 +63,12 @@ import {
 } from '../../lib/core/coreV1Integration';
 import {
   buildConnectorCommands,
+  setConnectorCommandStatus,
   summarizeConnectorCommands,
   renderConnectorCommandsText,
   suggestConnectorForModule,
   connectorTargetLabel,
+  type ConnectorCommandStatus,
   CONNECTOR_COMMAND_TARGETS,
   CONNECTOR_COMMAND_STATUS_LABEL,
   CONNECTOR_COMMAND_STATUS_COLOR,
@@ -91,6 +93,15 @@ interface Props {
   approvalEvents: ContentApprovalEvent[];
   userRole: RoleName | null;
   actorLabel: string;
+  /**
+   * Receipt signals for the 9-stage flow projection. The truthy source is OWNED
+   * by the sibling stateful section (ManualPublishingEvidenceSection) — until a
+   * receipts wire-in lifts that state to the parent, callers omit these and the
+   * stages honestly show as manual-required / pending.
+   * TODO: wire in when receipts wire-in lands
+   */
+  hasManualPublishingEvidence?: boolean;
+  hasReviewedResult?: boolean;
 }
 
 const LEDGER_SUMMARY = buildConnectorLedgerSummary();
@@ -126,11 +137,16 @@ export default function CoreV1FlowPanel({
   campaign, client, brand, briefs,
   contentItems, approvalRequests, approvalEvents,
   userRole,
+  hasManualPublishingEvidence = false,
+  hasReviewedResult = false,
 }: Props) {
   const canBuild = can.exportPacks(userRole);
 
   const [target, setTarget] = useState<GovernedConnectorKey>('canva');
   const [built, setBuilt] = useState<boolean>(false);
+  // Local-only lifecycle overrides for built command previews (keyed by command id).
+  // Purely presentational state — never persisted, never sent anywhere.
+  const [statusOverrides, setStatusOverrides] = useState<Record<string, ConnectorCommandStatus>>({});
   const [copiedFlow, setCopiedFlow] = useState(false);
   const [copiedCmds, setCopiedCmds] = useState(false);
 
@@ -157,10 +173,17 @@ export default function CoreV1FlowPanel({
   const suggested = approvedItems.length > 0 ? suggestConnectorForModule(approvedItems[0].module) : 'canva';
 
   // ── Connector command previews (built on demand, approval-gated). ──
-  const commands = useMemo(() => {
+  const baseCommands = useMemo(() => {
     if (!built || approvedItems.length === 0) return [];
     return buildConnectorCommands({ campaignId: campaign.id, items: approvedItems, targetConnector: target });
   }, [built, approvedItems, campaign.id, target]);
+
+  // Apply the Owner's local lifecycle choices via the pure status transition —
+  // safety flags are re-asserted on every transition and never change.
+  const commands = useMemo(
+    () => baseCommands.map(c => (statusOverrides[c.id] ? setConnectorCommandStatus(c, statusOverrides[c.id]) : c)),
+    [baseCommands, statusOverrides],
+  );
 
   const cmdSummary = useMemo(() => summarizeConnectorCommands(commands), [commands]);
 
@@ -175,23 +198,33 @@ export default function CoreV1FlowPanel({
     approvedCount: approvedItems.length,
     connectorCommandCount: commands.length,
     blockedConnectorCommandCount: cmdSummary.blocked,
-    // Evidence / review / learning / proposal / apply are owned by the sibling
-    // stateful section — this display panel can't read that local state, so those
-    // stages honestly show as manual-required / pending here.
-    hasManualPublishingEvidence: false,
-    hasReviewedResult: false,
+    // Evidence / review receipts come from optional props (default false) — the
+    // truthy source is owned by the sibling stateful section and is not lifted yet.
+    // TODO: wire in when receipts wire-in lands
+    hasManualPublishingEvidence,
+    hasReviewedResult,
+    // Learning / proposal / apply are owned by the sibling stateful section —
+    // this display panel can't read that local state, so those stages honestly
+    // show as manual-required / pending here.
     learningCandidateCount: 0,
     hasBrandBrainProposal: false,
     proposalApproved: false,
     appliedNewVersion: false,
-  }), [activeContext, contentItems.length, pendingApprovalCount, approvedItems.length, commands.length, cmdSummary.blocked]);
+  }), [activeContext, contentItems.length, pendingApprovalCount, approvedItems.length, commands.length, cmdSummary.blocked, hasManualPublishingEvidence, hasReviewedResult]);
 
   const flowSummary = summarizeCoreV1Flow(flowStates);
 
   const handleBuild = useCallback(() => {
     if (!canBuild) return;
     setBuilt(true);
+    setStatusOverrides({});
   }, [canBuild]);
+
+  // Owner's per-command lifecycle choice — local state only. Marking a preview
+  // simulated / approved-for-manual-run never runs, publishes, or sends anything.
+  const markCommandStatus = useCallback((id: string, status: ConnectorCommandStatus) => {
+    setStatusOverrides(prev => ({ ...prev, [id]: status }));
+  }, []);
 
   const copyText = async (text: string, mark: (v: boolean) => void) => {
     try {
@@ -269,7 +302,7 @@ export default function CoreV1FlowPanel({
               <label style={{ fontSize: '0.74rem', color: 'var(--text-secondary)' }}>Target connector:</label>
               <select
                 value={target}
-                onChange={e => { setTarget(e.target.value as GovernedConnectorKey); setBuilt(false); }}
+                onChange={e => { setTarget(e.target.value as GovernedConnectorKey); setBuilt(false); setStatusOverrides({}); }}
                 className="form-control"
                 style={{ fontSize: '0.78rem', padding: '5px 8px', width: 'auto' }}
               >
@@ -297,19 +330,52 @@ export default function CoreV1FlowPanel({
             {built && commands.length > 0 && (
               <>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '10px' }}>
-                  {commands.map(c => (
-                    <div key={c.id} className="op-row" style={{ padding: '9px 11px', alignItems: 'center' }}>
-                      <div style={{ minWidth: 0 }}>
-                        <div style={{ fontSize: '0.79rem', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {c.sourceAssetTypeLabel} <ArrowRight size={11} style={{ verticalAlign: '-1px' }} /> {c.targetConnectorLabel}: {c.sourceAssetTitle}
+                  {commands.map(c => {
+                    // Lifecycle buttons: enabled for draft / ready_for_owner, shown
+                    // disabled when blocked, hidden once the Owner already chose.
+                    const showLifecycle = c.status === 'draft' || c.status === 'ready_for_owner' || c.status === 'blocked';
+                    const lifecycleDisabled = c.status === 'blocked';
+                    const lifecycleBtnStyle: React.CSSProperties = {
+                      padding: '4px 9px', borderRadius: '6px', fontSize: '0.68rem', fontWeight: 600,
+                      background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border-color)',
+                      color: lifecycleDisabled ? 'var(--text-muted)' : 'var(--text-secondary)',
+                      cursor: lifecycleDisabled ? 'not-allowed' : 'pointer',
+                      opacity: lifecycleDisabled ? 0.5 : 1, whiteSpace: 'nowrap',
+                    };
+                    return (
+                      <div key={c.id} className="op-row" style={{ padding: '9px 11px', alignItems: 'center' }}>
+                        <div style={{ minWidth: 0 }}>
+                          <div style={{ fontSize: '0.79rem', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {c.sourceAssetTypeLabel} <ArrowRight size={11} style={{ verticalAlign: '-1px' }} /> {c.targetConnectorLabel}: {c.sourceAssetTitle}
+                          </div>
+                          <div style={{ fontSize: '0.66rem', color: 'var(--text-muted)' }}>
+                            from approved asset {c.sourceApprovalId} · approved by {c.approvalEvidence.approvedBy}
+                          </div>
                         </div>
-                        <div style={{ fontSize: '0.66rem', color: 'var(--text-muted)' }}>
-                          from approved asset {c.sourceApprovalId} · approved by {c.approvalEvidence.approvedBy}
+                        <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                          {showLifecycle && (
+                            <>
+                              <button
+                                disabled={lifecycleDisabled}
+                                onClick={() => markCommandStatus(c.id, 'simulated')}
+                                style={lifecycleBtnStyle}
+                              >
+                                Mark simulated (dry-run)
+                              </button>
+                              <button
+                                disabled={lifecycleDisabled}
+                                onClick={() => markCommandStatus(c.id, 'approved_for_manual_run')}
+                                style={lifecycleBtnStyle}
+                              >
+                                Approve for manual run
+                              </button>
+                            </>
+                          )}
+                          <Badge label={CONNECTOR_COMMAND_STATUS_LABEL[c.status]} color={CONNECTOR_COMMAND_STATUS_COLOR[c.status]} />
                         </div>
                       </div>
-                      <Badge label={CONNECTOR_COMMAND_STATUS_LABEL[c.status]} color={CONNECTOR_COMMAND_STATUS_COLOR[c.status]} />
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
                 <button
                   onClick={() => copyText(renderConnectorCommandsText(commands, campaign.name), setCopiedCmds)}

@@ -4,6 +4,8 @@ import type { HealthCheckEntry } from './connectorDashboard.types';
 import { isLiveCheckSupported } from './connectorDashboard.types';
 import { StatusBadge, ModeBadge } from './connectorBadges';
 import { ConnectorHealthLog } from './ConnectorHealthLog';
+import type { ConnectorCommand, ConnectorCommandStatus } from '../../lib/core/connectors/connectorCommand';
+import { CONNECTOR_COMMAND_STATUS_LABEL } from '../../lib/core/connectors/connectorCommand';
 
 interface Props {
   item: LocalConnectorRegistryItem | null;
@@ -11,7 +13,21 @@ interface Props {
   isChecking: boolean;
   onClose: () => void;
   onCheck: (id: string) => void;
+  /**
+   * T4-10-C: approved connector-command previews targeting this connector —
+   * rendered as a read-only projection only. Nothing in this panel runs them.
+   */
+  commands?: ConnectorCommand[];
 }
+
+// Reuse the existing badge classes (connectorBadges.tsx palette) per lifecycle status.
+const COMMAND_STATUS_BADGE_CLASS: Record<ConnectorCommandStatus, string> = {
+  draft: 'badge-gray',
+  ready_for_owner: 'badge-blue',
+  approved_for_manual_run: 'badge-amber',
+  simulated: 'badge-purple',
+  blocked: 'badge-rose',
+};
 
 export type PanelActionKind = 'recheck' | 'sandbox' | 'simulate';
 
@@ -29,7 +45,7 @@ export const META_SANDBOX_INFO = {
   timezone: 'Asia/Ho_Chi_Minh',
 } as const;
 
-export function ConnectorDetailPanel({ item, healthLog, isChecking, onClose, onCheck }: Props) {
+export function ConnectorDetailPanel({ item, healthLog, isChecking, onClose, onCheck, commands = [] }: Props) {
   const isOpen = item !== null;
   const closeBtnRef = useRef<HTMLButtonElement>(null);
   const [showSandbox, setShowSandbox] = useState(false);
@@ -187,6 +203,52 @@ export function ConnectorDetailPanel({ item, healthLog, isChecking, onClose, onC
                   </p>
                 ) : (
                   <ConnectorHealthLog log={healthLog} />
+                )}
+              </div>
+
+              {/* T4-10-C: approved assets projection (read-only) */}
+              <div data-testid="approved-assets-section">
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginBottom: 6 }}>
+                  <p style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', margin: 0 }}>
+                    Approved assets targeting this connector
+                  </p>
+                  <span className="badge badge-gray">{commands.length}</span>
+                </div>
+                <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', margin: '0 0 6px' }}>
+                  Read-only projection of approval-gated command previews. This does not publish or emit anything.
+                </p>
+                {commands.length === 0 ? (
+                  <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: 0 }}>
+                    No approved assets targeting this connector yet.
+                  </p>
+                ) : (
+                  <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    {commands.map(c => (
+                      <li
+                        key={c.id}
+                        style={{
+                          display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
+                          flexWrap: 'wrap', padding: '8px 10px', borderRadius: 8,
+                          border: '1px solid rgba(255,255,255,0.12)', background: 'var(--surface-2, rgba(255,255,255,0.04))',
+                        }}
+                      >
+                        <div style={{ minWidth: 0 }}>
+                          <p style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-primary)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {c.sourceAssetTitle}
+                          </p>
+                          <p style={{ fontSize: '0.68rem', color: 'var(--text-muted)', margin: '2px 0 0' }}>
+                            created {new Date(c.createdAt).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                          <span className="badge badge-gray">{c.sourceAssetTypeLabel}</span>
+                          <span className={`badge ${COMMAND_STATUS_BADGE_CLASS[c.status]}`}>
+                            {CONNECTOR_COMMAND_STATUS_LABEL[c.status]}
+                          </span>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
                 )}
               </div>
 
